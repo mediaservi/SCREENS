@@ -107,7 +107,7 @@
       '<div class="bk-vent-cu"><div class="rot">' + esc(l.pyc) + '</div><div class="fila"><input type="text" class="pide" data-pr="proy" maxlength="80" value="' + esc(e.proy || '') + '" placeholder="' + esc(l.nombre) + '" aria-label="' + esc(l.nombre) + '"><input type="text" class="pide" data-pr="cliente" maxlength="80" value="' + esc(e.cliente || '') + '" placeholder="' + esc(l.cliente) + '" aria-label="' + esc(l.cliente) + '"></div>' +
       '<div class="rot">' + esc(l.obs) + '</div><textarea class="pide obs" data-pr="obs" maxlength="900" rows="4" placeholder="' + esc(l.obsPh) + '" aria-label="' + esc(l.obs) + '">' + esc(e.obs || '') + '</textarea><p class="nota">' + esc(l.ayudaPr) + '</p>' +
       '<div class="fila fin"><button type="button" class="pri" data-bk="cierra">' + esc(l.listo) + '</button></div></div></div>';
-    VENT = 'proyecto'; v.classList.add('on'); var f = v.querySelector('[data-pr="proy"]'); if (f) f.focus(); }
+    VENT = 'proyecto'; v.classList.add('on'); var f = v.querySelector('[data-pr="proy"]'); if (f) f.focus({ preventScroll: true }); }
   function info() { var l = L(), v = velo();
     v.innerHTML = '<div class="bk-vent ajustes" role="dialog" aria-modal="true" aria-label="' + esc(l.info) + '"><div class="bk-vent-cab"><span class="ic ic-info" aria-hidden="true"></span><span>' + esc(l.infoT) + '</span><span class="sep"></span><button type="button" class="ic-bt" data-bk="cierra" title="' + esc(l.cierra) + '" aria-label="' + esc(l.cierra) + '">' + IC.x + '</button></div>' +
       '<div class="bk-vent-cu info">' + l.infoH + '<div class="fila fin"><button type="button" class="tog" data-bk="guia">' + esc(l.guiaB) + '</button><a class="tog" href="https://github.com/mediaservi/SCREENS#readme" target="_blank" rel="noopener">' + esc(l.manual) + '</a><button type="button" class="pri" data-bk="cierra">' + esc(l.listo) + '</button></div></div></div>';
@@ -138,7 +138,7 @@
     var bt = function (k, ic, s) { return '<button type="button" class="tog pv-bt" data-pv="' + k + '" title="' + esc(s) + '" aria-label="' + esc(s) + '">' + ic + '<span>' + esc(s) + '</span></button>'; };
     v.innerHTML = '<div class="bk-vent previa" role="dialog" aria-modal="true" aria-label="' + esc(l.vpdf) + '"><div class="bk-vent-cab">' + IC.pdf + '<span class="pv-tit">' + esc(l.vpdf) + '</span><span class="sep"></span>' + bt('completa', IC.completa, l.completa) + bt('imprime', IC.imprime, l.imprime) + bt('guarda', IC.guarda, l.guarda) + bt('cierra', IC.x, l.cierra) + '</div>' +
       '<div class="bk-vent-cu pv-hojas">' + pv.paginas.map(function (s, i) { return '<img class="pv-hoja" src="' + s + '" alt="' + (i + 1) + ' / ' + pv.paginas.length + '">'; }).join('') + '</div></div>';
-    VENT = 'pdf'; v.classList.add('on'); var g = v.querySelector('[data-pv="guarda"]'); if (g) g.focus(); }
+    VENT = 'pdf'; v.classList.add('on'); var g = v.querySelector('[data-pv="guarda"]'); if (g) g.focus({ preventScroll: true }); }
   function ajustaPv() { var w = $('.bk-vent.previa'); if (!w) return; var l = L(), full = w.classList.contains('completa'), b = w.querySelector('[data-pv="completa"]'); if (b) { var s = full ? l.salir : l.completa; b.innerHTML = (full ? IC.normal : IC.completa) + '<span>' + esc(s) + '</span>'; b.title = s; b.setAttribute('aria-label', s); } }
   function accionPv(k) { var w = $('.bk-vent.previa'); if (!w || !PV) return; var l = L();
     if (k === 'cierra') { cierra(); return; }

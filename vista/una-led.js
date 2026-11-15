@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.50';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.51';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.50';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.51';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.50';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.51';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.50';
+const TEXV = '?v=10.51';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -295,7 +295,7 @@ function svgRejilla(tipo) {
   const tf = Math.max(9, Math.min(22, Math.min(cw, chh) * .42)), cx = (c) => px + c * cw + cw / 2, cy = (f) => py + (r.rows - 1 - f) * chh + chh / 2, CAB = sen ? COL_SENAL.eth : COL_SENAL.power, tc = 'currentColor';
   let g = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color:var(--txt)" role="img" aria-label="${sen ? 'Reparto de cabinets por puerto de datos' : 'Reparto de cabinets por línea eléctrica'}">`;
   g += `<defs><marker id="fl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#0b0b10"/></marker></defs>`;
-  for (let f = 0; f < r.rows; f++) for (let c = 0; c < r.cols; c++) { const i = de(c, f), col = COLS[i % COLS.length]; g += `<rect x="${px + c * cw + .6}" y="${py + (r.rows - 1 - f) * chh + .6}" width="${cw - 1.2}" height="${chh - 1.2}" fill="${col}" fill-opacity=".8" stroke="rgba(0,0,0,.35)"/>`;
+  for (let f = 0; f < r.rows; f++) for (let c = 0; c < r.cols; c++) { const i = de(c, f), col = COLS[i % COLS.length]; g += `<rect x="${px + c * cw + .6}" y="${py + (r.rows - 1 - f) * chh + .6}" width="${Math.max(.1, cw - 1.2)}" height="${Math.max(.1, chh - 1.2)}" fill="${col}" fill-opacity=".8" stroke="rgba(0,0,0,.35)"/>`;
     if (cw > 20 && chh > 16) g += `<text x="${px + c * cw + cw * .2}" y="${py + (r.rows - 1 - f) * chh + tf * .62 + chh * .08}" text-anchor="middle" font-size="${tf * .62}" font-weight="800" fill="#0b0b10" fill-opacity=".72" font-family="Inter, sans-serif">${i + 1}</text>`; }
   const gr = Math.max(1.6, Math.min(5, Math.min(cw, chh) * .09));
   rutas.forEach((ru) => { if (!ru.length) return; g += `<polyline points="${ru.map(([c, f]) => cx(c).toFixed(1) + ',' + cy(f).toFixed(1)).join(' ')}" fill="none" stroke="#0b0b10" stroke-opacity=".82" stroke-width="${gr}" stroke-linejoin="round" stroke-linecap="round"${ru.length > 1 ? ' marker-end="url(#fl)"' : ''}/>`; });
@@ -788,7 +788,7 @@ function previa(pv) {
   const v = $('#velo'), b = (k, ic, txt) => `<button type="button" class="tog pv-bt" data-pv="${k}" title="${txt}" aria-label="${txt}">${IC[ic]}<span>${txt}</span></button>`;
   v.innerHTML = `<div class="vent previa" role="dialog" aria-modal="true" aria-label="Vista previa del PDF"><div class="vent-cab">${IC.pdf.replace('<svg', '<svg style="width:1.2em;height:1.2em;flex:none"')}<span class="pv-tit">Vista previa del PDF</span><span class="sep"></span>${b('completa', 'completa', 'Pantalla completa')}${b('imprime', 'imprime', 'Imprimir')}${b('guarda', 'guarda', 'Guardar')}${b('cierra', 'x', 'Cerrar')}</div>
     <div class="vent-cu pv-hojas">${pv.paginas.map((src, i) => `<img class="pv-hoja" src="${src}" alt="Hoja ${i + 1} de ${pv.paginas.length}">`).join('')}</div></div>`;
-  VENT = { que: 'pdf' }; v.classList.add('on'); const c = v.querySelector('[data-pv="guarda"]'); if (c) c.focus(); ajustaPv();
+  VENT = { que: 'pdf' }; v.classList.add('on'); const c = v.querySelector('[data-pv="guarda"]'); if (c) c.focus({ preventScroll: true }); ajustaPv();
 }
 function sueltaPv() { if (PV && PV.url) URL.revokeObjectURL(PV.url); PV = null; }
 const enCompleta = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -844,3 +844,7 @@ cargarEquipos(() => { if (R) todo(); });
 cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); });
 window.__blocks = { E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();
+/* v10.51 · COSIDO y MANGUERA (SEÑAL y ELÉCTRICO) caben siempre en su dibujo: si la fila es más ancha que el lienzo, se reduce entera (también en «Ver en grande») */
+(() => { let pend = 0; const encaja = () => { pend = 0; document.querySelectorAll('.cosidos, .mangas').forEach((f) => { const p = f.parentElement; if (!p || !p.clientWidth) return; f.style.transform = ''; const w = f.scrollWidth, max = p.clientWidth * .96; f.style.transformOrigin = '50% 0'; if (w > max) f.style.transform = `translateX(-50%) scale(${(max / w).toFixed(3)})`; }); };
+  const pide = () => { if (!pend) pend = requestAnimationFrame(encaja); };
+  try { new MutationObserver(pide).observe(document.body, { childList: true, subtree: true }); } catch (e) {} addEventListener('resize', pide); pide(); })();

@@ -12,7 +12,7 @@
    Textos propios en español, inglés y catalán. Licencia GPL-3.0 · mediaservi.com */
 import { HUMAN_PATH } from '../screens/figura.js';
 
-const VERSION = 'v10.50';
+const VERSION = 'v10.51';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -328,7 +328,7 @@ function simProy(prop, ancho) {
   if (m === 'sala') {   /* sala entera: planta con las paredes iluminadas */
     const A = Math.max(1, +E.esp.ancho || 1), F = Math.max(1, +E.esp.fondo || 1), VW = 1000, VH = Math.round(VW / Math.max(.9, Math.min(2.6, prop || 1.6))), k = Math.min((VW - 300) / A, (VH - 160) / F), x0 = (VW - A * k) / 2, y0 = (VH - F * k) / 2 - 6, P2 = E.esp.paredes, on = 'var(--ss-acento)', off = 'var(--ss-linea)';
     const muro = (x1, y1, x2, y2, p) => { const v = x1 === x2, an = v ? (x1 < VW / 2 ? 'end' : 'start') : 'middle', tx = v ? x1 + (x1 < VW / 2 ? -20 : 20) : (x1 + x2) / 2, ty = v ? (y1 + y2) / 2 + 8 : y1 + (y1 < VH / 2 ? -18 : 36);
-      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P2[p] ? on : off}" stroke-width="${P2[p] ? 12 : 6}" stroke-linecap="round"/>` + (P2[p] ? `<text x="${tx}" y="${ty}" text-anchor="${an}" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>` : ''); };
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P2[p] ? on : off}" stroke-width="${P2[p] ? 12 : 6}" stroke-linecap="round"/>` + (P2[p] ? (v ? `<text x="${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)}" y="${(y1 + y2) / 2}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${x1 < VW / 2 ? -90 : 90} ${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)} ${(y1 + y2) / 2})" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>` : `<text x="${tx}" y="${ty}" text-anchor="${an}" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>`) : ''); };   /* v10.51 · izquierda y derecha, en vertical junto a su pared: caben siempre */
     let g = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(t('sim'))}">`;
     g += `<rect x="${x0}" y="${y0}" width="${A * k}" height="${F * k}" fill="${P2.suelo ? 'color-mix(in srgb, var(--ss-acento) 16%, transparent)' : 'var(--ss-campo)'}" rx="4"/>`;
     g += muro(x0, y0, x0 + A * k, y0, 'frontal') + muro(x0, y0, x0, y0 + F * k, 'izquierda') + muro(x0 + A * k, y0, x0 + A * k, y0 + F * k, 'derecha') + muro(x0, y0 + F * k, x0 + A * k, y0 + F * k, 'trasera');

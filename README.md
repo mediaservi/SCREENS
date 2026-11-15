@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.50** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.51** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -69,7 +69,20 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.50)
+## Cambios de la versión actual (v10.51)
+
+Correcciones de la auditoría en el móvil en vertical (412 × 839, 390 × 844 y 360 × 740):
+
+- **Consola · vista previa del PDF:** en el móvil la cabecera va en una fila de iconos y las hojas a todo el ancho; al abrirse ya no se desplaza (antes las hojas quedaban fuera de la vista y la previa parecía vacía).
+- **Portada PRO · SEÑAL y ELÉCTRICO:** las filas COSIDO y MANGUERA se reducen enteras si no caben en el dibujo (también en «Ver en grande»); ya no se cortan por los lados.
+- **Datos del proyecto:** las opciones pasan a dos líneas en vez de encoger o cortarse («NO LO SÉ», «DON'T KNOW»); VER EL PDF va a lo ancho y LISTA DE MATERIAL y CERRAR debajo.
+- **Lista de material en grande:** cantidad y referencia en una línea y la descripción debajo, a todo el ancho; el contador «6 / 7» no se parte.
+- **Sala inmersiva:** la posición del obstáculo nuevo sale redondeada (antes «2.0999999999999996 m»).
+- **Anchos muy grandes (300 m o más):** sin errores en la consola del navegador.
+- **SIMPLE · sala entera:** «Izquierda» y «Derecha» van en vertical junto a su pared y se leen enteras.
+- **Aviso legal:** se abre por el principio.
+
+### v10.50
 
 **SIMPLE con las cabeceras de PRO.** Las cabeceras y el pie son los de PRO en los dos modos, con todos sus iconos, las marcas de la familia AVHUB y sus enlaces. El interruptor solo cambia el cuerpo de la página.
 

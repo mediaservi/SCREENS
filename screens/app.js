@@ -5,13 +5,13 @@ import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, analiza
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.50';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.51';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.50';
+const VERSION = 'v10.51';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -900,7 +900,7 @@ document.addEventListener('click', (ev) => {
   if (a === 'reset-esp') { E.esp = DEF().esp; actualizar(); return; }
   if (a === 'obst-add') { const e = E.esp; e.obst = e.obst || [];
     e.obst.push(b.dataset.tipo === 'puerta' ? { tipo: 'puerta', pared: e.paredes.trasera ? 'trasera' : 'frontal', x: 0.4, ancho: 0.9, alto: 2.1 }
-      : { tipo: 'obstaculo', x: e.tipo === 'sala' ? e.ancho * 0.3 : 1.5, z: e.tipo === 'sala' ? e.fondo * 0.35 : 2, ancho: 0.4, fondo: 0.4, alto: e.tipo === 'sala' ? e.alto : 3 });
+      : { tipo: 'obstaculo', x: e.tipo === 'sala' ? Math.round(e.ancho * 0.3 * 10) / 10 : 1.5, z: e.tipo === 'sala' ? Math.round(e.fondo * 0.35 * 10) / 10 : 2, ancho: 0.4, fondo: 0.4, alto: e.tipo === 'sala' ? e.alto : 3 });
     actualizar(); return; }
   if (a === 'obst-del') { E.esp.obst.splice(Number(b.dataset.i), 1); actualizar(); return; }
   if (a === 'reintentar') { estadoCat = 'cargando'; actualizar(); cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); }); return; }   // v10.48

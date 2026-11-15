@@ -217,6 +217,15 @@ html.piel .f1r { justify-content: flex-end; gap: 10px; }
 .pv-hojas { align-items: center; background: #3a3b40; gap: 18px; padding: 22px; }
 .pv-hoja { display: block; width: min(100%, calc((80dvh - 120px) * 210 / 297 * 1.6)); height: auto; background: #fff; box-shadow: 0 6px 24px rgba(0, 0, 0, .5); border-radius: 2px; }
 .bk-vent.previa.completa .pv-hoja { width: min(100%, calc(100dvh * 210 / 297 * 1.4)); }
+/* v10.51 · vista previa del PDF en el móvil: la cabecera en una fila de iconos (como en la portada) y las hojas a lo ancho */
+@media (max-width: 900px), (max-height: 520px) {
+  .bk-vent { width: 94vw; height: 90dvh; }
+  .bk-vent.previa .pv-bt span { display: none; }
+  .bk-vent.previa .pv-bt { padding-inline: 10px; min-width: 40px; justify-content: center; }
+  .bk-vent.previa .bk-vent-cab { gap: 6px; padding: 10px 12px; }
+  .pv-hojas { padding: 12px; gap: 12px; }
+  .pv-hoja { width: 100%; }
+}
 .bk-tostada { position: fixed; left: 50%; bottom: 90px; z-index: 9500; transform: translate(-50%, 14px); max-width: 80vw; padding: 12px 22px; border-radius: 12px; background: #101114; color: #fff; border: 1px solid #4fdc62;
   font: 700 16px/1.35 Inter, system-ui, sans-serif; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; }
 .bk-tostada.on { opacity: 1; transform: translate(-50%, 0); }

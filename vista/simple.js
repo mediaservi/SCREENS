@@ -11,8 +11,9 @@
    Quien ya usaba SCREENS (ya vio la guía de PRO) entra en PRO; quien llega por primera vez, en SIMPLE con el asistente.
    Textos propios en español, inglés y catalán. Licencia GPL-3.0 · mediaservi.com */
 import { HUMAN_PATH } from '../screens/figura.js';
+import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.51';
+const VERSION = 'v10.52';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -81,7 +82,7 @@ const T = {
     lProy: 'TU PROYECCIÓN', lSala: 'TU SALA', proys: (n) => (n === 1 ? '1 proyector' : n + ' proyectores'),
     semV: 'Se verá bien con esta luz.', semA: (a) => 'Se verá algo lavada: ' + a + '.', semR: (a) => 'Se verá muy lavada: ' + a + '.', accLuz: 'baja la luz', accMas: 'haz la imagen más pequeña o añade un proyector',
     pNoCabe: 'No hay un buen sitio para el proyector con estas medidas: cambia la distancia o míralo en PRO.',
-    kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, kCon: 'Contraste', kConS: (lx) => 'Con ' + lx + ' lx en el sitio',
+    kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, sOpt: 'Óptica', sPdist: 'Proyector a la pared', sPdistM: 'Proyector a la fachada', vAutoC: 'automática', qOpt: '¿Qué óptica lleva el proyector?', ayOpt: 'Este proyector lleva la óptica aparte. Cada una da esta imagen desde una distancia distinta.', oAuto: ['Automática', 'La que mejor encaja'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: '¿A qué distancia va el proyector?', ayPdistL: (o, a, b) => 'Con la óptica ' + o + ', para esta imagen puede estar entre ' + a + ' y ' + b + ' m.', ayPdistA: 'Pon la distancia que tengas y se elige la óptica que da esta imagen desde ahí.', noSeAuto: ['No lo sé', 'Que la elija el cálculo'], lOpt: 'óptica', kCon: 'Contraste', kConS: (lx) => 'Con ' + lx + ' lx en el sitio',
     kDis: 'A la pared', kDisF: 'A la fachada', kDisC: 'Colgado del techo', kDisA: 'Apoyado en una mesa', kBri: 'Brillo', kBriS: 'En las superficies', kRes: 'Imagen', kResS: (w, h) => w + ' × ' + h + ' px nativos',
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
@@ -128,7 +129,7 @@ const T = {
     lProy: 'YOUR PROJECTION', lSala: 'YOUR ROOM', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
     semV: 'It will look good with this light.', semA: (a) => 'It will look a bit washed out: ' + a + '.', semR: (a) => 'It will look very washed out: ' + a + '.', accLuz: 'dim the lights', accMas: 'make the image smaller or add a projector',
     pNoCabe: 'There is no good spot for the projector with these sizes: change the distance or check it in PRO.',
-    kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', kCon: 'Contrast', kConS: (lx) => 'With ' + lx + ' lx in the place',
+    kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', sOpt: 'Lens', sPdist: 'Projector to wall', sPdistM: 'Projector to façade', vAutoC: 'automatic', qOpt: 'Which lens does the projector use?', ayOpt: 'This projector takes a separate lens. Each one gives this image from a different distance.', oAuto: ['Automatic', 'The best fit'], oOptD: (a, b) => (a === b ? 'at ' + a + ' m' : 'from ' + a + ' to ' + b + ' m'), qPdist: 'How far away is the projector?', ayPdistL: (o, a, b) => 'With the ' + o + ' lens, for this image it can be between ' + a + ' and ' + b + ' m away.', ayPdistA: 'Enter the distance you have and the lens that gives this image from there is chosen.', noSeAuto: ['I don’t know', 'Let the calculation choose'], lOpt: 'lens', kCon: 'Contrast', kConS: (lx) => 'With ' + lx + ' lx in the place',
     kDis: 'To the wall', kDisF: 'To the façade', kDisC: 'Hanging from the ceiling', kDisA: 'On a table', kBri: 'Brightness', kBriS: 'On the surfaces', kRes: 'Image', kResS: (w, h) => w + ' × ' + h + ' px native',
     pers: '1.75 m person', proy: 'Projector'
   },
@@ -175,7 +176,7 @@ const T = {
     lProy: 'LA TEVA PROJECCIÓ', lSala: 'LA TEVA SALA', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
     semV: 'Es veurà bé amb aquesta llum.', semA: (a) => 'Es veurà una mica rentada: ' + a + '.', semR: (a) => 'Es veurà molt rentada: ' + a + '.', accLuz: 'abaixa la llum', accMas: 'fes la imatge més petita o afegeix un projector',
     pNoCabe: 'No hi ha un bon lloc per al projector amb aquestes mides: canvia la distància o mira-ho en PRO.',
-    kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, kCon: 'Contrast', kConS: (lx) => 'Amb ' + lx + ' lx al lloc',
+    kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, sOpt: 'Òptica', sPdist: 'Projector a la paret', sPdistM: 'Projector a la façana', vAutoC: 'automàtica', qOpt: 'Quina òptica porta el projector?', ayOpt: 'Aquest projector porta l’òptica a part. Cadascuna dona aquesta imatge des d’una distància diferent.', oAuto: ['Automàtica', 'La que encaixa millor'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: 'A quina distància va el projector?', ayPdistL: (o, a, b) => 'Amb l’òptica ' + o + ', per a aquesta imatge pot estar entre ' + a + ' i ' + b + ' m.', ayPdistA: 'Posa la distància que tinguis i es tria l’òptica que dona aquesta imatge des d’allà.', noSeAuto: ['No ho sé', 'Que la triï el càlcul'], lOpt: 'òptica', kCon: 'Contrast', kConS: (lx) => 'Amb ' + lx + ' lx al lloc',
     kDis: 'A la paret', kDisF: 'A la façana', kDisC: 'Penjat del sostre', kDisA: 'Recolzat en una taula', kBri: 'Brillantor', kBriS: 'A les superfícies', kRes: 'Imatge', kResS: (w, h) => w + ' × ' + h + ' px natius',
     pers: 'Persona d’1,75 m', proy: 'Projector'
   }
@@ -248,7 +249,15 @@ const PAREDES = ['frontal', 'izquierda', 'derecha', 'trasera', 'suelo'];
 
 /* ajustes que solo se tocan en PRO: si alguno no es el de fábrica, el resultado no es el automático */
 const AJ_LED = ['backup', 'escalador', 'conexion', 'marca', 'cosido', 'transp', 'nitsMin', 'resMin', 'giro', 'crm', 'pitch', 'ajuste', 'procSel', 'mediaSel', 'dante', 'entradas', 'tipoEntrada', 'resEntrada'];
-const AJ_PROY = ['cuerpo', 'optica', 'idSuelo', 'solape', 'ganancia', 'dist', 'orient', 'altura', 'oos'];
+const AJ_PROY_T = ['cuerpo', 'optica', 'idSuelo', 'solape', 'ganancia', 'dist', 'orient', 'altura', 'oos'];
+/* v10.52 · la óptica y la distancia del proyector se eligen también en SIMPLE: no cuentan como ajuste de PRO */
+const AJ_PROY = ['idSuelo', 'solape', 'ganancia', 'orient', 'altura', 'oos'];
+const proyC = () => { const c = C().c; return c && c.proyector && c.filas && c.filas.length ? c : null; };
+const paredF = () => { const c = proyC(); return c ? (c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0]) : null; };
+const lentes = () => { const c = proyC(); return c ? PROYECTORES.filter((q) => q.modelo === c.proyector.modelo && q.optica) : []; };
+const trTxt = (q) => (q.trMax - q.trMin > .005 ? fmt(q.trMin, 2) + '–' + fmt(q.trMax, 2) : fmt(q.trMin, 2)) + ':1';
+/* ancho nativo de la imagen de cada proyector con la óptica de ahora: con él, la distancia que da cada óptica es su relación × ese ancho */
+const anchoNat = () => { const c = proyC(), f = paredF(); return c && f && f.p && f.p.tMin > 0 && c.proyector.trMin > 0 ? f.p.tMin / c.proyector.trMin : 0; };
 const AJ_ELEC = ['proyEq', 'sel', 'selMedia', 'selBlend', 'marca', 'dante'];
 function ajustesPro() {
   if (!listo()) return 0;
@@ -257,7 +266,7 @@ function ajustesPro() {
 }
 function restablecePro() {
   if (PAG === 'portada') { const E = B().E, D = B().DEF; AJ_LED.forEach((k) => { E[k] = D[k]; }); B().todo(); return; }
-  const E = C().E, D = C().DEF(); AJ_PROY.forEach((k) => { E.proy[k] = D.proy[k]; }); AJ_ELEC.forEach((k) => { E.elec[k] = D.elec[k]; }); E.esp.obst = []; C().actualizar();
+  const E = C().E, D = C().DEF(); AJ_PROY_T.forEach((k) => { E.proy[k] = D.proy[k]; }); AJ_ELEC.forEach((k) => { E.elec[k] = D.elec[k]; }); E.esp.obst = []; C().actualizar();
 }
 
 /* ---------- el cuerpo SIMPLE (en el sitio de la rejilla de PRO) y la raíz del asistente ----------
@@ -305,6 +314,11 @@ function filas() {
   if (m === 'pared') out.push(['pub', 'persona', t('sPub'), fm(s.dist) + ' m']);
   if (m !== 'mapping') out.push(['mont', E.proy.montaje === 'apoyado' ? 'mesa' : 'techo', t('sMont'), mont]);
   if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), fm(s.techo || 3) + ' m']);
+  /* v10.52 · la óptica que lleva el proyector (con su relación de proyección) y la distancia a la que va: se ven siempre y se pueden cambiar */
+  const c0 = proyC();
+  if (c0 && (m === 'pared' || m === 'mapping')) { const pr = c0.proyector, f0 = paredF(), pos0 = (f0 && f0.pos) || {};
+    if (pr.optica) out.push(['popt', 'proy', t('sOpt'), pr.optica + ' · ' + trTxt(pr) + (E.proy.optica ? '' : ' · ' + t('vAutoC'))]);
+    out.push(['pdist', 'dist', t(m === 'mapping' ? 'sPdistM' : 'sPdist'), Number(E.proy.dist) > 0 ? fm(E.proy.dist) + ' m' : (pos0.dist > 0 ? fm(pos0.dist) + ' m · ' : '') + t('vAutoC')]); }
   return out;
 }
 function pintaResumen() {
@@ -328,7 +342,7 @@ function simProy(prop, ancho) {
   if (m === 'sala') {   /* sala entera: planta con las paredes iluminadas */
     const A = Math.max(1, +E.esp.ancho || 1), F = Math.max(1, +E.esp.fondo || 1), VW = 1000, VH = Math.round(VW / Math.max(.9, Math.min(2.6, prop || 1.6))), k = Math.min((VW - 300) / A, (VH - 160) / F), x0 = (VW - A * k) / 2, y0 = (VH - F * k) / 2 - 6, P2 = E.esp.paredes, on = 'var(--ss-acento)', off = 'var(--ss-linea)';
     const muro = (x1, y1, x2, y2, p) => { const v = x1 === x2, an = v ? (x1 < VW / 2 ? 'end' : 'start') : 'middle', tx = v ? x1 + (x1 < VW / 2 ? -20 : 20) : (x1 + x2) / 2, ty = v ? (y1 + y2) / 2 + 8 : y1 + (y1 < VH / 2 ? -18 : 36);
-      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P2[p] ? on : off}" stroke-width="${P2[p] ? 12 : 6}" stroke-linecap="round"/>` + (P2[p] ? (v ? `<text x="${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)}" y="${(y1 + y2) / 2}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${x1 < VW / 2 ? -90 : 90} ${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)} ${(y1 + y2) / 2})" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>` : `<text x="${tx}" y="${ty}" text-anchor="${an}" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>`) : ''); };   /* v10.51 · izquierda y derecha, en vertical junto a su pared: caben siempre */
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P2[p] ? on : off}" stroke-width="${P2[p] ? 12 : 6}" stroke-linecap="round"/>` + (P2[p] ? (v ? `<text x="${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)}" y="${(y1 + y2) / 2}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${x1 < VW / 2 ? -90 : 90} ${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)} ${(y1 + y2) / 2})" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>` : `<text x="${tx}" y="${ty}" text-anchor="${an}" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>`) : ''); };   /* v10.52 · izquierda y derecha, en vertical junto a su pared: caben siempre */
     let g = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(t('sim'))}">`;
     g += `<rect x="${x0}" y="${y0}" width="${A * k}" height="${F * k}" fill="${P2.suelo ? 'color-mix(in srgb, var(--ss-acento) 16%, transparent)' : 'var(--ss-campo)'}" rx="4"/>`;
     g += muro(x0, y0, x0 + A * k, y0, 'frontal') + muro(x0, y0, x0, y0 + F * k, 'izquierda') + muro(x0 + A * k, y0, x0 + A * k, y0 + F * k, 'derecha') + muro(x0, y0 + F * k, x0 + A * k, y0 + F * k, 'trasera');
@@ -423,7 +437,7 @@ function resProy() {
   const sem = mal ? 'R' : con >= 15 ? 'V' : con >= 7 ? 'A' : 'R', acc = lux > 50 ? t('accLuz') : t('accMas');
   const semTxt = mal ? t('pNoCabe') : sem === 'V' ? t('semV') : sem === 'A' ? t('semA')(acc) : t('semR')(acc);
   /* la línea: el proyector y, detrás, la imagen (o la sala) y cuántos hacen falta, sin repetir el número */
-  const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc([pr.marca, pr.modelo].filter(Boolean).join(' ')) + '</b>';
+  const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc([pr.marca, pr.modelo].filter(Boolean).join(' ') + (pr.optica ? ' + ' + pr.optica : '')) + '</b>';
   const l2 = m === 'sala' ? esc(nb(`${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')} · ${t('proys')(n)}`))
     : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}`));
   const C5 = [cifra(t('kLum'), fmt(pr.lumens, 0), 'lm', [n > 1 ? t('kLumSn') : '', pr.optica ? t('kOpt')(pr.optica) : ''].filter(Boolean).join(' · ') || t('kLumS1'), 'bombilla', 'var(--ss-ambar)'),
@@ -481,7 +495,17 @@ const PREG = {
     pon: (v) => { ED().esp.sueltas.dist = typeof v === 'object' ? (v.d || 5) : 5; } },
   mont: { rama: 'proy', si: () => modoCons() !== 'mapping', t: 'qMont', op: () => [['colgado', 'mCol', 'techo'], ['apoyado', 'mApo', 'mesa'], ['auto', 'mAuto', 'chispa']], val: () => ED().proy.montaje || 'auto', pon: (v) => { ED().proy.montaje = v; } },
   techo: { rama: 'proy', si: () => modoCons() === 'pared' && ED().proy.montaje === 'colgado', t: 'qTecho', num: () => [['h', t('alto'), ED().esp.sueltas.techo || 3, 2, 30, 'm']], nose: () => t('noSe3'),
-    pon: (v) => { ED().esp.sueltas.techo = typeof v === 'object' ? (v.h || 3) : 3; } }
+    pon: (v) => { ED().esp.sueltas.techo = typeof v === 'object' ? (v.h || 3) : 3; } },
+  /* v10.52 · fuera del asistente (solo desde LO QUE PIDES): la óptica y la distancia del proyector */
+  popt: { rama: 'proy', si: () => lentes().length > 0, t: 'qOpt', ay: 'ayOpt',
+    op: () => { const nw = anchoNat(); return [['', t('oAuto'), 'chispa']].concat(lentes().map((q) => [q.optica, [q.optica + ' · ' + trTxt(q), nw > 0 ? t('oOptD')(fm(q.trMin * nw), fm(q.trMax * nw)) : ''], 'proy'])); },
+    val: () => ED().proy.optica || '',
+    pon: (v) => { const E = ED(), c = proyC(); if (v) { if (c) E.proy.cuerpo = c.proyector.modelo; E.proy.optica = v; const q = lentes().find((x) => x.optica === v), nw = anchoNat(), d = Number(E.proy.dist) || 0; if (d > 0 && q && nw > 0 && (d < q.trMin * nw - .005 || d > q.trMax * nw + .005)) E.proy.dist = 0; } else { E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
+  pdist: { rama: 'proy', t: 'qPdist',
+    ay: () => { const E = ED(), f = paredF(), c = proyC(); return E.proy.optica && f && f.p && c ? t('ayPdistL')(c.proyector.optica, fm(f.p.tMin), fm(f.p.tMaxZ)) : t('ayPdistA'); },
+    num: () => { const E = ED(), f = paredF(), fija = !!E.proy.optica && f && f.p && f.p.tMaxZ > 0, pos = (f && f.pos) || {}; return [['d', t('metros'), Number(E.proy.dist) > 0 ? Number(E.proy.dist) : (pos.dist > 0 ? Math.round(pos.dist * 100) / 100 : ''), fija ? Math.floor(f.p.tMin * 100) / 100 : .2, fija ? Math.ceil(f.p.tMaxZ * 100) / 100 : 200, 'm', true]]; },
+    nose: () => t('noSeAuto'),
+    pon: (v) => { ED().proy.dist = typeof v === 'object' ? Math.round((v.d || 0) * 100) / 100 : 0; } }
 };
 const RAMA = { led: ['donde', 'sol', 'mar', 'uso', 'medida', 'dist', 'tocar', 'altura'], proy: ['ptipo', 'ptam', 'luz', 'pub', 'mont', 'techo'] };
 const visibles = (r) => RAMA[r].filter((id) => !PREG[id].si || PREG[id].si());
@@ -524,7 +548,7 @@ function pintaAsis() {
     pie = `<button type="button" class="ss-sig" data-ss="fin"><span class="ss-fit">${esc(Lx.ver)}</span></button>`;
   } else if (q) {
     const ay = tx(q.ay), vals = q.val ? q.val() : null, ops = q.op ? q.op() : [], nums = q.num ? q.num() : [], mucho = ops.length >= 4;
-    cuerpoA = `<h2 class="ss-q" id="ss-q">${esc(Lx[tx(q.t)])}</h2>${ay ? `<p class="ss-ay">${esc(Lx[ay])}</p>` : ''}`;
+    cuerpoA = `<h2 class="ss-q" id="ss-q">${esc(Lx[tx(q.t)])}</h2>${ay ? `<p class="ss-ay">${esc(typeof Lx[ay] === 'string' ? Lx[ay] : ay)}</p>` : ''}`;
     if (ops.length) cuerpoA += `<div class="ss-ops ${mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0]))).join('')}</div>`;
     if (nums.length) {
       const solo = nums.length === 1 && nums[0][6];

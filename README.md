@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.51** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.52** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -69,7 +69,17 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.51)
+## Cambios de la versión actual (v10.52)
+
+**SIMPLE con la óptica y la distancia del proyector; silueta oficial en las vistas técnicas.**
+
+- **Óptica en SIMPLE:** en los proyectores de óptica intercambiable, LO QUE PIDES enseña la óptica que lleva y su relación de proyección, y al tocarla se puede elegir cualquiera de las compatibles con ese cuerpo; cada una indica desde qué distancia da la imagen pedida. «Automática» vuelve a dejar que el cálculo elija.
+- **Distancia del proyector en SIMPLE:** nueva línea «Proyector a la pared» (o a la fachada). Con una óptica elegida, solo admite las distancias que esa óptica permite para esa imagen y avisa del rango; con la óptica en automático, se pone la distancia que se tenga y se elige la óptica que da la imagen desde ahí.
+- **Título del resultado con la óptica:** «TU PROYECCIÓN EPSON EB-PQ2008B + ELPLW06H · …».
+- La óptica y la distancia dejan de contar como «ajustes de PRO», porque ya se tocan en SIMPLE.
+- **Vistas técnicas:** el monigote de palotes de la vista lateral se sustituye por la silueta oficial de 1,75 m, a escala. La silueta queda como función común (`figuraSVG` en `screens/figura.js`) para todos los dibujos.
+
+### v10.51
 
 Correcciones de la auditoría en el móvil en vertical (412 × 839, 390 × 844 y 360 × 740):
 

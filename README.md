@@ -4,10 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.45** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.51** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
+- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -68,7 +69,75 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.45)
+## Cambios de la versión actual (v10.51)
+
+Correcciones de la revisión en el móvil en vertical (412 × 839, 390 × 844 y 360 × 740):
+
+- **Consola · vista previa del PDF:** en el móvil la cabecera va en una fila de iconos y las hojas a todo el ancho; al abrirse ya no se desplaza (antes las hojas quedaban fuera de la vista y la previa parecía vacía).
+- **Portada PRO · SEÑAL y ELÉCTRICO:** las filas COSIDO y MANGUERA se reducen enteras si no caben en el dibujo (también en «Ver en grande»); ya no se cortan por los lados.
+- **Datos del proyecto:** las opciones pasan a dos líneas en vez de encoger o cortarse («NO LO SÉ», «DON'T KNOW»); VER EL PDF va a lo ancho y LISTA DE MATERIAL y CERRAR debajo.
+- **Lista de material en grande:** cantidad y referencia en una línea y la descripción debajo, a todo el ancho; el contador «6 / 7» no se parte.
+- **Sala inmersiva:** la posición del obstáculo nuevo sale redondeada (antes «2.0999999999999996 m»).
+- **Anchos muy grandes (300 m o más):** sin errores en la consola del navegador.
+- **SIMPLE · sala entera:** «Izquierda» y «Derecha» van en vertical junto a su pared y se leen enteras.
+- **Aviso legal:** se abre por el principio.
+
+### v10.50
+
+**SIMPLE con las cabeceras de PRO.** Las cabeceras y el pie son los de PRO en los dos modos, con todos sus iconos, las marcas de la familia AVHUB y sus enlaces. El interruptor solo cambia el cuerpo de la página.
+
+- **Interruptor junto al logo**, en el mismo sitio en SIMPLE y en PRO, en la portada y en la consola. Se ve siempre para volver de PRO a SIMPLE. En la tableta vertical y en el móvil tumbado, los logos de la familia se juntan un poco para que quepan.
+- **Cuerpo SIMPLE en la rejilla de PRO:**
+  - **LO QUE PIDES** ocupa las dos primeras columnas;
+  - la **simulación a escala** ocupa las otras cuatro y dos tercios del alto, sin los cuadros de datos encima;
+  - el **RESULTADO** va en la fila de abajo.
+- **RESULTADO:**
+  - debajo del título, la línea resumen, por ejemplo «TU PANTALLA LED SLIM-FIX-2.6-50 · 550 × 300 cm · 247″ · 11×6 = 66 cabinets · 2112×1152 px»;
+  - el semáforo;
+  - unas pocas cifras muy visuales que no repiten la línea: calidad, distancia nítida, electricidad, peso y control (en proyección: lúmenes, contraste, distancia a la pared o brillo, e imagen);
+  - VER PDF, COMPARTIR y VER TODO EN PRO van en la franja del título.
+- **El stock es un dato interno:** ya no sale en texto en ningún sitio, ni en pantalla ni en los PDF (tampoco en la lista de modelos). Solo se ve su icono: una **caja verde** si hay stock, una **tarjeta con reloj naranja** si hay que pedirlo (`comun/ficha.js`, `comun/ficha.css`).
+- **Sin ceros por falta de datos:** si la tabla maestra no tiene el peso o el consumo de un modelo, ese dato no sale («Pesa 0 kg», «0 kW»). Vale para los bloques, el resumen, el PDF, la lista de material y la tabla de la consola.
+- **Carga más segura:** los módulos y estilos que cambian van con su versión, para que una copia vieja en caché no se mezcle con la nueva. Si el cálculo no llega a cargar, SIMPLE lo dice a los 15 segundos y ofrece VOLVER A CARGAR.
+
+### v10.49
+
+**Modo SIMPLE (beta)**, para quien llega por primera vez y se agobia con tantos botones. Usa el mismo cálculo y los mismos datos que la vista de siempre, que ahora se llama **PRO**:
+
+- **Interruptor SIMPLE · PRO** en la cabecera de la portada y de la consola, como el de VJSHOW. Se recuerda en el navegador y se puede pasar en el enlace (`?vista=simple` o `?vista=pro`). Quien ya usaba SCREENS entra en PRO; quien llega por primera vez, en SIMPLE.
+- **Asistente la primera vez:** una pregunta por pantalla, con botones grandes y siempre «No lo sé». Se puede saltar.
+  - Primero, «¿Qué quieres poner?»: pantalla LED, proyector, o «No lo sé», que hace dos preguntas y recomienda.
+  - **LED:** dónde va (dentro, en la calle o tras un cristal), sol, mar, fija o para eventos, medida del hueco («como una tele» si no se sabe el alto), distancia desde la que se mira, si se puede tocar y altura del suelo.
+  - **Proyector:** pared, fachada o sala entera, tamaño (o la sala y sus paredes), luz del sitio, distancia del público, dónde va el proyector y altura del techo.
+- **Pantalla SIMPLE:**
+  - un resumen en el que cada línea abre solo su pregunta;
+  - la simulación a escala (la misma de PRO en LED; corte lateral o planta de la sala en proyección);
+  - el resultado con un semáforo, una frase clara y cuatro cifras;
+  - VER PDF, COMPARTIR (copia el resumen) y VER TODO EN PRO.
+- **Ajustes de PRO avisados:** si en PRO se ha tocado algo que SIMPLE no enseña (backup, un cabinet elegido a mano…), una pastilla lo avisa y RESTABLECER lo devuelve a lo automático.
+- La guía de PRO sale la primera vez que se entra en PRO. Los textos de SIMPLE están en español, inglés y catalán (`vista/simple.js` y `vista/simple.css`).
+
+### v10.48
+
+Mejoras de uso salidas de una revisión externa de la app (beta):
+
+- **Distancia de visionado por defecto:** sin distancia, la portada elige el pitch para verse bien a 3 m en interior y a 8 m en exterior, y lo dice («A 3 m»). La distancia de visionado pasa al bloque Dimensiones, con el valor por defecto a la vista.
+- **«Sala» ya no es siempre sala inmersiva:** «sala de reuniones», «de conferencias», «de formación», «salón» o «sala de estar» se entienden como una pantalla. Pedir un proyector en la portada lleva directamente a Proyección con la petición ya calculada.
+- **Luz según el uso:** sala de reuniones u oficina 140 lx, salón o cine en casa 50 lx y sala inmersiva 10 lx, si la petición no dice otra.
+- **Contraste con semáforo:** verde, ámbar o rojo con una frase clara («Se verá algo lavada: baja la luz»).
+- **Nuevo cálculo con DESHACER:** el botón «Nuevo cálculo» ya no borra sin vuelta atrás: un aviso con DESHACER recupera lo de antes.
+- **Sin catálogo, con salida:** si el catálogo no carga, cada bloque lo dice con su título y un botón REINTENTAR.
+- Etiqueta BETA junto a la casilla de petición, ejemplos que caben en cada pantalla, ayuda del 3D para pantallas táctiles, botones más grandes en táctil, resultados en una columna en el móvil y etiquetas de los campos enlazadas (accesibilidad).
+
+### v10.47
+
+- Logo nuevo de MSGAME en la barra de apps: «MS» en dos fichas moradas con la misma letra que GAME y sombra verde.
+
+### v10.46
+
+- Logo de MSGAME de la barra de apps con la calavera nueva: el ojo derecho es una cruceta de mando, como si guiñara.
+
+### v10.45
 
 - **Equipos en listas por marca, gestionables desde el panel admin.** La electrónica ya no depende de la hoja: cada marca (NOVASTAR, PIXELHUE…) tiene su lista con sus modelos, tipo (controladora, reproductor con controladora, chasis H, mediaserver o switcher) y sus datos de cálculo (puertos, capacidad, ancho y alto máximos, escalador, salidas…), además del resumen y los enlaces oficiales de su ficha. En el panel AVHUB ADMIN → EQUIPOS se activan o desactivan modelos, se editan, se ordenan y se añaden modelos o marcas; al guardar, la app lo aplica en la siguiente carga. Sin lista guardada, la app usa la de fábrica (`comun/equipos.js`).
 - **Catálogo NovaStar completo, solo de las fuentes oficiales** (novastar.show y novastar.tech): MCTRL 300, 600, 660, 660 PRO, 700, 700 Pro, R5 y 4K; VX400, VX600, VX1000 y VX2000 Pro; NovaPro UHD Jr; COEX KU20, MX20, MX30, MX40 Pro, MX2000 Pro y MX6000 Pro; MBOX600 Pro; reproductores Taurus TB10 Plus, TB20 Plus, TB30, TB50, TB60 y TCC160 y TU15 Pro, TU20 Pro y TU4K Pro; H Series H2, H5, H9, H15 y H20; mediaservers ET1S-G a ET16S-G.

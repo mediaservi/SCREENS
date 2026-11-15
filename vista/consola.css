@@ -113,7 +113,7 @@ html.piel :is(#app, #bk-velo) .ficha { background: var(--blk2); color: var(--txt
 html.piel .fi-marca, html.piel .fi-desc, html.piel .fi-nota, html.piel .fi-specs dt { color: var(--tenue); }
 html.piel .fi-specs dd, html.piel .fi-modelo { color: var(--txt); }
 html.piel .fi-aviso { color: var(--ambar); }
-html.piel[data-tema="claro"] .fi-cat, html.piel[data-tema="claro"] .fi-piezas b, html.piel[data-tema="claro"] .fi-enlace, html.piel[data-tema="claro"] .fi-stock { filter: brightness(.42) saturate(1.6); }
+html.piel[data-tema="claro"] .fi-cat, html.piel[data-tema="claro"] .fi-piezas b, html.piel[data-tema="claro"] .fi-enlace { filter: brightness(.42) saturate(1.6); }
 
 /* ---------- bloques en burbuja con su cabecera (icono + título) ---------- */
 html.piel .zona-cab { display: none; }
@@ -217,6 +217,15 @@ html.piel .f1r { justify-content: flex-end; gap: 10px; }
 .pv-hojas { align-items: center; background: #3a3b40; gap: 18px; padding: 22px; }
 .pv-hoja { display: block; width: min(100%, calc((80dvh - 120px) * 210 / 297 * 1.6)); height: auto; background: #fff; box-shadow: 0 6px 24px rgba(0, 0, 0, .5); border-radius: 2px; }
 .bk-vent.previa.completa .pv-hoja { width: min(100%, calc(100dvh * 210 / 297 * 1.4)); }
+/* v10.51 · vista previa del PDF en el móvil: la cabecera en una fila de iconos (como en la portada) y las hojas a lo ancho */
+@media (max-width: 900px), (max-height: 520px) {
+  .bk-vent { width: 94vw; height: 90dvh; }
+  .bk-vent.previa .pv-bt span { display: none; }
+  .bk-vent.previa .pv-bt { padding-inline: 10px; min-width: 40px; justify-content: center; }
+  .bk-vent.previa .bk-vent-cab { gap: 6px; padding: 10px 12px; }
+  .pv-hojas { padding: 12px; gap: 12px; }
+  .pv-hoja { width: 100%; }
+}
 .bk-tostada { position: fixed; left: 50%; bottom: 90px; z-index: 9500; transform: translate(-50%, 14px); max-width: 80vw; padding: 12px 22px; border-radius: 12px; background: #101114; color: #fff; border: 1px solid #4fdc62;
   font: 700 16px/1.35 Inter, system-ui, sans-serif; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; }
 .bk-tostada.on { opacity: 1; transform: translate(-50%, 0); }
@@ -369,3 +378,24 @@ html.piel .f-f1 .pie .admin-btn:hover, html.piel .f-f1 .pie .admin-btn:focus-vis
 html.piel #pie-r .admin-btn { position: static; flex: none; align-self: flex-end; margin: 0 0 6px; width: 14px; height: 14px; display: inline-flex; line-height: 0; opacity: .55; color: var(--tenue); }
 html.piel #pie-r .admin-btn .ic { width: 14px; height: 14px; vertical-align: top; }
 html.piel #pie-r .admin-btn:hover, html.piel #pie-r .admin-btn:focus-visible { opacity: 1; color: var(--marca); }
+/* ===== v10.48 · revisión de uso: BETA en su pastilla, semáforo de la imagen, cifras del móvil enteras, tema claro legible, botones al dedo ===== */
+html.piel .con-nl { position: relative; }
+html.piel .nl-beta { flex: none; align-self: center; padding: 3px 7px; border: 1px solid color-mix(in srgb, var(--ambar) 70%, transparent); border-radius: 6px; font: 700 11px/1 'Share Tech Mono', ui-monospace, monospace; letter-spacing: .12em; color: var(--ambar); background: color-mix(in srgb, var(--ambar) 12%, transparent); cursor: help; }
+html.piel .nl-beta[hidden] { display: none; }
+html.piel .con-nl input[type="text"].beta::placeholder { color: var(--tenue); }
+html.piel .tar .s .sem { display: block; font: 800 15px/1.25 Inter, system-ui, sans-serif; margin-bottom: 3px; }
+html.piel .tar .s .sem::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; background: currentColor; box-shadow: 0 0 8px currentColor; }
+html.piel .sem.semV { color: var(--verde-txt, #00ff04); } html.piel .sem.semA { color: var(--ambar, #ffb000); } html.piel .sem.semR { color: #ff4d5e; }
+html.piel[data-tema="claro"] .sem.semV { color: #1d7a1f; } html.piel[data-tema="claro"] .sem.semA { color: #8a5a00; } html.piel[data-tema="claro"] .sem.semR { color: #b3122e; }
+html.piel[data-tema="claro"] .blq-res { color: #2f3a00; }
+html.piel[data-tema="claro"] .nl-beta { color: #7a4f00; border-color: #a86c00; }
+@media (max-width: 559px) {
+  html.piel:not(.bk) .res-tot { grid-template-columns: 1fr !important; }
+  html.piel :is(#app, #bk-velo) .tar .t { white-space: normal; overflow: visible; line-height: 1.15; }
+  html.piel :is(#app, #bk-velo) .tar .v { white-space: normal; overflow-wrap: anywhere; }
+  html.piel .nl-beta { order: 0; }
+}
+@media (pointer: coarse) {
+  html.piel .num .flechas button, html.piel .pm button { min-width: 32px; min-height: 32px; }
+  html.piel .fam a { min-height: 32px; display: inline-flex; align-items: center; }
+}

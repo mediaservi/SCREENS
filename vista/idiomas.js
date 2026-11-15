@@ -72,6 +72,8 @@ const MAPA = {
   'Resolución': ['Resolution', 'Resolució'], 'mm pitch': ['mm pitch', 'mm pitch'], 'Pitch más fino': ['Finer pitch', 'Pitch més fi'], 'Pitch más grueso': ['Coarser pitch', 'Pitch més gruixut'],
   'Público a': ['Audience at', 'Públic a'], 'Resolución de la pantalla': ['Screen resolution', 'Resolució de la pantalla'], 'Mínima': ['Minimum', 'Mínima'], 'Sin resolución mínima': ['No minimum resolution', 'Sense resolució mínima'],
   'Píxeles': ['Pixels', 'Píxels'], 'Por cabinet': ['Per cabinet', 'Per cabinet'], 'Refresco': ['Refresh', 'Refresc'],
+  'REINTENTAR': ['RETRY', 'TORNA-HO A PROVAR'], 'DESHACER': ['UNDO', 'DESFÉS'], 'Recuperado lo de antes.': ['The previous calculation is back.', 'Recuperat el que hi havia abans.'],
+  'Escríbela: «3 × 2 interior a 4 m»': ['Type it: “3 × 2 indoor at 4 m”', 'Escriu-la: «3 × 2 interior a 4 m»'], 'Escríbela…': ['Type it…', 'Escriu-la…'],
   'Pedido': ['Asked', 'Demanat'], 'Automático': ['Automatic', 'Automàtic'], 'Por distancia': ['By distance', 'Per distància'], 'A mano': ['Manual', 'A mà'],
   'Pitch pedido por ti': ['Pitch you asked for', 'Pitch que has demanat'], 'Automático: el más fino': ['Automatic: the finest', 'Automàtic: el més fi'], 'Elegido a mano': ['Chosen by hand', 'Triat a mà'],
   // cabinet
@@ -334,6 +336,8 @@ const REGLAS = [
   [/^px · 8K$/, () => 'px · 8K'],
   [/^Cercano a (.+)$/, (m, l) => ['Closest to ', 'Proper a '][k(l)] + m[1]], [/^Por (HD|FHD|4K)$/, (m, l) => ['For ', 'Per '][k(l)] + m[1]], [/^No llega a (.+)$/, (m, l) => ['Short of ', 'No arriba a '][k(l)] + m[1]],
   [/^El más cercano al (.+) que pediste$/, (m, l) => [`The closest to the ${m[1]} you asked for`, `El més proper al ${m[1]} que has demanat`][k(l)]],
+  [/^Elegido para verse bien a (\d+) m: cámbialo con la distancia de visionado$/, (m, l) => [`Chosen to look good at ${m[1]} m: change it with the viewing distance`, `Triat per veure’s bé a ${m[1]} m: canvia-ho amb la distància de visionat`][k(l)]],
+  [/^A (\d+) m$/, (m, l) => [`At ${m[1]} m`, `A ${m[1]} m`][k(l)]],
   [/^Elegido por la distancia del público: (.+)$/, (m, l) => ['Chosen by the audience distance: ', 'Triat per la distància del públic: '][k(l)] + m[1]],
   [/^Elegido para llegar a (.+)$/, (m, l) => ['Chosen to reach ', 'Triat per arribar a '][k(l)] + m[1]],
   [/^Ningún pitch llega a (.+) con esta medida: el más fino$/, (m, l) => [`No pitch reaches ${m[1]} at this size: the finest`, `Cap pitch arriba a ${m[1]} amb aquesta mida: el més fi`][k(l)]],

@@ -5,13 +5,13 @@ import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, analiza
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js';
+import '../comun/ficha.js?v=10.51';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.45';
+const VERSION = 'v10.51';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -81,8 +81,8 @@ const nitsLista = () => [...new Set(catalogo.filter(m => m.tipo === E.led.tipo &
 const tipoProy = () => (E.cantidad === 'varias' && E.esp.tipo === 'sala' ? 'sala' : E.proy.tipo === 'mapping' ? 'mapping' : 'pared');
 const TR_MAPPING = 2;
 // mapping de noche: con la luz de sala por defecto (140 lx) pasa a la de exterior de noche (5 lx), y al volver, al revés
-const LUX_DEF = 140, LUX_MAPPING = 5;
-function luzSegunTipo() { const m = tipoProy() === 'mapping', lx = Number(E.proy.lux); if (m && lx === LUX_DEF) E.proy.lux = LUX_MAPPING; else if (!m && lx === LUX_MAPPING) E.proy.lux = LUX_DEF; }
+const LUX_DEF = 140, LUX_MAPPING = 5, LUX_SALA = 10;   // v10.48 · la sala inmersiva arranca a oscuras (10 lx), como el mapping de noche
+function luzSegunTipo() { const tp = tipoProy(), lx = Number(E.proy.lux); if (tp === 'mapping' && (lx === LUX_DEF || lx === LUX_SALA)) E.proy.lux = LUX_MAPPING; else if (tp === 'sala' && (lx === LUX_DEF || lx === LUX_MAPPING)) E.proy.lux = LUX_SALA; else if (tp === 'pared' && (lx === LUX_MAPPING || lx === LUX_SALA)) E.proy.lux = LUX_DEF; }
 // luz de la sala según el uso (valores típicos de luz ambiente sobre la superficie)
 const USOS_LUZ = [['mapping', 5], ['oscura', 10], ['auditorio', 50], ['reunion', 140], ['aula', 300], ['feria', 500]];
 function nombreSup(s) { return s.tipo === 'pantalla' ? `${t('pantalla')} ${s.num}${s.central ? ' · ' + t('central') : ''}` : t(s.id); }
@@ -226,7 +226,8 @@ const tog = (on, attrs, txt, extra = '') => `<button type="button" class="tog${o
 const FLECHA = (d) => `<svg viewBox="0 0 10 6" aria-hidden="true"><path d="${d > 0 ? 'M5 .5 9.5 5.5H.5z' : 'M.5 .5h9L5 5.5z'}" fill="currentColor"/></svg>`;
 const numIn = (k, val, uni, paso = 0.1, min = 0, max = 60) => `<div class="num"><input type="number" inputmode="decimal" data-num="${k}" value="${val}" step="${paso}" min="${min}" max="${max}"><span>${uni}</span><div class="flechas">` +
   `<button type="button" class="flecha" data-flecha="1" data-k="${k}" tabindex="-1" aria-label="${t('subirV')}">${FLECHA(1)}</button><button type="button" class="flecha" data-flecha="-1" data-k="${k}" tabindex="-1" aria-label="${t('bajarV')}">${FLECHA(-1)}</button></div></div>`;
-const campo = (lab, html) => `<div class="campo"><label>${lab}</label>${html}</div>`;
+let CID = 0;   // v10.48 · cada campo con su etiqueta asociada (lectores de pantalla y toque en la etiqueta)
+const campo = (lab, html) => { const id = 'cp' + (++CID), h = /<(input|select|textarea)\b(?![^>]*\sid=)/.test(html) ? html.replace(/<(input|select|textarea)\b(?![^>]*\sid=)/, `<$1 id="${id}"`) : null; return `<div class="campo"><label${h ? ` for="${id}"` : ''}>${lab}</label>${h || html}</div>`; };
 
 // ---------- fichas de equipo (componente común comun/ficha.js) ----------
 // los textos del motor común de electrónica están en castellano: aquí se pasan a inglés o catalán (reglas en comun/motor-i18n.js, compartidas con la portada)
@@ -333,7 +334,7 @@ function bloqueObst(sala) {
 }
 function partesLed(c) {
   const l = E.led, lista = c.lista || [];
-  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}>[${m.pitch}p] ${m.crm}${enStock(m) ? ' · STOCK' : ''}</option>`).join('');
+  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}>[${m.pitch}p] ${m.crm}</option>`).join('');
   let mat = '';
   if (estadoCat === 'cargando' && !catalogo.length) mat += `<p class="ayuda">${t('cargando')}</p>`;
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;
@@ -387,7 +388,7 @@ function partesProy(c) {
 // superficie, la posición del proyector (primero la distancia y después el montaje con su altura), cada una con su candado
 function bloqueTipo() {
   const tp = tipoProy();
-  let h = `<div class="campo"><label>${t('tipoProy')}</label><div class="fila c3">${['mapping', 'pared', 'sala'].map(v => tog(tp === v, `data-accion="tipo-proy" data-v="${v}"`, t('tp_' + v))).join('')}</div></div><p class="ayuda">${t('tpAyuda_' + tp)}</p>`;
+  let h = `<div class="campo"><label>${t('tipoProy')}</label><div class="fila c3">${['mapping', 'pared', 'sala'].map(v => tog(tp === v, `data-accion="tipo-proy" data-v="${v}" title="${t('tp_' + v)}"`, t(v === 'sala' ? 'tp_salaCorto' : 'tp_' + v))).join('')}</div></div><p class="ayuda">${t('tpAyuda_' + tp)}</p>`;
   return h;
 }
 function bloquePos(c) {
@@ -465,7 +466,7 @@ function modSuperficies(c) {
   return h + '</div></section>';
 }
 // sin filas: o falta el catálogo LED (cargando / sin conexión) o no hay ninguna superficie activa
-function sinFilas(c) { if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat'); return t('nada'); }
+function sinFilas(c) { if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat') + ` <button type="button" class="sec-btn" data-accion="reintentar">${t('reintentar')}</button>`; return t('nada'); }
 function tarjeta(t1, v, uni, sub, ac) { return `<div class="tar" style="--ac:${ac}"><div class="t">${t1}</div><div class="v">${v}<small>${uni || ''}</small></div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`; }
 // v10.41 · fuera de especificación: el aviso también en la simulación 3D, en los resultados (y su ventana grande) y en el PDF
 function oosDatos(c) {
@@ -490,14 +491,14 @@ function vistaResultados(c) {
     const T = c.tot, m = c.modelo;
     h += `<div class="res-tot">
       ${tarjeta(t('cabinets'), fmtPx(T.cab), '', `${m.crm} · ${m.pitch} mm`, '#b566ff')}
-      ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t('lienzoAyuda'), '#00b4ff')}
-      ${tarjeta(t('peso'), fmt(T.peso, 0), 'kg', '', '#e100ff')}
-      ${tarjeta(t('consumo'), fmt(T.kw, 1), 'kW', `${fmt(T.amp, 1)} A · 230 V`, '#ff4d5e')}
+      ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
+      ${tarjeta(t('peso'), T.peso > 0 ? fmt(T.peso, 0) : '—', T.peso > 0 ? 'kg' : '', '', '#e100ff')}
+      ${tarjeta(t('consumo'), T.kw > 0 ? fmt(T.kw, 1) : '—', T.kw > 0 ? 'kW' : '', T.amp > 0 ? `${fmt(T.amp, 1)} A · 230 V` : '', '#ff4d5e')}
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', `+ ${fmtPx(T.lineas)} backup · 8 bit 60 Hz`, '#00ff04')}
       ${tarjeta(t('salidas'), fmtPx(T.salidas4k), '', 'mediaserver', '#ffb000')}
     </div>`;
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
-      ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${fmt(f.r.peso, 0)} kg</td><td>${fmt(f.r.kw, 2)} kW</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
+      ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
     const qu = c.filas.filter(f => f.r && f.r.quitados);
     if (qu.length) h += `<ul class="avisos">${qu.map(f => `<li>${t('puertaLed', { n: f.nombre, c: f.r.quitados, w: fmt(f.r.huecos.reduce((a, x) => a + x.w, 0), 2), h: fmt(Math.max(...f.r.huecos.map(x => x.h)), 2) })}</li>`).join('')}</ul>`;
@@ -506,9 +507,9 @@ function vistaResultados(c) {
     const tiros = c.filas.filter(f => f.pos).map(f => f.pos.dist);
     h += `<div class="res-tot">
       ${tarjeta(t('proyectores'), fmtPx(T.n), '', p.nombre + (c.filas.some(f => f.p.vert) ? ' · ' + t('vert') : ''), '#b566ff')}
-      ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t('lienzoAyuda'), '#00b4ff')}
+      ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
       ${tarjeta(t('brillo'), fmt(T.nitsMin === Infinity ? 0 : T.nitsMin, 0), 'nits', t('brilloAyudaG', { g: fmt(c.gan, 1) }), '#ffb000')}
-      ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', '#e100ff')}
+      ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b>` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', `TR ${fmt(Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio)), 2)}:1`, '#00ff04')}
       ${tarjeta(t('lumenes'), fmtPx(T.lumenes), 'lm', `${fmtPx(T.n)} × ${fmtPx(p.lumens)} lm`, '#ff4d5e')}
     </div>`;
@@ -526,6 +527,8 @@ function vistaResultados(c) {
 }
 
 // nivel de contraste alcanzado según ANSI/AVIXA (visión pasiva 7:1, decisiones básicas 15:1, analítica 50:1, vídeo 80:1)
+// v10.48 · el semáforo de la imagen: los mismos umbrales (15:1 y 7:1) con una frase que se entiende y lo que hay que hacer
+const semaforo = (v) => (v >= 15 ? 'semV' : v >= 7 ? 'semA' : 'semR');
 function nivelContraste(v) { return v >= 80 ? t('cVideo') : v >= 50 ? t('cAnalitica') : v >= 15 ? t('cBasica') : v >= 7 ? t('cPasiva') : t('cInsuf'); }
 // posición del proyector y brillo por superficie: lo que da el calculador oficial de Epson
 function vistaPosicion(c) {
@@ -559,7 +562,9 @@ function materialLed(c) {
   else L.push({ c: T.lineas * mult, ref: 'Cat6 (RJ45)', desc: t('matCat6') + bk, g: 'eth' });
   const ampCab = Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cabLinea = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : 0;
   const nLin = c.filas.reduce((a, f) => a + (f.r && f.r.cab ? (cabLinea ? Math.ceil(f.r.cab / cabLinea) : 1) : 0), 0);
-  L.push({ c: 1, ref: t('matDist'), desc: t('matDistD', { a: fmt(T.amp, 1), k: fmt(T.kw, 2), n: nLin }), g: 'power' });
+  // v10.50 · sin consumo en la tabla maestra no salen ceros: solo el cableado (el final del mismo texto traducido)
+  const dd = t('matDistD', { a: fmt(T.amp, 1), k: fmt(T.kw, 2), n: nLin }), soloCable = dd.slice(dd.lastIndexOf('+') + 1).trim();
+  L.push({ c: 1, ref: t('matDist'), desc: T.amp > 0 && T.kw > 0 ? dd : soloCable.charAt(0).toUpperCase() + soloCable.slice(1), g: 'power' });
   L.push({ c: 1, ref: t('matPc'), desc: t('matPcD'), g: 'ctrl' });
   if (E.led.tipo === 'OUTDOOR' || E.led.tipo === 'ESCAPARATE') L.push({ c: 1, ref: 'NS060', url: busca('NS060'), desc: t('matSensor'), g: 'ctrl' });
   if (E.led.gold) L.push({ c: '', ref: t('matGold'), desc: t('matGoldD'), g: 'extra' });
@@ -628,7 +633,7 @@ function pintarConsola() {
     const b = (set, v, ico, txt) => `<button type="button" class="tog" aria-pressed="false" data-set="${set}" data-v="${v}">${ico}<span>${txt}</span></button>`;
     c.innerHTML = `<div class="con-grupo" role="group" aria-label="${t('cuantas')}">${b('cantidad', 'una', ICO_MINI.una, t('unaCorto'))}${b('cantidad', 'varias', ICO_MINI.varias, t('variasCorto'))}</div>
       <div class="con-grupo" role="group" aria-label="${t('tecno')}">${b('tecnologia', 'led', ICO_MINI.led, 'LED')}${b('tecnologia', 'proy', ICO_MINI.proy, t('proy'))}</div>
-      <div class="con-nl"><input id="nl-texto" type="text" enterkeyhint="go" autocomplete="off" aria-label="${t('nlPh2')}">
+      <div class="con-nl"><span class="nl-beta" id="nl-beta" title="${t('nlBetaT')}" hidden>${t('nlBeta')}</span><input id="nl-texto" type="text" enterkeyhint="go" autocomplete="off" aria-label="${t('nlPh2')}">
         <button type="button" class="sec-btn con-ico" data-accion="nl-mic" aria-pressed="false" title="${t('nlMic')}" aria-label="${t('nlMic')}">${ICO_MINI.mic}</button>
         <button type="button" class="sec-btn con-ico" data-accion="nl-audio" title="${t('nlAudio')}" aria-label="${t('nlAudio')}">${ICO_MINI.audio}</button><input type="file" id="nl-archivo" accept="audio/*,.opus,.ogg,.m4a,.mp3,.wav,.webm" hidden>
         <button type="button" class="pri con-calc" data-accion="nl-calcular" title="${t('nlCalc')}" aria-label="${t('nlCalc')}"><span>${t('nlCalc')}</span>${ICO_MINI.ir}</button>
@@ -641,6 +646,7 @@ function pintarConsola() {
   // v8.4 · secciones en pruebas: todo lo que no es una pantalla LED (varias pantallas, salas inmersivas, proyección) lleva el aviso
   // de beta en la caja de la petición, en ámbar tipo LCD. Para quitarlo cuando estén probadas: EN_PRUEBAS = () => false
   const i = $('#nl-texto'), beta = EN_PRUEBAS(); if (i && i.classList.contains('beta') !== beta) { i.classList.toggle('beta', beta); ajustarPh(); }
+  const pb = $('#nl-beta'); if (pb) pb.hidden = !beta;
 }
 const EN_PRUEBAS = () => !unaLed();   // v10.30 · se mantiene: los cálculos de varias LED y de proyección aún no están verificados
 // el texto guía más largo que quepa entero en la caja (nunca cortado)
@@ -650,7 +656,8 @@ function ajustarPh() {
   const cs = getComputedStyle(i), libre = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
   const beta = i.classList.contains('beta'), fs = parseFloat(cs.fontSize) || 14;
   ctxPh = ctxPh || document.createElement('canvas').getContext('2d'); ctxPh.font = beta ? `400 ${cs.fontSize} 'Share Tech Mono', monospace` : `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-  const ph = (beta ? ['betaPh1', 'betaPh2', 'betaPh3'] : ['nlPh1', 'nlPh2', 'nlPh3', 'nlPh4']).map(k => t(k)).find(x => ctxPh.measureText(x).width + (beta ? x.length * fs * 0.05 : 0) <= libre) || '';
+  const ls = parseFloat(cs.letterSpacing) || 0;   // v10.48 · siempre el ejemplo (BETA va en su pastilla) y medido con el espaciado de letras real
+  const ph = ['nlPh1', 'nlPh2', 'nlPh3', 'nlPh4'].map(k => t(k)).find(x => ctxPh.measureText(x).width + x.length * (ls || (beta ? fs * 0.05 : 0)) <= libre) || '';
   if (i.placeholder !== ph) i.placeholder = ph;
 }
 let tEstado = 0;
@@ -688,11 +695,14 @@ function calcularPeticion() {
   if (r.cantidad) E.cantidad = r.cantidad; if (r.tecnologia) E.tecnologia = r.tecnologia;
   // una pantalla LED: la petición la resuelve su propio cálculo, con el popup de datos del proyecto
   if (unaLed()) { actualizar(); aIframe({ tipo: 'screens-peticion', texto: txt }); estadoNl(t('nlLed')); return; }
+  // v10.48 · una petición nueva (con medidas, tecnología o cantidad) parte de cero: lo que no dice vuelve a su valor por defecto (antes heredaba la anterior)
+  if (r.vistos.some(x => x.k === 'medida' || x.k === 'central') || r.tecnologia || r.cantidad) { const d = DEF(); E.esp = d.esp; E.led = Object.assign(d.led, {}); E.proy = d.proy; if (r.cantidad) E.cantidad = r.cantidad; }
   Object.assign(E.esp, c.esp); Object.assign(E.esp.sueltas, c.sueltas); if (c.paredes) Object.assign(E.esp.paredes, c.paredes);
+  if (r.cantidad === 'una' && !c.esp.tipo) E.esp.tipo = 'sueltas';
   // v8.0 · una petición de proyección parte de la posición AUTO, salvo lo que diga (distancia, orientación, montaje)
   if (r.tecnologia === 'proy') Object.assign(E.proy, { dist: 0, orient: 'auto', montaje: 'auto', altura: 0, tipo: 'pared' });
   Object.assign(E.led, c.led); Object.assign(E.proy, c.proy); Object.assign(E.elec, c.elec);
-  if (r.tecnologia === 'proy' && c.proy.lux == null) luzSegunTipo();
+  if (c.proy.lux == null) luzSegunTipo();
   if (c.led.tipo || c.led.clase) E.led.crm = '';
   if (c.elec.backup || c.elec.conexion) E.elec.sel = '';
   if (r.pitch) {   // v7.9 · «P1.5», «pitch 1,5»…: el modelo de ese pitch (si el catálogo lo tiene)
@@ -742,7 +752,7 @@ function vistaTrabajo() {
   return `<div class="trabajo z3"><aside class="panel zona" id="panelA" data-zona="a"></aside><aside class="panel zona" id="panelB" data-zona="b"></aside><main class="vista">
     <div class="escena" id="escena"><canvas id="lienzo3d" aria-label="Simulación 3D"></canvas>
       <div class="esc-barra"><div id="esc-vistas"></div><div id="esc-cont"></div><div id="esc-medio" class="esc-medio"></div></div>
-      <div class="esc-abajo"><div class="esc-oos" id="esc-oos" role="note" hidden></div><div class="esc-info">${t('vista3d')}</div></div></div>
+      <div class="esc-abajo"><div class="esc-oos" id="esc-oos" role="note" hidden></div><div class="esc-info">${t(matchMedia('(pointer: coarse)').matches ? 'vista3dTactil' : 'vista3d')}</div></div></div>
     <div class="res" id="res"></div></main></div>`;
 }
 function barraEscena() {
@@ -776,6 +786,7 @@ function actualizar(sinEscena) {
   activarVistas($('#res'), calculo, fijarDesdeVistas);
   barraEscena(); bandaOos();
   if (!sinEscena) { clearTimeout(tEsc); tEsc = setTimeout(construirEscena, 60); }
+  if (window.SCSIMPLE) window.SCSIMPLE.aviso();   // v10.49 · el modo SIMPLE se repinta con el mismo cálculo
 }
 function construirEscena() {
   if (!escena || !calculo) return;
@@ -841,6 +852,7 @@ document.addEventListener('click', (ev) => {
   const b = ev.target.closest('button, a[data-accion]'); if (!b || b.disabled) return;
   if (b.tagName === 'A') ev.preventDefault();
   if (b.dataset.set) { fijar(b.dataset.set, b.dataset.bool ? b.dataset.v === '1' : b.dataset.numV ? Number(b.dataset.v) : b.dataset.v);
+    if (b.dataset.set === 'cantidad' || b.dataset.set === 'tecnologia' || b.dataset.set === 'esp.tipo' || b.dataset.set === 'proy.tipo') luzSegunTipo();   // v10.48
     if (/^elec\.(backup|escalador|conexion)$/.test(b.dataset.set)) E.elec.sel = '';
     if (b.dataset.set === 'elec.marca' || b.dataset.set === 'elec.proyEq') { E.elec.selMedia = ''; E.elec.selBlend = ''; }
     if (/^led\.(clase|tipo|transp|gold|protegido|sol)$/.test(b.dataset.set)) { E.led.crm = ''; if (b.dataset.set === 'led.tipo') { E.led.nitsMin = 0; E.led.sol = ''; } }
@@ -888,9 +900,10 @@ document.addEventListener('click', (ev) => {
   if (a === 'reset-esp') { E.esp = DEF().esp; actualizar(); return; }
   if (a === 'obst-add') { const e = E.esp; e.obst = e.obst || [];
     e.obst.push(b.dataset.tipo === 'puerta' ? { tipo: 'puerta', pared: e.paredes.trasera ? 'trasera' : 'frontal', x: 0.4, ancho: 0.9, alto: 2.1 }
-      : { tipo: 'obstaculo', x: e.tipo === 'sala' ? e.ancho * 0.3 : 1.5, z: e.tipo === 'sala' ? e.fondo * 0.35 : 2, ancho: 0.4, fondo: 0.4, alto: e.tipo === 'sala' ? e.alto : 3 });
+      : { tipo: 'obstaculo', x: e.tipo === 'sala' ? Math.round(e.ancho * 0.3 * 10) / 10 : 1.5, z: e.tipo === 'sala' ? Math.round(e.fondo * 0.35 * 10) / 10 : 2, ancho: 0.4, fondo: 0.4, alto: e.tipo === 'sala' ? e.alto : 3 });
     actualizar(); return; }
   if (a === 'obst-del') { E.esp.obst.splice(Number(b.dataset.i), 1); actualizar(); return; }
+  if (a === 'reintentar') { estadoCat = 'cargando'; actualizar(); cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); }); return; }   // v10.48
   if (a === 'reset-led') { E.led = DEF().led; actualizar(); return; }
   if (a === 'reset-proy') { E.proy = Object.assign(DEF().proy, { tipo: E.proy.tipo }); actualizar(); return; }   // el tipo de proyecto se mantiene
   // v8.2 · tipo de proyección: la sala inmersiva es «varias + sala»; mapping y pared, una o varias superficies sueltas
@@ -1067,8 +1080,14 @@ function pintarCabecera() {
 }
 fijarIdioma(idiomaInicial(), false);
 pintarCabecera();
+if (E.tecnologia === 'proy') luzSegunTipo();   // v10.48 · la sala inmersiva arranca a oscuras
+// v10.48 · una petición de proyector escrita en la portada llega aquí y se calcula al abrir
+try { const pp = localStorage.getItem('screens_peticion'); if (pp) { localStorage.removeItem('screens_peticion'); nlTexto = pp; setTimeout(() => { const i = $('#nl-texto'); if (i) i.value = pp; calcularPeticion(); }, 0); } } catch (e) {}
 actualizar();
 // uso sin conexión: el mismo service worker de la raíz (red primero, copia guardada si no hay red)
 try { if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 cargarEquipos(() => { if (!unaLed()) actualizar(); });
 cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); });
+// v10.49 · lo que usa el modo SIMPLE (vista/simple.js): el mismo estado y el mismo cálculo que PRO
+window.__consola = { get E() { return E; }, DEF, actualizar: () => actualizar(), get c() { return calculo; }, peticion: () => calcularPeticion(), luz: () => luzSegunTipo() };
+if (window.SCSIMPLE) window.SCSIMPLE.aviso();

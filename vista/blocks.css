@@ -495,7 +495,9 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 @media (max-width: 640px) {
   .pr-op { flex-wrap: wrap; }
   .pr-op > span { flex: 0 0 100% !important; }
-  .pr-op .tog { font-size: 12px; min-height: 36px; }
+  .pr-op .tog { font-size: 12px; min-height: 36px; flex: 1 1 calc(33% - 6px); white-space: normal; line-height: 1.1; overflow: visible; }   /* v10.51 · en dos líneas antes que encoger o cortar («NO LO SÉ», «DON'T KNOW») */
+  .fila:has(> [data-pdf]) { flex-wrap: wrap; }
+  .fila:has(> [data-pdf]) > [data-pdf] { flex: 1 1 100%; }   /* VER EL PDF a lo ancho y debajo LISTA DE MATERIAL y CERRAR */
 }
 /* v10.25 · en el teléfono el aviso del pie va en dos renglones (como los créditos), sin reducir la letra hasta no poder leerse */
 @media (max-width: 559px) { #pie-l .nota { white-space: normal; line-height: 1.25; font-size: calc(var(--u) * 11) !important; display: block; } }
@@ -537,3 +539,22 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 .admin-esq svg { width: 100%; height: 100%; display: block; }
 .admin-esq:hover, .admin-esq:focus-visible { opacity: 1; color: var(--marca); }
 :root[data-tema="claro"] .admin-esq:hover, :root[data-tema="claro"] .admin-esq:focus-visible { color: #3d4a00; }
+/* ===== v10.48 · auditoría de uso: DESHACER en el aviso, grupos de modo separados, botones al dedo ===== */
+.tostada.con-bt { pointer-events: auto; display: flex; align-items: center; gap: calc(var(--u) * 14); }
+.tostada.con-bt .calcular { height: auto; min-height: 34px; padding: 6px 14px; font-size: max(12px, calc(var(--u) * 15)); flex: none; }
+[data-blk="HM1"] { gap: calc(var(--u) * 16) !important; }
+[data-blk="HM1"] > .grupo + .grupo { position: relative; }
+[data-blk="HM1"] > .grupo + .grupo::before { content: ''; position: absolute; left: calc(var(--u) * -9); top: 15%; bottom: 15%; width: 2px; border-radius: 2px; background: var(--linea); }
+@media (pointer: coarse) {
+  .flecha, .pm button, .paso-f button { min-width: 32px; min-height: 32px; }
+  .fam a { min-height: 32px; display: inline-flex; align-items: center; }
+}
+/* v10.51 · móvil: la lista de material en grande se lee entera (cantidad y referencia en una línea y la descripción debajo, a todo el ancho) y el contador «6 / 7» no se parte */
+.vent-cab .nota { white-space: nowrap; flex: none; }
+@media (max-width: 640px) {
+  table.mat tr { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: calc(var(--u) * 4); border-bottom: 1px solid var(--linea); }
+  table.mat td, table.mat th { border-bottom: 0; }
+  table.mat td:nth-child(2) { white-space: normal; overflow-wrap: anywhere; }
+  table.mat td:nth-child(n+3), table.mat th:nth-child(n+3) { grid-column: 1 / -1; padding-top: 0; }
+  table.mat th:nth-child(n+3) { display: none; }
+}

@@ -5,13 +5,13 @@ import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, analiza
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.52';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.53';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.52';
+const VERSION = 'v10.53';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -27,7 +27,7 @@ const DEF = () => ({
     sueltas: { n: 3, disp: 'arco', ancho: 4, alto: 2.25, elev: 0.6, sep: 0.1, angulo: 25, dist: 5, techo: 3, central: false, cAncho: 6, cAlto: 3.4 },
     obst: [] },
   led: { clase: 'INSTALL', tipo: 'INDOOR', crm: '', ajuste: 'dentro', transp: false, gold: false, protegido: false, sol: '', nitsMin: 0 },
-  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, lux: 140, ganancia: 1, dist: 0, orient: 'auto', montaje: 'auto', altura: 0, oos: false },
+  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, lux: 140, ganancia: 1, dist: 0, distMin: 0, distMax: 0, orient: 'auto', montaje: 'auto', altura: 0, oos: false },
   elec: { backup: false, escalador: 'con', conexion: 'directo', sel: '', marca: 'todos', dante: false, selMedia: '', proyEq: 'media', selBlend: '' },
   vista: { contenido: 'carta', etiquetas: true, camara: 'exterior', zona: true, modo: 'continuo', tec: 'todas', vtSup: 0 }
 });
@@ -109,16 +109,21 @@ function calcular() {
   // v8.2 · tipo de proyección: mapping (fachada a distancia), pared (auditorio o pared normal) o sala inmersiva
   const tipoP = tipoProy();
   // sin distancia fijada, el proyector va donde suele ir: en mapping, lejos (unas 2 veces el ancho de la imagen); en pared, a la distancia del público
-  const tiroPared = tipoP === 'pared' && !fijaDist ? Math.max(1, dist) : 0;
-  const optPared = { ...opc, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
+  // v10.53 · dónde se puede instalar el proyector (pared o mapping): entre distMin y distMax metros de la superficie (0 = sin límite). Con ese
+  // margen se elige la óptica que da la imagen desde ahí; si ninguna llega, la instalación sale como que no cabe. Una distancia fijada manda.
+  const conRango = !fijaDist && esp.tipo !== 'sala', dMin = conRango ? Math.max(0, Number(E.proy.distMin) || 0) : 0, dMax = conRango ? Math.max(0, Number(E.proy.distMax) || 0) : 0, hayRango = dMin > 0 || dMax > 0;
+  const enRango = (v) => Math.min(dMax > 0 ? dMax : Infinity, Math.max(dMin, v)), corta = (r) => dMin > 0 && r.tiro < dMin - 0.005;
+  const sup1 = sups.find(s => s.tipo !== 'suelo');
+  const tiroPared = tipoP === 'pared' && !fijaDist ? enRango(Math.max(1, dist)) : tipoP === 'mapping' && hayRango && sup1 ? enRango(TR_MAPPING * sup1.ancho) : 0;
+  const optPared = { ...opc, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
   // alcance: en sala, la pared de enfrente; en pared, el público y un poco más; en mapping o con la distancia fijada, sin límite
-  const alcanceDe = (s) => (tipoP === 'mapping' || (fijaDist > 0 && esp.tipo !== 'sala') ? null : alcance(esp, s, dist));
+  const alcanceDe = (s) => (dMax > 0 ? dMax : hayRango || tipoP === 'mapping' || (fijaDist > 0 && esp.tipo !== 'sala') ? null : alcance(esp, s, dist));
   // preferencia según el tipo, en «proyectores» (a igual número de equipos): en mapping, los más luminosos y, sin distancia, nada de
   // ópticas cortas y la relación cerca de 2:1 (el proyector lejos, en torre); en pared, la óptica que llega a la distancia del público
   // y mejor no ultracorta; en sala, la que quepa
   const desvTR = (q, r) => (r < q.trMin ? Math.log(q.trMin / r) : r > q.trMax ? Math.log(r / q.trMax) : 0);
   const pared1 = sups.find(s => s.tipo !== 'suelo'), trPared = tiroPared && pared1 ? tiroPared / pared1.ancho : 0;
-  const pref = (q) => (tipoP === 'mapping' ? (!fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0) - q.lumens / 20000
+  const pref = (q) => (tipoP === 'mapping' ? (hayRango ? (trPared ? desvTR(q, trPared) * 0.3 : 0) : !fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0) - q.lumens / 20000
     : tipoP === 'pared' ? (q.ust ? 0.5 : 0) + (trPared ? desvTR(q, trPared) * 0.3 : 0) : 0);
   const coloc = { montaje: E.proy.montaje || 'auto', altura: Math.max(0, Number(E.proy.altura) || 0) };
   const altoEsc = esp.tipo === 'sala' ? esp.alto : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;
@@ -128,14 +133,15 @@ function calcular() {
     const filas = sups.map(s => s.tipo === 'suelo'
       ? { s, p: calcularSuelo(s, pS, { altoSala: esp.alto, ...opc }), proyector: pS, nombre: nombreSup(s) }
       : { s, p: calcularPared(s, pP, { alcance: alcanceDe(s), ...optPared }), proyector: pP, nombre: nombreSup(s) });
+    let cerca = 0; filas.forEach(f => { if (f.s.tipo !== 'suelo' && corta(f.p)) { f.p.fuera = true; cerca++; } });   // más cerca de lo que se puede poner: no cabe
     const S = analizarSombras(filas, esp, altoEsc, coloc); S.obst = obstaculosEnHaces(obs, S.haces);
-    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 };
+    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 };
   };
   // AUTO: la instalación limpia (sin chasis que choquen ni proyectores dentro de otros haces) con menos equipos y más brillo.
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
   // y solo las mejores pasan por la colocación completa con sombras y choques
   const rapido = (q) => { let k = pref(q) * 1000; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optPared });
-    k += (r.fuera ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite ? 2e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - Math.min(r.nits, 250) * 0.5; }); return k; };
+    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite ? 2e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - Math.min(r.nits, 250) * 0.5; }); return k; };
   const supS = sups.find(s => s.tipo === 'suelo');
   const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - Math.min(r.nits, 250) * 0.5; };
   const mejores = (lista, k = 10, fc = rapido) => lista.length <= k ? lista : lista.map(q => ({ q, c: fc(q) })).sort((a, b) => a.c - b.c).slice(0, k).map(x => x.q);
@@ -1019,6 +1025,7 @@ function tituloPdf(c) {
     // v8.0 · en vertical, a una distancia fija y con el montaje elegido
     if (c.filas.some(f => f.p.vert)) p.push(t('vert'));
     if (Number(E.proy.dist) > 0) p.push(`${t('aDist', { d: fmt(E.proy.dist, 1) })}`);
+    else if (Number(E.proy.distMin) > 0 || Number(E.proy.distMax) > 0) p.push(`${Number(E.proy.distMin) > 0 ? fmt(E.proy.distMin, 1) : '0'}–${Number(E.proy.distMax) > 0 ? fmt(E.proy.distMax, 1) : '∞'} m`);   // v10.53 · margen de instalación
     if (E.proy.oos) p.push(t('oos').toLowerCase());
     if (E.proy.montaje === 'colgado' || E.proy.montaje === 'apoyado') p.push(t('mo_' + E.proy.montaje).toLowerCase() + (Number(E.proy.altura) > 0 ? ' ' + fmt(E.proy.altura, 1) + ' m' : '')); }
   if (T.lienzoW) p.push(`${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)} px`);

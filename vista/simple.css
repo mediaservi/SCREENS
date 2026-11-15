@@ -204,6 +204,8 @@ html.ss-apila .ss-linea > .ss-fit { display: block; white-space: nowrap; overflo
 html.ss-apila .ss-l2 { font-weight: 600; font-size: .86em; color: var(--ss-tenue); }
 html.ss-apila .ss-lsep { display: none; }
 html.ss-apila .ss-sem > .ss-fit { white-space: normal; }
+/* v10.54 · apilado, el botón del aviso (qué puedo hacer, quitar) va debajo del texto, a todo el ancho */
+html.ss-apila .ss-sem { flex-wrap: wrap; } html.ss-apila .ss-sem > .ss-fit { flex: 1 1 0; min-width: 0; } html.ss-apila .ss-sem > .ss-mini { flex: 1 1 100%; }
 html.ss-apila .ss-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 html.ss-apila .ss-cifra:last-child:nth-child(odd) { grid-column: 1 / -1; }
 html.ss-apila .ss-cifra { padding: calc(var(--s) * 10) calc(var(--s) * 10) calc(var(--s) * 10) calc(var(--s) * 14); gap: calc(var(--s) * 10); }

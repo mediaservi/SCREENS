@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.53** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.54** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -69,7 +69,18 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.53)
+## Cambios de la versión actual (v10.54)
+
+**El proyector elegido que no llega, el punto medio de la óptica y el filtro de marcas.**
+
+- **«Con este proyector no se puede»:** si el proyector o la óptica están elegidos a mano y no dan esa imagen desde ahí (o la imagen pasa de su tamaño máximo), el resultado lo dice en rojo y ofrece qué hacer: usar la combinación más parecida que sí puede (primero, el mismo cuerpo con otra óptica; después, la misma clase de resolución y el brillo más cercano), activar el fuera de especificación cuando con él sí sale (con la explicación de lo que se pierde) o dejar que elija el cálculo. En SIMPLE, con el botón QUÉ PUEDO HACER; en PRO, en la lista de avisos, con sus botones. Cambiar el margen de instalación ya no cambia solo el proyector elegido.
+- **Fuera de especificación a la vista en SIMPLE:** cuando está activado, el resultado lo avisa y lleva el botón QUITAR.
+- **«No lo sé» en la distancia del público:** el proyector ya no se pone a 5 m por defecto, sino en el punto medio de lo que permite su óptica (dentro del margen de instalación, si lo hay). Sabiendo desde dónde mira la gente, se sigue acercando a esa distancia. En PRO se avisa bajo la distancia del proyector, con su botón para quitarlo.
+- **Una sola pregunta para la distancia del proyector en SIMPLE:** «¿A qué distancia puedes instalar el proyector?» vale para un margen y para un sitio fijo (lo mismo en mínimo y máximo). Desaparece la línea «Proyector a la pared»; la distancia a la que queda sale en el resultado y en el dibujo.
+- **Marcas de proyección:** el cálculo admite un filtro de marcas, con botones que se encienden y se apagan (siempre queda una) en MATERIAL de PRO y como línea «Marcas» en SIMPLE. A igualdad de resultado manda la prioridad EPSON > VIVITEK > CHRISTIE. Los botones aparecen cuando el catálogo tiene más de una marca.
+- En PRO, el margen de instalación dado en SIMPLE se ve bajo la distancia del proyector y se puede quitar.
+
+### v10.53
 
 **SIMPLE pregunta dónde cabe el proyector.**
 

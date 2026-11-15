@@ -407,3 +407,9 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 .fam-pie { display: none; flex: none; justify-content: center; flex-wrap: wrap; gap: 8px 18px; padding: 8px 10px 4px; background: var(--bg); border-top: 1px solid #000; }
 @media (max-width: 1023px) { .cab .fam { display: none; } .fam-pie { display: flex; } .fam-pie + .pie { border-top: 0; padding-top: 2px; } .fam-pie img { height: 16px; } }
 @media print { .fam-pie { display: none !important; } }
+
+/* v10.54 · botones dentro de un aviso o una ayuda (usar el modelo propuesto, activar fuera de especificación, quitar el margen) */
+.av-bt { display: inline-block; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--verde); background: #141a14; color: var(--verde); font: inherit; font-weight: 700; line-height: 1.3; cursor: pointer; }
+.av-bt:hover { background: #1b261b; } .av-bt:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+.av-fila { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; } .av-fila:empty { display: none; }
+.ayuda .av-bt { margin-left: 6px; padding: 2px 10px; }

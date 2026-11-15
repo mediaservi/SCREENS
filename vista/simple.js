@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.53';
+const VERSION = 'v10.54';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -82,7 +82,10 @@ const T = {
     lProy: 'TU PROYECCIÓN', lSala: 'TU SALA', proys: (n) => (n === 1 ? '1 proyector' : n + ' proyectores'),
     semV: 'Se verá bien con esta luz.', semA: (a) => 'Se verá algo lavada: ' + a + '.', semR: (a) => 'Se verá muy lavada: ' + a + '.', accLuz: 'baja la luz', accMas: 'haz la imagen más pequeña o añade un proyector',
     pNoCabe: 'No hay un buen sitio para el proyector con estas medidas: cambia la distancia o míralo en PRO.',
-    kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, sCabe: 'El proyector cabe', vCabe: (a, b) => (a && b ? 'entre ' + a + ' y ' + b + ' m' : a ? 'a más de ' + a + ' m' : 'a menos de ' + b + ' m'), vCabeN: 'a cualquier distancia', qCabe: '¿A qué distancia puedes instalar el proyector?', ayCabe: 'De la imagen al sitio más cercano y al más lejano donde lo puedes poner. Con eso se sabe qué óptica vale.', minimo: 'Mínimo', maximo: 'Máximo', noSeCabe: ['No lo sé', 'Donde mejor vaya'], sOpt: 'Óptica', sPdist: 'Proyector a la pared', sPdistM: 'Proyector a la fachada', vAutoC: 'automática', qOpt: '¿Qué óptica lleva el proyector?', ayOpt: 'Este proyector lleva la óptica aparte. Cada una da esta imagen desde una distancia distinta.', oAuto: ['Automática', 'La que mejor encaja'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: '¿A qué distancia va el proyector?', ayPdistL: (o, a, b) => 'Con la óptica ' + o + ', para esta imagen puede estar entre ' + a + ' y ' + b + ' m.', ayPdistA: 'Pon la distancia que tengas y se elige la óptica que da esta imagen desde ahí.', noSeAuto: ['No lo sé', 'Que la elija el cálculo'], lOpt: 'óptica', kCon: 'Contraste', kConS: (lx) => 'Con ' + lx + ' lx en el sitio',
+    kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, sCabe: 'El proyector cabe', vCabe: (a, b) => (a && b ? 'entre ' + a + ' y ' + b + ' m' : a ? 'a más de ' + a + ' m' : 'a menos de ' + b + ' m'), vCabeN: 'a cualquier distancia', vCabeE: (a) => 'a ' + a + ' m', vPubNS: 'no se sabe', noSePub: ['No lo sé', 'El proyector irá al centro de lo que permite su óptica'], sMarca: 'Marcas', qMarca: '¿Con qué marcas quieres calcular?', ayMarca: 'Se calcula con los proyectores de las marcas encendidas. Siempre queda una.',
+    noVale: (n) => 'Con ' + n + ' no se puede conseguir lo que pides.', queHago: 'QUÉ PUEDO HACER', qConsejo: 'Con este proyector no se puede', ayConsejo: (n) => n + ' no da esa imagen desde esa distancia, o la imagen pasa de su tamaño máximo.',
+    cAlt: (n) => 'Usar ' + n, cAltS: (d) => 'Lo más parecido que sí puede' + (d ? ' · ' + d : ''), cOos: 'Activar fuera de especificación', cOosS: 'Imagen más grande que la que garantiza el fabricante: el enfoque en los bordes, la uniformidad y el brillo pueden ser peores. Pruébalo con la imagen real antes de instalar.',
+    cAuto: 'Que elija el cálculo', cAutoS: 'El proyector y la óptica que mejor encajan', semOos: 'Fuera de especificación: el enfoque en los bordes, la uniformidad y el brillo pueden ser peores.', semOosC: 'Y con esta luz se verá apagado.', quitar: 'QUITAR', qCabe: '¿A qué distancia puedes instalar el proyector?', ayCabe: 'De la imagen al sitio más cercano y al más lejano donde lo puedes poner (si solo hay un sitio, pon lo mismo en los dos). Con eso se sabe qué óptica vale.', minimo: 'Mínimo', maximo: 'Máximo', noSeCabe: ['No lo sé', 'Donde mejor vaya'], sOpt: 'Óptica', sPdist: 'Proyector a la pared', sPdistM: 'Proyector a la fachada', vAutoC: 'automática', qOpt: '¿Qué óptica lleva el proyector?', ayOpt: 'Este proyector lleva la óptica aparte. Cada una da esta imagen desde una distancia distinta.', oAuto: ['Automática', 'La que mejor encaja'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: '¿A qué distancia va el proyector?', ayPdistL: (o, a, b) => 'Con la óptica ' + o + ', para esta imagen puede estar entre ' + a + ' y ' + b + ' m.', ayPdistA: 'Pon la distancia que tengas y se elige la óptica que da esta imagen desde ahí.', noSeAuto: ['No lo sé', 'Que la elija el cálculo'], lOpt: 'óptica', kCon: 'Contraste', kConS: (lx) => 'Con ' + lx + ' lx en el sitio',
     kDis: 'A la pared', kDisF: 'A la fachada', kDisC: 'Colgado del techo', kDisA: 'Apoyado en una mesa', kBri: 'Brillo', kBriS: 'En las superficies', kRes: 'Imagen', kResS: (w, h) => w + ' × ' + h + ' px nativos',
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
@@ -129,8 +132,11 @@ const T = {
     lProy: 'YOUR PROJECTION', lSala: 'YOUR ROOM', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
     semV: 'It will look good with this light.', semA: (a) => 'It will look a bit washed out: ' + a + '.', semR: (a) => 'It will look very washed out: ' + a + '.', accLuz: 'dim the lights', accMas: 'make the image smaller or add a projector',
     pNoCabe: 'There is no good spot for the projector with these sizes: change the distance or check it in PRO.',
-    kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', sCabe: 'Projector fits', vCabe: (a, b) => (a && b ? 'between ' + a + ' and ' + b + ' m' : a ? 'more than ' + a + ' m away' : 'less than ' + b + ' m away'), vCabeN: 'at any distance', qCabe: 'How far away can you install the projector?', ayCabe: 'From the image to the nearest and the farthest place where you can put it. That tells which lens works.', minimo: 'Minimum', maximo: 'Maximum', noSeCabe: ['I don’t know', 'Wherever works best'], sOpt: 'Lens', sPdist: 'Projector to wall', sPdistM: 'Projector to façade', vAutoC: 'automatic', qOpt: 'Which lens does the projector use?', ayOpt: 'This projector takes a separate lens. Each one gives this image from a different distance.', oAuto: ['Automatic', 'The best fit'], oOptD: (a, b) => (a === b ? 'at ' + a + ' m' : 'from ' + a + ' to ' + b + ' m'), qPdist: 'How far away is the projector?', ayPdistL: (o, a, b) => 'With the ' + o + ' lens, for this image it can be between ' + a + ' and ' + b + ' m away.', ayPdistA: 'Enter the distance you have and the lens that gives this image from there is chosen.', noSeAuto: ['I don’t know', 'Let the calculation choose'], lOpt: 'lens', kCon: 'Contrast', kConS: (lx) => 'With ' + lx + ' lx in the place',
-    kDis: 'To the wall', kDisF: 'To the façade', kDisC: 'Hanging from the ceiling', kDisA: 'On a table', kBri: 'Brightness', kBriS: 'On the surfaces', kRes: 'Image', kResS: (w, h) => w + ' × ' + h + ' px native',
+    kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', sCabe: 'Projector fits', vCabe: (a, b) => (a && b ? 'between ' + a + ' and ' + b + ' m' : a ? 'more than ' + a + ' m away' : 'less than ' + b + ' m away'), vCabeN: 'at any distance', vCabeE: (a) => 'at ' + a + ' m', vPubNS: 'not known', noSePub: ['I don’t know', 'The projector will go at the middle of what its lens allows'], sMarca: 'Brands', qMarca: 'Which brands do you want to calculate with?', ayMarca: 'The calculation uses the projectors of the brands that are on. One always stays on.',
+    noVale: (n) => 'With ' + n + ' you cannot get what you are asking for.', queHago: 'WHAT CAN I DO', qConsejo: 'This projector cannot do it', ayConsejo: (n) => n + ' cannot give that image from that distance, or the image exceeds its maximum size.',
+    cAlt: (n) => 'Use ' + n, cAltS: (d) => 'The closest one that can' + (d ? ' · ' + d : ''), cOos: 'Turn on out of specification', cOosS: 'An image larger than the manufacturer guarantees: edge focus, uniformity and brightness may be worse. Test it with the real image before installing.',
+    cAuto: 'Let the calculation choose', cAutoS: 'The projector and lens that fit best', semOos: 'Out of specification: edge focus, uniformity and brightness may be worse.', semOosC: 'And with this light it will look dull.', quitar: 'REMOVE', qCabe: 'How far away can you install the projector?', ayCabe: 'From the image to the nearest and the farthest place where you can put it (if there is only one place, enter the same in both). That tells which lens works.', minimo: 'Minimum', maximo: 'Maximum', noSeCabe: ['I don’t know', 'Wherever works best'], sOpt: 'Lens', sPdist: 'Projector to wall', sPdistM: 'Projector to façade', vAutoC: 'automatic', qOpt: 'Which lens does the projector use?', ayOpt: 'This projector takes a separate lens. Each one gives this image from a different distance.', oAuto: ['Automatic', 'The best fit'], oOptD: (a, b) => (a === b ? 'at ' + a + ' m' : 'from ' + a + ' to ' + b + ' m'), qPdist: 'How far away is the projector?', ayPdistL: (o, a, b) => 'With the ' + o + ' lens, for this image it can be between ' + a + ' and ' + b + ' m away.', ayPdistA: 'Enter the distance you have and the lens that gives this image from there is chosen.', noSeAuto: ['I don’t know', 'Let the calculation choose'], lOpt: 'lens', kCon: 'Contrast', kConS: (lx) => 'With ' + lx + ' lx in the place',
+    kDis: 'To the wall', kDisF: 'To the façade', kDisC: 'Ceiling mounted', kDisA: 'On a table', kBri: 'Brightness', kBriS: 'On the surfaces', kRes: 'Image', kResS: (w, h) => w + ' × ' + h + ' px native',
     pers: '1.75 m person', proy: 'Projector'
   },
   ca: {
@@ -176,7 +182,10 @@ const T = {
     lProy: 'LA TEVA PROJECCIÓ', lSala: 'LA TEVA SALA', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
     semV: 'Es veurà bé amb aquesta llum.', semA: (a) => 'Es veurà una mica rentada: ' + a + '.', semR: (a) => 'Es veurà molt rentada: ' + a + '.', accLuz: 'abaixa la llum', accMas: 'fes la imatge més petita o afegeix un projector',
     pNoCabe: 'No hi ha un bon lloc per al projector amb aquestes mides: canvia la distància o mira-ho en PRO.',
-    kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, sCabe: 'El projector hi cap', vCabe: (a, b) => (a && b ? 'entre ' + a + ' i ' + b + ' m' : a ? 'a més de ' + a + ' m' : 'a menys de ' + b + ' m'), vCabeN: 'a qualsevol distància', qCabe: 'A quina distància pots instal·lar el projector?', ayCabe: 'De la imatge al lloc més proper i al més llunyà on el pots posar. Amb això se sap quina òptica val.', minimo: 'Mínim', maximo: 'Màxim', noSeCabe: ['No ho sé', 'On vagi millor'], sOpt: 'Òptica', sPdist: 'Projector a la paret', sPdistM: 'Projector a la façana', vAutoC: 'automàtica', qOpt: 'Quina òptica porta el projector?', ayOpt: 'Aquest projector porta l’òptica a part. Cadascuna dona aquesta imatge des d’una distància diferent.', oAuto: ['Automàtica', 'La que encaixa millor'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: 'A quina distància va el projector?', ayPdistL: (o, a, b) => 'Amb l’òptica ' + o + ', per a aquesta imatge pot estar entre ' + a + ' i ' + b + ' m.', ayPdistA: 'Posa la distància que tinguis i es tria l’òptica que dona aquesta imatge des d’allà.', noSeAuto: ['No ho sé', 'Que la triï el càlcul'], lOpt: 'òptica', kCon: 'Contrast', kConS: (lx) => 'Amb ' + lx + ' lx al lloc',
+    kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, sCabe: 'El projector hi cap', vCabe: (a, b) => (a && b ? 'entre ' + a + ' i ' + b + ' m' : a ? 'a més de ' + a + ' m' : 'a menys de ' + b + ' m'), vCabeN: 'a qualsevol distància', vCabeE: (a) => 'a ' + a + ' m', vPubNS: 'no se sap', noSePub: ['No ho sé', 'El projector anirà al centre del que permet la seva òptica'], sMarca: 'Marques', qMarca: 'Amb quines marques vols calcular?', ayMarca: 'Es calcula amb els projectors de les marques enceses. Sempre en queda una.',
+    noVale: (n) => 'Amb ' + n + ' no es pot aconseguir el que demanes.', queHago: 'QUÈ PUC FER', qConsejo: 'Amb aquest projector no es pot', ayConsejo: (n) => n + ' no dona aquesta imatge des d’aquesta distància, o la imatge passa de la seva mida màxima.',
+    cAlt: (n) => 'Fer servir ' + n, cAltS: (d) => 'El més semblant que sí que pot' + (d ? ' · ' + d : ''), cOos: 'Activar fora d’especificació', cOosS: 'Imatge més gran que la que garanteix el fabricant: l’enfocament a les vores, la uniformitat i la brillantor poden ser pitjors. Prova-ho amb la imatge real abans d’instal·lar.',
+    cAuto: 'Que triï el càlcul', cAutoS: 'El projector i l’òptica que encaixen millor', semOos: 'Fora d’especificació: l’enfocament a les vores, la uniformitat i la brillantor poden ser pitjors.', semOosC: 'I amb aquesta llum es veurà apagat.', quitar: 'TREURE', qCabe: 'A quina distància pots instal·lar el projector?', ayCabe: 'De la imatge al lloc més proper i al més llunyà on el pots posar (si només hi ha un lloc, posa el mateix als dos). Amb això se sap quina òptica val.', minimo: 'Mínim', maximo: 'Màxim', noSeCabe: ['No ho sé', 'On vagi millor'], sOpt: 'Òptica', sPdist: 'Projector a la paret', sPdistM: 'Projector a la façana', vAutoC: 'automàtica', qOpt: 'Quina òptica porta el projector?', ayOpt: 'Aquest projector porta l’òptica a part. Cadascuna dona aquesta imatge des d’una distància diferent.', oAuto: ['Automàtica', 'La que encaixa millor'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: 'A quina distància va el projector?', ayPdistL: (o, a, b) => 'Amb l’òptica ' + o + ', per a aquesta imatge pot estar entre ' + a + ' i ' + b + ' m.', ayPdistA: 'Posa la distància que tinguis i es tria l’òptica que dona aquesta imatge des d’allà.', noSeAuto: ['No ho sé', 'Que la triï el càlcul'], lOpt: 'òptica', kCon: 'Contrast', kConS: (lx) => 'Amb ' + lx + ' lx al lloc',
     kDis: 'A la paret', kDisF: 'A la façana', kDisC: 'Penjat del sostre', kDisA: 'Recolzat en una taula', kBri: 'Brillantor', kBriS: 'A les superfícies', kRes: 'Imatge', kResS: (w, h) => w + ' × ' + h + ' px natius',
     pers: 'Persona d’1,75 m', proy: 'Projector'
   }
@@ -231,6 +240,7 @@ const P = {
   contraste: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
   dist: '<path d="M2 12h20M5 8l-3 4 3 4M19 8l3 4-3 4"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  alerta: '<path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.4v.2"/>',
   ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
 };
 const ic = (k, c) => `<svg class="ss-ic${c ? ' ' + c : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || ''}</svg>`;
@@ -249,9 +259,9 @@ const PAREDES = ['frontal', 'izquierda', 'derecha', 'trasera', 'suelo'];
 
 /* ajustes que solo se tocan en PRO: si alguno no es el de fábrica, el resultado no es el automático */
 const AJ_LED = ['backup', 'escalador', 'conexion', 'marca', 'cosido', 'transp', 'nitsMin', 'resMin', 'giro', 'crm', 'pitch', 'ajuste', 'procSel', 'mediaSel', 'dante', 'entradas', 'tipoEntrada', 'resEntrada'];
-const AJ_PROY_T = ['cuerpo', 'optica', 'idSuelo', 'solape', 'ganancia', 'dist', 'distMin', 'distMax', 'orient', 'altura', 'oos'];
+const AJ_PROY_T = ['cuerpo', 'optica', 'idSuelo', 'solape', 'ganancia', 'orient', 'altura', 'oos'];
 /* v10.53 · la óptica y la distancia del proyector se eligen también en SIMPLE: no cuentan como ajuste de PRO */
-const AJ_PROY = ['idSuelo', 'solape', 'ganancia', 'orient', 'altura', 'oos'];
+const AJ_PROY = ['idSuelo', 'solape', 'ganancia', 'orient', 'altura'];
 const proyC = () => { const c = C().c; return c && c.proyector && c.filas && c.filas.length ? c : null; };
 const paredF = () => { const c = proyC(); return c ? (c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0]) : null; };
 const lentes = () => { const c = proyC(); return c ? PROYECTORES.filter((q) => q.modelo === c.proyector.modelo && q.optica) : []; };
@@ -311,15 +321,15 @@ function filas() {
   if (m === 'sala') out.push(['ptam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
   else out.push(['ptam', 'regla', t('sImg'), fm(s.ancho) + ' × ' + fm(s.alto) + ' m']);
   if (m !== 'mapping') out.push(['luz', luz ? luz[2] : 'bombilla', t('sLuz'), (luz ? t(luz[1])[0] + ' · ' : '') + fmt(lux, 0) + ' lx']);
-  if (m === 'pared') out.push(['pub', 'persona', t('sPub'), fm(s.dist) + ' m']);
+  if (m === 'pared') out.push(['pub', 'persona', t('sPub'), E.proy.pubNS ? t('vPubNS') : fm(s.dist) + ' m']);
   if (m !== 'mapping') out.push(['mont', E.proy.montaje === 'apoyado' ? 'mesa' : 'techo', t('sMont'), mont]);
   if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), fm(s.techo || 3) + ' m']);
   /* v10.53 · la óptica que lleva el proyector (con su relación de proyección) y la distancia a la que va: se ven siempre y se pueden cambiar */
-  if (m === 'pared' || m === 'mapping') { const a = Number(E.proy.distMin) || 0, b = Number(E.proy.distMax) || 0; out.push(['pcabe', 'regla', t('sCabe'), a || b ? t('vCabe')(a ? fm(a) : '', b ? fm(b) : '') : t('vCabeN')]); }
+  /* v10.54 · una sola pregunta para la distancia del proyector (un margen o un sitio fijo), la óptica que lleva y, si hay más de una, las marcas */
+  if (m === 'pared' || m === 'mapping') { const a = Number(E.proy.distMin) || 0, b = Number(E.proy.distMax) || 0, d = Number(E.proy.dist) || 0; out.push(['pcabe', 'regla', t('sCabe'), d ? t('vCabeE')(fm(d)) : a || b ? t('vCabe')(a ? fm(a) : '', b ? fm(b) : '') : t('vCabeN')]); }
   const c0 = proyC();
-  if (c0 && (m === 'pared' || m === 'mapping')) { const pr = c0.proyector, f0 = paredF(), pos0 = (f0 && f0.pos) || {};
-    if (pr.optica) out.push(['popt', 'proy', t('sOpt'), pr.optica + ' · ' + trTxt(pr) + (E.proy.optica ? '' : ' · ' + t('vAutoC'))]);
-    out.push(['pdist', 'dist', t(m === 'mapping' ? 'sPdistM' : 'sPdist'), Number(E.proy.dist) > 0 ? fm(E.proy.dist) + ' m' : (pos0.dist > 0 ? fm(pos0.dist) + ' m · ' : '') + t('vAutoC')]); }
+  if (c0 && (m === 'pared' || m === 'mapping') && c0.proyector.optica) out.push(['popt', 'proy', t('sOpt'), c0.proyector.optica + ' · ' + trTxt(c0.proyector) + (E.proy.optica ? '' : ' · ' + t('vAutoC'))]);
+  if ((C().MARCAS || []).length > 1) out.push(['pmarca', 'proy', t('sMarca'), C().marcas().join(' · ')]);
   return out;
 }
 function pintaResumen() {
@@ -352,7 +362,7 @@ function simProy(prop, ancho) {
     return g;
   }
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], s = f.s, pos = f.pos || {};
-  const dP = Math.max(.5, +pos.dist || 0), dPub = m === 'pared' ? Math.max(0, +c.dist || 0) : 0, y0 = isFinite(pos.y0) ? pos.y0 : s.elev, y1 = isFinite(pos.y1) ? pos.y1 : s.elev + s.alto;
+  const dP = Math.max(.5, +pos.dist || 0), dPub = m === 'pared' && !E.proy.pubNS ? Math.max(0, +c.dist || 0) : 0, y0 = isFinite(pos.y0) ? pos.y0 : s.elev, y1 = isFinite(pos.y1) ? pos.y1 : s.elev + s.alto;
   const techo = m === 'pared' && pos.techo > 0 ? +pos.techo : 0, yL = isFinite(pos.yLente) ? pos.yLente : (y0 + y1) / 2;
   const D = Math.max(dP, dPub) + Math.max(1.4, dP * .12), H = Math.max(techo || 0, y1, yL, 2.2) + .7;
   const VW = 1000, VH = Math.round(VW / Math.max(1.1, Math.min(2.8, prop || 1.8))), mL = 50, mR = Math.max(90, Math.round(30 + fz * 3.9)), mT = 34, mB = Math.max(70, Math.round(fz * 2.5));
@@ -435,10 +445,13 @@ function resProy() {
   if (!c || !c.filas || !c.filas.length || !c.proyector) return cabRes(false) + `<p class="ss-espera" data-crudo>${esc(t('calculando'))}</p>`;
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], pr = c.proyector, n = c.tot.n, con = c.tot.contrasteMin, pos = f.pos || {};
   const mal = c.filas.some((x) => x.p && (x.p.fuera || x.p.noCubre)), lux = Number(E.proy.lux) || 0;
-  const sem = mal ? 'R' : con >= 15 ? 'V' : con >= 7 ? 'A' : 'R', acc = lux > 50 ? t('accLuz') : t('accMas');
-  const semTxt = mal ? t('pNoCabe') : sem === 'V' ? t('semV') : sem === 'A' ? t('semA')(acc) : t('semR')(acc);
+  /* v10.54 · el proyector elegido a mano no puede (se dice y se ofrece qué hacer), o se calcula fuera de especificación (se avisa y se puede quitar) */
+  const kj = m !== 'sala' ? c.consejo : null, nomb = [pr.marca, pr.modelo].filter(Boolean).join(' ') + (pr.optica ? ' + ' + pr.optica : ''), oosOn = !kj && !mal && !!E.proy.oos;
+  const semC = con >= 15 ? 'V' : con >= 7 ? 'A' : 'R', sem = mal || kj ? 'R' : oosOn && semC === 'V' ? 'A' : semC, acc = lux > 50 ? t('accLuz') : t('accMas');
+  const semTxt = kj ? t('noVale')(nomb) : mal ? t('pNoCabe') : oosOn ? t('semOos') + (semC === 'R' ? ' ' + t('semOosC') : '') : sem === 'V' ? t('semV') : sem === 'A' ? t('semA')(acc) : t('semR')(acc);
+  const semBt = kj ? `<button type="button" class="ss-mini" data-ss-q="pconsejo">${esc(t('queHago'))}</button>` : oosOn ? `<button type="button" class="ss-mini" data-ss="oos-no">${esc(t('quitar'))}</button>` : '';
   /* la línea: el proyector y, detrás, la imagen (o la sala) y cuántos hacen falta, sin repetir el número */
-  const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc([pr.marca, pr.modelo].filter(Boolean).join(' ') + (pr.optica ? ' + ' + pr.optica : '')) + '</b>';
+  const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc(nomb) + '</b>';
   const l2 = m === 'sala' ? esc(nb(`${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')} · ${t('proys')(n)}`))
     : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}`));
   const C5 = [cifra(t('kLum'), fmt(pr.lumens, 0), 'lm', [n > 1 ? t('kLumSn') : '', pr.optica ? t('kOpt')(pr.optica) : ''].filter(Boolean).join(' · ') || t('kLumS1'), 'bombilla', 'var(--ss-ambar)'),
@@ -446,8 +459,8 @@ function resProy() {
   if (m === 'sala') { if (c.tot.nitsMin > 0) C5.push(cifra(t('kBri'), fmt(c.tot.nitsMin, 0), 'nits', t('kBriS'), 'sol', 'var(--ss-acento)')); }
   else if (pos.dist > 0) C5.push(cifra(m === 'mapping' ? t('kDisF') : t('kDis'), fm(pos.dist), 'm', m === 'pared' ? (pos.apoyo ? t('kDisA') : t('kDisC')) : '', 'dist', 'var(--ss-azul)'));
   if (pr.resX > 0 && pr.resY > 0) C5.push(cifra(t('kRes'), String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY, '', t('kResS')(pr.resX, pr.resY), 'calidad', 'var(--ss-violeta-t)'));
-  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + [pr.marca, pr.modelo].filter(Boolean).join(' ') + ' · ' + t('proys')(n) + '\n' + semTxt + '\n' + t('kLum') + ': ' + fmt(pr.lumens, 0) + ' lm' + (isFinite(con) ? '\n' + t('kCon') + ': ' + fmt(con, 1) + ':1' : '');
-  return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}" data-crudo><i></i><span class="ss-fit">${esc(semTxt)}</span></p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
+  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + '\n' + t('kLum') + ': ' + fmt(pr.lumens, 0) + ' lm' + (isFinite(con) ? '\n' + t('kCon') + ': ' + fmt(con, 1) + ':1' : '');
+  return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}" data-crudo><i></i><span class="ss-fit">${esc(semTxt)}</span>${semBt}</p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
 function pintaRes() { const el = document.getElementById('ss-res'); if (!el) return; TXT = ''; el.innerHTML = listo() ? (PAG === 'portada' ? resLed() : resProy()) : cabRes(false) + (FALLO ? '' : espera()); }   /* el aviso de fallo, una sola vez (en LO QUE PIDES) */
 
@@ -492,25 +505,31 @@ const PREG = {
     paredes: () => modoCons() === 'sala',
     pon: (v) => { const E = ED(); if (modoCons() === 'sala') { if (v.a) E.esp.ancho = v.a; if (v.f) E.esp.fondo = v.f; if (v.h) E.esp.alto = v.h; } else { const s = E.esp.sueltas; if (v.w) s.ancho = v.w; if (v.h) s.alto = v.h; if (v.tele) s.alto = Math.round(s.ancho * 9 / 16 * 100) / 100; } } },
   luz: { rama: 'proy', si: () => modoCons() !== 'mapping', t: 'qLuz', ay: 'ayLuz', op: () => LUCES.map((l) => [l[0], l[1], l[2]]), val: () => Number(ED().proy.lux), pon: (v) => { ED().proy.lux = v; } },
-  pub: { rama: 'proy', si: () => modoCons() === 'pared', t: 'qPub', ay: 'ayPub', num: () => [['d', t('metros'), ED().esp.sueltas.dist, 1, 100, 'm']], nose: () => t('noSe5'),
-    pon: (v) => { ED().esp.sueltas.dist = typeof v === 'object' ? (v.d || 5) : 5; } },
+  pub: { rama: 'proy', si: () => modoCons() === 'pared', t: 'qPub', ay: 'ayPub', num: () => [['d', t('metros'), ED().proy.pubNS ? '' : ED().esp.sueltas.dist, 1, 100, 'm']], nose: () => t('noSePub'),
+    /* v10.54 · «no lo sé»: el proyector va al centro de lo que permite su óptica (se cuenta 5 m para el resto) */
+    pon: (v) => { const E = ED(), n = typeof v === 'object' && v.d > 0; E.esp.sueltas.dist = n ? v.d : 5; E.proy.pubNS = !n; } },
   mont: { rama: 'proy', si: () => modoCons() !== 'mapping', t: 'qMont', op: () => [['colgado', 'mCol', 'techo'], ['apoyado', 'mApo', 'mesa'], ['auto', 'mAuto', 'chispa']], val: () => ED().proy.montaje || 'auto', pon: (v) => { ED().proy.montaje = v; } },
   techo: { rama: 'proy', si: () => modoCons() === 'pared' && ED().proy.montaje === 'colgado', t: 'qTecho', num: () => [['h', t('alto'), ED().esp.sueltas.techo || 3, 2, 30, 'm']], nose: () => t('noSe3'),
     pon: (v) => { ED().esp.sueltas.techo = typeof v === 'object' ? (v.h || 3) : 3; } },
-  /* v10.53 · dónde cabe el proyector: de qué distancia a qué distancia de la imagen se puede instalar. Decide la óptica (o si ese proyector no vale) */
+  /* v10.54 · dónde cabe el proyector: de qué distancia a qué distancia de la imagen se puede instalar (lo mismo en los dos = un sitio fijo).
+     Decide la óptica; si el proyector o la óptica están elegidos a mano y no pueden, se dice en el resultado (no se cambian solos) */
   pcabe: { rama: 'proy', si: () => modoCons() === 'pared' || modoCons() === 'mapping', t: 'qCabe', ay: 'ayCabe',
-    num: () => [['a', t('minimo'), Number(ED().proy.distMin) || '', .2, 200, 'm'], ['b', t('maximo'), Number(ED().proy.distMax) || '', .2, 200, 'm']], nose: () => t('noSeCabe'),
-    pon: (v) => { const E = ED(); let a = typeof v === 'object' ? (v.a || 0) : 0, b = typeof v === 'object' ? (v.b || 0) : 0; if (a && b && a > b) { const x = a; a = b; b = x; } E.proy.distMin = Math.round(a * 100) / 100; E.proy.distMax = Math.round(b * 100) / 100; if (a || b) { E.proy.dist = 0; E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
-  /* v10.53 · fuera del asistente (solo desde LO QUE PIDES): la óptica y la distancia del proyector */
+    num: () => { const p = ED().proy, d = Number(p.dist) || 0; return [['a', t('minimo'), d || Number(p.distMin) || '', .2, 200, 'm'], ['b', t('maximo'), d || Number(p.distMax) || '', .2, 200, 'm']]; }, nose: () => t('noSeCabe'),
+    pon: (v) => { const E = ED(); let a = typeof v === 'object' ? (v.a || 0) : 0, b = typeof v === 'object' ? (v.b || 0) : 0; if (a && b && a > b) { const x = a; a = b; b = x; } a = Math.round(a * 100) / 100; b = Math.round(b * 100) / 100;
+      if (a && a === b) { E.proy.dist = a; E.proy.distMin = 0; E.proy.distMax = 0; } else { E.proy.dist = 0; E.proy.distMin = a; E.proy.distMax = b; } } },
+  /* fuera del asistente (solo desde LO QUE PIDES): la óptica, las marcas y qué hacer cuando el proyector elegido no puede */
   popt: { rama: 'proy', si: () => lentes().length > 0, t: 'qOpt', ay: 'ayOpt',
     op: () => { const nw = anchoNat(); return [['', t('oAuto'), 'chispa']].concat(lentes().map((q) => [q.optica, [q.optica + ' · ' + trTxt(q), nw > 0 ? t('oOptD')(fm(q.trMin * nw), fm(q.trMax * nw)) : ''], 'proy'])); },
     val: () => ED().proy.optica || '',
-    pon: (v) => { const E = ED(), c = proyC(); if (v) { if (c) E.proy.cuerpo = c.proyector.modelo; E.proy.optica = v; const q = lentes().find((x) => x.optica === v), nw = anchoNat(), d = Number(E.proy.dist) || 0; if (d > 0 && q && nw > 0 && (d < q.trMin * nw - .005 || d > q.trMax * nw + .005)) E.proy.dist = 0; } else { E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
-  pdist: { rama: 'proy', t: 'qPdist',
-    ay: () => { const E = ED(), f = paredF(), c = proyC(); return E.proy.optica && f && f.p && c ? t('ayPdistL')(c.proyector.optica, fm(f.p.tMin), fm(f.p.tMaxZ)) : t('ayPdistA'); },
-    num: () => { const E = ED(), f = paredF(), fija = !!E.proy.optica && f && f.p && f.p.tMaxZ > 0, pos = (f && f.pos) || {}; return [['d', t('metros'), Number(E.proy.dist) > 0 ? Number(E.proy.dist) : (pos.dist > 0 ? Math.round(pos.dist * 100) / 100 : ''), fija ? Math.floor(f.p.tMin * 100) / 100 : .2, fija ? Math.ceil(f.p.tMaxZ * 100) / 100 : 200, 'm', true]]; },
-    nose: () => t('noSeAuto'),
-    pon: (v) => { ED().proy.dist = typeof v === 'object' ? Math.round((v.d || 0) * 100) / 100 : 0; } }
+    pon: (v) => { const E = ED(), c = proyC(); if (v) { if (c) E.proy.cuerpo = c.proyector.modelo; E.proy.optica = v; } else { E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
+  pmarca: { rama: 'proy', t: 'qMarca', ay: 'ayMarca', marcas: () => true, pon: () => {} },
+  pconsejo: { rama: 'proy', t: 'qConsejo', ay: () => { const c = proyC(), k = c && c.consejo; return k ? t('ayConsejo')(k.nombre) : ''; },
+    op: () => { const c = proyC(), k = c && c.consejo, o = []; if (!k) return [['auto', [t('cAuto'), t('cAutoS')], 'chispa']];
+      if (k.alt) { const q = k.alt; o.push(['alt', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cAltS')([q.lumens > 0 ? fmt(q.lumens, 0) + ' lm' : '', String(q.resTxt || '').split('(')[0].trim()].filter(Boolean).join(' · '))], 'proy']); }
+      if (k.oos) o.push(['oos', [t('cOos'), t('cOosS')], 'alerta']);
+      o.push(['auto', [t('cAuto'), t('cAutoS')], 'chispa']); return o; },
+    val: () => null,
+    pon: (v) => { const E = ED(), c = proyC(), k = c && c.consejo; if (v === 'alt' && k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; } else if (v === 'oos') E.proy.oos = true; else if (v === 'auto') { E.proy.cuerpo = C().DEF().proy.cuerpo; E.proy.optica = ''; } } }
 };
 const RAMA = { led: ['donde', 'sol', 'mar', 'uso', 'medida', 'dist', 'tocar', 'altura'], proy: ['ptipo', 'ptam', 'luz', 'pub', 'pcabe', 'mont', 'techo'] };
 const visibles = (r) => RAMA[r].filter((id) => !PREG[id].si || PREG[id].si());
@@ -562,6 +581,7 @@ function pintaAsis() {
       if (q.paredes && q.paredes()) { const E = ED(); cuerpoA += `<p class="ss-ay">${esc(Lx.paredes)}</p><div class="ss-pars">${PAREDES.map((pp) => `<button type="button" class="ss-par${E.esp.paredes[pp] ? ' on' : ''}" data-ss-par="${pp}" aria-pressed="${!!E.esp.paredes[pp]}"><span class="ss-fit">${esc(Lx[pp])}</span></button>`).join('')}</div>`; }
       if (!solo) pie = `<button type="button" class="ss-sig" data-ss="num-ok"><span class="ss-fit">${esc(W.full ? Lx.sig : Lx.listo)}</span></button>`;
     }
+    if (q.marcas && q.marcas()) { const act = C().marcas(); cuerpoA += `<div class="ss-pars">${C().MARCAS.map((mm) => `<button type="button" class="ss-par${act.includes(mm) ? ' on' : ''}" data-ss-marca="${esc(mm)}" aria-pressed="${act.includes(mm)}"><span class="ss-fit">${esc(mm)}</span></button>`).join('')}</div>`; pie = `<button type="button" class="ss-sig" data-ss="fin"><span class="ss-fit">${esc(Lx.listo)}</span></button>`; }
     if (q.nose) { const k = q.nose(); cuerpoA += `<button type="button" class="ss-op ss-op-l ss-op-nose" data-ss-op='"nose"'>${ic('duda')}<span class="ss-op-t"><b class="ss-fit">${esc(k[0])}</b>${k[1] ? `<small>${esc(k[1])}</small>` : ''}</span></button>`; }
     if (W.full && W.rama) { const lista = visibles(W.rama), i = lista.indexOf(p); if (i >= 0) cont = `<span class="ss-paso">${esc(Lx.paso(i + 1, lista.length))}</span><span class="ss-puntos">${lista.map((x, j) => `<i class="${j < i ? 'ya' : j === i ? 'on' : ''}"></i>`).join('')}</span>`; }
   }
@@ -633,6 +653,7 @@ function clic(e) {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.ssOp != null) { let v; try { v = JSON.parse(b.dataset.ssOp); } catch (x) { v = b.dataset.ssOp; } responde(v); return; }
   if (b.dataset.ssQ) { abre(b.dataset.ssQ, false); return; }
+  if (b.dataset.ssMarca) { if (C().marca(b.dataset.ssMarca)) { recalc(); pintaAsis(); } return; }
   if (b.dataset.ssPar) { const E = ED(), k = b.dataset.ssPar; E.esp.paredes[k] = !E.esp.paredes[k]; if (!PAREDES.some((p) => E.esp.paredes[p])) E.esp.paredes.frontal = true; recalc(); pintaAsis(); return; }
   const a = b.dataset.ss; if (!a) return;
   if (a === 'asis') abre('que', true);
@@ -640,6 +661,7 @@ function clic(e) {
   else if (a === 'compartir') compartir();
   else if (a === 'pro') ponVista('pro');
   else if (a === 'restablece') restablecePro();
+  else if (a === 'oos-no') { ED().proy.oos = false; recalc(); }
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
   else if (a === 'ir-led') { location.href = RAIZ + 'index.html?vista=simple'; }

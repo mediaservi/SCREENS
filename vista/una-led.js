@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.54';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.55';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.54';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.55';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.54';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.55';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -67,8 +67,8 @@ const IC = {
   red: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="11" rx="1.5"/><path d="M8 17v3h8v-3M8 10v3M11 10v3M14 10v3M17 10v3"/></svg>',
   chip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>',
   clasico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg>' };
-/* icono de la simulación: el que mandó Josep (tabla con ojo) */
-IC.sim = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5,21q-0.83,0-1.41-0.59T3,19V5Q3,4.17 3.59,3.59T5,3H19q0.83,0 1.41,0.59T21,5v8.32q-0.47-0.28-0.97-0.5T19,12.43V9H13v3.42q-1.15,0.35-2.15,1T9,15H5v4H7.05q0.27,0.55 0.55,1.05T8.2,21H5Zm0-8h6V9H5v4ZM5,7H19V5H5V7Zm11,16q-2.27,0-4.2-1.2T9,18.5q0.88-2.1 2.8-3.3T16,14q2.28,0 4.2,1.2T23,18.5q-0.88,2.1-2.8,3.3T16,23Zm2.69-2.65q1.26-0.65 2.06-1.85q-0.8-1.2-2.06-1.85Q17.43,16 16,16t-2.69,0.65T11.25,18.5q0.8,1.2 2.06,1.85T16,21q1.43,0 2.69-0.65Zm-3.75-0.79Q14.5,19.13 14.5,18.5t0.44-1.06T16,17t1.06,0.44T17.5,18.5t-0.44,1.06T16,20t-1.06-0.44Z"/></svg>';
+/* v10.55 · icono de la simulación: el que mandó Josep (la sala inmersiva con una persona dentro, «simulation» de Material Symbols); el mismo en la portada, la consola y SIMPLE */
+IC.sim = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8,17V16.43q0-1.1 1.1-1.76T12,14t2.9,0.66T16,16.43V17H8Zm2.59-4.59Q10,11.83 10,11q0-0.83 0.59-1.41T12,9t1.41,0.59T14,11t-0.59,1.41T12,13t-1.41-0.59ZM3,9.2v7.65q0.35,0.32 0.85,0.56T5,17.77V9.85Q4.45,9.73 3.94,9.56T3,9.2ZM21,9.17q-0.42,0.2-0.92,0.36T19,9.82v7.95q0.65-0.13 1.15-0.36T21,16.85V9.17ZM7,20.15Q4.13,19.8 2.56,18.98T1,17V7Q1,5.57 3.84,4.8T12,4.02T20.16,4.8T23,7V17q0,1.15-1.56,1.98T17,20.15v-12q1.28-0.2 2.26-0.49q0.99-0.29 1.41-0.56Q19.6,6.68 17,6.34T12,6T7,6.34Q4.4,6.68 3.33,7.1Q3.75,7.4 4.74,7.68T7,8.15v12ZM3,9.2v8.57q0-0.13 0-0.36t0-0.56V9.2ZM21,9.17v7.68q0,0.32 0,0.56t0,0.36V9.17Z"/></svg>';
 /* iconos originales de SCREENS (los que eligió Josep para la versión clásica): sustituyen a los dibujados para BLOCKS allí donde existen */
 Object.entries({"regla": "tamano", "entorno": "tipo", "pitch": "pitch", "cabinet": "cabinet", "cable": "cosido", "dims": "dimensiones", "res": "resolucion", "cabs": "cabinets", "red": "senal", "info": "info", "mic": "mic", "audio": "audio", "contenido": "contenido", "clasico": "pdf"}).forEach(([k, n]) => { IC[k] = `<span class="ic ic-${n}"></span>`; });
 IC.dist = '<span class="ic ic-distancia"></span>'; IC.inst = '<span class="ic ic-instalacion"></span>'; IC.nits = '<span class="ic ic-nits"></span>';
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.54';
+const TEXV = '?v=10.55';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */

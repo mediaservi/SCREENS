@@ -4,11 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.54** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.55** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
-- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
+- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente, tanto para una pantalla LED como para varias, una sala LED, una proyección o una sala de proyección; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -69,7 +69,19 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.54)
+## Cambios de la versión actual (v10.55)
+
+**SIMPLE calcula también varias pantallas LED y la sala LED entera.**
+
+- Antes, en SIMPLE, varias pantallas LED o una sala LED respondían «solo se calculan en PRO». Ahora tienen su cuerpo SIMPLE en la consola, con el mismo cálculo de PRO:
+  - **LO QUE PIDES:** qué se monta (varias pantallas o sala entera), las medidas (cuántas pantallas y su tamaño, o la sala con sus paredes), dónde van, el uso (fija o eventos) y desde dónde se miran. La sala LED es siempre de interior y no lleva suelo.
+  - **Simulación a escala:** la sala en planta con las paredes de LED encendidas, o las pantallas de frente, una al lado de otra, junto a la silueta de 1,75 m.
+  - **Resultado:** el cabinet elegido, cuántos hacen falta, el lienzo de contenido en píxeles, desde dónde se ve nítida, el consumo y el peso. Las pantallas salen con cabinets enteros: se da su medida real y, si no coincide con la pedida, se dice.
+- **Asistente:** la rama LED empieza por «¿Qué vas a montar?» (una pantalla, varias o una sala entera) y lleva a la página que toca con el asistente abierto. Una sola pantalla LED se sigue calculando en la portada.
+- Los avisos del catálogo (por ejemplo, que no hay LED protegido para ese entorno) salen en el semáforo del resultado.
+- **Icono de simulación nuevo** (la sala con una persona dentro) en todas las cabeceras de «Simulación a escala»: portada, consola y SIMPLE, y en la ventana grande.
+
+### v10.54
 
 **El proyector elegido que no llega, el punto medio de la óptica y el filtro de marcas.**
 

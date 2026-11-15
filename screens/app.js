@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.54';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.55';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.54';
+const VERSION = 'v10.55';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -106,12 +106,12 @@ function calcular() {
   if (E.tecnologia === 'led') {
     const lista = listaLed();
     const modelo = (E.led.crm && lista.find(m => m.crm === E.led.crm)) || elegirModelo(lista, dist);
-    if (!modelo) return { esp, dist, filas: [], modelo: null, lista };
+    if (!modelo) return { esp, dist, filas: [], modelo: null, lista, avisoLed: avisoLed.slice() };
     const grosor = (modelo.thick || 80) / 1000;
     const sups = superficies(esp, grosor);
     const puertas = puertasDe(esp);
     const filas = sups.map(s => ({ s, r: aplicarPuertas(calcularLed(s, modelo, E.led.ajuste), s, modelo, puertas.filter(p => p.pared === s.id)), nombre: nombreSup(s), grosor }));
-    const c = { esp, dist, modelo, lista, filas, tot: totales(filas) };
+    const c = { esp, dist, modelo, lista, filas, tot: totales(filas), avisoLed: avisoLed.slice() };
     c.elec = electronica(c); return c;
   }
   const sups = superficies(esp, 0);
@@ -1137,5 +1137,5 @@ try { if ('serviceWorker' in navigator && location.protocol.startsWith('http')) 
 cargarEquipos(() => { if (!unaLed()) actualizar(); });
 cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); });
 // v10.49 · lo que usa el modo SIMPLE (vista/simple.js): el mismo estado y el mismo cálculo que PRO
-window.__consola = { get E() { return E; }, MARCAS: MARCAS_PROY, marcas: marcasActivas, marca: alternaMarca, DEF, actualizar: () => actualizar(), get c() { return calculo; }, peticion: () => calcularPeticion(), luz: () => luzSegunTipo() };
+window.__consola = { get E() { return E; }, MARCAS: MARCAS_PROY, marcas: marcasActivas, marca: alternaMarca, DEF, actualizar: () => actualizar(), get c() { return calculo; }, get estadoCat() { return estadoCat; }, peticion: () => calcularPeticion(), luz: () => luzSegunTipo() };
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();

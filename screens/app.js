@@ -11,7 +11,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.48';
+const VERSION = 'v10.49';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -784,6 +784,7 @@ function actualizar(sinEscena) {
   activarVistas($('#res'), calculo, fijarDesdeVistas);
   barraEscena(); bandaOos();
   if (!sinEscena) { clearTimeout(tEsc); tEsc = setTimeout(construirEscena, 60); }
+  if (window.SCSIMPLE) window.SCSIMPLE.aviso();   // v10.49 · el modo SIMPLE se repinta con el mismo cálculo
 }
 function construirEscena() {
   if (!escena || !calculo) return;
@@ -1085,3 +1086,6 @@ actualizar();
 try { if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 cargarEquipos(() => { if (!unaLed()) actualizar(); });
 cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); });
+// v10.49 · lo que usa el modo SIMPLE (vista/simple.js): el mismo estado y el mismo cálculo que PRO
+window.__consola = { get E() { return E; }, DEF, actualizar: () => actualizar(), get c() { return calculo; }, peticion: () => calcularPeticion(), luz: () => luzSegunTipo() };
+if (window.SCSIMPLE) window.SCSIMPLE.aviso();

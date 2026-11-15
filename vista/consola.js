@@ -215,6 +215,7 @@
       if (NUEVOS && de.classList.contains('bk')) requestAnimationFrame(function () { dispatchEvent(new Event('resize')); });
       if (!hecho && $('#consola [data-set]')) { hecho = true; primera(); } }); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-pressed'] });
     piezas(); marcos(); coloca();
-    { var vista = false; try { vista = !!localStorage.getItem(GUIA_K); } catch (e) {} if (!vista) setTimeout(function () { if ($('#panelA')) guia(0); }, 1500); }
+    { var vista = false; try { vista = !!localStorage.getItem(GUIA_K); } catch (e) {} if (!vista && !(window.SCSIMPLE && window.SCSIMPLE.activo())) setTimeout(function () { if ($('#panelA')) guia(0); }, 1500); }
+    window.__consolaGuia = function () { if ($('#panelA')) guia(0); };   /* v10.49 · en SIMPLE la guía sale la primera vez que se pasa a PRO */
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(function () { var ip = $('#nl-texto'); if (ip && !ip.classList.contains('beta')) { var ph = textoGuia(ip, L()); if (ph) ip.placeholder = ph; } encoge($('#pie-l .nota > span'), 7); }, 60); }); });
 })();

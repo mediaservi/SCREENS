@@ -4,10 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.48** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.49** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
+- **Dos vistas, SIMPLE y PRO** (interruptor en la cabecera): SIMPLE pregunta lo justo con un asistente y enseña el resultado con un semáforo; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -68,7 +69,24 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.48)
+## Cambios de la versión actual (v10.49)
+
+**Modo SIMPLE (beta)**, para quien llega por primera vez y se agobia con tantos botones. Usa el mismo cálculo y los mismos datos que la vista de siempre, que ahora se llama **PRO**:
+
+- **Interruptor SIMPLE · PRO** en la cabecera de la portada y de la consola, como el de VJSHOW. Se recuerda en el navegador y se puede pasar en el enlace (`?vista=simple` o `?vista=pro`). Quien ya usaba SCREENS entra en PRO; quien llega por primera vez, en SIMPLE.
+- **Asistente la primera vez:** una pregunta por pantalla, con botones grandes y siempre «No lo sé». Se puede saltar.
+  - Primero, «¿Qué quieres poner?»: pantalla LED, proyector, o «No lo sé», que hace dos preguntas y recomienda.
+  - **LED:** dónde va (dentro, en la calle o tras un cristal), sol, mar, fija o para eventos, medida del hueco («como una tele» si no se sabe el alto), distancia desde la que se mira, si se puede tocar y altura del suelo.
+  - **Proyector:** pared, fachada o sala entera, tamaño (o la sala y sus paredes), luz del sitio, distancia del público, dónde va el proyector y altura del techo.
+- **Pantalla SIMPLE:**
+  - un resumen en el que cada línea abre solo su pregunta;
+  - la simulación a escala (la misma de PRO en LED; corte lateral o planta de la sala en proyección);
+  - el resultado con un semáforo, una frase clara y cuatro cifras;
+  - VER PDF, COMPARTIR (copia el resumen) y VER TODO EN PRO.
+- **Ajustes de PRO avisados:** si en PRO se ha tocado algo que SIMPLE no enseña (backup, un cabinet elegido a mano…), una pastilla lo avisa y RESTABLECER lo devuelve a lo automático.
+- La guía de PRO sale la primera vez que se entra en PRO. Los textos de SIMPLE están en español, inglés y catalán (`vista/simple.js` y `vista/simple.css`).
+
+### v10.48
 
 Mejoras de uso salidas de una auditoría externa de la app (beta):
 

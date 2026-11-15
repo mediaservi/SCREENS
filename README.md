@@ -4,11 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.49** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.50** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
-- **Dos vistas, SIMPLE y PRO** (interruptor en la cabecera): SIMPLE pregunta lo justo con un asistente y enseña el resultado con un semáforo; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
+- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -69,7 +69,25 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.49)
+## Cambios de la versión actual (v10.50)
+
+**SIMPLE con las cabeceras de PRO.** Las cabeceras y el pie son los de PRO en los dos modos, con todos sus iconos, las marcas de la familia AVHUB y sus enlaces. El interruptor solo cambia el cuerpo de la página.
+
+- **Interruptor junto al logo**, en el mismo sitio en SIMPLE y en PRO, en la portada y en la consola. Se ve siempre para volver de PRO a SIMPLE. En la tableta vertical y en el móvil tumbado, los logos de la familia se juntan un poco para que quepan.
+- **Cuerpo SIMPLE en la rejilla de PRO:**
+  - **LO QUE PIDES** ocupa las dos primeras columnas;
+  - la **simulación a escala** ocupa las otras cuatro y dos tercios del alto, sin los cuadros de datos encima;
+  - el **RESULTADO** va en la fila de abajo.
+- **RESULTADO:**
+  - debajo del título, la línea resumen, por ejemplo «TU PANTALLA LED SLIM-FIX-2.6-50 · 550 × 300 cm · 247″ · 11×6 = 66 cabinets · 2112×1152 px»;
+  - el semáforo;
+  - unas pocas cifras muy visuales que no repiten la línea: calidad, distancia nítida, electricidad, peso y control (en proyección: lúmenes, contraste, distancia a la pared o brillo, e imagen);
+  - VER PDF, COMPARTIR y VER TODO EN PRO van en la franja del título.
+- **El stock es un dato interno:** ya no sale en texto en ningún sitio, ni en pantalla ni en los PDF (tampoco en la lista de modelos). Solo se ve su icono: una **caja verde** si hay stock, una **tarjeta con reloj naranja** si hay que pedirlo (`comun/ficha.js`, `comun/ficha.css`).
+- **Sin ceros por falta de datos:** si la tabla maestra no tiene el peso o el consumo de un modelo, ese dato no sale («Pesa 0 kg», «0 kW»). Vale para los bloques, el resumen, el PDF, la lista de material y la tabla de la consola.
+- **Carga más segura:** los módulos y estilos que cambian van con su versión, para que una copia vieja en caché no se mezcle con la nueva. Si el cálculo no llega a cargar, SIMPLE lo dice a los 15 segundos y ofrece VOLVER A CARGAR.
+
+### v10.49
 
 **Modo SIMPLE (beta)**, para quien llega por primera vez y se agobia con tantos botones. Usa el mismo cálculo y los mismos datos que la vista de siempre, que ahora se llama **PRO**:
 

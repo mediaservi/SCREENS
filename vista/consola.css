@@ -113,7 +113,7 @@ html.piel :is(#app, #bk-velo) .ficha { background: var(--blk2); color: var(--txt
 html.piel .fi-marca, html.piel .fi-desc, html.piel .fi-nota, html.piel .fi-specs dt { color: var(--tenue); }
 html.piel .fi-specs dd, html.piel .fi-modelo { color: var(--txt); }
 html.piel .fi-aviso { color: var(--ambar); }
-html.piel[data-tema="claro"] .fi-cat, html.piel[data-tema="claro"] .fi-piezas b, html.piel[data-tema="claro"] .fi-enlace, html.piel[data-tema="claro"] .fi-stock { filter: brightness(.42) saturate(1.6); }
+html.piel[data-tema="claro"] .fi-cat, html.piel[data-tema="claro"] .fi-piezas b, html.piel[data-tema="claro"] .fi-enlace { filter: brightness(.42) saturate(1.6); }
 
 /* ---------- bloques en burbuja con su cabecera (icono + título) ---------- */
 html.piel .zona-cab { display: none; }

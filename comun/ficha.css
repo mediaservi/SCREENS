@@ -5,8 +5,12 @@
 .ficha.fi-sel { box-shadow: 0 0 0 1px var(--fi-ac), 0 0 14px color-mix(in srgb, var(--fi-ac) 35%, transparent), inset 0 1px 0 rgba(255,255,255,.06); }
 .fi-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .fi-cat { font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--fi-ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fi-stock { flex: none; font: 700 9px/1 'Share Tech Mono', ui-monospace, monospace; letter-spacing: .08em; padding: 3px 6px; border-radius: 4px; border: 1px solid currentColor; }
-.fi-stock.si { color: #00ff04; } .fi-stock.no { color: #ffb000; }
+/* v10.50 · stock solo con su icono (caja verde = de stock; tarjeta con reloj naranja = a pedir): nunca en texto */
+.sc-stock { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.7em; height: 1.7em; border-radius: .42em; border: 1px solid currentColor; background: color-mix(in srgb, currentColor 13%, transparent); vertical-align: middle; }
+.sc-stock svg { width: 74%; height: 74%; display: block; }
+.sc-stock.si { color: #3fdc5b; } .sc-stock.no { color: #ff9a1f; }
+:root[data-tema="claro"] .sc-stock.si { color: #17842f; } :root[data-tema="claro"] .sc-stock.no { color: #b85e00; }
+.fi-cab .sc-stock { font-size: 11px; }
 .fi-cuerpo { display: grid; grid-template-columns: minmax(64px, 96px) minmax(0, 1fr); gap: 10px; align-items: center; }
 .fi-foto { position: relative; aspect-ratio: 4 / 3; border-radius: 7px; background: #fff; border: 1px solid #0b0b0c; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .fi-foto svg { width: 78%; height: 78%; }

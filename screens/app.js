@@ -5,13 +5,13 @@ import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, analiza
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js';
+import '../comun/ficha.js?v=10.50';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.49';
+const VERSION = 'v10.50';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -334,7 +334,7 @@ function bloqueObst(sala) {
 }
 function partesLed(c) {
   const l = E.led, lista = c.lista || [];
-  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}>[${m.pitch}p] ${m.crm}${enStock(m) ? ' · STOCK' : ''}</option>`).join('');
+  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}>[${m.pitch}p] ${m.crm}</option>`).join('');
   let mat = '';
   if (estadoCat === 'cargando' && !catalogo.length) mat += `<p class="ayuda">${t('cargando')}</p>`;
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;
@@ -492,13 +492,13 @@ function vistaResultados(c) {
     h += `<div class="res-tot">
       ${tarjeta(t('cabinets'), fmtPx(T.cab), '', `${m.crm} · ${m.pitch} mm`, '#b566ff')}
       ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
-      ${tarjeta(t('peso'), fmt(T.peso, 0), 'kg', '', '#e100ff')}
-      ${tarjeta(t('consumo'), fmt(T.kw, 1), 'kW', `${fmt(T.amp, 1)} A · 230 V`, '#ff4d5e')}
+      ${tarjeta(t('peso'), T.peso > 0 ? fmt(T.peso, 0) : '—', T.peso > 0 ? 'kg' : '', '', '#e100ff')}
+      ${tarjeta(t('consumo'), T.kw > 0 ? fmt(T.kw, 1) : '—', T.kw > 0 ? 'kW' : '', T.amp > 0 ? `${fmt(T.amp, 1)} A · 230 V` : '', '#ff4d5e')}
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', `+ ${fmtPx(T.lineas)} backup · 8 bit 60 Hz`, '#00ff04')}
       ${tarjeta(t('salidas'), fmtPx(T.salidas4k), '', 'mediaserver', '#ffb000')}
     </div>`;
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
-      ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${fmt(f.r.peso, 0)} kg</td><td>${fmt(f.r.kw, 2)} kW</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
+      ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
     const qu = c.filas.filter(f => f.r && f.r.quitados);
     if (qu.length) h += `<ul class="avisos">${qu.map(f => `<li>${t('puertaLed', { n: f.nombre, c: f.r.quitados, w: fmt(f.r.huecos.reduce((a, x) => a + x.w, 0), 2), h: fmt(Math.max(...f.r.huecos.map(x => x.h)), 2) })}</li>`).join('')}</ul>`;
@@ -562,7 +562,9 @@ function materialLed(c) {
   else L.push({ c: T.lineas * mult, ref: 'Cat6 (RJ45)', desc: t('matCat6') + bk, g: 'eth' });
   const ampCab = Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cabLinea = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : 0;
   const nLin = c.filas.reduce((a, f) => a + (f.r && f.r.cab ? (cabLinea ? Math.ceil(f.r.cab / cabLinea) : 1) : 0), 0);
-  L.push({ c: 1, ref: t('matDist'), desc: t('matDistD', { a: fmt(T.amp, 1), k: fmt(T.kw, 2), n: nLin }), g: 'power' });
+  // v10.50 · sin consumo en la tabla maestra no salen ceros: solo el cableado (el final del mismo texto traducido)
+  const dd = t('matDistD', { a: fmt(T.amp, 1), k: fmt(T.kw, 2), n: nLin }), soloCable = dd.slice(dd.lastIndexOf('+') + 1).trim();
+  L.push({ c: 1, ref: t('matDist'), desc: T.amp > 0 && T.kw > 0 ? dd : soloCable.charAt(0).toUpperCase() + soloCable.slice(1), g: 'power' });
   L.push({ c: 1, ref: t('matPc'), desc: t('matPcD'), g: 'ctrl' });
   if (E.led.tipo === 'OUTDOOR' || E.led.tipo === 'ESCAPARATE') L.push({ c: 1, ref: 'NS060', url: busca('NS060'), desc: t('matSensor'), g: 'ctrl' });
   if (E.led.gold) L.push({ c: '', ref: t('matGold'), desc: t('matGoldD'), g: 'extra' });

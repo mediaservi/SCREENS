@@ -13,10 +13,12 @@ export function interpretar(texto) {
   else if (/\bled\b|cabinet|pantalla led|ecran led/.test(t)) { tecnologia = 'led'; vistos.push({ k: 'led' }); }
   // sala inmersiva o pantallas
   const nPant = t.match(/\b(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|two|three|four|five|six|seven|eight|quatre|cinc|sis|set|vuit)\s+(?:led\s+)?(pantallas|pantalles|screens|lienzos)\b/);   // «3 pantallas», «3 LED screens»
-  if (/\bsala\b|inmersiv|immersiv|\bcubo\b|\bcube\b|\broom\b|paredes|parets|walls/.test(t)) { cantidad = 'varias'; c.esp.tipo = 'sala'; vistos.push({ k: 'sala' }); }
+  // v10.48 · «sala» sola ya no es una sala inmersiva: «sala de reuniones», «meeting room», «salón de casa» solo dan la luz de ese sitio
+  const salaComun = /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio|espera|estar)|sala d.estar|meeting room|conference room|board ?room|living room|\bsalon\b|\bsalo\b/;
+  if (/inmersiv|immersiv|\bcubo\b|\bcube\b|paredes|parets|walls/.test(t) || (/\bsala\b|\broom\b/.test(t) && !salaComun.test(t) && /\d+(?:\.\d+)?\s*(?:m|mts|metros|metres)?\s*(?:x|×|\*|por|per|by)\s*\d+(?:\.\d+)?\s*(?:m|mts|metros|metres)?\s*(?:x|×|\*|por|per|by)\s*\d/.test(t))) { cantidad = 'varias'; c.esp.tipo = 'sala'; vistos.push({ k: 'sala' }); }
   else if (nPant && n(nPant[1]) > 1) { cantidad = 'varias'; c.esp.tipo = 'sueltas'; c.sueltas.n = Math.min(8, n(nPant[1])); vistos.push({ k: 'pant', n: c.sueltas.n }); }
   else if (/\buna (sola )?pantalla|\bun(a)? solo|\b1 pantalla|\ba screen\b|\bone screen\b|una pantalla/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }
-  if (!cantidad && /\bpantalla\b|\bscreen\b|\bpantallla\b/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }
+  if (!cantidad && /\bpantalla\b|\bscreen\b|\bpantallla\b|\bpared\b|\bparet\b|\bwall\b/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }   // v10.48 · «una pared de 4 x 2,5» es una sola superficie
   // una fachada (mapping) es una sola superficie
   if (!cantidad && /fachada|facade|facana|\bedificio\b|\bedifici\b|building/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }
   // medidas: A × B (× C)
@@ -62,6 +64,8 @@ export function interpretar(texto) {
   if (dist && /publico|distancia|distance|public|\bvista\b|\bver\b|\bveure\b|\bviewing\b/.test(t)) { c.sueltas.dist = n(dist[1]); vistos.push({ k: 'publico', v: c.sueltas.dist }); }
   const lx = t.match(/(\d+(?:\.\d+)?)\s*(?:lx|lux)\b/); if (lx) { c.proy.lux = n(lx[1]); vistos.push({ k: 'lux', v: c.proy.lux }); }
   if (!lx && /a oscuras|oscura|dark room|fosca|a les fosques/.test(t)) { c.proy.lux = 10; vistos.push({ k: 'lux', v: 10 }); }
+  else if (!lx && /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio)|meeting room|conference room|board ?room|oficina|office/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }   // v10.48 · la luz del sitio
+  else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b|\bsalo\b|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 50; vistos.push({ k: 'lux', v: 50 }); }
   const g = t.match(/(?:ganancia|gain|guany)\s*(?:de\s*)?(\d+(?:\.\d+)?)/); if (g) { c.proy.ganancia = n(g[1]); vistos.push({ k: 'ganancia', v: c.proy.ganancia }); }
   const te = t.match(/techo\s*(?:de|a)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:m|metros)?\s*de techo|ceiling\s*(?:of\s*)?(\d+(?:\.\d+)?)|sostre\s*(?:de\s*|a\s*)?(\d+(?:\.\d+)?)/);
   if (te) { const v = n(te[1] || te[2] || te[3] || te[4]); c.sueltas.techo = v; if (c.esp.tipo === 'sala' && c.esp.alto == null) c.esp.alto = v; vistos.push({ k: 'techo', v }); }

@@ -369,3 +369,24 @@ html.piel .f-f1 .pie .admin-btn:hover, html.piel .f-f1 .pie .admin-btn:focus-vis
 html.piel #pie-r .admin-btn { position: static; flex: none; align-self: flex-end; margin: 0 0 6px; width: 14px; height: 14px; display: inline-flex; line-height: 0; opacity: .55; color: var(--tenue); }
 html.piel #pie-r .admin-btn .ic { width: 14px; height: 14px; vertical-align: top; }
 html.piel #pie-r .admin-btn:hover, html.piel #pie-r .admin-btn:focus-visible { opacity: 1; color: var(--marca); }
+/* ===== v10.48 · auditoría de uso: BETA en su pastilla, semáforo de la imagen, cifras del móvil enteras, tema claro legible, botones al dedo ===== */
+html.piel .con-nl { position: relative; }
+html.piel .nl-beta { flex: none; align-self: center; padding: 3px 7px; border: 1px solid color-mix(in srgb, var(--ambar) 70%, transparent); border-radius: 6px; font: 700 11px/1 'Share Tech Mono', ui-monospace, monospace; letter-spacing: .12em; color: var(--ambar); background: color-mix(in srgb, var(--ambar) 12%, transparent); cursor: help; }
+html.piel .nl-beta[hidden] { display: none; }
+html.piel .con-nl input[type="text"].beta::placeholder { color: var(--tenue); }
+html.piel .tar .s .sem { display: block; font: 800 15px/1.25 Inter, system-ui, sans-serif; margin-bottom: 3px; }
+html.piel .tar .s .sem::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; background: currentColor; box-shadow: 0 0 8px currentColor; }
+html.piel .sem.semV { color: var(--verde-txt, #00ff04); } html.piel .sem.semA { color: var(--ambar, #ffb000); } html.piel .sem.semR { color: #ff4d5e; }
+html.piel[data-tema="claro"] .sem.semV { color: #1d7a1f; } html.piel[data-tema="claro"] .sem.semA { color: #8a5a00; } html.piel[data-tema="claro"] .sem.semR { color: #b3122e; }
+html.piel[data-tema="claro"] .blq-res { color: #2f3a00; }
+html.piel[data-tema="claro"] .nl-beta { color: #7a4f00; border-color: #a86c00; }
+@media (max-width: 559px) {
+  html.piel:not(.bk) .res-tot { grid-template-columns: 1fr !important; }
+  html.piel :is(#app, #bk-velo) .tar .t { white-space: normal; overflow: visible; line-height: 1.15; }
+  html.piel :is(#app, #bk-velo) .tar .v { white-space: normal; overflow-wrap: anywhere; }
+  html.piel .nl-beta { order: 0; }
+}
+@media (pointer: coarse) {
+  html.piel .num .flechas button, html.piel .pm button { min-width: 32px; min-height: 32px; }
+  html.piel .fam a { min-height: 32px; display: inline-flex; align-items: center; }
+}

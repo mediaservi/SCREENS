@@ -537,3 +537,13 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 .admin-esq svg { width: 100%; height: 100%; display: block; }
 .admin-esq:hover, .admin-esq:focus-visible { opacity: 1; color: var(--marca); }
 :root[data-tema="claro"] .admin-esq:hover, :root[data-tema="claro"] .admin-esq:focus-visible { color: #3d4a00; }
+/* ===== v10.48 · auditoría de uso: DESHACER en el aviso, grupos de modo separados, botones al dedo ===== */
+.tostada.con-bt { pointer-events: auto; display: flex; align-items: center; gap: calc(var(--u) * 14); }
+.tostada.con-bt .calcular { height: auto; min-height: 34px; padding: 6px 14px; font-size: max(12px, calc(var(--u) * 15)); flex: none; }
+[data-blk="HM1"] { gap: calc(var(--u) * 16) !important; }
+[data-blk="HM1"] > .grupo + .grupo { position: relative; }
+[data-blk="HM1"] > .grupo + .grupo::before { content: ''; position: absolute; left: calc(var(--u) * -9); top: 15%; bottom: 15%; width: 2px; border-radius: 2px; background: var(--linea); }
+@media (pointer: coarse) {
+  .flecha, .pm button, .paso-f button { min-width: 32px; min-height: 32px; }
+  .fam a { min-height: 32px; display: inline-flex; align-items: center; }
+}

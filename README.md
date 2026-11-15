@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.47** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.48** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -68,7 +68,19 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.47)
+## Cambios de la versión actual (v10.48)
+
+Mejoras de uso salidas de una auditoría externa de la app (beta):
+
+- **Distancia de visionado por defecto:** sin distancia, la portada elige el pitch para verse bien a 3 m en interior y a 8 m en exterior, y lo dice («A 3 m»). La distancia de visionado pasa al bloque Dimensiones, con el valor por defecto a la vista.
+- **«Sala» ya no es siempre sala inmersiva:** «sala de reuniones», «de conferencias», «de formación», «salón» o «sala de estar» se entienden como una pantalla. Pedir un proyector en la portada lleva directamente a Proyección con la petición ya calculada.
+- **Luz según el uso:** sala de reuniones u oficina 140 lx, salón o cine en casa 50 lx y sala inmersiva 10 lx, si la petición no dice otra.
+- **Contraste con semáforo:** verde, ámbar o rojo con una frase clara («Se verá algo lavada: baja la luz»).
+- **Nuevo cálculo con DESHACER:** el botón «Nuevo cálculo» ya no borra sin vuelta atrás: un aviso con DESHACER recupera lo de antes.
+- **Sin catálogo, con salida:** si el catálogo no carga, cada bloque lo dice con su título y un botón REINTENTAR.
+- Etiqueta BETA junto a la casilla de petición, ejemplos que caben en cada pantalla, ayuda del 3D para pantallas táctiles, botones más grandes en táctil, resultados en una columna en el móvil y etiquetas de los campos enlazadas (accesibilidad).
+
+### v10.47
 
 - Logo nuevo de MSGAME en la barra de apps: «MS» en dos fichas moradas con la misma letra que GAME y sombra verde.
 

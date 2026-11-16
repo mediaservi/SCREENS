@@ -65,6 +65,11 @@ html.bk .ss-cuerpo { --s: min(calc(var(--bk-w, 1920px) / 1350), calc((var(--bk-h
 .ss-filas { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--s) * 6); overflow-y: auto; scrollbar-width: thin; }
 .ss-fila { flex: none; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: calc(var(--s) * 12); row-gap: calc(var(--s) * 1); align-items: center; width: 100%;
   text-align: left; padding: calc(var(--s) * 6) calc(var(--s) * 12); border-radius: calc(var(--s) * 12); border: 1px solid var(--ss-linea); background: var(--ss-blk2); color: var(--ss-txt); }
+/* v10.57 · con muchas líneas (una proyección colgada, con su óptica y las marcas: hasta nueve), cada una se estrecha lo justo para que quepan
+   todas sin desplazar la lista; con sitio de sobra siguen igual de altas que antes. Apilado (móvil y tableta en vertical) no cambia. */
+html:not(.ss-apila) .ss-fila { flex: 1 1 auto; min-height: calc(var(--s) * 37); max-height: calc(var(--s) * 52); padding-block: 0; align-content: center; }
+html:not(.ss-apila) .ss-fila .ss-fk, html:not(.ss-apila) .ss-fila .ss-fv { line-height: 1.12; }
+html:not(.ss-apila) .ss-filas { gap: calc(var(--s) * 4); }
 .ss-fila > .ss-ic:first-child { grid-row: 1 / 3; width: calc(var(--s) * 28); height: calc(var(--s) * 28); color: var(--ss-azul); }
 .ss-fk { grid-column: 2; font-size: calc(var(--s) * 12.5); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ss-tenue); }
 .ss-fv { grid-column: 2; font-size: calc(var(--s) * 18); font-weight: 800; }
@@ -173,6 +178,13 @@ html.bk .ss-cuerpo { --s: min(calc(var(--bk-w, 1920px) / 1350), calc((var(--bk-h
 .ss-op-l { flex-direction: row; justify-content: flex-start; text-align: left; min-height: calc(var(--s) * 66); padding: calc(var(--s) * 10) calc(var(--s) * 18); gap: calc(var(--s) * 14); }
 .ss-op-l > .ss-ic { width: calc(var(--s) * 34); height: calc(var(--s) * 34); }
 .ss-op-nose > .ss-ic { color: var(--ss-tenue); }
+/* v10.57 · muchas opciones: fichas bajas, con el icono a la izquierda */
+.ss-ops-lista { gap: calc(var(--s) * 8); }
+.ss-ops-lista .ss-op { flex-direction: row; justify-content: flex-start; text-align: left; min-height: calc(var(--s) * 60); padding: calc(var(--s) * 8) calc(var(--s) * 14); gap: calc(var(--s) * 12); }
+.ss-ops-lista .ss-op > .ss-ic { width: calc(var(--s) * 32); height: calc(var(--s) * 32); flex: none; }
+.ss-ops-lista .ss-op-t { gap: calc(var(--s) * 2); }
+.ss-ops-lista .ss-op-t b { font-size: calc(var(--s) * 17); }
+.ss-ops-lista .ss-op-t small { font-size: calc(var(--s) * 13.5); }
 .ss-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--s) * 200)), 1fr)); gap: calc(var(--s) * 12); align-items: end; }
 .ss-nums-o { grid-template-columns: minmax(0, 1fr) auto; }
 .ss-num { display: flex; flex-direction: column; gap: calc(var(--s) * 6); min-width: 0; }

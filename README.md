@@ -87,6 +87,7 @@ Los calculadores de audio y escenario que nacieron aquí (primero como «Hardwar
 - **SIMPLE, sin nada cortado con más líneas y más ópticas:**
   - LO QUE PIDES admite hasta nueve líneas (proyección colgada, con óptica y marcas) más el aviso de ajustes de PRO sin desplazar la lista: las líneas se estrechan lo justo; con sitio de sobra siguen igual.
   - La ventana «¿Qué óptica lleva el proyector?» pasa a lista compacta de tres columnas cuando hay más de 12 ópticas. Antes, con las 16 de Epson, la ventana ya se desplazaba un poco en pantallas de 720 de alto y en la tableta.
+- **PRO:** los botones de marca van sin rótulo encima para que MATERIAL quepa con el proyector y la óptica elegidos; y en un bloque abierto que no cabe, los rótulos ya no se aplastan (el bloque se recorre por dentro).
 - Pendiente de datos: las ópticas cortas opcionales de DU5051Z y DU5053Z (lotes ST05 y ST08), que no tienen ficha publicada.
 
 ### v10.56

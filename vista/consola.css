@@ -70,6 +70,9 @@ html.piel .tog, html.piel .sec-btn, html.piel .pri, html.piel .blq-nom, html.pie
 html.piel .tog:not(.on):hover, html.piel .sec-btn:hover { background: var(--blk2); color: var(--txt); }
 html.piel .tog.on, html.piel .tog[aria-pressed="true"] { border-color: var(--verde-txt); color: var(--verde-txt); background: color-mix(in srgb, var(--marca) 14%, var(--blk)); box-shadow: inset 0 0 0 1px var(--verde-txt); text-shadow: none; }
 html.piel[data-tema="claro"] .tog.on, html.piel[data-tema="claro"] .tog[aria-pressed="true"] { background: var(--marca); color: #1c2200; border-color: #3d4a00; }
+/* v10.54 · botones dentro de los avisos y las ayudas: como los interruptores encendidos, en los dos temas */
+html.piel .av-bt { border-color: var(--verde-txt); color: var(--verde-txt); background: color-mix(in srgb, var(--marca) 14%, var(--blk)); }
+html.piel[data-tema="claro"] .av-bt { background: var(--marca); color: #1c2200; border-color: #3d4a00; }
 html.piel .tog:hover, html.piel .tog:focus-visible, html.piel .sec-btn:hover, html.piel .sec-btn:focus-visible, html.piel .candado:hover { border-color: var(--verde); outline: none; box-shadow: 0 0 0 2px var(--verde), 0 0 12px color-mix(in srgb, var(--verde) 60%, transparent); }
 html.piel .tog.ambar.on { background: color-mix(in srgb, var(--ambar) 16%, var(--blk)); color: var(--ambar); border-color: var(--ambar); box-shadow: inset 0 0 0 1px var(--ambar); }
 html.piel .tog:disabled, html.piel .sec-btn:disabled { opacity: .4; box-shadow: none; }

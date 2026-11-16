@@ -60,19 +60,44 @@
      (cada una se encaja en un A4); sin o.paginas se corta sola por donde no parte filas ni bloques. o.pieHtml / o.pieClase: pie de
      cada hoja; o.ocultar: selectores que no deben salir; o.margen (mm); o.nombre: nombre del archivo.
      o.claro (por defecto sí): hoja sin fondos oscuros; o.respeta: selectores que conservan su fondo (la pantalla de la simulación). */
+  /* v10.60 · html2canvas descoloca las letras del texto que va SUELTO dentro de una caja flexible o de rejilla (los títulos de sección con su icono salían
+     «E LECTRÓNICAY M EDIASERVER»): en la copia, ese texto se mete en su propia caja y se dibuja bien */
+  function envuelveTexto(doc, raiz) {
+    const win = doc.defaultView;
+    raiz.querySelectorAll('*').forEach((el) => { if (el.namespaceURI !== 'http://www.w3.org/1999/xhtml') return; let d = ''; try { d = win.getComputedStyle(el).display; } catch (e) { return; } if (!/flex|grid/.test(d)) return;
+      [...el.childNodes].forEach((n) => { if (n.nodeType === 3 && n.textContent.trim()) { const c = doc.createElement('av-txt'); n.replaceWith(c); c.appendChild(n); } }); });
+  }
+  /* v10.60 · las fotos de otras webs (las de producto) no dejan copiarse a un lienzo y la hoja salía con el marco vacío: en la copia se traen como datos,
+     primero directamente y, si la web no da permiso, a través del servicio de imágenes wsrv.nl (solo recibe la dirección pública de la foto). Si no se
+     consigue, se quita la foto y queda el dibujo del equipo que hay debajo */
+  async function traeFotos(raiz) {
+    const aDatos = (b) => new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); });
+    const trae = async (u) => { const r = await fetch(u, { mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer' }); if (!r.ok) throw new Error('sin foto'); const b = await r.blob(); if (!/^image\//.test(b.type)) throw new Error('no es una imagen'); return aDatos(b); };
+    const conTope = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('tarda')), ms))]);
+    await Promise.all([...raiz.querySelectorAll('img')].map(async (im) => { const u = im.currentSrc || im.getAttribute('src') || ''; let ur; try { ur = new URL(u, location.href); } catch (e) { return; } if (!/^https?:$/.test(ur.protocol) || ur.origin === location.origin) return;
+      let d = null; try { d = await conTope(trae(ur.href), 5000); } catch (e) { try { d = await conTope(trae('https://wsrv.nl/?url=' + encodeURIComponent(ur.href) + '&w=640&we&output=jpg&q=85'), 7000); } catch (e2) {} }
+      if (!d) { im.remove(); return; } im.removeAttribute('srcset'); im.removeAttribute('loading'); im.removeAttribute('onerror'); await new Promise((ok) => { im.onload = im.onerror = ok; im.src = d; setTimeout(ok, 3000); }); }));
+  }
   async function exporta(o) {
-    velo(true);
+    velo(true); let sinZoom = null;
     try {
       await prepara(); if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
       const M = o.margen || 12, anchoMm = A4[0] - 2 * M, ancho = Math.round(anchoMm * MM), esc = o.escala || 2, med = {};
+      /* v10.60 · LA CAUSA de los textos descolocados («E LECTRÓNICAY M EDIASERVER», columnas de la lista de material que se iban corriendo): html2canvas comprueba
+         una sola vez, en esta página, si puede medir el texto sin tocarlo, con una caja de prueba de 123 px. Con la página escalada (el zoom de la plantilla, es
+         decir, casi siempre) la caja no mide 123 y la librería pasa a su modo antiguo, que parte y envuelve cada trozo de texto y deforma la copia mientras la
+         mide. Durante la exportación, esa caja de prueba lleva el zoom inverso: mide lo que debe y el texto se dibuja en su sitio */
+      try { let z = 1; [document.documentElement, document.body].forEach((e) => { const v = parseFloat(getComputedStyle(e).zoom); if (v > 0) z *= v; }); if (Math.abs(z - 1) > .0005) { sinZoom = document.createElement('style'); sinZoom.textContent = 'boundtest{zoom:' + (1 / z) + '!important}'; document.head.appendChild(sinZoom); } } catch (e) {}
       const lienzo = await window.html2canvas(o.raiz, { scale: esc, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: ancho, windowHeight: Math.round((A4[1] - 2 * M - 6) * MM), scrollX: 0, scrollY: 0,
-        onclone: (doc, raiz) => {
+        onclone: async (doc, raiz) => {
           modoImpresion(doc);
-          const st = doc.createElement('style'); st.textContent = 'html,body{width:' + ancho + 'px!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;overflow:visible!important;height:auto!important}[data-avpdf-pie]{position:static!important;display:block!important;width:100%!important;box-sizing:border-box;margin:0!important;padding:6px 0 0!important;text-align:center!important;font:400 7pt/1.55 Inter,Arial,sans-serif;color:#555;white-space:pre-line;background:#fff}' + (o.ocultar ? o.ocultar + '{display:none!important}' : '') + (o.css || ''); doc.head.appendChild(st);
+          const st = doc.createElement('style'); st.textContent = 'html,body{width:' + ancho + 'px!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;overflow:visible!important;height:auto!important}.fi-foto html2canvaspseudoelement{display:none!important}[data-avpdf-pie]{position:static!important;display:block!important;width:100%!important;box-sizing:border-box;margin:0!important;padding:6px 0 0!important;text-align:center!important;font:400 7pt/1.55 Inter,Arial,sans-serif;color:#555;white-space:pre-line;background:#fff}' + (o.ocultar ? o.ocultar + '{display:none!important}' : '') + (o.css || ''); doc.head.appendChild(st);
           if (o.alClonar) { try { o.alClonar(doc, raiz); } catch (e) {} }
           if (o.claro !== false) { try { aclara(doc, raiz, o.respeta || '.shadow-screen, [data-pdf-respeta]'); } catch (e) { console.warn('PDF directo: aclarado', e); } }
           /* html2canvas no entiende «zoom»: se cambia por una escala equivalente que ocupa lo mismo en la hoja */
           doc.querySelectorAll('[style*="zoom"]').forEach((el) => { const f = parseFloat(el.style.zoom); if (!f || f === 1) return; el.style.setProperty('zoom', '1', 'important'); const w = el.offsetWidth, h = el.offsetHeight; const pon = (k, v) => el.style.setProperty(k, v, 'important'); pon('transform-origin', '0 0'); pon('transform', 'scale(' + f + ')'); const cs = doc.defaultView.getComputedStyle(el), ml = parseFloat(cs.marginLeft) || 0, pw = el.parentNode.clientWidth, centra = /center/.test(doc.defaultView.getComputedStyle(el.parentNode).justifyContent + cs.alignSelf) || ml > 1; pon('margin-left', (centra ? Math.max(0, (pw - w * f) / 2) : 0) + 'px'); pon('align-self', 'flex-start'); pon('margin-right', (w * (f - 1)) + 'px'); pon('margin-bottom', (h * (f - 1)) + 'px'); });
+          try { envuelveTexto(doc, raiz); } catch (e) { console.warn('PDF directo: textos', e); }
+          try { await traeFotos(raiz); } catch (e) { console.warn('PDF directo: fotos', e); }
           let pie = null; if (o.pieHtml) { pie = doc.createElement('div'); pie.setAttribute('data-avpdf-pie', ''); if (o.pieClase) pie.className = o.pieClase; pie.innerHTML = o.pieHtml; pie.style.setProperty('display', 'block', 'important'); pie.style.setProperty('position', 'static', 'important'); pie.style.setProperty('visibility', 'visible', 'important'); raiz.appendChild(pie); }
           const r0 = raiz.getBoundingClientRect(), rel = (el) => { const r = el.getBoundingClientRect(); return [r.top - r0.top, r.bottom - r0.top]; };
           med.alto = r0.height; med.ancho = r0.width; med.alto = raiz.getBoundingClientRect().height; med.pie = pie ? rel(pie) : null; if (med.pie && med.pie[1] - med.pie[0] < 2) med.pie = null;
@@ -98,7 +123,7 @@
       /* vista previa: el PDF y una imagen de cada hoja, tal cual sale (para enseñarla antes de guardar o imprimir) */
       if (PV) return { blob: doc.output('blob'), nombre, paginas: PV };
       doc.save(nombre); return nombre;
-    } finally { velo(false); }
+    } finally { velo(false); if (sinZoom) sinZoom.remove(); }
   }
   const sello = (pref) => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); return (pref || 'SCREENS') + '_' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()); };
   /* con la copia sin conexión activa, las dos librerías se guardan de antemano (en segundo plano) para poder sacar el PDF sin red */

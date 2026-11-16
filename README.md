@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.59** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.60** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,17 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.59)
+## Cambios de la versión actual (v10.60)
+
+**SIMPLE y PRO dan las mismas cifras de proyección; los PDF salen con el texto en su sitio y con las fotos.**
+
+- **Mismas cifras en las dos vistas:** SIMPLE da ahora los lúmenes totales con «N × L lm» debajo y el lienzo completo con «N × resolución nativa» debajo, igual que PRO. El color de la cifra de contraste depende solo del contraste.
+- **«No se puede conseguir lo que pides» en PRO:** sale arriba de RESULTADOS, antes de la tabla, con sus botones. Antes estaba al final de la lista de sombras y no se veía sin desplazar.
+- **PDF · textos:** los títulos de sección salían con las letras descolocadas («E LECTRÓNICAY M EDIASERVER») y las columnas de la lista de material se iban corriendo. La causa era la escala de la plantilla, que hacía que la librería midiera mal el texto. Corregido.
+- **PDF · fotos de producto:** salen aunque la web del fabricante no deje copiarlas (se piden a través de wsrv.nl, que solo recibe la dirección pública de la foto). Si no se consiguen, queda el dibujo del equipo en vez de un marco vacío.
+- **PDF · orden y limpieza:** lista de piezas de la electrónica en texto corrido con sangría, título sin líneas que empiecen por «·», captura 3D sin franjas vacías y el aviso de contraste separado de su nivel.
+
+### v10.59
 
 **La cabecera de los PDF, en una línea; el aviso de imagen lavada ya no manda bajar la luz.**
 

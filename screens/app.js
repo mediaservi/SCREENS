@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.59';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.60';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.59';
+const VERSION = 'v10.60';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -566,11 +566,13 @@ function vistaResultados(c) {
       ${tarjeta(t('proyectores'), fmtPx(T.n), '', p.nombre + (c.filas.some(f => f.p.vert) ? ' · ' + t('vert') : ''), '#b566ff')}
       ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
       ${tarjeta(t('brillo'), fmt(T.nitsMin === Infinity ? 0 : T.nitsMin, 0), 'nits', t('brilloAyudaG', { g: fmt(c.gan, 1) }), '#ffb000')}
-      ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b>` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
+      ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b> ` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', `TR ${fmt(Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio)), 2)}:1`, '#00ff04')}
       ${tarjeta(t('lumenes'), fmtPx(T.lumenes), 'lm', `${fmtPx(T.n)} × ${fmtPx(p.lumens)} lm`, '#ff4d5e')}
     </div>`;
     h += avisoOos(c);
+    /* v10.60 · el «no se puede conseguir» va ARRIBA, antes de la tabla (como en SIMPLE): estaba al final de la lista de sombras y no se veía sin desplazar */
+    if (c.consejo) { const k = c.consejo, nb = k.alt ? (k.alt.marca ? k.alt.marca + ' ' : '') + k.alt.nombre : ''; h += `<ul class="avisos av-arriba"><li class="mal">${t('noValeProy', { a: k.nombre })}${k.oos ? ` ${t('noValeOos')} ${t('oosCorto')}` : ''}${k.alt ? ` ${t('noValeAlt', { b: nb })}` : ''}<span class="av-fila">${k.oos ? `<button type="button" class="av-bt" data-accion="consejo-oos">${t('noValeOosBt')}</button>` : ''}${k.alt ? `<button type="button" class="av-bt" data-accion="consejo-alt">${t('noValeAltBt', { b: nb })}</button>` : ''}</span></li></ul>`; }
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
     </tbody></table></div>`;
@@ -660,8 +662,7 @@ function vistaSombras(c) {
     if (k.dz) partes.push(t('mvFondo', { d: fmt(k.dz, 2) })); if (k.dy) partes.push(t(k.dy > 0 ? 'mvAlto' : 'mvBajo', { d: fmt(Math.abs(k.dy), 2) })); if (k.dx) partes.push(t('mvLado', { d: fmt(Math.abs(k.dx), 2) }));
     li.push(`<li>${k.h.nombre} P${k.h.i + 1} ${partes.join(t('yy'))} ${t(k.por === 'choque' ? 'porChoque' : 'porHaz', { b: k.con ? k.con.nombre + ' P' + (k.con.i + 1) : '' })}.</li>`); });
   if (c.autoPropone) li.push(`<li class="mal">${t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre })}</li>`);
-  if (c.consejo) { const k = c.consejo, nb = k.alt ? (k.alt.marca ? k.alt.marca + ' ' : '') + k.alt.nombre : '';   // v10.54 · el texto entero y, debajo, los botones
-    li.push(`<li class="mal">${t('noValeProy', { a: k.nombre })}${k.oos ? ` ${t('noValeOos')} ${t('oosCorto')}` : ''}${k.alt ? ` ${t('noValeAlt', { b: nb })}` : ''}<span class="av-fila">${k.oos ? `<button type="button" class="av-bt" data-accion="consejo-oos">${t('noValeOosBt')}</button>` : ''}${k.alt ? `<button type="button" class="av-bt" data-accion="consejo-alt">${t('noValeAltBt', { b: nb })}</button>` : ''}</span></li>`); }
+  /* v10.60 · el «no se puede conseguir» se ha subido a antes de la tabla (vistaResultados) */
   S.choques.forEach(k => li.push(`<li class="mal">${t('choque', { a: k.h.nombre + ' P' + (k.h.i + 1), b: k.con ? k.con.nombre + ' P' + (k.con.i + 1) : '' })}</li>`));
   if (S.movs.length || S.choques.length) li.push(`<li>${t('holgura')}</li>`);
   S.cruces.forEach(k => li.push(`<li>${t('cruce', { a: k.na, b: k.nb })}</li>`));
@@ -1048,7 +1049,7 @@ function imprimir() {
   /* v10.59 · la web y la fecha, en una sola línea con la letra pequeña de la fecha, centrada entre los dos logos y encogiendo si no cabe */
   let h = `<header class="im-cab"><img class="im-logo" src="assets/screens-logo-negro.svg" alt="SCREENS"><div class="im-url" style="--n:${('avhub.mediaservi.com · ' + fecha).length}"><span>avhub.mediaservi.com · ${fecha}</span></div><img class="im-avhub" src="assets/avhub-logo.svg" alt="AVHUB"></header>`;
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
-  { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
+  { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   h += `<div class="im-res">${vistaResultados(c)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo)] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
   if (fichas.length) h += `<section class="res-sec"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
@@ -1090,7 +1091,8 @@ function tituloPdf(c) {
   if (T.lienzoW) p.push(`${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)} px`);
   if (led && T.kw) p.push(`${fmt(T.kw, 1)} kW`);
   if (!led && isFinite(T.nitsMin)) p.push(`${fmt(T.nitsMin, 0)} nits`);
-  return `<b>${tipo}</b> · ${p.join(' · ')}`;
+  /* v10.60 · el punto de separación va pegado a lo anterior: así ninguna línea del título empieza por «·» */
+  return `<b>${tipo}</b> · ${p.join(' · ')}`.replace(/ · /g, '\u00a0· ');
 }
 // ¿dibuja el navegador las cajas de margen de @page (pie y número en cada hoja)? Chrome, Edge y Samsung Internet sí
 function cajasMargen() { try { const s = new CSSStyleSheet(); s.replaceSync('@page { @bottom-center { content: "x" } }'); const r = s.cssRules[0]; return !!(r && r.cssRules && r.cssRules.length); } catch (e) { return false; } }

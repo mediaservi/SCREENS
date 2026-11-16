@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.59';
+const VERSION = 'v10.60';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -589,12 +589,15 @@ function resProy() {
   const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc(nomb) + '</b>';
   const l2 = m === 'sala' ? esc(nb(`${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')} · ${t('proys')(n)}`))
     : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}`));
-  const C5 = [cifra(t('kLum'), fmt(pr.lumens, 0), 'lm', (n > 1 ? t('kLumSn') : pr.optica ? t('kOpt')(pr.optica) : t('kLumS1')), 'bombilla', 'var(--ss-ambar)'),
-    cifra(t('kCon'), isFinite(con) ? fmt(con, 1) : '—', ':1', lux > 0 ? t('kConS')(fmt(lux, 0)) : '', 'contraste', sem === 'V' ? 'var(--ss-acento)' : sem === 'A' ? 'var(--ss-ambar)' : 'var(--ss-rojo)')];
+  /* v10.60 · las mismas cifras que PRO: lúmenes TOTALES (con «N × L lm» debajo), el lienzo completo y el color del contraste según el propio contraste */
+  const lmTot = n > 1 && c.tot.lumenes > 0 ? c.tot.lumenes : pr.lumens, lz = n > 1 && c.tot.lienzoW > 0 && c.tot.lienzoH > 0;
+  const C5 = [cifra(t('kLum'), fmt(lmTot, 0), 'lm', (n > 1 ? fmt(n, 0) + ' × ' + fmt(pr.lumens, 0) + ' lm' : pr.optica ? t('kOpt')(pr.optica) : t('kLumS1')), 'bombilla', 'var(--ss-ambar)'),
+    cifra(t('kCon'), isFinite(con) ? fmt(con, 1) : '—', ':1', lux > 0 ? t('kConS')(fmt(lux, 0)) : '', 'contraste', semC === 'V' ? 'var(--ss-acento)' : semC === 'A' ? 'var(--ss-ambar)' : 'var(--ss-rojo)')];
   if (m === 'sala') { if (c.tot.nitsMin > 0) C5.push(cifra(t('kBri'), fmt(c.tot.nitsMin, 0), 'nits', t('kBriS'), 'sol', 'var(--ss-acento)')); }
   else if (pos.dist > 0) C5.push(cifra(m === 'mapping' ? t('kDisF') : t('kDis'), fm(pos.dist), 'm', m === 'pared' ? (pos.apoyo ? t('kDisA') : t('kDisC')) : '', 'dist', 'var(--ss-azul)'));
-  if (pr.resX > 0 && pr.resY > 0) C5.push(cifra(t('kRes'), String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY, '', t('kResS')(pr.resX, pr.resY), 'calidad', 'var(--ss-violeta-t)'));
-  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + '\n' + t('kLum') + ': ' + fmt(pr.lumens, 0) + ' lm' + (isFinite(con) ? '\n' + t('kCon') + ': ' + fmt(con, 1) + ':1' : '');
+  if (lz) C5.push(cifra(t('kRes'), fmt(c.tot.lienzoW, 0).replace(/\./g, '') + '×' + fmt(c.tot.lienzoH, 0).replace(/\./g, ''), 'px', fmt(n, 0) + ' × ' + (String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY), 'calidad', 'var(--ss-violeta-t)'));
+  else if (pr.resX > 0 && pr.resY > 0) C5.push(cifra(t('kRes'), String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY, '', t('kResS')(pr.resX, pr.resY), 'calidad', 'var(--ss-violeta-t)'));
+  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + '\n' + t('kLum') + ': ' + fmt(lmTot, 0) + ' lm' + (n > 1 ? ' (' + fmt(n, 0) + ' × ' + fmt(pr.lumens, 0) + ' lm)' : '') + (isFinite(con) ? '\n' + t('kCon') + ': ' + fmt(con, 1) + ':1' : '');
   return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}" data-crudo><i></i><span class="ss-fit">${esc(semTxt)}</span>${semBt}</p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
 function pintaRes() { const el = document.getElementById('ss-res'); if (!el) return; TXT = ''; el.innerHTML = listo() ? (PAG === 'portada' ? resLed() : resProy()) : cabRes(false) + (FALLO ? '' : espera()); }   /* el aviso de fallo, una sola vez (en LO QUE PIDES) */

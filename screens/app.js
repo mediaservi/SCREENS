@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.60';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.61';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.60';
+const VERSION = 'v10.61';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1052,12 +1052,14 @@ function imprimir() {
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   h += `<div class="im-res">${vistaResultados(c)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo)] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
-  if (fichas.length) h += `<section class="res-sec"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
+  if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   // pie en el margen inferior de cada hoja; si el navegador no dibuja esos márgenes (Safari, Firefox), va al final del documento.
   // Las cajas vacías de arriba y de abajo a la izquierda evitan que el navegador añada su fecha, título y dirección a la hoja
   if (cajasMargen()) h += `<style>@page { margin-bottom: 18mm; @top-left { content: "" } @top-center { content: "" } @top-right { content: "" } @bottom-left { content: "" } @bottom-center { content: url("data:image/svg+xml,${encodeURIComponent(AV_TRI_PDF.replace(/ style="[^"]*"/, ''))}") ${cssTxt(' ' + t('avisoPdf'))} "\\A" ${cssTxt(pie + (web ? ' ' : ''))} ${web ? icoPie() + ' ' + cssTxt(' ' + web) : ''}; } @bottom-right { content: counter(page) "/" counter(pages); } }</style>`;
   else h += `<p class="im-aviso">${AV_TRI_PDF}${t('avisoPdf')}</p><footer class="im-pie">${cred}</footer>`;
   const d = $('#impresion'); d.innerHTML = h;
+  /* v10.61 · EQUIPOS va justo después del resumen, antes de las demás secciones: así llena el hueco de la primera hoja y el documento cabe en menos hojas */
+  { const eq = d.querySelector('.im-equipos'), pri = d.querySelector('.im-res .res-sec'); if (eq && pri) pri.parentNode.insertBefore(eq, pri); }
   // fotos sin carga diferida (el bloque está oculto en pantalla) y, como mucho, 3 s de espera
   const imgs = [...d.querySelectorAll('img')]; imgs.forEach(i => { i.loading = 'eager'; });
   const espera = Promise.all(imgs.map(i => (i.complete ? 1 : new Promise(r => { i.addEventListener('load', r); i.addEventListener('error', r); }))));

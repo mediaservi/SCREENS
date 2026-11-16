@@ -33,7 +33,9 @@ export function superficies(esp, grosor = 0) {
     // v7.9 · pantalla central distinta (auditorio: una grande en el centro y las laterales más pequeñas): con un número impar,
     // la del medio; con un número par, las dos del medio. Todas apoyan a la misma elevación
     const esCentral = (i) => !!s.central && n >= 3 && (n % 2 ? i === (n - 1) / 2 : i === n / 2 - 1 || i === n / 2);
-    const W = (i) => (esCentral(i) ? Number(s.cAncho) || s.ancho : s.ancho), Hh = (i) => (esCentral(i) ? Number(s.cAlto) || s.alto : s.alto);
+    // v10.62 · cada pantalla con su medida (varias LED: s.tams = [[ancho, alto], …])
+    const tm = (i) => (Array.isArray(s.tams) && s.tams[i] ? s.tams[i] : null);
+    const W = (i) => (tm(i) ? Number(tm(i)[0]) || s.ancho : esCentral(i) ? Number(s.cAncho) || s.ancho : s.ancho), Hh = (i) => (tm(i) ? Number(tm(i)[1]) || s.alto : esCentral(i) ? Number(s.cAlto) || s.alto : s.alto);
     const w = s.ancho, sep = Math.max(0, s.sep), ang = (s.disp === 'arco' ? s.angulo : 0) * Math.PI / 180;
     // se construye de la pantalla central hacia fuera para que el conjunto quede simétrico
     const pos = [];

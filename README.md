@@ -4,11 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.55** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.56** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
-- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente, tanto para una pantalla LED como para varias, una sala LED, una proyección o una sala de proyección; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`).
+- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente, tanto para una pantalla LED como para varias, una sala LED, una proyección o una sala de proyección; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`). En el dibujo de una proyección de SIMPLE, el proyector y la persona se arrastran con el dedo o el ratón, solo por donde permiten la óptica y el margen de instalación.
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -69,7 +69,23 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.55)
+## Cambios de la versión actual (v10.56)
+
+**En SIMPLE, el proyector y la persona se arrastran en el dibujo.**
+
+- En la simulación a escala de una proyección (pared o fachada) se puede **coger el proyector** con el dedo o el ratón y llevarlo más cerca o más lejos de la imagen. Solo se mueve por donde es posible: lo que da el zoom de su óptica con esa imagen y, si lo has dicho, el margen donde lo puedes instalar. Ese tramo se ve como un **carril** violeta a la altura del proyector.
+  - Con la **óptica elegida a mano**, el tope es el zoom de esa óptica. En **automático**, el tope es lo que alcanza el catálogo (de las marcas activadas): al moverlo, el cálculo cambia solo de óptica y lo dice en el resultado.
+  - Al soltarlo, la distancia queda **fijada** («El proyector cabe: a X m»). Para dejar que vuelva a elegir el cálculo: esa misma línea → «No lo sé».
+  - Si el proyector elegido no llega al margen que has dicho, no hay carril: sigue saliendo el aviso con QUÉ PUEDO HACER.
+- También se arrastra **la persona** (desde dónde mira la gente), entre 1 y 100 m.
+- Mientras se arrastra, **todo se recalcula en vivo**: la óptica, el brillo, el contraste y las líneas de LO QUE PIDES. La escala del dibujo no cambia hasta soltar; al llegar al borde con sitio por delante, el dibujo se va abriendo.
+- Los movimientos van de 5 en 5 cm. Un toque sin mover no cambia nada. En el móvil, arrastrar en horizontal mueve el proyector y en vertical sigue desplazando la página.
+- **Con el teclado:** las asas reciben el foco y se mueven con las flechas (10 cm; con mayúsculas, 50 cm).
+- Una línea pequeña en el dibujo dice lo que se puede arrastrar, en los tres idiomas. La cota de abajo marca la distancia de lo que se está moviendo.
+- En PRO, las vistas técnicas ya permitían arrastrar el proyector; no cambian.
+- **Corrección en el móvil:** con varios proyectores, bajo los lúmenes pone solo «Cada uno» (la óptica ya está en la línea de arriba); antes ese rótulo se quedaba en letra de 8 px.
+
+### v10.55
 
 **SIMPLE calcula también varias pantallas LED y la sala LED entera.**
 

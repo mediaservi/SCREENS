@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.55';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.56';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.55';
+const VERSION = 'v10.56';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -206,7 +206,16 @@ function calcular() {
     f.pos = { dist: Math.max(...hs.map(x => x.zL)), yLente: Math.min(...hs.map(x => x.lente.y)), y0: Math.min(...hs.map(x => x.y0)), y1: Math.max(...hs.map(x => x.y1)), techo: esp.tipo === 'sala' ? esp.alto : (esp.sueltas.techo || 0),
       shiftV: sh(h), diag: Math.hypot(q.imgW, q.imgH) / 0.0254,
       apoyo: !!bajo.apoyo, altura: bajo.apoyo ? bajo.lente.y - altoCh(bajo) / 2 : alto.lente.y + altoCh(alto) / 2 + 0.05 }; });
-  const c = { esp, dist, proyector, prSuelo, filas, tot, autoPropone: auto, consejo, lx, gan, tipoP };
+  // v10.56 · por dónde puede ir el proyector (para arrastrarlo en el dibujo de SIMPLE): lo que da el zoom de cada óptica posible con la imagen
+  // pedida (la elegida a mano o, en automático, las del catálogo activo), dentro del margen de instalación que se haya dicho. Tramos en metros.
+  let zona = null;
+  if (esp.tipo !== 'sala' && sup1) {
+    const zA = Math.max(0, Number(E.proy.distMin) || 0), zB = Math.max(0, Number(E.proy.distMax) || 0), tr = [];
+    lista.forEach(q => { const r = calcularPared(sup1, q, { ...opc, orient: E.proy.orient || 'auto' }); if (r.limite) return; const a = Math.max(r.tMin, zA), b = Math.min(r.tMaxZ, zB > 0 ? zB : Infinity); if (b >= a - 1e-9) tr.push([a, Math.max(a, b)]); });
+    tr.sort((x, y) => x[0] - y[0]); zona = [];
+    tr.forEach(x => { const u = zona[zona.length - 1]; if (u && x[0] <= u[1] + 0.005) u[1] = Math.max(u[1], x[1]); else zona.push([x[0], x[1]]); });
+  }
+  const c = { esp, dist, proyector, prSuelo, filas, tot, autoPropone: auto, consejo, lx, gan, tipoP, zona };
   c.sombras = inst.S;
   c.elec = electronica(c); return c;
 }

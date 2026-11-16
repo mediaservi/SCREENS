@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.62';
+const VERSION = 'v10.63';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -281,10 +281,10 @@ const distDef = () => (ED().tipo === 'OUTDOOR' ? 8 : 3);
 /* v10.55 · también varias pantallas LED iguales y la sala LED entera (una sola pantalla LED se calcula en la portada) */
 const modoCons = () => { const E = C().E; if (E.tecnologia === 'led') return E.cantidad === 'varias' ? (E.esp.tipo === 'sala' ? 'salaLed' : 'variasLed') : 'led'; if (E.cantidad === 'varias') return E.esp.tipo === 'sala' ? 'sala' : 'varias'; return E.proy.tipo === 'mapping' ? 'mapping' : 'pared'; };
 const esLedC = () => PAG === 'consola' && /Led$/.test(modoCons());
-/* v10.62 · los escalones de luz (los mismos que PRO): [clave, lux, texto, icono] */
+/* v10.63 · los escalones de luz (los mismos que PRO): [clave, lux, texto, icono] */
 const LUCES = [['reunion', 140, 'lReunion', 'bombilla'], ['aula', 210, 'lAula', 'sol'], ['evento', 140, 'lEvento', 'media'], ['salon', 70, 'lSalon', 'casa'], ['teatro', 14, 'lTeatro', 'luna']];
 const luzDe = (E) => LUCES.find((x) => x[0] === E.proy.luzUso && x[1] === Number(E.proy.lux));
-/* v10.62 · medidas de cada pantalla LED (hasta 4) */
+/* v10.63 · medidas de cada pantalla LED (hasta 4) */
 const tamsDe = (q) => { const n = Math.max(1, Math.min(4, q.n | 0)), g = Array.isArray(q.tams) ? q.tams : []; return Array.from({ length: n }, (_, i) => { const x = g[i] || []; return [+x[0] > 0 ? +x[0] : q.ancho, +x[1] > 0 ? +x[1] : q.alto]; }); };
 const tamsTxt = (L) => (L.every((x) => Math.abs(x[0] - L[0][0]) < .005 && Math.abs(x[1] - L[0][1]) < .005) ? null : L.map((x) => fm(x[0]) + ' × ' + fm(x[1])).join(' + ') + ' m');
 const PAREDES = ['frontal', 'izquierda', 'derecha', 'trasera', 'suelo'];
@@ -351,10 +351,10 @@ function filas() {
   const E = ED();
   if (PAG === 'portada') {
     const donde = { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[E.tipo] + (E.tipo !== 'INDOOR' && E.sol ? ' · ' + (E.sol === 'directo' ? t('vSolD') : t('vSolI')) : '') + (E.gold ? ' · ' + t('vMar') : '');
-    return [['donde', 'casa', t('sDonde'), donde], ['uso', 'pin', t('sUso'), E.clase === 'RENTAL' ? t('vRental') : t('vFija')], ['medida', 'regla', t('sTam'), (() => { const u = { m: 1, cm: 100, mm: 1000 }[E.uni] ? E.uni : 'm', k = { m: 1, cm: 100, mm: 1000 }[u]; return (u === 'm' ? fm(E.w) + ' × ' + fm(E.h) : fmt(E.w * k, 0) + ' × ' + fmt(E.h * k, 0)) + ' ' + u; })()],   /* v10.62 · en la unidad en que se pidió */
+    return [['donde', 'casa', t('sDonde'), donde], ['uso', 'pin', t('sUso'), E.clase === 'RENTAL' ? t('vRental') : t('vFija')], ['medida', 'regla', t('sTam'), (() => { const u = { m: 1, cm: 100, mm: 1000 }[E.uni] ? E.uni : 'm', k = { m: 1, cm: 100, mm: 1000 }[u]; return (u === 'm' ? fm(E.w) + ' × ' + fm(E.h) : fmt(E.w * k, 0) + ' × ' + fmt(E.h * k, 0)) + ' ' + u; })()],   /* v10.63 · en la unidad en que se pidió */
       ['dist', 'ojo', t('sDist'), E.dist ? fm(E.dist) + ' m' : +E.pitch ? t('vSinDist').split(' · ')[0] : t('vSinDist')], E.tipo === 'INDOOR' ? ['tocar', 'mano', t('sToca'), E.protegido ? t('si') : t('no')] : null,
       ['altura', 'altura', t('sAlt'), +E.elev ? fmt(E.elev, 0) + ' cm' : t('vSuelo')],
-      /* v10.62 · el pitch pedido (en la petición o en PRO) se ve aquí, no como «ajuste de PRO» */
+      /* v10.63 · el pitch pedido (en la petición o en PRO) se ve aquí, no como «ajuste de PRO» */
       +E.pitch ? ['lpitch', 'calidad', t('sPitch'), [E.pitch].concat(E.pitchOtros || []).map((x) => 'P' + fm(x)).join(' · ')] : null].filter(Boolean);
   }
   if (esLedC()) {   /* v10.55 · varias pantallas LED o sala LED */
@@ -369,7 +369,7 @@ function filas() {
   const out = [['ptipo', m === 'sala' ? 'cubo' : m === 'mapping' ? 'edificio' : 'pared', t('sDonde'), m === 'sala' ? t('vSala') : m === 'mapping' ? t('vMap') : t('vPared')]];
   if (m === 'sala') out.push(['ptam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
   else out.push(['ptam', 'regla', t('sImg'), fm(s.ancho) + ' × ' + fm(s.alto) + ' m']);
-  out.push(['luz', luz ? luz[3] : 'bombilla', t('sLuz'), (luz ? t(luz[2])[0] : t('vMano')) + ' · ' + fmt(lux, 0) + ' lx']);   /* v10.62 · también en mapping: la luz arranca en 140 lx como en Epson y se puede cambiar */
+  out.push(['luz', luz ? luz[3] : 'bombilla', t('sLuz'), (luz ? t(luz[2])[0] : t('vMano')) + ' · ' + fmt(lux, 0) + ' lx']);   /* v10.63 · también en mapping: la luz arranca en 140 lx como en Epson y se puede cambiar */
   if (m === 'pared') out.push(['pub', 'persona', t('sPub'), E.proy.pubNS ? t('vPubNS') : fm(s.dist) + ' m']);
   if (m !== 'mapping') out.push(['mont', E.proy.montaje === 'apoyado' ? 'mesa' : 'techo', t('sMont'), mont]);
   if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), +s.techo > 0 ? fm(s.techo) + ' m' : '—']);
@@ -464,8 +464,8 @@ function simProy(prop, ancho, anchoPx) {
   else g += pr;
   /* la cota de abajo: la distancia del proyector o, mientras se lleva a la persona, la suya */
   const dC = ARR && ARR.q === 'pub' && arrU ? dPub : dP, dTxt = ARR && ARR.q === 'pub' && arrU ? dPub : dReal, cx = X(dC), yc = suelo + Math.max(48, Math.round(fz * 1.6));
-  g += `<line x1="${cx.toFixed(1)}" y1="${yc}" x2="${muroX}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${cx.toFixed(1)}" y1="${yc - 9}" x2="${cx.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${muroX}" y1="${yc - 9}" x2="${muroX}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><text x="${((cx + muroX) / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(dTxt)} m</text>`;   /* v10.62 · la cota dice la distancia de verdad (el dibujo no baja de 0,5 m para no aplastarse) */
-  g += `<text x="${muroX + 26}" y="${((Y(y0) + Y(y1)) / 2 + 9).toFixed(1)}" class="ss-sv-c"${sz(fz)}>${fm(s.alto)} m</text></svg>`;   /* v10.62 · el alto pedido (la imagen que sobra ya se ve en el dibujo) */
+  g += `<line x1="${cx.toFixed(1)}" y1="${yc}" x2="${muroX}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${cx.toFixed(1)}" y1="${yc - 9}" x2="${cx.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${muroX}" y1="${yc - 9}" x2="${muroX}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><text x="${((cx + muroX) / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(dTxt)} m</text>`;   /* v10.63 · la cota dice la distancia de verdad (el dibujo no baja de 0,5 m para no aplastarse) */
+  g += `<text x="${muroX + 26}" y="${((Y(y0) + Y(y1)) / 2 + 9).toFixed(1)}" class="ss-sv-c"${sz(fz)}>${fm(s.alto)} m</text></svg>`;   /* v10.63 · el alto pedido (la imagen que sobra ya se ve en el dibujo) */
   return g;
 }
 
@@ -532,7 +532,7 @@ function pintaSim() {
   else if (PAG === 'portada') {
     const R = B().R;
     if (R && R.r) {
-      /* v10.62 · con el cuadro de resumen de PRO; en un hueco estrecho (móvil) el cuadro dentro del dibujo no se lee: va debajo, como una tira con la letra de la interfaz */
+      /* v10.63 · con el cuadro de resumen de PRO; en un hueco estrecho (móvil) el cuadro dentro del dibujo no se lee: va debajo, como una tira con la letra de la interfaz */
       const hT = (el.querySelector('.ss-resumen') || {}).offsetHeight || 0, estr = cu.clientWidth > 0 && (cu.clientWidth < 600 || cu.clientHeight + hT < 360);   /* con la altura que tendría sin la tira, para que no vaya y venga */
       try { svg = B().sim(Math.max(.75, Math.min(3, prop)), cu.clientWidth, { limpia: true, cajas: !estr }); } catch (e) { svg = ''; }
       let ti = el.querySelector('.ss-resumen');
@@ -562,7 +562,7 @@ const botones = () => `<div class="ss-acc" data-crudo><button type="button" clas
 /* la línea resumen: en una sola línea en escritorio (se encoge entera si no cabe); apilada, en dos (cada una se encoge por su lado) */
 const linea = (l1, l2) => `<p class="ss-linea ss-fit" data-crudo><span class="ss-l1 ss-fit">${l1}</span><span class="ss-l2 ss-fit"><i class="ss-lsep"> · </i>${l2}</span></p>`;
 const cabRes = (conBot) => `<header class="ss-res-cab">${cab('res', t('res'))}${conBot ? botones() : ''}</header>`;
-/* v10.62 · UN SOLO VEREDICTO: el semáforo enseña el aviso más grave del cálculo (el mismo que PRO pone arriba de RESULTADOS) y, si hay más,
+/* v10.63 · UN SOLO VEREDICTO: el semáforo enseña el aviso más grave del cálculo (el mismo que PRO pone arriba de RESULTADOS) y, si hay más,
    un botón que abre la lista entera con lo que se puede hacer para corregirlos */
 let AV = [];
 const semHtml = (nivel, txt, bt, small, crudo) => `<p class="ss-sem ss-sem-${nivel}"${crudo === false ? '' : ' data-crudo'}><i></i><span class="ss-fit">${esc(txt)}${small ? ` <small data-crudo>${esc(nb(small))}</small>` : ''}</span>${bt || ''}</p>`;
@@ -602,7 +602,7 @@ function resLedC(m) {
   const T2 = c.tot, mo = c.modelo, sL = E.esp.sueltas, pt = fm(+mo.pitch), pr = c.elec && c.elec.proc;
   const l1 = esc(m === 'salaLed' ? t('lSalaLed') : t('lPantsLed')) + ' <b>' + esc(mo.crm) + '</b>';
   /* las pantallas salen con cabinets enteros: se da su medida real y, si no es la pedida, se dice */
-  /* v10.62 · cada pantalla con su medida: la real (cabinets enteros) y, si no es la pedida, se dice */
+  /* v10.63 · cada pantalla con su medida: la real (cabinets enteros) y, si no es la pedida, se dice */
   const fr = c.filas.filter((f) => f.r), pide = tamsDe(sL), real = m === 'variasLed' ? fr.map((f) => [f.r.ancho, f.r.alto]) : null;
   const ajTxt = real && real.some((x, i) => pide[i] && (Math.abs(x[0] - pide[i][0]) > .01 || Math.abs(x[1] - pide[i][1]) > .01)) ? '(' + (pide.length === 1 || !tamsTxt(pide) ? t('ajCab')(fm(pide[0][0]), fm(pide[0][1])) : t('ajCab')(pide.map((x) => fm(x[0])).join('/'), pide.map((x) => fm(x[1])).join('/'))) + ')' : '';
   const med = m === 'salaLed' ? `${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => p !== 'suelo' && E.esp.paredes[p]).map((p) => t(p)).join(', ')}` : (tamsTxt(real) ? real.length + ' · ' + tamsTxt(real) : t('vPants')(real.length, fm(real[0][0]), fm(real[0][1])));
@@ -623,7 +623,7 @@ function resProy() {
   const c = C().c, E = C().E;
   if (!c || !c.filas || !c.filas.length || !c.proyector) return cabRes(false) + `<p class="ss-espera" data-crudo>${esc(t('calculando'))}</p>`;
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], pr = c.proyector, n = c.tot.n, con = c.tot.contrasteMin, pos = f.pos || {};
-  /* v10.62 · el veredicto es el del cálculo (el mismo que PRO): el aviso más grave en el semáforo y los demás en su ventana */
+  /* v10.63 · el veredicto es el del cálculo (el mismo que PRO): el aviso más grave en el semáforo y los demás en su ventana */
   const V = c.veredicto || { nivel: 'V', motivos: [] }, M = V.motivos, m0 = M[0], kj = c.consejo, lx = c.lx;
   const nomQ = (q) => [q.marca, q.modelo].filter(Boolean).join(' ') + (q.optica ? ' + ' + q.optica : ''), G = c.grupos && c.grupos.length ? c.grupos : [{ q: pr, n }];
   const nomb = G.length > 1 ? G.map((g) => g.n + ' × ' + nomQ(g.q)).join(' + ') : nomQ(pr);
@@ -637,7 +637,7 @@ function resProy() {
     : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}${vert}`));
   /* las mismas cifras que PRO: lúmenes TOTALES (debajo, cuántos de cada modelo), el lienzo completo y el contraste con el color de su valor */
   const lmTot = c.tot.lumenes > 0 ? c.tot.lumenes : pr.lumens, lz = n > 1 && c.tot.lienzoW > 0 && c.tot.lienzoH > 0, lmSub = n > 1 ? G.map((g) => fmt(g.n, 0) + ' × ' + fmt(g.q.lumens, 0)).join(' + ') + ' lm' : pr.optica ? t('kOpt')(pr.optica) : t('kLumS1');
-  const conTxt = isFinite(con) ? fmt(con, 1, 0) : '∞';   /* v10.62 · como PRO: «7:1», no «7,0:1» */
+  const conTxt = isFinite(con) ? fmt(con, 1, 0) : '∞';   /* v10.63 · como PRO: «7:1», no «7,0:1» */
   const C5 = [cifra(t('kLum'), fmt(lmTot, 0), 'lm', lmSub, 'bombilla', 'var(--ss-ambar)'),
     cifra(t('kCon'), conTxt, ':1', t('kConS')(fmt(lx, 0)), 'contraste', semC === 'V' ? 'var(--ss-acento)' : semC === 'A' ? 'var(--ss-ambar)' : 'var(--ss-rojo)')];
   if (m === 'sala') { if (c.tot.nitsMin > 0) C5.push(cifra(t('kBri'), fmt(c.tot.nitsMin, 0), 'nits', t('kBriS'), 'sol', 'var(--ss-acento)')); }
@@ -687,7 +687,7 @@ const PREG = {
   /* v10.55 · rama LED de varias pantallas o sala entera (consola). «ltipo» es también el primer paso del LED en la portada */
   ltipo: { rama: 'ledc', t: 'qLtipo', op: () => [['una', 'oLuna', 'led'], ['varias', 'oLvarias', 'pared'], ['sala', 'oLsala', 'cubo']], val: () => (PAG === 'portada' ? 'una' : modoCons() === 'salaLed' ? 'sala' : modoCons() === 'variasLed' ? 'varias' : null), pon: () => {} },
   ltam: { rama: 'ledc', t: () => (modoCons() === 'salaLed' ? 'qSala' : 'qPants'), ay: () => (modoCons() === 'salaLed' ? '' : 'ayPants'), paredes: () => modoCons() === 'salaLed',
-    /* v10.62 · varias LED: hasta 4, cada una con su medida (pants) */
+    /* v10.63 · varias LED: hasta 4, cada una con su medida (pants) */
     num: () => { const e = ED().esp; return modoCons() === 'salaLed' ? [['a', t('ancho'), e.ancho, 1, 60, 'm'], ['f', t('fondo'), e.fondo, 1, 60, 'm'], ['h', t('alto'), e.alto, 1.5, 20, 'm']] : []; }, pants: () => modoCons() === 'variasLed',
     pon: (v) => { const E = ED(), e = E.esp; if (typeof v !== 'object') return; if (modoCons() === 'salaLed') { if (v.a) e.ancho = v.a; if (v.f) e.fondo = v.f; if (v.h) e.alto = v.h; } else { const q = e.sueltas, L = tamsDe(q); L.forEach((x, i) => { if (v['w' + i]) x[0] = v['w' + i]; if (v['h' + i]) x[1] = v['h' + i]; }); q.tams = L; q.ancho = L[0][0]; q.alto = L[0][1]; } } },
   ldonde: { rama: 'ledc', si: () => modoCons() === 'variasLed', t: 'qDondeV', op: () => [['INDOOR', 'oIn', 'casa'], ['OUTDOOR', 'oOut', 'calle'], ['ESCAPARATE', 'oEsc', 'escaparate']], val: () => ED().led.tipo,
@@ -697,12 +697,12 @@ const PREG = {
     num: () => [['d', t('metros'), ED().esp.sueltas.dist || '', .5, 200, 'm', true]], pon: (v) => { const E = ED(), d = typeof v === 'object' ? v.d : v; if (d > 0) { E.esp.sueltas.dist = d; E.led.crm = ''; } } },
   /* rama PROYECTOR (consola) */
   ptipo: { rama: 'proy', t: 'qPtipo', op: () => [['pared', 'pPared', 'pared'], ['mapping', 'pMap', 'edificio'], ['sala', 'pSala', 'cubo']], val: () => (modoCons() === 'sala' ? 'sala' : modoCons() === 'mapping' ? 'mapping' : 'pared'),
-    pon: (v) => { const E = ED(), antes = modoCons(); E.tecnologia = 'proy'; if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; } else { E.cantidad = 'una'; E.esp.tipo = 'sueltas'; E.proy.tipo = v; } if (v === 'mapping' && antes !== 'mapping' && C().mapping) C().mapping(); } },   /* v10.62 · la luz no cambia sola; el mapping arranca con 6 m de alto y a 6 m */
+    pon: (v) => { const E = ED(), antes = modoCons(); E.tecnologia = 'proy'; if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; } else { E.cantidad = 'una'; E.esp.tipo = 'sueltas'; E.proy.tipo = v; } if (v === 'mapping' && antes !== 'mapping' && C().mapping) C().mapping(); } },   /* v10.63 · la luz no cambia sola; el mapping arranca con 6 m de alto y a 6 m */
   ptam: { rama: 'proy', t: () => (modoCons() === 'sala' ? 'qSala' : 'qPtam'), ay: () => (modoCons() === 'sala' ? '' : 'ayPtam'), tele: () => modoCons() !== 'sala',
     num: () => (modoCons() === 'sala' ? [['a', t('ancho'), ED().esp.ancho, 1, 60, 'm'], ['f', t('fondo'), ED().esp.fondo, 1, 60, 'm'], ['h', t('alto'), ED().esp.alto, 1.5, 20, 'm']] : [['w', t('ancho'), ED().esp.sueltas.ancho, .5, 200, 'm'], ['h', t('alto'), ED().esp.sueltas.alto, .3, 120, 'm']]),
     paredes: () => modoCons() === 'sala',
     pon: (v) => { const E = ED(); if (modoCons() === 'sala') { if (v.a) E.esp.ancho = v.a; if (v.f) E.esp.fondo = v.f; if (v.h) E.esp.alto = v.h; } else { const s = E.esp.sueltas; if (v.w) s.ancho = v.w; if (v.h) s.alto = v.h; if (v.tele) s.alto = Math.round(s.ancho * 9 / 16 * 100) / 100; } } },
-  /* v10.62 · los escalones de Epson, o a mano (0 lx es 0) */
+  /* v10.63 · los escalones de Epson, o a mano (0 lx es 0) */
   luz: { rama: 'proy', t: 'qLuz', ay: 'ayLuz', op: () => LUCES.map((l) => [l[0], l[2], l[3]]), val: () => { const l = luzDe(ED()); return l ? l[0] : null; },
     num: () => [['lx', t('luxMano'), luzDe(ED()) ? '' : Number(ED().proy.lux), 0, 5000, 'lx', true]],
     pon: (v) => { const P = ED().proy; if (typeof v === 'object') { if (v.lx != null) { P.lux = v.lx; P.luzUso = ''; } return; } const l = LUCES.find((x) => x[0] === v); if (l) { P.lux = l[1]; P.luzUso = l[0]; } } },
@@ -724,7 +724,7 @@ const PREG = {
     val: () => ED().proy.optica || '',
     pon: (v) => { const E = ED(), c = proyC(); if (v) { if (c) E.proy.cuerpo = c.proyector.modelo; E.proy.optica = v; } else { E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
   pmarca: { rama: 'proy', t: 'qMarca', ay: 'ayMarca', marcas: () => true, pon: () => {} },
-  /* v10.62 · los avisos del veredicto (los mismos que PRO) y, debajo, lo que se puede hacer para corregirlos */
+  /* v10.63 · los avisos del veredicto (los mismos que PRO) y, debajo, lo que se puede hacer para corregirlos */
   pconsejo: { t: () => (PAG === 'consola' && proyC() && proyC().consejo ? 'qConsejo' : 'qAvisos'), avisos: true,
     op: () => { const c = PAG === 'consola' && !esLedC() ? proyC() : null, k = c && c.consejo, o = []; if (!c) return o;
       if (k && k.alt) { const q = k.alt; o.push(['alt', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cAltS')([q.lumens > 0 ? fmt(q.lumens, 0) + ' lm' : '', String(q.resTxt || '').split('(')[0].trim()].filter(Boolean).join(' · '))], 'proy']); }
@@ -874,7 +874,7 @@ function clic(e) {
   if (b.dataset.ssOp != null) { let v; try { v = JSON.parse(b.dataset.ssOp); } catch (x) { v = b.dataset.ssOp; } responde(v); return; }
   if (b.dataset.ssQ) { abre(b.dataset.ssQ, false); return; }
   if (b.dataset.ssMarca) { if (C().marca(b.dataset.ssMarca)) { recalc(); pintaAsis(); } return; }
-  if (b.dataset.ssPn) { const q = ED().esp.sueltas, v = leeNums() || {}, L = tamsDe(q); L.forEach((x, i) => { if (v['w' + i]) x[0] = v['w' + i]; if (v['h' + i]) x[1] = v['h' + i]; }); q.tams = L; q.n = +b.dataset.ssPn; q.tams = tamsDe(q); recalc(); pintaAsis(); return; }   /* v10.62 · cuántas pantallas LED (2 a 4) */
+  if (b.dataset.ssPn) { const q = ED().esp.sueltas, v = leeNums() || {}, L = tamsDe(q); L.forEach((x, i) => { if (v['w' + i]) x[0] = v['w' + i]; if (v['h' + i]) x[1] = v['h' + i]; }); q.tams = L; q.n = +b.dataset.ssPn; q.tams = tamsDe(q); recalc(); pintaAsis(); return; }   /* v10.63 · cuántas pantallas LED (2 a 4) */
   if (b.dataset.ssPar) { const E = ED(), k = b.dataset.ssPar; E.esp.paredes[k] = !E.esp.paredes[k]; if (!PAREDES.some((p) => E.esp.paredes[p] && !(esLedC() && p === 'suelo'))) E.esp.paredes.frontal = true; recalc(); pintaAsis(); return; }
   const a = b.dataset.ss; if (!a) return;
   if (a === 'asis') abre('que', true);

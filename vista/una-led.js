@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.62';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.63';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.62';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.63';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.62';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.63';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.62';
+const TEXV = '?v=10.63';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -120,17 +120,17 @@ if (E.fondo === 'propio' && !FPROP) E.fondo = DEF.fondo;
 function interpreta(raw) {
   const t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ', v = [];
   const U = '(mm|cm|m|mts?|metros?|metres?|meters?)?', aM = (n, u) => { n = parseFloat(n); return u === 'mm' ? n / 1000 : u === 'cm' ? n / 100 : n; };
-  /* v10.62 · también «4 metros de ancho por 2,5 de alto» */
+  /* v10.63 · también «4 metros de ancho por 2,5 de alto» */
   const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'))
     || t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:ancho|ample|amplada|wide|width)\\s*(?:x|×|\\*|por|by|per|y|i|and|,)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:alto|alt|altura|alcada|high|height)'));
   let resto = t;
   if (d) { let u = d[4] || d[2], u1 = d[2] || d[4];
-    /* v10.62 · sin unidad: «3000 x 2000» son milímetros y «300 x 200», centímetros (nadie pide una pantalla de 300 m) */
+    /* v10.63 · sin unidad: «3000 x 2000» son milímetros y «300 x 200», centímetros (nadie pide una pantalla de 300 m) */
     if (!u && !u1) { const mx = Math.max(parseFloat(d[1]), parseFloat(d[3])); u = u1 = mx >= 1000 ? 'mm' : mx >= 50 ? 'cm' : ''; }
     E.w = aM(d[1], u1); E.h = aM(d[3], u); resto = t.replace(d[0], ' ');
-    /* v10.62 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
+    /* v10.63 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
     E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
-  /* v10.62 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
+  /* v10.63 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
   if (d) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
   if (/escaparate|vitrina|shop ?window|storefront|aparador/.test(t)) { E.tipo = 'ESCAPARATE'; v.push('escaparate'); }
   else if (/exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa/.test(t)) { E.tipo = 'OUTDOOR'; v.push('exterior'); }
@@ -139,7 +139,7 @@ function interpreta(raw) {
   else if (/instalacion|instal.lacio|instalar|\bfij[oa]\b|\bfix[ae]?\b|fixed|permanent|install/.test(t)) { E.clase = 'INSTALL'; v.push('fija'); }
   const p = resto.match(/(?:pitch|paso)\s*(?:de\s*|:\s*)?(\d{1,2}(?:\.\d+)?)|\bp\s?(\d{1,2}(?:\.\d+)?)\b|(\d{1,2}(?:\.\d+)?)\s*(?:mm\s*)?(?:de\s*)?(?:pitch|paso)/) || (() => { const m = resto.match(/(?:^|[^\d.])(\d{1,2}(?:\.\d+)?)\s?p(?![a-z0-9])/); return m && (/\./.test(m[1]) || parseFloat(m[1]) <= 20) ? [0, m[1]] : null; })();
   if (p) { E.pitch = parseFloat(p[1] || p[2] || p[3]); E.crm = '';
-    /* v10.62 · varios pitch («P2.0 y P1.8»): valen todos y se elige entre ellos con las mismas reglas (encaje, stock…) */
+    /* v10.63 · varios pitch («P2.0 y P1.8»): valen todos y se elige entre ellos con las mismas reglas (encaje, stock…) */
     E.pitchOtros = [...resto.matchAll(/\bp\s?(\d{1,2}(?:\.\d+)?)\b|(?:pitch|paso)\s*(?:de\s*|:\s*)?(\d{1,2}(?:\.\d+)?)/g)].map((x) => parseFloat(x[1] || x[2])).filter((x) => x > 0 && x <= 20 && x !== E.pitch);
     v.push('pitch ' + [E.pitch].concat(E.pitchOtros).join(' / ')); } else if (d || v.length) { E.pitch = 0; E.pitchOtros = []; E.crm = ''; }
   const ds = resto.match(/(?:\ba|\bat|desde|des de|from|hasta|fins a|distancia(?: de)?|distance(?: of)?|visto a|vist a|seen at)\s*(?:unos\s*|uns\s*|about\s*)?(\d+(?:\.\d+)?)\s*(m|mts?|metros?|metres?|meters?)(?![a-z])(?!\s*(?:de\s*|d'\s*)?(?:altura|alto|alcada|alt\b|height|high|del suelo|del terra|from the floor))/);
@@ -162,7 +162,7 @@ const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replac
 const HOLO_DRIVER = 75;   /* mm de caja de drivers de cada cabinet HOLO: no lleva píxeles */
 const RESMIN = { HD: [1280, 720], FHD: [1920, 1080], '4K': [3840, 2160] };
 const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
-/* v10.62 · ELECCIÓN DEL CABINET (decidido por Josep, 16-11-2026), en este orden:
+/* v10.63 · ELECCIÓN DEL CABINET (decidido por Josep, 16-11-2026), en este orden:
    1) que encaje con la medida pedida: cada lado a menos de un 15 % de lo pedido (si ninguno encaja, el que menos se aparta);
    2) que esté en stock (lo que llega en uno o dos meses ya va marcado como stock en el catálogo);
    3) el pitch: el pedido o el más cercano (con varios pedidos, cualquiera de ellos), el que llega a la resolución mínima, el más grande que se ve
@@ -174,7 +174,7 @@ function eligeCabinet(lista, pitches) {
   const W = E.w, H = E.h, cerca = (p) => pitches.reduce((b, x) => (Math.abs(x - p) < Math.abs(b - p) ? x : b), pitches[0]);
   const ped = [E.pitch].concat(E.pitchOtros || []).map(Number).filter((x) => x > 0);
   let vale = pitches, origen = 'stock', grande = true;
-  if (ped.length) { vale = pitches.filter((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)); if (!vale.length) vale = [...new Set(ped.map(cerca))];   /* v10.62 · a ±0,2 mm cuentan como el pedido: decide el encaje y el stock */ origen = vale.some((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)) ? 'pedido' : 'cercano'; grande = false; }   /* «P4» es el 3,9; «P2», el 1,9 */
+  if (ped.length) { vale = pitches.filter((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)); if (!vale.length) vale = [...new Set(ped.map(cerca))];   /* v10.63 · a ±0,2 mm cuentan como el pedido: decide el encaje y el stock */ origen = vale.some((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)) ? 'pedido' : 'cercano'; grande = false; }   /* «P4» es el 3,9; «P2», el 1,9 */
   else if (E.resMin && RESMIN[E.resMin]) { const [tw, th] = RESMIN[E.resMin], ok = pitches.filter((x) => lista.some((m) => m.pitch === x && (() => { const q = calcularLed({ ancho: W, alto: H }, m, E.ajuste); return q.resW >= tw && q.resH >= th; })()));
     vale = ok.length ? ok : [pitches[0]]; origen = ok.length ? 'resolucion' : 'sinres'; }
   else if (E.dist) { const c = pitches.filter((x) => x <= E.dist + 1e-9); vale = c.length ? c : [pitches[0]]; origen = 'distancia'; }
@@ -266,13 +266,13 @@ const PARED = { hormigon: [3.6, 2.39, 1], madera: [2.4, 3.0], marmol: [2.4, 2.4]
 /* «prop» es ancho / alto del hueco donde se va a ver: el dibujo se hace con esa proporción para llenarlo */
 function svgSim(prop, anchoPx, o) {
   const LIMPIA = !!(o && o.limpia);   /* v10.50 · SIMPLE: sin los cuadros de datos ni el rótulo de abajo (los datos van en su RESULTADO) */
-  const CAJAS = !LIMPIA || !!(o && o.cajas);   /* v10.62 · el cuadro de resumen (resolución, cabinets, distancia de visionado) sale también en SIMPLE */
+  const CAJAS = !LIMPIA || !!(o && o.cajas);   /* v10.63 · el cuadro de resumen (resolución, cabinets, distancia de visionado) sale también en SIMPLE */
   /* v10.43 · las líneas de los cabinets se ven siempre (también sobre un contenido propio): normales en pantalla, más suaves en el PDF */
   const cabOp = o && o.pdf ? .3 : .55, cabLin = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-opacity="${(cabOp * .6).toFixed(2)}" stroke-width="2.4" pointer-events="none"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d4ff00" stroke-opacity="${cabOp}" stroke-width="1.1" pointer-events="none"/>`;
   if (!prop) { const c = document.querySelector('[data-blk="S1A"] .blk-cu'); prop = c && c.clientHeight > 40 ? c.clientWidth / c.clientHeight : 1.6; anchoPx = c ? c.clientWidth : 0; }
   /* hueco que hay que dejar arriba para los dos controles que van encima (elevación y pared), que no cambian de tamaño con el dibujo */
   const uPx = parseFloat(getComputedStyle(document.documentElement).fontSize) / 17 || 1, ARRIBA = LIMPIA ? 70 : anchoPx > 0 ? Math.max(120, Math.min(260, 92 * uPx / (anchoPx / 860) + 28)) : 150;
-  const { r, m } = R, W = 860, H = Math.round(W / Math.max(.75, Math.min(LIMPIA ? 3 : 1.5, prop))), sueloY = H - 56, CAJA_K = LIMPIA ? Math.min(anchoPx > 0 && anchoPx < 600 ? Math.min(1.6, 600 / anchoPx) : 1, (sueloY - 24) / 420) : 1   /* v10.62 · en el móvil el cuadro se agranda para que se lea */, elev = E.elev / 100, altoTotal = Math.max(2.2, r.alto + elev + .35), anchoTotal = Math.max(r.ancho + 1.9, 3), PANEL = CAJAS ? 250 * CAJA_K : 0, LIMA = '#c6e04a';
+  const { r, m } = R, W = 860, H = Math.round(W / Math.max(.75, Math.min(LIMPIA ? 3 : 1.5, prop))), sueloY = H - 56, CAJA_K = LIMPIA ? Math.min(anchoPx > 0 && anchoPx < 600 ? Math.min(1.6, 600 / anchoPx) : 1, (sueloY - 24) / 420) : 1   /* v10.63 · en el móvil el cuadro se agranda para que se lea */, elev = E.elev / 100, altoTotal = Math.max(2.2, r.alto + elev + .35), anchoTotal = Math.max(r.ancho + 1.9, 3), PANEL = CAJAS ? 250 * CAJA_K : 0, LIMA = '#c6e04a';
   const k = Math.min((sueloY - ARRIBA) / altoTotal, (W - PANEL - 70) / anchoTotal), pw = r.ancho * k, ph = r.alto * k, cx0 = PANEL + (W - PANEL) / 2, px = cx0 - pw / 2 + .4 * k, py = sueloY - elev * k - ph, hx = px - .62 * k;
   let g = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación de la pantalla a escala con una persona de 1,75 m">`;
   g += `<defs><clipPath id="cp"><rect x="${px}" y="${py}" width="${pw}" height="${ph}"/></clipPath></defs>`;
@@ -466,7 +466,7 @@ function encoge(el, min = 7) { if (!el || !el.clientWidth) return; el.style.font
 let ctxP = null;
 function ajustaPhPide() { const i = $('#pide'); if (!i || !i.clientWidth) return; const cs = getComputedStyle(i), libre = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 4, ls = parseFloat(cs.letterSpacing) || 0; ctxP = ctxP || document.createElement('canvas').getContext('2d'); ctxP.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
   const ph = ['Escríbela: «pantalla de 3 x 4 para exterior 3.9p a 8 m»', 'Escríbela: «3 × 2 interior a 4 m»', 'Escríbela…'].find((x) => { const t = tr(x); return ctxP.measureText(t).width + t.length * ls <= libre; }) || 'Escríbela…'; if (i.dataset.ph !== ph) { i.dataset.ph = ph; i.placeholder = ph; } }
-/* v10.62 · casillas numéricas: si el valor no cabe entero (3000 en mm), se reduce la letra; nunca se corta */
+/* v10.63 · casillas numéricas: si el valor no cabe entero (3000 en mm), se reduce la letra; nunca se corta */
 function encogeIn(i) { i.style.removeProperty('font-size'); if (!i.clientWidth) return; let fs = parseFloat(getComputedStyle(i).fontSize), k = 0; while (i.scrollWidth > i.clientWidth + .5 && fs > 10 && k++ < 30) { fs -= .5; i.style.setProperty('font-size', fs + 'px'); } }
 function ajustaTextos() { document.querySelectorAll('.num input').forEach(encogeIn); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); }
 function todo() { if (document.activeElement !== $('#pide')) EDITA = false; calcula(); pintaRejilla(); pintaPie(); guarda(); ajustaTextos(); requestAnimationFrame(ajustaTextos); if (window.SCSIMPLE) window.SCSIMPLE.aviso(); }   /* v10.49 · el modo SIMPLE se repinta con el mismo cálculo */   /* v10.45 · y otra vez cuando ya está traducido */

@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.57';
+const VERSION = 'v10.58';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -578,7 +578,7 @@ function resProy() {
   const c = C().c, E = C().E;
   if (!c || !c.filas || !c.filas.length || !c.proyector) return cabRes(false) + `<p class="ss-espera" data-crudo>${esc(t('calculando'))}</p>`;
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], pr = c.proyector, n = c.tot.n, con = c.tot.contrasteMin, pos = f.pos || {};
-  const mal = c.filas.some((x) => x.p && (x.p.fuera || x.p.noCubre)), lux = Number(E.proy.lux) || 0;
+  const mal = c.filas.some((x) => x.p && (x.p.fuera || x.p.noCubre || x.p.chica)), lux = Number(E.proy.lux) || 0;   /* v10.58 · también si la imagen es más pequeña que la mínima de la óptica */
   /* v10.54 · el proyector elegido a mano no puede (se dice y se ofrece qué hacer), o se calcula fuera de especificación (se avisa y se puede quitar) */
   const kj = m !== 'sala' ? c.consejo : null, nomb = [pr.marca, pr.modelo].filter(Boolean).join(' ') + (pr.optica ? ' + ' + pr.optica : ''), oosOn = !kj && !mal && !!E.proy.oos;
   const semC = con >= 15 ? 'V' : con >= 7 ? 'A' : 'R', sem = mal || kj ? 'R' : oosOn && semC === 'V' ? 'A' : semC, acc = lux > 50 ? t('accLuz') : t('accMas');

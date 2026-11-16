@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.58';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.59';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.58';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.59';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.58';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.59';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.58';
+const TEXV = '?v=10.59';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -747,12 +747,15 @@ async function pdf() {
   if (!R || !R.r) { tostada('Calcula primero una pantalla.'); return; } if (!window.AVPDF) { tostada('No se ha podido cargar el módulo de PDF.'); return; } if (HACIENDO_PDF) return; HACIENDO_PDF = true;
   const hoja = document.createElement('div'); SIN_CONT_PDF = false;
   try {
-    if (VENT) cierra(); const { m, r } = R, p = R.proc, me = R.media, TI = '#17181c', G = '#c9ccd3', hoy = new Date().toLocaleDateString(idioma() === 'en' ? 'en-GB' : idioma() === 'ca' ? 'ca-ES' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    if (VENT) cierra(); const { m, r } = R, p = R.proc, me = R.media, TI = '#17181c', G = '#c9ccd3';
     const img = async (svg, w, h, bg) => `<img src="${await svgImg(svg, w, h, bg, TI)}" alt="" style="display:block;width:100%;height:auto;border:1px solid ${G};border-radius:6px">`;
     const sim = await img(svgSim(1.5, 0, { pdf: true }), 860, 573, '#1a1a1d'), sen = await img(svgRejilla('senal'), 1000, 620, '#f4f5f7'), ele = await img(svgRejilla('elec'), 1000, 620, '#f4f5f7'), esq = await img(svgEsquema(), 1000, 620, '#f4f5f7');
     const fila = (k, v) => (v === '' || v == null ? '' : `<tr><td style="padding:1.5px 0;color:#555">${k}</td><td style="padding:1.5px 0 1.5px 8px;font-weight:700;text-align:right">${v}</td></tr>`), rot = (s) => `<div style="font:800 8.5px/1.2 Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#555;margin:0 0 3px">${s}</div>`;
     const caja = (tit, filas) => `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px;background:#fff">${rot(tit)}<table style="width:100%;border-collapse:collapse;font:400 9.5px/1.35 Inter,Arial,sans-serif">${filas}</table></div>`;
-    const cab = (sub) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid ${TI};padding-bottom:7px;margin-bottom:9px"><img src="../assets/screens-logo-claro.svg" alt="SCREENS" style="height:30px;width:auto"><div style="text-align:right;font:400 9.5px/1.35 Inter,Arial,sans-serif"><div style="font:800 13px/1.2 Inter,Arial,sans-serif" data-crudo>${esc(E.proy || 'Pantalla LED ' + m.crm)}</div><div>${E.cliente ? '<span data-crudo>' + esc(E.cliente) + '</span> · ' : ''}${hoy}</div></div></div>`;
+    /* v10.59 · la misma cabecera que el resto de los PDF: los dos logos y, entre ellos, UNA línea pequeña (web · fecha · hora) que encoge si no cabe; el proyecto y el cliente, si se han escrito, van debajo */
+    const ahora = new Date(), linCab = 'avhub.mediaservi.com · ' + ahora.toLocaleDateString(idioma() === 'en' ? 'en-GB' : 'es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' · ' + ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const cab = (sub) => `<div style="display:grid;grid-template-columns:106px minmax(0,1fr) 106px;align-items:center;column-gap:14px;border-bottom:2px solid ${TI};padding-bottom:7px;margin-bottom:${E.proy || E.cliente ? 5 : 9}px"><img src="../assets/screens-logo-claro.svg" alt="SCREENS" style="height:30px;width:auto;justify-self:start"><div style="min-width:0;overflow:hidden;text-align:center;white-space:nowrap;container-type:inline-size"><span data-crudo style="display:inline-block;font:400 10.5px/1.3 'Share Tech Mono',ui-monospace,Menlo,Consolas,monospace;color:#555;letter-spacing:.32em;margin-right:-.32em;font-size:min(10.5px,calc(100cqw / ${linCab.length} / .9))">${linCab}</span></div><img src="../assets/avhub-logo.svg" alt="AVHUB" style="height:29px;width:auto;justify-self:end"></div>` +
+      (E.proy || E.cliente ? `<div data-crudo style="margin:0 0 6px;font:400 9.5px/1.3 Inter,Arial,sans-serif;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${E.proy ? '<b style="font-weight:800">' + esc(E.proy) + '</b>' : ''}${E.proy && E.cliente ? ' · ' : ''}${E.cliente ? esc(E.cliente) : ''}</div>` : '');
     const TIPO = { INDOOR: 'Interior', OUTDOOR: 'Exterior', ESCAPARATE: 'Escaparate' }[E.tipo], sob = Math.abs(r.sobra.w) > .01 || Math.abs(r.sobra.h) > .01 ? (r.sobra.w >= 0 ? 'sobran ' : 'faltan ') + fmt(Math.abs(r.sobra.w) * 100) + ' × ' + fmt(Math.abs(r.sobra.h) * 100) + ' cm' : 'medida exacta';
     const p1 = cab('hoja 1 de 2') +
       `<div style="border:1px solid ${TI};border-radius:6px;padding:7px 10px;margin-bottom:9px;font:700 11px/1.4 Inter,Arial,sans-serif">PANTALLA LED <span data-crudo>${esc(m.crm)}</span> · ${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px${r.peso > 0 ? ' · ' + fmt(r.peso) + ' kg' : ''}${r.kw > 0 ? ' · ' + fmt(r.kw, 2) + ' kW' : ''}</div>` +

@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.58';
+const VERSION = 'v10.59';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -80,7 +80,7 @@ const T = {
     kPeso: 'Peso', kPesoS: (k) => 'Cada pieza: ' + k + ' kg', kCtrl: 'Control',
     /* resultado de la proyección */
     lProy: 'TU PROYECCIÓN', lSala: 'TU SALA', proys: (n) => (n === 1 ? '1 proyector' : n + ' proyectores'),
-    semV: 'Se verá bien con esta luz.', semA: (a) => 'Se verá algo lavada: ' + a + '.', semR: (a) => 'Se verá muy lavada: ' + a + '.', accLuz: 'baja la luz', accMas: 'haz la imagen más pequeña o añade un proyector',
+    semV: 'Se verá bien con esta luz.', semA: (a) => 'Se verá algo lavada: ' + a + '.', semR: (a) => 'Se verá muy lavada: ' + a + '.', accLuz: 'hacen falta más lúmenes o controlar la luz ambiente', accMas: 'haz la imagen más pequeña o añade un proyector',
     pNoCabe: 'No hay un buen sitio para el proyector con estas medidas: cambia la distancia o míralo en PRO.',
     kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, sCabe: 'El proyector cabe', vCabe: (a, b) => (a && b ? 'entre ' + a + ' y ' + b + ' m' : a ? 'a más de ' + a + ' m' : 'a menos de ' + b + ' m'), vCabeN: 'a cualquier distancia', sQue: 'Qué', vSalaLed: 'Sala LED entera', vVariasLed: 'Varias pantallas LED', sPants: 'Pantallas', vPants: (n, a, b) => n + ' de ' + a + ' × ' + b + ' m', qLtipo: '¿Qué vas a montar?',
     oLuna: ['Una pantalla LED', 'Una sola, del tamaño que quieras'], oLvarias: ['Varias pantallas LED', 'Iguales, una al lado de otra'], oLsala: ['Una sala LED entera', 'Las paredes de la sala, para meterse dentro de la imagen'],
@@ -133,7 +133,7 @@ const T = {
     kCal: 'Quality', kCalS: (p, f) => 'Pitch ' + p + ' mm · ' + f, kCalF: (f) => 'Format ' + f, kNit: 'Sharp from', kNitS: (o) => 'Best: at ' + o + ' m', kElec: 'Power', kElecS: (n) => n + ' 16 A ' + (n === 1 ? 'line' : 'lines'),
     kPeso: 'Weight', kPesoS: (k) => 'Each panel: ' + k + ' kg', kCtrl: 'Control',
     lProy: 'YOUR PROJECTION', lSala: 'YOUR ROOM', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
-    semV: 'It will look good with this light.', semA: (a) => 'It will look a bit washed out: ' + a + '.', semR: (a) => 'It will look very washed out: ' + a + '.', accLuz: 'dim the lights', accMas: 'make the image smaller or add a projector',
+    semV: 'It will look good with this light.', semA: (a) => 'It will look a bit washed out: ' + a + '.', semR: (a) => 'It will look very washed out: ' + a + '.', accLuz: 'it needs more lumens or controlled ambient light', accMas: 'make the image smaller or add a projector',
     pNoCabe: 'There is no good spot for the projector with these sizes: change the distance or check it in PRO.',
     kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', sCabe: 'Projector fits', vCabe: (a, b) => (a && b ? 'between ' + a + ' and ' + b + ' m' : a ? 'more than ' + a + ' m away' : 'less than ' + b + ' m away'), vCabeN: 'at any distance', sQue: 'What', vSalaLed: 'Whole LED room', vVariasLed: 'Several LED screens', sPants: 'Screens', vPants: (n, a, b) => n + ' of ' + a + ' × ' + b + ' m', qLtipo: 'What are you setting up?',
     oLuna: ['One LED screen', 'A single one, any size you like'], oLvarias: ['Several LED screens', 'All the same, side by side'], oLsala: ['A whole LED room', 'The walls of the room, to step inside the image'],
@@ -186,7 +186,7 @@ const T = {
     kCal: 'Qualitat', kCalS: (p, f) => 'Pitch ' + p + ' mm · ' + f, kCalF: (f) => 'Format ' + f, kNit: 'Nítida des de', kNitS: (o) => 'L’ideal: a ' + o + ' m', kElec: 'Electricitat', kElecS: (n) => n + (n === 1 ? ' línia' : ' línies') + ' de 16 A',
     kPeso: 'Pes', kPesoS: (k) => 'Cada peça: ' + k + ' kg', kCtrl: 'Control',
     lProy: 'LA TEVA PROJECCIÓ', lSala: 'LA TEVA SALA', proys: (n) => (n === 1 ? '1 projector' : n + ' projectors'),
-    semV: 'Es veurà bé amb aquesta llum.', semA: (a) => 'Es veurà una mica rentada: ' + a + '.', semR: (a) => 'Es veurà molt rentada: ' + a + '.', accLuz: 'abaixa la llum', accMas: 'fes la imatge més petita o afegeix un projector',
+    semV: 'Es veurà bé amb aquesta llum.', semA: (a) => 'Es veurà una mica rentada: ' + a + '.', semR: (a) => 'Es veurà molt rentada: ' + a + '.', accLuz: 'calen més lúmens o controlar la llum ambient', accMas: 'fes la imatge més petita o afegeix un projector',
     pNoCabe: 'No hi ha un bon lloc per al projector amb aquestes mides: canvia la distància o mira-ho en PRO.',
     kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, sCabe: 'El projector hi cap', vCabe: (a, b) => (a && b ? 'entre ' + a + ' i ' + b + ' m' : a ? 'a més de ' + a + ' m' : 'a menys de ' + b + ' m'), vCabeN: 'a qualsevol distància', sQue: 'Què', vSalaLed: 'Sala LED sencera', vVariasLed: 'Diverses pantalles LED', sPants: 'Pantalles', vPants: (n, a, b) => n + ' de ' + a + ' × ' + b + ' m', qLtipo: 'Què vols muntar?',
     oLuna: ['Una pantalla LED', 'Una de sola, de la mida que vulguis'], oLvarias: ['Diverses pantalles LED', 'Iguals, una al costat de l’altra'], oLsala: ['Una sala LED sencera', 'Les parets de la sala, per ficar-se dins de la imatge'],
@@ -236,6 +236,7 @@ const P = {
   pro: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   varita: '<path d="M4 20L15 9"/><path d="M15 3.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/><path d="M19.5 10.5l.6 1.3 1.4.7-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.7z"/>',
   regla: '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
+  fabrica: '<path fill="currentColor" stroke="none" d="M2,22V9.98L9,7V9l5-2v3h8V22H2Zm2-2H20V12H12V9.95l-5,2V10L4,11.33V20Zm7-2h2V14H11v4ZM7,18H9V14H7v4Zm8,0h2V14H15v4Zm7-8H17l1-8h3l1,8ZM4,20H7h5h8H4Z"/>',   /* v10.59 · las marcas llevan la fábrica, no el proyector */
   ojo: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   altura: '<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>',
   persona: '<circle cx="12" cy="6" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/>',
@@ -355,7 +356,7 @@ function filas() {
   if (m === 'pared' || m === 'mapping') { const a = Number(E.proy.distMin) || 0, b = Number(E.proy.distMax) || 0, d = Number(E.proy.dist) || 0; out.push(['pcabe', 'regla', t('sCabe'), d ? t('vCabeE')(fm(d)) : a || b ? t('vCabe')(a ? fm(a) : '', b ? fm(b) : '') : t('vCabeN')]); }
   const c0 = proyC();
   if (c0 && (m === 'pared' || m === 'mapping') && c0.proyector.optica) out.push(['popt', 'proy', t('sOpt'), c0.proyector.optica + ' · ' + trTxt(c0.proyector) + (E.proy.optica ? '' : ' · ' + t('vAutoC'))]);
-  if ((C().MARCAS || []).length > 1) out.push(['pmarca', 'proy', t('sMarca'), C().marcas().join(' · ')]);
+  if ((C().MARCAS || []).length > 1) out.push(['pmarca', 'fabrica', t('sMarca'), C().marcas().join(' · ')]);
   return out;
 }
 function pintaResumen() {

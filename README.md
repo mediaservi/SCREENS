@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.58** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.60** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,26 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.58)
+## Cambios de la versión actual (v10.60)
+
+**SIMPLE y PRO dan las mismas cifras de proyección; los PDF salen con el texto en su sitio y con las fotos.**
+
+- **Mismas cifras en las dos vistas:** SIMPLE da ahora los lúmenes totales con «N × L lm» debajo y el lienzo completo con «N × resolución nativa» debajo, igual que PRO. El color de la cifra de contraste depende solo del contraste.
+- **«No se puede conseguir lo que pides» en PRO:** sale arriba de RESULTADOS, antes de la tabla, con sus botones. Antes estaba al final de la lista de sombras y no se veía sin desplazar.
+- **PDF · textos:** los títulos de sección salían con las letras descolocadas («E LECTRÓNICAY M EDIASERVER») y las columnas de la lista de material se iban corriendo. La causa era la escala de la plantilla, que hacía que la librería midiera mal el texto. Corregido.
+- **PDF · fotos de producto:** salen aunque la web del fabricante no deje copiarlas (se piden a través de wsrv.nl, que solo recibe la dirección pública de la foto). Si no se consiguen, queda el dibujo del equipo en vez de un marco vacío.
+- **PDF · orden y limpieza:** lista de piezas de la electrónica en texto corrido con sangría, título sin líneas que empiecen por «·», captura 3D sin franjas vacías y el aviso de contraste separado de su nivel.
+
+### v10.59
+
+**La cabecera de los PDF, en una línea; el aviso de imagen lavada ya no manda bajar la luz.**
+
+- **Cabecera de todos los PDF:** entre los dos logos va una sola línea pequeña con la web, la fecha y la hora (`avhub.mediaservi.com · 16/11/2026 · 08:04`), con la letra de la fecha, centrada a la altura de los logos y con su margen. Ocupa solo el hueco que queda entre ellos y, si no cabe, encoge la letra.
+- **El PDF de una pantalla LED usa esa misma cabecera** (logo de SCREENS, la línea y el logo de AVHUB). El proyecto y el cliente, cuando se han escrito, van en una línea debajo.
+- **Aviso de contraste:** «baja la luz» desaparece, porque la luz de una sala es la que es. En SIMPLE dice «Se verá algo (o muy) lavada: hacen falta más lúmenes o controlar la luz ambiente»; en PRO, «Se verá algo lavada: faltan lúmenes». En los tres idiomas.
+- **MARCAS (SIMPLE):** la fila lleva el icono de una fábrica en lugar del proyector.
+
+### v10.58
 
 **Christie entra en el catálogo de proyección.**
 
@@ -214,7 +233,7 @@ Mejoras de uso salidas de una revisión externa de la app (beta):
 - **Distancia de visionado por defecto:** sin distancia, la portada elige el pitch para verse bien a 3 m en interior y a 8 m en exterior, y lo dice («A 3 m»). La distancia de visionado pasa al bloque Dimensiones, con el valor por defecto a la vista.
 - **«Sala» ya no es siempre sala inmersiva:** «sala de reuniones», «de conferencias», «de formación», «salón» o «sala de estar» se entienden como una pantalla. Pedir un proyector en la portada lleva directamente a Proyección con la petición ya calculada.
 - **Luz según el uso:** sala de reuniones u oficina 140 lx, salón o cine en casa 50 lx y sala inmersiva 10 lx, si la petición no dice otra.
-- **Contraste con semáforo:** verde, ámbar o rojo con una frase clara («Se verá algo lavada: baja la luz»).
+- **Contraste con semáforo:** verde, ámbar o rojo con una frase clara («Se verá algo lavada: faltan lúmenes»).
 - **Nuevo cálculo con DESHACER:** el botón «Nuevo cálculo» ya no borra sin vuelta atrás: un aviso con DESHACER recupera lo de antes.
 - **Sin catálogo, con salida:** si el catálogo no carga, cada bloque lo dice con su título y un botón REINTENTAR.
 - Etiqueta BETA junto a la casilla de petición, ejemplos que caben en cada pantalla, ayuda del 3D para pantallas táctiles, botones más grandes en táctil, resultados en una columna en el móvil y etiquetas de los campos enlazadas (accesibilidad).

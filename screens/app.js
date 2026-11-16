@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.57';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.58';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.57';
+const VERSION = 'v10.58';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -141,8 +141,10 @@ function calcular() {
   const pared1 = sups.find(s => s.tipo !== 'suelo'), trPared = pared1 ? (alMedio && hayRango ? (dMax > 0 ? (dMin + dMax) / 2 : dMin) : tiroPared) / pared1.ancho : 0;
   const pref0 = (q) => (tipoP === 'mapping' ? (hayRango ? (trPared ? desvTR(q, trPared) * 0.3 : 0) : !fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0) - q.lumens / 20000
     : tipoP === 'pared' ? (q.ust ? 0.5 : 0) + (trPared ? desvTR(q, trPared) * 0.3 : 0) : 0);
-  // v10.57 · la marca desempata con margen: una de menos prioridad solo gana si monta menos equipos o da claramente más brillo (más de unos 5 nits)
-  const pref = (q) => pref0(q) + prioMarca(q.marca) * 0.05;
+  // v10.58 · la prioridad de marca manda en automático (EPSON > VIVITEK > CHRISTIE): 5.000 puntos por escalón, más que cualquier diferencia de
+  // número de equipos o de brillo y menos que una instalación que no cabe o con sombras. Así, la siguiente marca solo sale si con la anterior
+  // no hay una instalación limpia; para calcular con otra, se apagan las demás o se elige el proyector.
+  const pref = (q) => pref0(q) + prioMarca(q.marca) * 50;
   const coloc = { montaje: E.proy.montaje || 'auto', altura: Math.max(0, Number(E.proy.altura) || 0) };
   const altoEsc = esp.tipo === 'sala' ? esp.alto : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;
   const obs = obstaculosDe(esp), haySuelo = sups.some(s => s.tipo === 'suelo');
@@ -159,7 +161,7 @@ function calcular() {
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
   // y solo las mejores pasan por la colocación completa con sombras y choques
   const rapido = (q) => { let k = pref(q) * 1000; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
-    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite ? 2e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - Math.min(r.nits, 250) * 0.5; }); return k; };
+    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - Math.min(r.nits, 250) * 0.5; }); return k; };
   const supS = sups.find(s => s.tipo === 'suelo');
   const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - Math.min(r.nits, 250) * 0.5; };
   const mejores = (lista, k = 10, fc = rapido) => lista.length <= k ? lista : lista.map(q => ({ q, c: fc(q) })).sort((a, b) => a.c - b.c).slice(0, k).map(x => x.q);
@@ -182,10 +184,10 @@ function calcular() {
   // se mira si saldría fuera de especificación y se propone la combinación más parecida que sí lo hace (misma clase de resolución y brillo
   // más cercano; primero, el mismo cuerpo con otra óptica). No hay precios en la app: el parecido es por prestaciones.
   let consejo = null;
-  if ((E.proy.cuerpo || E.proy.optica) && cand.length && inst.filas.some(f => f.s.tipo !== 'suelo' && (f.p.fuera || f.p.noCubre || f.p.limite))) {
-    const vale = (q, extra) => sups.every(s => { if (s.tipo === 'suelo') return true; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q, extra) }); return !(r.fuera || r.noCubre || r.limite || corta(r)); });
+  if ((E.proy.cuerpo || E.proy.optica) && cand.length && inst.filas.some(f => f.s.tipo !== 'suelo' && (f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica))) {
+    const vale = (q, extra) => sups.every(s => { if (s.tipo === 'suelo') return true; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q, extra) }); return !(r.fuera || r.noCubre || r.limite || r.chica || corta(r)); });
     const ref = proyector, lejos = (q) => (q.modelo === ref.modelo ? -5 : 0) + (q.k4nativo !== ref.k4nativo ? 3 : 0) + (q.k4 !== ref.k4 ? 1 : 0) + Math.abs(Math.log(q.lumens / ref.lumens)) * 2 + (q.marca !== ref.marca ? 0.3 : 0) + (q.serie !== ref.serie ? 0.1 : 0);
-    const alt = CAT.filter(q => !lista.includes(q) && vale(q)).map(q => ({ q, k: lejos(q) + pref(q) * 0.01 })).sort((x, y) => x.k - y.k)[0];
+    const alt = CAT.filter(q => !lista.includes(q) && vale(q)).map(q => ({ q, k: lejos(q) + pref0(q) * 0.01 })).sort((x, y) => x.k - y.k)[0];
     consejo = { nombre: (ref.marca ? ref.marca + ' ' : '') + ref.nombre, oos: !E.proy.oos && lista.some(q => vale(q, { oos: true })), alt: alt ? alt.q : null };
   }
   const filas = inst.filas;
@@ -212,7 +214,7 @@ function calcular() {
   let zona = null;
   if (esp.tipo !== 'sala' && sup1) {
     const zA = Math.max(0, Number(E.proy.distMin) || 0), zB = Math.max(0, Number(E.proy.distMax) || 0), tr = [];
-    lista.forEach(q => { const r = calcularPared(sup1, q, { ...opc, orient: E.proy.orient || 'auto' }); if (r.limite) return; const a = Math.max(r.tMin, zA), b = Math.min(r.tMaxZ, zB > 0 ? zB : Infinity); if (b >= a - 1e-9) tr.push([a, Math.max(a, b)]); });
+    lista.forEach(q => { const r = calcularPared(sup1, q, { ...opc, orient: E.proy.orient || 'auto' }); if (r.limite || r.chica) return; const a = Math.max(r.tMin, zA), b = Math.min(r.tMaxZ, zB > 0 ? zB : Infinity); if (b >= a - 1e-9) tr.push([a, Math.max(a, b)]); });
     tr.sort((x, y) => x[0] - y[0]); zona = [];
     tr.forEach(x => { const u = zona[zona.length - 1]; if (u && x[0] <= u[1] + 0.005) u[1] = Math.max(u[1], x[1]); else zona.push([x[0], x[1]]); });
   }
@@ -223,7 +225,7 @@ function calcular() {
 // coste de una instalación de proyección: primero que quepa, luego que no haya sombras de equipos ni choques, luego menos proyectores y más brillo
 function costeInstalacion(filas, S) {
   let n = 0, fuera = 0, limite = 0, nits = Infinity;
-  filas.forEach(f => { n += f.p.n; if (f.p.fuera) fuera++; if (f.p.limite) limite++; nits = Math.min(nits, f.p.nits); });
+  filas.forEach(f => { n += f.p.n; if (f.p.fuera) fuera++; if (f.p.limite || f.p.chica) limite++; nits = Math.min(nits, f.p.nits); });
   const zona = S.zona && S.zona.ok ? S.zona.ancho * S.zona.fondo : 0;
   return fuera * 1e7 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - Math.min(nits, 250) - zona * 2;
 }
@@ -294,7 +296,7 @@ const trTxt = (q) => (q.trMin === q.trMax ? fmt(q.trMin, 2) : fmt(q.trMin, 2) + 
 function fichaProy(q, cat) {
   return fichaHTML({ cat, icono: 'proy', marca: q.marca, modelo: q.nombre, claveFoto: q.modelo, foto: q.imagen, fotoTrasera: q.trasera, acento: '#00b4ff',
     enlaces: q.marca === 'EPSON' ? [[epsonManual(q), t('epsonManual')], [EPSON_CALC, t('epsonCalc')]] : q.marca === 'VIVITEK' ? [[VIVITEK_SIM, t('vivitekSim')]] : [],
-    specs: [[t('kTR'), trTxt(q)], [t('kLm'), fmtPx(q.lumens) + ' lm'], [t('kFmt'), q.arTxt], [t('kRes'), q.resX + '×' + q.resY], [t('kDiag'), q.maxDiagPulg + '"'], [t('k4k'), q.k4nativo ? '4K' : q.k4 ? 'Enhancement' : '—'],
+    specs: [[t('kTR'), trTxt(q)], [t('kLm'), fmtPx(q.lumens) + ' lm'], [t('kFmt'), q.arTxt], [t('kRes'), q.resX + '×' + q.resY], [t('kDiag'), isFinite(q.maxDiagPulg) ? (q.minDiagPulg ? q.minDiagPulg + '–' : '') + q.maxDiagPulg + '"' : q.minDiagPulg ? '≥ ' + q.minDiagPulg + '"' : ''], [t('k4k'), q.k4nativo ? '4K' : q.k4 ? 'Enhancement' : '—'],
       [t('kShift'), q.shiftV ? `${q.shiftSube ? '+' : '±'}${q.shiftV} % / ±${q.shiftH} %` : '']] });
 }
 function fichaProc(x) {
@@ -424,7 +426,7 @@ function partesProy(c) {
     const usada = Math.max(0, ...paredes.map(f => Math.hypot(f.p.imgW, f.p.imgH) / 0.0254));
     if (p.oos) {
       mat += `<p class="aviso">${t('oosAviso')}</p>`;
-      mat += `<p class="ayuda">${sel.maxDiagPulgOOS > sel.maxDiagPulg ? t('oosCalc', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg), gm: med(sel.maxDiagPulg), o: fmtPx(sel.maxDiagPulgOOS), om: med(sel.maxDiagPulgOOS) }) : t('oosNoGana', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg) })}</p>`;
+      mat += `<p class="ayuda">${sel.maxDiagPulgOOS > sel.maxDiagPulg ? t('oosCalc', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg), gm: med(sel.maxDiagPulg), o: fmtPx(sel.maxDiagPulgOOS), om: med(sel.maxDiagPulgOOS) }) : t(isFinite(sel.maxDiagPulg) ? 'oosNoGana' : 'oosSinMax', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg) })}</p>`;
       if (usada > sel.maxDiagPulg + 0.5) mat += `<p class="aviso">${t('oosUsa', { d: fmtPx(Math.round(usada)), g: fmtPx(sel.maxDiagPulg) })}</p>`;
       mat += `<p class="ayuda">${t('oosReco')}</p>`;
     } else if (paredes.some(f => f.p.limite) && sel.maxDiagPulgOOS > sel.maxDiagPulg) mat += `<p class="ayuda">${t('oosSugerir', { g: fmtPx(sel.maxDiagPulg), o: fmtPx(sel.maxDiagPulgOOS) })}</p>`;
@@ -515,7 +517,7 @@ function modSuperficies(c) {
   c.filas.forEach(f => {
     const r = f.r, p = f.p;
     const linea = r ? `${fmt(r.ancho)} × ${fmt(r.alto)} m · ${r.cols}×${r.rows} · ${r.resW}×${r.resH}` : `${p.n} ${t('p')} · ${p.resW}×${p.resH} · ${fmt(p.nits, 0)} nits`;
-    const av = p ? [p.fuera ? t('fuera') : '', p.limite ? t('limite') : '', p.solapeRel > SOLAPE_MAX ? t('solapeAlto') : '', p.recorte > 0.005 ? t('recorte') + ' ' + fmt(p.recorte * 100, 0) + ' %' : ''].filter(Boolean).join(' · ') : '';
+    const av = p ? [p.fuera ? t('fuera') : '', p.limite ? t('limite') : '', p.chica ? t('chica') : '', p.solapeRel > SOLAPE_MAX ? t('solapeAlto') : '', p.recorte > 0.005 ? t('recorte') + ' ' + fmt(p.recorte * 100, 0) + ' %' : ''].filter(Boolean).join(' · ') : '';
     h += `<div class="sup"><b class="mono" style="color:var(--verde)">●</b><div class="sup-dat"><b>${f.nombre}</b><span>${linea}</span>${av ? `<span style="color:#ffc94d">${av}</span>` : ''}</div><span></span></div>`;
   });
   return h + '</div></section>';

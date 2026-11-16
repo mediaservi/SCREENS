@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.57** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.58** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -39,7 +39,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 - **Simulación a escala en 3D** (three.js): exterior, dentro y planta; carta de ajuste, panorámica, ascensor, contenido propio; rótulos y safety zone; se puede ver en grande.
 - **Resultados:** tabla por superficie, vistas técnicas de proyección (lateral, frontal y cenital, con el proyector arrastrable), posición, sombras, electrónica y equipo elegido; y las **seis cifras clave** en su fila.
 - **PDF** con la captura 3D, los resultados, la electrónica y los equipos.
-- **Proyectores:** Epson y Vivitek, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, imagen máxima y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK.
+- **Proyectores:** Epson, Vivitek y Christie, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, tamaño de imagen y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK > CHRISTIE: la siguiente marca solo sale si con la anterior no hay una instalación limpia.
 
 **Fichas y motor común:** cabinets, proyectores, electrónicas y mediaservers se muestran con la misma ficha (`comun/ficha.js`, `comun/ficha.css`); el motor de electrónica es común (`comun/electronica.js`: NovaStar MCTRL, VX Pro, NovaPro, COEX MX, MBOX, reproductores Taurus TB y TU y H Series, con tarjetas de salida y de entrada, backup, escalador y fibra con CVT10 Pro; mediaservers NovaStar ET y PIXELHUE X400; switchers PIXELHUE). Los equipos salen de **una lista por marca** (`comun/equipos.js` de fábrica) que se gestiona desde el panel AVHUB ADMIN (EQUIPOS): lo guardado allí sustituye a la de fábrica sin publicar la app.
 
@@ -70,7 +70,20 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.57)
+## Cambios de la versión actual (v10.58)
+
+**Christie entra en el catálogo de proyección.**
+
+- **20 proyectores de Christie** con sus ópticas compatibles (125 combinaciones de cuerpo y óptica):
+  - Un chip: Captiva DWU500S (ultracorto), Inspire DWU760-iS, DWU860-iS, DWU960-iS, DWU960ST-iS y 4K860-iS (óptica incluida), DWU880-GS (8 ópticas), Jazz DWU1800-JS, DWU2400-JS, 4K1600-JS y 4K2100-JS (6 ópticas) y Korus 4K1000-KS y 4K1400-KS (8 ópticas).
+  - Tres chips: M 4K15 RGB, M 4K+15 RGB, M 4K25 RGB y M 4K+25 RGB (11 ópticas ILS1), y Griffyn 4K35-RGB, Griffyn 4K50-RGB y Sapphire 4K40-RGBH (9 ópticas ILS4), de 15.750 a 50.000 lm.
+- **Datos de cada combinación**, de los documentos técnicos de cada serie y de las hojas de cada modelo: relación de proyección, desplazamiento de la óptica, tamaño de imagen mínimo y máximo, chasis y el brillo que restan algunas ópticas ultracortas. Christie da el desplazamiento sobre media imagen: aquí va convertido al alto y al ancho enteros, como en las otras marcas.
+- **Tamaño mínimo de imagen:** cuando el fabricante lo da, el cálculo lo respeta. Si la imagen es más pequeña que la mínima que enfoca la óptica, el automático no la elige; elegida a mano, se avisa («Imagen más pequeña que la mínima que enfoca esta óptica») y se ofrece una alternativa. En la ficha, el tamaño de imagen sale con su mínimo y su máximo. Las ópticas ILS4 solo publican el mínimo.
+- **La prioridad de marca manda en automático:** EPSON > VIVITEK > CHRISTIE. El automático propone Epson siempre que con Epson haya una instalación limpia; si no la hay, Vivitek, y después Christie. Para calcular con otra marca se apagan las demás (botones de marca) o se elige el proyector. Con las tres marcas, el resultado automático es el mismo que antes de añadirlas.
+- Tres botones de marca en MATERIAL (PRO) y en la pregunta «Marcas» (SIMPLE).
+- Sin cargar todavía: el Crimson WU31 (no he encontrado publicado el desplazamiento de sus ópticas) y las ópticas de Christie que no están en la lista de venta.
+
+### v10.57
 
 **Vivitek entra en el catálogo de proyección.**
 
@@ -82,7 +95,7 @@ Los calculadores de audio y escenario que nacieron aquí (primero como «Hardwar
   - DU5051Z, DU5053Z y DK5153Z (6.200 a 7.700 lm), con su óptica de serie de 1,15–1,9:1.
 - **Datos de cada combinación:** la relación de proyección según el chip del cuerpo, la imagen máxima de cada óptica, el desplazamiento de la óptica (con su tope cuando la óptica lo limita) y el tamaño del chasis, de la guía de ópticas y de las fichas del fabricante. Vivitek no publica imagen «fuera de especificación»: con sus proyectores ese modo no amplía nada, y la app lo dice.
 - **Marcas a la vista:** con dos marcas en el catálogo aparecen los botones EPSON y VIVITEK en MATERIAL (PRO) y la línea «Marcas» en LO QUE PIDES (SIMPLE). La lista de proyectores va agrupada por marca.
-- **En automático sigue mandando Epson:** una marca de menos prioridad solo sale si monta menos equipos o da claramente más brillo. Vivitek se calcula apagando Epson o eligiendo uno de sus proyectores.
+- **En automático sigue mandando Epson** (desde la v10.58, la siguiente marca solo sale si con la anterior no hay una instalación limpia). Vivitek se calcula apagando Epson o eligiendo uno de sus proyectores.
 - **Ficha del proyector:** los de Vivitek llevan el enlace a su simulador para verificar.
 - **SIMPLE, sin nada cortado con más líneas y más ópticas:**
   - LO QUE PIDES admite hasta nueve líneas (proyección colgada, con óptica y marcas) más el aviso de ajustes de PRO sin desplazar la lista: las líneas se estrechan lo justo; con sitio de sobra siguen igual.

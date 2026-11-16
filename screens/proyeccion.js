@@ -127,12 +127,90 @@ function leerVivitek() {
   }));
   return out;
 }
-export const PROYECTORES = [...leer(), ...leerVivitek()];
+// v10.58 · CHRISTIE: cada cuerpo con sus ópticas compatibles, de los documentos técnicos del fabricante («lens throw ratios» de cada serie) y
+// de las hojas de datos de cada modelo.
+// - Christie da el desplazamiento («offset») sobre MEDIA imagen («defined at half image size»): aquí va ya en % del alto y del ancho enteros
+//   (la mitad), como en Epson y Vivitek. La relación de proyección es la nominal de cada óptica.
+// - Cada óptica trae su tamaño de imagen mínimo y máximo (en pulgadas de diagonal, o el ancho en centímetros en las ILS1). Las ILS4 de
+//   Griffyn y Sapphire solo publican el mínimo. Ópticas que restan brillo: la 0,34–0,37:1 de Jazz y Korus (10 %) y la 0,38:1 ILS4 (30 %).
+// - Las ópticas se nombran por su referencia de Christie. Lúmenes ISO.
+const CHRISTIE = [
+  { serie: 'CAPTIVA', res: 'WUXGA (1920 x 1200)', chasis: [0.383, 0.318, 0.088], fija: [0.25, 0.25], img: [130, 150], sh: [0, 0], m: [['Captiva DWU500S', 5000]] },
+  { serie: 'INSPIRE', res: 'WUXGA (1920 x 1200)', chasis: [0.480, 0.406, 0.157], fija: [1.25, 2.0], img: [60, 200], sh: [55, 25], m: [['DWU760-iS', 7150], ['DWU860-iS', 8500], ['DWU960-iS', 9600]] },
+  { serie: 'INSPIRE ST', res: 'WUXGA (1920 x 1200)', chasis: [0.480, 0.406, 0.157], fija: [0.65, 0.75], img: [60, 200], sh: [55, 25], m: [['DWU960ST-iS', 9600]] },
+  { serie: 'INSPIRE 4K', res: '4K UHD (3840 x 2160)', k4: true, chasis: [0.480, 0.406, 0.157], fija: [1.25, 2.0], img: [60, 200], sh: [55, 25], m: [['4K860-iS', 8500]] },
+  { serie: 'GS', res: 'WUXGA (1920 x 1200)', chasis: [0.480, 0.555, 0.190], m: [['DWU880-GS', 9500]] },
+  { serie: 'JAZZ', res: 'WUXGA (1920 x 1200)', chasis: [0.520, 0.600, 0.193], m: [['DWU1800-JS', 17800], ['DWU2400-JS', 23750]] },
+  { serie: 'JAZZ', res: '4K UHD+ (3840 x 2400)', k4: true, chasis: [0.520, 0.600, 0.193], m: [['4K1600-JS', 16600], ['4K2100-JS', 21350]] },
+  { serie: 'KORUS', res: '4K UHD+ (3840 x 2400)', k4: true, chasis: [0.535, 0.416, 0.194], m: [['4K1000-KS', 10050], ['4K1400-KS', 14250]] },
+  { serie: 'M RGB', res: '4K UHD (3840 x 2160)', k4: true, chasis: [0.525, 0.617, 0.270], m: [['M 4K15 RGB', 15750], ['M 4K25 RGB', 25300]] },
+  { serie: 'M RGB', res: '4K UHD+ (3840 x 2400)', k4: true, chasis: [0.525, 0.617, 0.270], m: [['M 4K+15 RGB', 15750], ['M 4K+25 RGB', 25300]] },
+  { serie: 'ILS4', res: '4K (4096 x 2160)', arTxt: '17:9', k4: true, chasis: [0.635, 0.922, 0.380], m: [['Griffyn 4K35-RGB', 36500], ['Griffyn 4K50-RGB', 50000], ['Sapphire 4K40-RGBH', 40950]] }
+];
+// ref, relación mínima y máxima, desplazamiento V y H (% de la imagen entera), imagen mínima y máxima (pulgadas; «cm» = ancho en cm),
+// series con las que va, brillo que conserva y si el desplazamiento va en un solo sentido o es fijo
+export const OPTICAS_CHRISTIE = [
+  // GS (DWU880-GS)
+  { ref: '140-133108', tr: [0.36, 0.36], sh: [0, 0], img: [120, 350], s: ['GS'], sube: 1 },
+  { ref: '900-300383', tr: [0.37, 0.4], sh: [50, 10], img: [200, 600], s: ['GS'], sube: 1 },
+  { ref: '140-143109', tr: [0.65, 0.75], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  { ref: '140-119102', tr: [0.75, 0.95], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  { ref: '140-101103', tr: [0.95, 1.22], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  { ref: '140-131106', tr: [1.22, 1.52], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  { ref: '140-102104', tr: [1.52, 2.89], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  { ref: '140-107109', tr: [2.9, 5.5], sh: [50, 15], img: [50, 500], s: ['GS'] },
+  // Jazz y Korus (chip de 0,8")
+  { ref: '140-164102', tr: [0.34, 0.37], sh: [51, 24], img: [80, 500], s: ['JAZZ', 'KORUS'], brillo: 0.9, sube: 1 },
+  { ref: '140-166104', tr: [0.5, 0.65], sh: [51, 24], img: [50, 500], s: ['KORUS'] },
+  { ref: '140-144100', tr: [0.78, 0.9], sh: [51, 24], img: [50, 500], s: ['JAZZ', 'KORUS'] },
+  { ref: '140-159106', tr: [0.9, 1.3], sh: [51, 24], img: [50, 500], s: ['JAZZ', 'KORUS'] },
+  { ref: '140-165103', tr: [1.25, 2.0], sh: [51, 24], img: [50, 500], s: ['KORUS'] },
+  { ref: '140-110103', tr: [1.8, 2.4], sh: [60, 25], img: [50, 500], s: ['JAZZ', 'KORUS'] },
+  { ref: '140-111104', tr: [2.4, 4.8], sh: [60, 25], img: [50, 500], s: ['JAZZ', 'KORUS'] },
+  { ref: '140-116109', tr: [4.8, 8.64], sh: [60, 25], img: [50, 500], s: ['JAZZ', 'KORUS'] },
+  // ILS1 (M RGB): tamaño de imagen por su ancho, en centímetros
+  { ref: '118-131106', tr: [0.37, 0.37], sh: [64, 36], cm: [475, 1484], s: ['M RGB'], sube: 1 },
+  { ref: '118-100110', tr: [0.67, 0.67], sh: [17.5, 6], cm: [138, 1405], s: ['M RGB'] },
+  { ref: '118-130105', tr: [0.8, 1.16], sh: [64, 36], cm: [150, 1325], s: ['M RGB'] },
+  { ref: '118-100117', tr: [1.1, 1.1], sh: [64, 36], cm: [254, 1346], s: ['M RGB'] },
+  { ref: '118-100111', tr: [1.16, 1.49], sh: [64, 36], cm: [188, 1275], s: ['M RGB'] },
+  { ref: '163-165103', tr: [1.28, 1.87], sh: [64, 29], cm: [500, 2500], s: ['M RGB'] },
+  { ref: '118-100112', tr: [1.4, 1.8], sh: [64, 36], cm: [216, 1706], s: ['M RGB'] },
+  { ref: '118-100113', tr: [1.8, 2.6], sh: [64, 36], cm: [150, 1325], s: ['M RGB'] },
+  { ref: '118-100114', tr: [2.6, 4.1], sh: [64, 36], cm: [213, 1714], s: ['M RGB'] },
+  { ref: '118-100115', tr: [4.1, 6.9], sh: [64, 36], cm: [168, 1940], s: ['M RGB'] },
+  { ref: '118-100116', tr: [6.9, 10.4], sh: [64, 36], cm: [110, 1150], s: ['M RGB'] },
+  // ILS4 (Griffyn y Sapphire), las de alto brillo (HB): solo se publica la diagonal mínima
+  { ref: '144-136101', tr: [0.38, 0.38], sh: [30, 7.5], img: [55, 0], s: ['ILS4'], brillo: 0.7, sube: 1 },
+  { ref: '144-110103', tr: [0.72, 0.72], sh: [0, 0], img: [55, 0], s: ['ILS4'] },
+  { ref: '144-111014', tr: [0.9, 0.9], sh: [22.5, 7.5], img: [150, 0], s: ['ILS4'] },
+  { ref: '163-118101', tr: [1.13, 1.66], sh: [22.5, 10], img: [110, 0], s: ['ILS4'] },
+  { ref: '144-130105', tr: [1.45, 2.17], sh: [27.5, 10], img: [91, 0], s: ['ILS4'] },
+  { ref: '144-131106', tr: [1.95, 3.26], sh: [22.5, 15], img: [63, 0], s: ['ILS4'] },
+  { ref: '144-107109', tr: [2.71, 3.89], sh: [22.5, 7.5], img: [51, 0], s: ['ILS4'] },
+  { ref: '144-108100', tr: [3.89, 5.43], sh: [42.5, 12.5], img: [75, 0], s: ['ILS4'] },
+  { ref: '144-109101', tr: [4.98, 7.69], sh: [45, 20], img: [59, 0], s: ['ILS4'] }
+];
+function leerChristie() {
+  const out = [];
+  CHRISTIE.forEach((g) => g.m.forEach(([modelo, lumens]) => {
+    const px = g.res.match(/(\d{3,5})\s*x\s*(\d{3,5})/).slice(1).map(Number), ar = px[0] / px[1], arTxt = g.arTxt || (Math.abs(ar - 1.6) < 0.01 ? '16:10' : '16:9'), diag = (cm) => cm / 2.54 * Math.sqrt(1 + ar * ar) / ar;
+    const base = { marca: 'CHRISTIE', modelo, serie: g.serie, ar, arTxt, resX: px[0], resY: px[1], resTxt: g.res, k4: !!g.k4, k4nativo: !!g.k4, imagen: '', chasis: g.chasis };
+    const combo = (optica, tr, img, sh, sube, brillo) => { const mx = img[1] > 0 ? Math.floor(img[1]) : Infinity; return { ...base, id: modelo + (optica ? '|' + optica : ''), optica, nombre: modelo + (optica ? ' + ' + optica : ''), trMin: tr[0], trMax: tr[1], ust: tr[0] < 0.4,
+      lumens: Math.round(lumens * (brillo || 1)), minDiagPulg: Math.ceil(img[0]), maxDiagPulg: mx, maxDiagPulgOOS: mx, shiftV: sh[0], shiftH: sh[1], shiftSube: !!sube }; };
+    if (g.fija) { out.push(combo('', g.fija, g.img, g.sh, g.fija[0] < 0.4, 1)); return; }
+    OPTICAS_CHRISTIE.forEach((o) => { if (!o.s.includes(g.serie)) return; out.push(combo(o.ref, o.tr, o.cm ? [diag(o.cm[0]), diag(o.cm[1])] : o.img, o.sh, o.sube, o.brillo)); });
+  }));
+  return out;
+}
+export const PROYECTORES = [...leer(), ...leerVivitek(), ...leerChristie()];
 // cuerpos (con su serie) en el orden del catálogo, para elegir primero el proyector y después la óptica
 export const CUERPOS = [...new Map(PROYECTORES.map(q => [q.modelo, { modelo: q.modelo, marca: q.marca, serie: q.serie, lumens: Math.max(...PROYECTORES.filter(x => x.modelo === q.modelo).map(x => x.lumens)) }])).values()];
 
 // ancho nativo máximo de la imagen (eje largo del proyector) a partir de la diagonal máxima y el formato
 const anchoMax = (p, oos) => { const d = (oos ? p.maxDiagPulgOOS : p.maxDiagPulg) * 0.0254; return d * p.ar / Math.sqrt(1 + p.ar * p.ar); };
+// v10.58 · y el mínimo que enfoca la óptica, cuando el fabricante lo da (0 = sin dato)
+const anchoMin = (p) => (p.minDiagPulg > 0 ? p.minDiagPulg * 0.0254 * p.ar / Math.sqrt(1 + p.ar * p.ar) : 0);
 
 // v8.0 · Pared o pantalla: rejilla de columnas × filas con blending en los dos sentidos, con el proyector en horizontal o en
 // vertical (retrato). Se busca la que cubre la superficie con menos equipos, cabiendo delante (alcance) y dentro del zoom:
@@ -146,7 +224,7 @@ const anchoMax = (p, oos) => { const d = (oos ? p.maxDiagPulgOOS : p.maxDiagPulg
 // v8.2 · sin distancia fijada: trObjetivo, la relación de proyección preferida (mapping: el proyector lejos, unas 2 veces el ancho);
 // tiroObjetivo, la distancia preferida en metros (pared: el proyector a la altura del público). Si el zoom no llega, el extremo más cercano
 export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0 } = {}) {
-  const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), sMin = Math.max(0, solapeMin);
+  const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
   const puedeV = !(p.ust && (p.shiftSube || !p.optica));
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
   let mejor = null;
@@ -162,7 +240,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
         if (nw > nwLejos * 1.0001) { noCubre = true; nw = nwLejos; } else if (nw < nwCerca) nw = nwCerca;
         tiro = dist;
       } else tiro = (tiroObjetivo > 0 ? Math.min(Math.max(tiroObjetivo / nw, p.trMin), p.trMax) : trObjetivo > 0 ? Math.min(Math.max(trObjetivo, p.trMin), p.trMax) : p.trMin) * nw;
-      const limite = nw > nwMax * 1.0001;
+      const limite = nw > nwMax * 1.0001, chica = nwMin > 0 && nw < nwMin * 0.9999;   // v10.58 · imagen más pequeña que la mínima de la óptica
       const ih = o === 'v' ? nw : nw / a, iw = ih * a;
       const ox = cols > 1 ? (cols * iw - W) / (cols - 1) : 0, oy = rows > 1 ? (rows * ih - H) / (rows - 1) : 0;
       const oxR = cols > 1 ? ox / iw : 0, oyR = rows > 1 ? oy / ih : 0;
@@ -172,12 +250,12 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       const lux = p.lumens / (iw * ih);
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
-      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite ? 2e6 : 0) + (exceso > 0 ? 1e6 + exceso * 1e5 : 0)
+      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exceso > 0 ? 1e6 + exceso * 1e5 : 0)
         + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0);
-      if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, noCubre, fueraZoom, coste };
+      if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste };
     }
   }
-  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, noCubre } = mejor, vert = o === 'v';
+  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre } = mejor, vert = o === 'v';
   const nwF = vert ? ih : iw, tMin = p.trMin * nwF, tMaxZ = p.trMax * nwF;
   const pxW = vert ? p.resY : p.resX, pxH = vert ? p.resX : p.resY;
   const centros = cols === 1 ? [0] : Array.from({ length: cols }, (_, i) => -W / 2 + iw / 2 + i * (iw - ox));
@@ -187,7 +265,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   const resH = rows === 1 ? Math.round(pxH * Math.min(1, H / ih)) : rows * pxH - (rows - 1) * Math.round(pxH * oyR);
   const tiroMax = dist > 0 ? tiro : Math.max(tiro, Math.min(tMaxZ, alcance != null ? alcance : Infinity));
   return { n: cols * rows, cols, rows, vert, imgW: iw, imgH: ih, solape: ox, solapeY: oy, solapeRel: Math.max(oxR, oyR), solapeRelX: oxR, solapeRelY: oyR, solapePx: Math.round(pxW * oxR),
-    tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, recorte: recY, recorteX: recX,
+    tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, chica, recorte: recY, recorteX: recX,
     centros, filas, anchoTot: cols === 1 ? iw : cols * iw - (cols - 1) * ox, altoTot: rows === 1 ? ih : rows * ih - (rows - 1) * oy, resW, resH, lux, nits: lux / Math.PI };
 }
 

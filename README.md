@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.60** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.61** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.60)
+## Cambios de la versión actual (v10.61)
+
+**Los PDF intentan caber en dos hojas.**
+
+- **EQUIPOS va justo después del resumen**, antes de las demás secciones: llena el hueco de la primera hoja.
+- **Las tres vistas técnicas van en una fila** en la hoja (antes dos y una, con un hueco).
+- Con eso, una pantalla o una sala (LED o proyección) cabe en dos hojas llenas; si el proyecto es más largo (varias superficies de proyección), sale en tres.
+
+### v10.60
 
 **SIMPLE y PRO dan las mismas cifras de proyección; los PDF salen con el texto en su sitio y con las fotos.**
 

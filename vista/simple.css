@@ -87,6 +87,15 @@ html.bk .ss-cuerpo { --s: min(calc(var(--bk-w, 1920px) / 1350), calc((var(--bk-h
 .ss-lienzo .ss-espera { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; }
 .ss-sv-t { font: 700 24px Inter, system-ui, sans-serif; fill: var(--ss-txt); }
 .ss-sv-c { font: 700 28px 'Share Tech Mono', ui-monospace, monospace; fill: var(--ss-azul); }
+/* v10.56 · lo que se arrastra en el dibujo (el proyector y la persona): mano de coger, flechas a los lados y el carril por donde puede ir */
+.ss-sv-p { font: 700 24px Inter, system-ui, sans-serif; letter-spacing: .08em; fill: var(--ss-tenue); }
+.ss-arr { cursor: grab; touch-action: pan-y; outline: none; -webkit-tap-highlight-color: transparent; }
+.ss-arr .ss-arr-f { opacity: .7; }
+.ss-arr:hover .ss-arr-f, .ss-arr.on .ss-arr-f, .ss-arr:focus-visible .ss-arr-f { opacity: 1; }
+.ss-arr:hover .ss-arr-m, .ss-arr.on .ss-arr-m { filter: brightness(1.25); }
+.ss-arr:focus-visible .ss-arr-m { stroke: var(--ss-acento); stroke-width: 3px; paint-order: stroke; }
+.ss-lienzo.ss-arrastra, .ss-lienzo.ss-arrastra .ss-arr { cursor: grabbing; }
+.ss-lienzo.ss-arrastra { user-select: none; -webkit-user-select: none; }
 
 /* RESULTADO: la línea resumen bajo el título, el semáforo y las cifras que no repite la línea */
 .ss-res-cab { display: flex; align-items: center; gap: calc(var(--s) * 12); min-width: 0; }

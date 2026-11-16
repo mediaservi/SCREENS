@@ -74,6 +74,7 @@ button, input, select { font-family: var(--sans); }
 .avisos li::marker { color: var(--tenue); }
 .avisos li.ok { color: #9dff9f; } .avisos li.ok::marker { color: var(--verde); }
 .avisos li.mal { color: #ffc94d; } .avisos li.mal::marker { color: #ff4d5e; }
+.avisos li.amb::marker { color: #ffb000; }   /* v10.62 · veredicto: ámbar = se puede, pero hay algo que corregir */
 .tenue { color: var(--tenue); }
 .cinta-ico { flex: none; width: 26px; height: 10px; border-radius: 2px; background: repeating-linear-gradient(-45deg, #ffd500 0 5px, #111 5px 10px); box-shadow: 0 0 0 1px #000; }
 
@@ -349,7 +350,7 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
   .impresion .tabla { color: #111 !important; font-size: 8pt; } .impresion .tabla th { color: #4a0a8c !important; background: #f1e6ff !important; } .impresion .tabla td { border-color: #e4e4ea !important; color: #111 !important; }
   .impresion .res-tit { color: #4a0a8c !important; background: #f1e6ff; padding: 4px 8px; border-radius: 4px; break-after: avoid; } .impresion .res-tit svg { color: #4a0a8c !important; }
   .impresion .avisos { background: #fff !important; border: 1px solid #d6d6de !important; color: #222 !important; font-size: 8.5pt; break-inside: avoid; }
-  .impresion .avisos li.ok { color: #0a6b12 !important; } .impresion .avisos li.mal { color: #8a5a00 !important; } .impresion .tenue { color: #666 !important; }
+  .impresion .avisos li.ok { color: #0a6b12 !important; } .impresion .avisos li.mal { color: #8a5a00 !important; } .impresion .avisos li.amb::marker { color: #b07800 !important; } .impresion .tenue { color: #666 !important; }
   .impresion .fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .impresion .res-sec { break-inside: avoid; }
   /* v7.0 · nada se sale de la hoja: las rejillas no crecen con la tabla más ancha y las tablas parten líneas */
@@ -417,3 +418,7 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 .av-bt:hover { background: #1b261b; } .av-bt:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
 .av-fila { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; } .av-fila:empty { display: none; }
 .ayuda .av-bt { margin-left: 6px; padding: 2px 10px; }
+/* v10.62 · tarjetas del resumen: el rótulo puede ir en dos líneas y la cifra se encoge si no cabe (tableta vertical, inglés) */
+.tar { container-type: inline-size; }
+.tar .t { white-space: normal; line-height: 1.2; }
+.tar .v { font-size: min(20px, 12.5cqw); }

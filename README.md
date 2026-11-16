@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.61** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.62** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,20 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.61)
+## Cambios de la versión actual (v10.62)
+- **Un solo veredicto en SIMPLE y en PRO**: SIMPLE usa las mismas reglas y avisos de cálculo que PRO (en rojo lo que no vale, en ámbar lo que conviene revisar).
+- **Solape**: por encima del 65 % no es recomendable y se propone, si existe, un proyector más potente que lo haga con una sola imagen (de la misma marca si puede ser y con un contraste de al menos 7:1). Un poco de imagen sobrante, que se enmascara, vale.
+- **Luz como el calculador de Epson**: empieza en 140 lx y ganancia 1, con los usos Sala de reuniones 140, Aula 210, Sala de eventos 140, Salón 70 y Sala de cine 14, o a mano. 0 lx es 0 (contraste infinito).
+- **Una sola marca por proyecto**, también el proyector del suelo.
+- **Mapping sin límite de techo**: empieza con una fachada de 6 m de alto y el proyector a 6 m.
+- **Varias LED**: hasta 4 pantallas a la vez, cada una con su medida y todas del mismo cabinet.
+- **Elección del cabinet LED** (por orden): que encaje con la medida (±15 %), que esté en stock, el pitch pedido (a ±0,2 mm cuenta como el pedido; con varios, cualquiera), la resolución mínima pedida (HD, FHD, 4K), la distancia de visionado o, sin pitch ni distancia, el pitch más grande en stock; a igualdad, formato 16:9 si lo pedido está cerca.
+- **La petición escrita**: las medidas se enseñan en la unidad del cliente (mm, cm o m); sin unidad, «3000 x 2000» son mm y «300 x 200», cm; se lee «4 m de ancho por 2,5 de alto», «4K», «FHD» y «HD»; «a 3 m de altura» ya no es una distancia de visionado; una petición nueva no hereda «transparente» ni el sol de la anterior; «proyecto» ya no manda a la consola de proyección.
+- **T·Rent Glass** cuenta como LED transparente. En exterior se avisa si ningún cabinet llega al brillo mínimo.
+- **El cuadro de resumen de PRO** (resolución, cabinets, pitch, medida y distancia de visionado) sale también en SIMPLE y se agranda en el móvil para que se lea.
+- **Textos que no se cortan**: la línea del resultado en tableta y móvil horizontal, los botones de modo en el móvil estrecho y las tarjetas del resumen de proyección en tableta vertical.
+
+### v10.61
 
 **Los PDF intentan caber en dos hojas.**
 

@@ -33,6 +33,13 @@
 .fi-enlace { align-self: flex-end; font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--fi-ac); text-decoration: none; }
 .fi-enlace:hover { text-decoration: underline; }
 @media (max-width: 420px) { .fi-piezas li { grid-template-columns: 2.4em minmax(0, 1fr); } .fi-desc { grid-column: 2; } }
+/* v10.60 · la lista de piezas, en texto corrido con sangría: cantidad, referencia y, a continuación, la descripción, que al partir línea sigue debajo de la
+   referencia. Antes cada línea repartía el ancho por su cuenta y, con una referencia larga, la descripción se partía en una columna estrecha y desordenada */
+@media (min-width: 421px) {
+  .fi-piezas li { display: block; padding-left: 38px; text-indent: -38px; line-height: 1.4; }
+  .fi-piezas li > b { display: inline-block; width: 30px; margin-right: 8px; text-indent: 0; }
+  .fi-piezas .fi-ref { margin-right: 8px; }
+}
 /* v7.8 · foto que se pulsa para verla en grande (con un distintivo de lupa) */
 .fi-zoom { cursor: zoom-in; }
 .fi-zoom::after { content: ''; position: absolute; right: 4px; bottom: 4px; z-index: 2; width: 18px; height: 18px; border-radius: 5px; background: rgba(12,12,14,.72) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5 5M8 10.5h5M10.5 8v5'/%3E%3C/svg%3E") center / 12px no-repeat; pointer-events: none; }

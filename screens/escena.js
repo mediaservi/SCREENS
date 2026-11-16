@@ -534,14 +534,25 @@ export class Escena {
   }
   // captura para el PDF: con fondo claro, para imprimir en papel blanco
   // (lienzo de 1600 × 820 encuadrado con la vista actual; después se devuelve la cámara donde estaba)
-  captura(claro) {
+  captura(claro, recorta) {
     const r = this.renderer, bg = this.scene.background, pr = r.getPixelRatio(), pos = this.cam.position.clone(), obj = this.ctrl.target.clone();
     if (claro) this.scene.background = new THREE.Color(0xf4f4f6);
     r.setPixelRatio(1); r.setSize(1600, 820, false); this.cam.aspect = 1600 / 820; this.cam.updateProjectionMatrix(); this.vista(this.vistaActual, true);
-    this.render(); const url = r.domElement.toDataURL('image/jpeg', 0.9);
+    this.render(); let url = null; if (recorta) { try { url = sinFranjas(r.domElement); } catch (e) {} } if (!url) url = r.domElement.toDataURL('image/jpeg', 0.9);
     this.scene.background = bg; r.setPixelRatio(pr); this.cam.position.copy(pos); this.ctrl.target.copy(obj); this.ctrl.update(); this.ajustar();
     return url;
   }
+}
+
+/* v10.60 · la captura del PDF, sin las franjas vacías de arriba y de abajo (el dibujo quedaba pequeño dentro de un marco grande y la hoja se llenaba de blanco):
+   se busca dónde empieza y dónde acaba el dibujo y se recorta con un margen. El ancho no se toca */
+function sinFranjas(cv) {
+  const w = cv.width, h = cv.height, c = document.createElement('canvas'); c.width = w; c.height = h; const q = c.getContext('2d', { willReadFrequently: true }); q.drawImage(cv, 0, 0);
+  const d = q.getImageData(0, 0, w, h).data, f = [d[0], d[1], d[2]];
+  const llena = (y) => { let n = 0; for (let x = 0, i = y * w * 4; x < w; x += 2, i += 8) if (Math.abs(d[i] - f[0]) + Math.abs(d[i + 1] - f[1]) + Math.abs(d[i + 2] - f[2]) > 24 && ++n > 6) return true; return false; };
+  let a = 0, b = h - 1; while (a < b && !llena(a)) a++; while (b > a && !llena(b)) b--;
+  const m = Math.round(h * .05); a = Math.max(0, a - m); b = Math.min(h - 1, b + m); const hh = b - a + 1; if (hh > h * .92 || hh < h * .3) return null;
+  const o = document.createElement('canvas'); o.width = w; o.height = hh; const qo = o.getContext('2d'); qo.fillStyle = `rgb(${f[0]},${f[1]},${f[2]})`; qo.fillRect(0, 0, w, hh); qo.drawImage(c, 0, a, w, hh, 0, 0, w, hh); return o.toDataURL('image/jpeg', 0.9);
 }
 
 function fondoTema() { const h = document.documentElement; return h.getAttribute('data-tema') === 'claro' && h.classList.contains('piel') ? 0xc9ccd2 : 0x0d0d0f; }

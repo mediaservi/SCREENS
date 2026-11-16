@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.62** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.63** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -47,7 +47,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 
 ## Datos
 
-La app obtiene el catálogo en vivo de la hoja de Google Sheets y lo guarda cifrado en el dispositivo; no se expone como tabla ni se puede exportar. Nunca usa datos de muestra: sin conexión y sin copia guardada, avisa de que no se ha podido cargar el catálogo.
+La app obtiene el catálogo en vivo del panel AVHUB ADMIN (la hoja de Google Sheets está desconectada desde la v10.63) y lo guarda cifrado en el dispositivo; no se expone como tabla ni se puede exportar. Nunca usa datos de muestra: sin conexión y sin copia guardada, avisa de que no se ha podido cargar el catálogo.
 
 ## Tecnología y despliegue
 
@@ -70,9 +70,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.62)
+## Cambios de la versión actual (v10.63)
+- **Hoja de Google desconectada** (decidido por Josep, 16-11-2026): el catálogo LED sale solo del panel AVHUB ADMIN. Comparadas las 49 referencias en 463 peticiones, el modelo, la medida, los cabinets y la resolución salen iguales; las pequeñas diferencias de amperios y peso se dan por buenas. En especificaciones manda la web y los PDF en línea de traulux.net y charmex.net.
+- **Nunca otra marca en las propuestas de proyección** (decidido por Josep, 16-11-2026): la de «basta una sola imagen» y la de «otro equipo que sí cabe» salen solo de la marca del proyecto; si la marca no tiene ninguno, no se propone nada.
+
+### v10.62
 - **Un solo veredicto en SIMPLE y en PRO**: SIMPLE usa las mismas reglas y avisos de cálculo que PRO (en rojo lo que no vale, en ámbar lo que conviene revisar).
-- **Solape**: por encima del 65 % no es recomendable y se propone, si existe, un proyector más potente que lo haga con una sola imagen (de la misma marca si puede ser y con un contraste de al menos 7:1). Un poco de imagen sobrante, que se enmascara, vale.
+- **Solape**: por encima del 65 % no es recomendable y se propone, si existe, un proyector más potente que lo haga con una sola imagen (siempre de la misma marca y con un contraste de al menos 7:1). Un poco de imagen sobrante, que se enmascara, vale.
 - **Luz como el calculador de Epson**: empieza en 140 lx y ganancia 1, con los usos Sala de reuniones 140, Aula 210, Sala de eventos 140, Salón 70 y Sala de cine 14, o a mano. 0 lx es 0 (contraste infinito).
 - **Una sola marca por proyecto**, también el proyector del suelo.
 - **Mapping sin límite de techo**: empieza con una fachada de 6 m de alto y el proyector a 6 m.

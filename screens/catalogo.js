@@ -1,8 +1,7 @@
-// SCREENS · catálogo LED en vivo (mismo origen y misma caché cifrada que led.html).
+// SCREENS · catálogo LED en vivo: el del panel AVHUB ADMIN (Drive), con la misma caché cifrada que led.html. Desde la v10.63 ya no lee la hoja de Google.
 // Nunca usa datos de muestra: si no hay conexión ni caché, devuelve una lista vacía y la interfaz lo avisa.
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';
 const CLAVE = 'sc_m1';
-const ORIGEN = ['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEF', 'DWC0xdlJlREdjbWlRZzFTb2ZZeFdyS1Rrbmw2RWRKUGxTSDJObEpKc0NFZG', 'lJR0Q4ejE1UExqd3ZBQi10ZlRnTFBzZ2d2dGJ6NS1MMHczdnhBVS9wdWI='].join('');
 
 const aB64 = (u8) => btoa(String.fromCharCode(...u8));
 const deB64 = (t) => Uint8Array.from(atob(t), c => c.charCodeAt(0));
@@ -35,17 +34,6 @@ async function leer() {
     if (v.startsWith('b:')) return JSON.parse(decodeURIComponent(escape(atob(v.slice(2)))).split('').reverse().join(''));
   } catch (e) {}
   return null;
-}
-function parseCSV(csv) {
-  const lines = csv.split('\n').filter(l => l.trim());
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    const vals = []; let cur = '', q = false;
-    for (const ch of line) { if (ch === '"') q = !q; else if (ch === ',' && !q) { vals.push(cur.trim()); cur = ''; } else cur += ch; }
-    vals.push(cur.trim());
-    const o = {}; headers.forEach((h, i) => { o[h] = vals[i] || ''; }); return o;
-  });
 }
 export const normTipo = (v) => {
   const t = String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toUpperCase();
@@ -93,19 +81,11 @@ async function leerMaestro() {
     return Array.isArray(filas) && filas.length ? filas : null;
   } catch (e) { return null; }
 }
-async function leerHoja() {
-  try {
-    const res = await fetch(atob(ORIGEN) + '?gid=0&single=true&output=csv', { cache: 'no-store' });
-    if (!res.ok) return null;
-    const d = parseCSV(await res.text());
-    return d.length ? d : null;
-  } catch (e) { return null; }
-}
 // Devuelve primero la caché (si la hay) y luego avisa con los datos en vivo
 export async function cargarCatalogo(alActualizar) {
   const cache = await leer();
   if (cache && cache.length) alActualizar(normalizar(cache), 'cache');
-  const vivo = (await leerMaestro()) || (await leerHoja());
+  const vivo = await leerMaestro();   // v10.63 · solo el catálogo del panel AVHUB ADMIN: la hoja de Google queda desconectada (decidido por Josep, 16-11-2026)
   if (vivo) { await guardar(vivo); alActualizar(normalizar(vivo), 'vivo'); }
   else if (!cache || !cache.length) alActualizar([], 'error');
 }

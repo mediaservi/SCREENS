@@ -74,7 +74,60 @@ function leer() {
   });
   return out;
 }
-export const PROYECTORES = leer();
+// v10.57 · VIVITEK láser de gran formato: cada cuerpo con sus ópticas compatibles.
+// - Relación de proyección de cada óptica según el chip del cuerpo (0,67", 0,8" o 0,96"), imagen máxima de cada óptica y qué óptica va con
+//   qué cuerpo: guía de ópticas de Vivitek («Projectors & Lenses · Large Venue projector lens range»). Las D86 dan la misma relación en todos.
+// - Lúmenes, resolución, desplazamiento de la óptica (en % del alto y del ancho de la imagen) y chasis: ficha de cada modelo. Del DU7x99Z se
+//   toma el desplazamiento más prudente de los publicados (tabla del manual MKII: 45 % / 12 %). En chip de 0,8", las ópticas D88 lo limitan
+//   (±45 %; la D88-UWZ01, ±35 %). Las ultracortas van con desplazamiento en un solo sentido.
+// - No hay dato de imagen «fuera de especificación»: la máxima es la de la óptica.
+// - DU5051Z, DU5053Z y DK5153Z llevan su óptica de serie (1,15–1,9:1); sus ópticas cortas opcionales no tienen ficha publicada.
+const VIVITEK = [
+  { serie: 'DU7000Z', chip: 67, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [45, 12], chasis: [0.470, 0.517, 0.202], m: [['DU7099Z', 8000], ['DU7199Z', 9000], ['DU7299Z', 10000]] },
+  { serie: 'DU8000Z', chip: 80, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [60, 20], chasis: [0.500, 0.591, 0.216], m: [['DU8053Z', 14000], ['DU8055Z', 16000], ['DU8057Z', 24000]] },
+  { serie: 'DK8000Z', chip: 80, res: '4K UHD+ (3840 x 2400)', ar: '16:10', k4: true, sh: [60, 20], chasis: [0.500, 0.591, 0.216], m: [['DK8150Z', 12000], ['DK8155Z', 15000]] },
+  { serie: 'DU9057Z', chip: 96, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [50, 15], chasis: [0.677, 0.599, 0.270], m: [['DU9057Z', 27000]] },
+  { serie: 'DU9059Z', chip: 96, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [50, 15], chasis: [0.677, 0.599, 0.270], m: [['DU9059Z', 30000]] },
+  { serie: 'DU5000Z', fija: [1.15, 1.9], img: 322, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [15, 2], chasis: [0.496, 0.380, 0.160], m: [['DU5051Z', 6300], ['DU5053Z', 7700]] },
+  { serie: 'DK5000Z', fija: [1.15, 1.9], img: 322, res: '4K UHD (3840 x 2160)', ar: '16:9', k4: true, sh: [15, 2], chasis: [0.496, 0.380, 0.160], m: [['DK5153Z', 6200]] }
+];
+const V78 = ['DU7000Z', 'DU8000Z', 'DK8000Z'];
+// ref, imagen máxima en pulgadas, relación mínima y máxima por chip, series con las que va y, si lo hay, tope de desplazamiento en 0,8"
+export const OPTICAS_VIVITEK = [
+  { ref: 'D89-UST01', tipo: 'ust', img: 400, tr: { 67: [0.368, 0.39], 80: [0.31, 0.33] }, s: V78, sube: 1 },
+  { ref: 'D88-UST01B', tipo: 'ust', img: 350, tr: { 67: [0.38, 0.38] }, s: ['DU7000Z'], sube: 1 },
+  { ref: 'D86-04705', tipo: 'corta', img: 300, tr: { 67: [0.47, 0.50] }, s: ['DU7000Z'] },
+  { ref: 'D89-UWZ01', tipo: 'corta', img: 400, tr: { 67: [0.65, 0.89], 80: [0.55, 0.75] }, s: V78 },
+  { ref: 'D88-UWZ01', tipo: 'corta', img: 500, tr: { 67: [0.75, 0.93], 80: [0.63, 0.78] }, s: V78, lim80: 35 },
+  { ref: 'D86-0711', tipo: 'corta', img: 500, tr: { 67: [0.77, 1.1], 80: [0.77, 1.1] }, s: ['DU7000Z', 'DU8000Z'] },
+  { ref: 'D89-UWZ02', tipo: 'angular', img: 500, tr: { 67: [0.88, 1.28], 80: [0.74, 1.08] }, s: V78 },
+  { ref: 'D86-1113', tipo: 'angular', img: 500, tr: { 67: [1.1, 1.3] }, s: ['DU7000Z'] },
+  { ref: 'D89-WZ01', tipo: 'angular', img: 600, tr: { 67: [1.25, 1.68], 80: [1.05, 1.41] }, s: V78 },
+  { ref: 'D88-WZ01', tipo: 'angular', img: 500, tr: { 67: [1.25, 1.79], 80: [1.05, 1.5] }, s: V78, lim80: 45 },
+  { ref: 'D86-1216', tipo: 'angular', img: 500, tr: { 67: [1.25, 1.6], 80: [1.25, 1.6] }, s: V78 },
+  { ref: 'D86-1519', tipo: 'estandar', img: 500, tr: { 67: [1.54, 1.93], 80: [1.54, 1.93] }, s: V78 },
+  { ref: 'D89-ST01', tipo: 'estandar', img: 600, tr: { 67: [1.67, 2.51], 80: [1.4, 2.11] }, s: V78 },
+  { ref: 'D86-1929', tipo: 'media', img: 500, tr: { 67: [1.93, 2.9] }, s: ['DU7000Z'] },
+  { ref: 'D89-SMLZ01', tipo: 'media', img: 600, tr: { 67: [2.5, 4.7], 80: [2.1, 4.0] }, s: V78 },
+  { ref: 'D88-LOZ101', tipo: 'larga', img: 500, tr: { 67: [3.58, 5.38], 80: [3.0, 4.52] }, s: V78, lim80: 45 },
+  { ref: 'D88-LOZ201', tipo: 'larga', img: 500, tr: { 67: [5.31, 8.26], 80: [4.46, 6.94] }, s: V78, lim80: 45 },
+  { ref: 'D98-UST01', tipo: 'ust', img: 600, tr: { 96: [0.38, 0.38] }, s: ['DU9057Z', 'DU9059Z'], sube: 1 },
+  ...[['0912', 0.9, 1.2, 'corta'], ['1215', 1.25, 1.56, 'angular'], ['1520', 1.5, 2.0, 'estandar'], ['2040', 2.0, 4.0, 'media'], ['4070', 4.0, 7.0, 'larga']].flatMap(([n, a, b, tipo]) => [
+    { ref: 'D99-' + n, tipo, img: 500, tr: { 96: [a, b] }, s: ['DU9057Z'] }, { ref: 'D99A-' + n, tipo, img: 500, tr: { 96: [a, b] }, s: ['DU9059Z'] }])
+];
+function leerVivitek() {
+  const out = [];
+  VIVITEK.forEach((g) => g.m.forEach(([modelo, lumens]) => {
+    const [aw, ah] = g.ar.split(':').map(Number), px = g.res.match(/(\d{3,5})\s*x\s*(\d{3,5})/).slice(1).map(Number);
+    const base = { marca: 'VIVITEK', modelo, serie: g.serie, ar: aw / ah, arTxt: g.ar, resX: px[0], resY: px[1], resTxt: g.res, k4: !!g.k4, k4nativo: !!g.k4, imagen: '', chasis: g.chasis, lumens };
+    const combo = (optica, tr, img, shV, sube) => ({ ...base, id: modelo + (optica ? '|' + optica : ''), optica, nombre: modelo + (optica ? ' + ' + optica : ''), trMin: tr[0], trMax: tr[1], ust: tr[0] < 0.4,
+      maxDiagPulg: img, maxDiagPulgOOS: img, shiftV: shV, shiftH: g.sh[1], shiftSube: !!sube });
+    if (g.fija) { out.push(combo('', g.fija, g.img, g.sh[0], false)); return; }
+    OPTICAS_VIVITEK.forEach((o) => { const tr = o.tr[g.chip]; if (!tr || !o.s.includes(g.serie)) return; out.push(combo(o.ref, tr, o.img, g.chip === 80 && o.lim80 ? Math.min(g.sh[0], o.lim80) : g.sh[0], o.sube)); });
+  }));
+  return out;
+}
+export const PROYECTORES = [...leer(), ...leerVivitek()];
 // cuerpos (con su serie) en el orden del catálogo, para elegir primero el proyector y después la óptica
 export const CUERPOS = [...new Map(PROYECTORES.map(q => [q.modelo, { modelo: q.modelo, marca: q.marca, serie: q.serie, lumens: Math.max(...PROYECTORES.filter(x => x.modelo === q.modelo).map(x => x.lumens)) }])).values()];
 

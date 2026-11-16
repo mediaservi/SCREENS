@@ -149,6 +149,8 @@ body.con-led { height: 100%; }
 .zona .campo label { white-space: normal; line-height: 1.15; overflow-wrap: normal; }
 .blq.act { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .blq.act .blq-cuerpo { min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+/* v10.57 · en el bloque abierto que no cabe, los rótulos no se aplastan: el cuerpo se desplaza */
+.blq.act .blq-cuerpo .etq, .blq.act .blq-cuerpo .campo > label { min-height: 1.15em; }
 .zona-pie { flex: none; margin-top: auto; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 8px; padding-top: 8px; border-top: 1px solid var(--linea); }
 .zona-pie .pri, .zona-pie .sec-btn { min-height: 40px; }
 .zona-pie.eleg { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }

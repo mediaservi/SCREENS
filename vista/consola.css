@@ -402,3 +402,12 @@ html.piel[data-tema="claro"] .nl-beta { color: #7a4f00; border-color: #a86c00; }
   html.piel .num .flechas button, html.piel .pm button { min-width: 32px; min-height: 32px; }
   html.piel .fam a { min-height: 32px; display: inline-flex; align-items: center; }
 }
+/* v10.62 · móvil estrecho: los botones de modo de la cabecera caben sin cortar el rótulo */
+@media (max-width: 430px) {
+  html.piel .con-grupo .tog { padding: 0 4px; letter-spacing: .02em; gap: 3px; font-size: 13px; }
+  html.piel .con-grupo .tog svg { display: none; }
+}
+/* v10.62 · tarjetas del resumen de proyección: rótulo en dos líneas si hace falta y cifra que se encoge (tableta vertical, inglés) */
+html.piel :is(#app, #bk-velo) .tar { container-type: inline-size; }
+html.piel :is(#app, #bk-velo) .tar .t { white-space: normal; line-height: 1.15; }
+html.piel :is(#app, #bk-velo) .tar .v { font-size: min(48px, 11cqw); }

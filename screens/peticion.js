@@ -63,9 +63,11 @@ export function interpretar(texto) {
   const dist = t.match(/(?:\ba|\bat)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b\s*(?:del publico|de distancia|distance|del public)?/);
   if (dist && /publico|distancia|distance|public|\bvista\b|\bver\b|\bveure\b|\bviewing\b/.test(t)) { c.sueltas.dist = n(dist[1]); vistos.push({ k: 'publico', v: c.sueltas.dist }); }
   const lx = t.match(/(\d+(?:\.\d+)?)\s*(?:lx|lux)\b/); if (lx) { c.proy.lux = n(lx[1]); vistos.push({ k: 'lux', v: c.proy.lux }); }
-  if (!lx && /a oscuras|oscura|dark room|fosca|a les fosques/.test(t)) { c.proy.lux = 10; vistos.push({ k: 'lux', v: 10 }); }
+  // v10.62 · los escalones de luz: Theatre room 14, Living 70, Meeting room 140, Class room 210
+  if (!lx && /a oscuras|oscura|dark room|fosca|a les fosques|\bcine\b|cinema|theatre room|home theat/.test(t)) { c.proy.lux = 14; vistos.push({ k: 'lux', v: 14 }); }
+  else if (!lx && /\baula\b|classroom|class room/.test(t)) { c.proy.lux = 210; vistos.push({ k: 'lux', v: 210 }); }
   else if (!lx && /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio)|meeting room|conference room|board ?room|oficina|office/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }   // v10.48 · la luz del sitio
-  else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b|\bsalo\b|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 50; vistos.push({ k: 'lux', v: 50 }); }
+  else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b|\bsalo\b|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 70; vistos.push({ k: 'lux', v: 70 }); }
   const g = t.match(/(?:ganancia|gain|guany)\s*(?:de\s*)?(\d+(?:\.\d+)?)/); if (g) { c.proy.ganancia = n(g[1]); vistos.push({ k: 'ganancia', v: c.proy.ganancia }); }
   const te = t.match(/techo\s*(?:de|a)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:m|metros)?\s*de techo|ceiling\s*(?:of\s*)?(\d+(?:\.\d+)?)|sostre\s*(?:de\s*|a\s*)?(\d+(?:\.\d+)?)/);
   if (te) { const v = n(te[1] || te[2] || te[3] || te[4]); c.sueltas.techo = v; if (c.esp.tipo === 'sala' && c.esp.alto == null) c.esp.alto = v; vistos.push({ k: 'techo', v }); }

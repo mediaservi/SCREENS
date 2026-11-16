@@ -245,12 +245,14 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       const ox = cols > 1 ? (cols * iw - W) / (cols - 1) : 0, oy = rows > 1 ? (rows * ih - H) / (rows - 1) : 0;
       const oxR = cols > 1 ? ox / iw : 0, oyR = rows > 1 ? oy / ih : 0;
       const recX = cols === 1 ? Math.max(0, iw - W) / iw : 0, recY = rows === 1 ? Math.max(0, ih - H) / ih : 0;
-      const exceso = Math.max(0, oxR - SOLAPE_MAX) + Math.max(0, oyR - SOLAPE_MAX) + Math.max(0, recX - RECORTE_MAX) + Math.max(0, recY - RECORTE_MAX);
+      // v10.62 · un solape por encima del máximo de blending pesa más que una sola imagen que sobresale (lo que sobra se enmascara): así no salen
+      // rejillas de proyectores casi uno encima de otro (2×2 al 92 %, 1×8 al 114 %) cuando uno solo, con algo de recorte, ya cubre
+      const exS = Math.max(0, oxR - SOLAPE_MAX) + Math.max(0, oyR - SOLAPE_MAX), exR = Math.max(0, recX - RECORTE_MAX) + Math.max(0, recY - RECORTE_MAX);
       const fuera = alcance != null && tiro > alcance + 1e-9;
       const lux = p.lumens / (iw * ih);
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
-      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exceso > 0 ? 1e6 + exceso * 1e5 : 0)
+      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exS > 0 ? 3e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
         + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0);
       if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste };
     }

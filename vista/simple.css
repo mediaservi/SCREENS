@@ -278,3 +278,16 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
   .f-h1:has(.ss-sw) > [data-blk="H1C"] img { height: calc(var(--u) * 14); } .f-h1:has(.ss-sw) > [data-blk="H1C"] .av img { height: calc(var(--u) * 22); }
 }
 @media (prefers-reduced-motion: reduce) { .ss-sw-b, .ss-tos, .ss-op { transition: none; } }
+
+/* v10.62 · la ventana de avisos (el veredicto entero) y las medidas de cada pantalla LED */
+.ss-avisos { margin: 0; padding: 0; list-style: none; display: grid; gap: calc(var(--s) * 10); }
+.ss-avisos li { position: relative; padding-left: calc(var(--s) * 26); font-size: calc(var(--s) * 16.5); line-height: 1.35; font-weight: 600; color: var(--ss-txt); overflow-wrap: anywhere; }
+.ss-avisos li::before { content: ''; position: absolute; left: 0; top: .35em; width: calc(var(--s) * 13); height: calc(var(--s) * 13); border-radius: 50%; background: var(--ss-ambar); }
+.ss-avisos li.ss-av-R::before { background: var(--ss-rojo); }
+.ss-pants { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: calc(var(--s) * 10) calc(var(--s) * 12); align-items: end; }
+.ss-pant-k { font-size: calc(var(--s) * 15); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ss-tenue); padding-bottom: calc(var(--s) * 22); white-space: nowrap; }
+/* v10.62 · móvil: el cuadro de resumen de la simulación va debajo del dibujo, con la letra de la interfaz */
+.ss-resumen { flex: none; display: flex; flex-wrap: wrap; gap: calc(var(--s) * 4) calc(var(--s) * 12); padding: calc(var(--s) * 8) calc(var(--s) * 4) 0; font: 600 calc(var(--s) * 13)/1.3 var(--ss-mono, 'Share Tech Mono', ui-monospace, monospace); color: var(--ss-txt, #e8e8ea); }
+.ss-resumen span { white-space: nowrap; }
+.ss-resumen b { color: #c6e04a; font-weight: 700; }
+:root[data-tema="claro"] .ss-resumen b { color: #4f6b00; }

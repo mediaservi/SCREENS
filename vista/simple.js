@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.61';
+const VERSION = 'v10.62';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -39,7 +39,7 @@ ponApila();
 const T = {
   es: {
     sw: 'Modo SIMPLE o PRO',
-    pides: 'LO QUE PIDES', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
+    rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
     pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER TODO EN PRO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
     calculando: 'Calculando…', cargando: 'Cargando el catálogo…', sinCat: 'No se ha podido leer el catálogo. Revisa la conexión.', reintentar: 'REINTENTAR', vacio: 'No hay pantallas para estos datos: cambia dónde va o el tamaño.',
     sinMotor: 'No se ha podido cargar el cálculo. Vuelve a cargar la página.', recargar: 'VOLVER A CARGAR',
@@ -57,7 +57,7 @@ const T = {
     qUso: '¿Se queda puesta o es para un evento?', oFija: ['Se queda fija', 'Siempre en el mismo sitio'], oRental: ['La montamos y desmontamos', 'Eventos y alquiler'],
     qMed: '¿Cuánto mide el sitio donde va?', ayMed: 'Mide el hueco con un metro. Si no lo sabes exacto, pon una medida aproximada.', ancho: 'Ancho', alto: 'Alto', fondo: 'Fondo', tele: 'No sé el alto: como una tele',
     qDist: '¿Desde qué distancia la va a mirar la gente?', ayDist: 'Cuanto más cerca, más finos tienen que ser los puntos de luz.',
-    d1: ['Muy cerca', 'Menos de 2 m'], d2: ['Como en una tienda', 'De 2 a 5 m'], d3: ['Desde lejos', 'De 5 a 10 m'], d4: ['Muy lejos', 'Más de 10 m'], metros: 'o escribe los metros', dNoSe: (m) => ['No lo sé', 'Cuento ' + m + ' m, lo normal'],
+    d1: ['Muy cerca', 'Menos de 2 m'], d2: ['Como en una tienda', 'De 2 a 5 m'], d3: ['Desde lejos', 'De 5 a 10 m'], d4: ['Muy lejos', 'Más de 10 m'], metros: 'o escribe los metros', dNoSe: () => ['No lo sé', 'El pitch más grande que haya en stock'],
     qToca: '¿La gente podrá tocarla?', oTocaSi: ['Sí, a la altura de la mano'], oTocaNo: ['No, está alta o protegida'],
     qAlt: '¿A qué altura del suelo empieza?', a0: ['En el suelo'], a80: ['A la altura de una mesa', '80 cm'], a200: ['Alta', '2 m'], cms: 'o escribe los centímetros',
     qPtipo: '¿Dónde vas a proyectar?', pPared: ['En una pared o una pantalla', 'Una sala, un auditorio, una oficina'], pMap: ['En la fachada de un edificio', 'De noche'], pSala: ['En toda una sala', 'Para meterse dentro de la imagen'],
@@ -83,18 +83,23 @@ const T = {
     semV: 'Se verá bien con esta luz.', semA: (a) => 'Se verá algo lavada: ' + a + '.', semR: (a) => 'Se verá muy lavada: ' + a + '.', accLuz: 'hacen falta más lúmenes o controlar la luz ambiente', accMas: 'haz la imagen más pequeña o añade un proyector',
     pNoCabe: 'No hay un buen sitio para el proyector con estas medidas: cambia la distancia o míralo en PRO.',
     kLum: 'Lúmenes', kLumS1: 'Brillo del proyector', kLumSn: 'Cada uno', kOpt: (o) => 'Óptica ' + o, sCabe: 'El proyector cabe', vCabe: (a, b) => (a && b ? 'entre ' + a + ' y ' + b + ' m' : a ? 'a más de ' + a + ' m' : 'a menos de ' + b + ' m'), vCabeN: 'a cualquier distancia', sQue: 'Qué', vSalaLed: 'Sala LED entera', vVariasLed: 'Varias pantallas LED', sPants: 'Pantallas', vPants: (n, a, b) => n + ' de ' + a + ' × ' + b + ' m', qLtipo: '¿Qué vas a montar?',
-    oLuna: ['Una pantalla LED', 'Una sola, del tamaño que quieras'], oLvarias: ['Varias pantallas LED', 'Iguales, una al lado de otra'], oLsala: ['Una sala LED entera', 'Las paredes de la sala, para meterse dentro de la imagen'],
-    qPants: '¿Cuántas pantallas y de qué tamaño?', ayPants: 'Todas iguales. El ancho y el alto son los de cada una.', cuantas: 'Cuántas', qDondeV: '¿Dónde van a estar las pantallas?', qUsoV: '¿Se quedan puestas o son para un evento?',
+    oLuna: ['Una pantalla LED', 'Una sola, del tamaño que quieras'], oLvarias: ['Varias pantallas LED', 'Hasta 4, una al lado de otra'], oLsala: ['Una sala LED entera', 'Las paredes de la sala, para meterse dentro de la imagen'],
+    qPants: '¿Cuántas pantallas y de qué tamaño?', ayPants: 'Hasta 4, cada una con su medida. Todas llevan el mismo cabinet.', cuantas: 'Cuántas', qDondeV: '¿Dónde van a estar las pantallas?', qUsoV: '¿Se quedan puestas o son para un evento?',
     lSalaLed: 'TU SALA LED', lPantsLed: 'TUS PANTALLAS LED', cabs: (n) => n + ' cabinets', kLienzo: (w, h) => w + ' × ' + h + ' px', kCabs: 'Cabinets', kCabsS: (a, b) => 'De ' + a + ' × ' + b + ' mm', ajCab: (a, b) => 'pedías ' + a + ' × ' + b + ' m: se ajusta a cabinets enteros', vCabeE: (a) => 'a ' + a + ' m', vPubNS: 'no se sabe', noSePub: ['No lo sé', 'El proyector irá al centro de lo que permite su óptica'], sMarca: 'Marcas', qMarca: '¿Con qué marcas quieres calcular?', ayMarca: 'Se calcula con los proyectores de las marcas encendidas. Siempre queda una.',
     noVale: (n) => 'Con ' + n + ' no se puede conseguir lo que pides.', queHago: 'QUÉ PUEDO HACER', qConsejo: 'Con este proyector no se puede', ayConsejo: (n) => n + ' no da esa imagen desde esa distancia, o la imagen pasa de su tamaño máximo.',
     cAlt: (n) => 'Usar ' + n, cAltS: (d) => 'Lo más parecido que sí puede' + (d ? ' · ' + d : ''), cOos: 'Activar fuera de especificación', cOosS: 'Imagen más grande que la que garantiza el fabricante: el enfoque en los bordes, la uniformidad y el brillo pueden ser peores. Pruébalo con la imagen real antes de instalar.',
     cAuto: 'Que elija el cálculo', cAutoS: 'El proyector y la óptica que mejor encajan', semOos: 'Fuera de especificación: el enfoque en los bordes, la uniformidad y el brillo pueden ser peores.', semOosC: 'Y con esta luz se verá apagado.', quitar: 'QUITAR', qCabe: '¿A qué distancia puedes instalar el proyector?', ayCabe: 'De la imagen al sitio más cercano y al más lejano donde lo puedes poner (si solo hay un sitio, pon lo mismo en los dos). Con eso se sabe qué óptica vale.', minimo: 'Mínimo', maximo: 'Máximo', noSeCabe: ['No lo sé', 'Donde mejor vaya'], sOpt: 'Óptica', sPdist: 'Proyector a la pared', sPdistM: 'Proyector a la fachada', vAutoC: 'automática', qOpt: '¿Qué óptica lleva el proyector?', ayOpt: 'Este proyector lleva la óptica aparte. Cada una da esta imagen desde una distancia distinta.', oAuto: ['Automática', 'La que mejor encaja'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: '¿A qué distancia va el proyector?', ayPdistL: (o, a, b) => 'Con la óptica ' + o + ', para esta imagen puede estar entre ' + a + ' y ' + b + ' m.', ayPdistA: 'Pon la distancia que tengas y se elige la óptica que da esta imagen desde ahí.', noSeAuto: ['No lo sé', 'Que la elija el cálculo'], lOpt: 'óptica', kCon: 'Contraste', kConS: (lx) => 'Con ' + lx + ' lx en el sitio',
     kDis: 'A la pared', kDisF: 'A la fachada', kDisC: 'Colgado del techo', kDisA: 'Apoyado en una mesa', kBri: 'Brillo', kBriS: 'En las superficies', kRes: 'Imagen', kResS: (w, h) => w + ' × ' + h + ' px nativos',
+    vSinDist: 'Sin decir · el pitch más grande en stock',
+    sPitch: 'Pitch', qPitch: '¿Qué pitch quieres?', ayPitch: 'La distancia entre puntos de luz, en milímetros. Sin pitch, se elige el más grande que haya en stock y encaje.', noSePitch: ['No lo sé', 'El más grande que haya en stock'],
+    lReunion: ['Sala de reuniones', 'Oficina, reuniones'], lAula: ['Aula', 'Clase, formación'], lEvento: ['Sala de eventos', 'Congresos, presentaciones'], lSalon: ['Salón de casa', 'Luz de casa'], lTeatro: ['Cine en casa', 'Casi a oscuras'], luxMano: 'o escribe los lux', vMano: 'A mano',
+    qAvisos: 'Lo que hay que mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVISO' : ' AVISOS'), cUnaS: 'Una sola imagen, sin solapes', cOosNo: ['Quitar fuera de especificación', 'Volver a lo que garantiza el fabricante'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
+    lSinProc: 'Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador en PRO.', lSinMedia: 'Ningún mediaserver cubre este proyecto con esta marca y estas opciones.', lCerca: (a, b) => 'No hay pitch ' + a + ': se usa el más cercano, ' + b + ' mm.', lSinRes: (r) => 'Ningún pitch llega a ' + r + ' con esta medida: se usa el más fino.',
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
   en: {
     sw: 'SIMPLE or PRO mode',
-    pides: 'WHAT YOU ASK FOR', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
+    rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
     pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE EVERYTHING IN PRO', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
     calculando: 'Calculating…', cargando: 'Loading the catalogue…', sinCat: 'The catalogue could not be read. Check your connection.', reintentar: 'RETRY', vacio: 'No screens for these details: change where it goes or the size.',
     sinMotor: 'The calculation could not be loaded. Reload the page.', recargar: 'RELOAD',
@@ -112,7 +117,7 @@ const T = {
     qUso: 'Will it stay up or is it for an event?', oFija: ['It stays fixed', 'Always in the same place'], oRental: ['We set it up and take it down', 'Events and rental'],
     qMed: 'How big is the space where it goes?', ayMed: 'Measure the space with a tape. If you are not sure, an approximate size is fine.', ancho: 'Width', alto: 'Height', fondo: 'Depth', tele: 'I don’t know the height: like a TV',
     qDist: 'How far away will people watch it from?', ayDist: 'The closer they are, the finer the light dots must be.',
-    d1: ['Very close', 'Under 2 m'], d2: ['Like in a shop', '2 to 5 m'], d3: ['From afar', '5 to 10 m'], d4: ['Very far', 'Over 10 m'], metros: 'or type the metres', dNoSe: (m) => ['I don’t know', 'I’ll assume ' + m + ' m, the usual'],
+    d1: ['Very close', 'Under 2 m'], d2: ['Like in a shop', '2 to 5 m'], d3: ['From afar', '5 to 10 m'], d4: ['Very far', 'Over 10 m'], metros: 'or type the metres', dNoSe: () => ['I don’t know', 'The largest pitch in stock'],
     qToca: 'Will people be able to touch it?', oTocaSi: ['Yes, at hand height'], oTocaNo: ['No, it is high up or protected'],
     qAlt: 'How high off the floor does it start?', a0: ['On the floor'], a80: ['At table height', '80 cm'], a200: ['High', '2 m'], cms: 'or type the centimetres',
     qPtipo: 'Where will you project?', pPared: ['On a wall or a screen', 'A room, an auditorium, an office'], pMap: ['On a building façade', 'At night'], pSala: ['On a whole room', 'To step inside the image'],
@@ -136,18 +141,23 @@ const T = {
     semV: 'It will look good with this light.', semA: (a) => 'It will look a bit washed out: ' + a + '.', semR: (a) => 'It will look very washed out: ' + a + '.', accLuz: 'it needs more lumens or controlled ambient light', accMas: 'make the image smaller or add a projector',
     pNoCabe: 'There is no good spot for the projector with these sizes: change the distance or check it in PRO.',
     kLum: 'Lumens', kLumS1: 'Projector brightness', kLumSn: 'Each', kOpt: (o) => o + ' lens', sCabe: 'Projector fits', vCabe: (a, b) => (a && b ? 'between ' + a + ' and ' + b + ' m' : a ? 'more than ' + a + ' m away' : 'less than ' + b + ' m away'), vCabeN: 'at any distance', sQue: 'What', vSalaLed: 'Whole LED room', vVariasLed: 'Several LED screens', sPants: 'Screens', vPants: (n, a, b) => n + ' of ' + a + ' × ' + b + ' m', qLtipo: 'What are you setting up?',
-    oLuna: ['One LED screen', 'A single one, any size you like'], oLvarias: ['Several LED screens', 'All the same, side by side'], oLsala: ['A whole LED room', 'The walls of the room, to step inside the image'],
-    qPants: 'How many screens and what size?', ayPants: 'All the same. Width and height are for each one.', cuantas: 'How many', qDondeV: 'Where will the screens be?', qUsoV: 'Are they staying up or are they for an event?',
+    oLuna: ['One LED screen', 'A single one, any size you like'], oLvarias: ['Several LED screens', 'Up to 4, side by side'], oLsala: ['A whole LED room', 'The walls of the room, to step inside the image'],
+    qPants: 'How many screens and what size?', ayPants: 'Up to 4, each with its own size. All use the same cabinet.', cuantas: 'How many', qDondeV: 'Where will the screens be?', qUsoV: 'Are they staying up or are they for an event?',
     lSalaLed: 'YOUR LED ROOM', lPantsLed: 'YOUR LED SCREENS', cabs: (n) => n + ' cabinets', kLienzo: (w, h) => w + ' × ' + h + ' px', kCabs: 'Cabinets', kCabsS: (a, b) => a + ' × ' + b + ' mm each', ajCab: (a, b) => 'you asked for ' + a + ' × ' + b + ' m: it adjusts to whole cabinets', vCabeE: (a) => 'at ' + a + ' m', vPubNS: 'not known', noSePub: ['I don’t know', 'The projector will go at the middle of what its lens allows'], sMarca: 'Brands', qMarca: 'Which brands do you want to calculate with?', ayMarca: 'The calculation uses the projectors of the brands that are on. One always stays on.',
     noVale: (n) => 'With ' + n + ' you cannot get what you are asking for.', queHago: 'WHAT CAN I DO', qConsejo: 'This projector cannot do it', ayConsejo: (n) => n + ' cannot give that image from that distance, or the image exceeds its maximum size.',
     cAlt: (n) => 'Use ' + n, cAltS: (d) => 'The closest one that can' + (d ? ' · ' + d : ''), cOos: 'Turn on out of specification', cOosS: 'An image larger than the manufacturer guarantees: edge focus, uniformity and brightness may be worse. Test it with the real image before installing.',
     cAuto: 'Let the calculation choose', cAutoS: 'The projector and lens that fit best', semOos: 'Out of specification: edge focus, uniformity and brightness may be worse.', semOosC: 'And with this light it will look dull.', quitar: 'REMOVE', qCabe: 'How far away can you install the projector?', ayCabe: 'From the image to the nearest and the farthest place where you can put it (if there is only one place, enter the same in both). That tells which lens works.', minimo: 'Minimum', maximo: 'Maximum', noSeCabe: ['I don’t know', 'Wherever works best'], sOpt: 'Lens', sPdist: 'Projector to wall', sPdistM: 'Projector to façade', vAutoC: 'automatic', qOpt: 'Which lens does the projector use?', ayOpt: 'This projector takes a separate lens. Each one gives this image from a different distance.', oAuto: ['Automatic', 'The best fit'], oOptD: (a, b) => (a === b ? 'at ' + a + ' m' : 'from ' + a + ' to ' + b + ' m'), qPdist: 'How far away is the projector?', ayPdistL: (o, a, b) => 'With the ' + o + ' lens, for this image it can be between ' + a + ' and ' + b + ' m away.', ayPdistA: 'Enter the distance you have and the lens that gives this image from there is chosen.', noSeAuto: ['I don’t know', 'Let the calculation choose'], lOpt: 'lens', kCon: 'Contrast', kConS: (lx) => 'With ' + lx + ' lx in the place',
     kDis: 'To the wall', kDisF: 'To the façade', kDisC: 'Ceiling mounted', kDisA: 'On a table', kBri: 'Brightness', kBriS: 'On the surfaces', kRes: 'Image', kResS: (w, h) => w + ' × ' + h + ' px native',
+    vSinDist: 'Not given · the largest pitch in stock',
+    sPitch: 'Pitch', qPitch: 'Which pitch do you want?', ayPitch: 'The distance between the light dots, in millimetres. Without a pitch, the largest one in stock that fits is chosen.', noSePitch: ['I don’t know', 'The largest one in stock'],
+    lReunion: ['Meeting room', 'Office, meetings'], lAula: ['Classroom', 'Lessons, training'], lEvento: ['Event hall', 'Conferences, presentations'], lSalon: ['Living room', 'Home lighting'], lTeatro: ['Home theatre', 'Almost dark'], luxMano: 'or type the lux', vMano: 'Custom',
+    qAvisos: 'What needs checking', nAvisos: (n) => '+' + n + (n === 1 ? ' WARNING' : ' WARNINGS'), cUnaS: 'A single image, no overlap', cOosNo: ['Turn off out of specification', 'Back to what the manufacturer guarantees'], vVert: 'portrait', pantK: (k) => 'Screen ' + k,
+    lSinProc: 'No processor covers this project with these options: change the backup, the connection or the scaler in PRO.', lSinMedia: 'No media server covers this project with this brand and these options.', lCerca: (a, b) => 'There is no ' + a + ' pitch: the nearest one is used, ' + b + ' mm.', lSinRes: (r) => 'No pitch reaches ' + r + ' at this size: the finest one is used.',
     pers: '1.75 m person', proy: 'Projector'
   },
   ca: {
     sw: 'Mode SIMPLE o PRO',
-    pides: 'EL QUE DEMANES', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
+    rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
     pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE-HO TOT EN PRO', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
     calculando: 'Calculant…', cargando: 'Carregant el catàleg…', sinCat: 'No s’ha pogut llegir el catàleg. Revisa la connexió.', reintentar: 'TORNA-HO A PROVAR', vacio: 'No hi ha pantalles per a aquestes dades: canvia on va o la mida.',
     sinMotor: 'No s’ha pogut carregar el càlcul. Torna a carregar la pàgina.', recargar: 'TORNA A CARREGAR',
@@ -165,7 +175,7 @@ const T = {
     qUso: 'Es queda posada o és per a un esdeveniment?', oFija: ['Es queda fixa', 'Sempre al mateix lloc'], oRental: ['La muntem i desmuntem', 'Esdeveniments i lloguer'],
     qMed: 'Quant fa el lloc on va?', ayMed: 'Mesura el lloc amb un metre. Si no ho saps exacte, posa una mida aproximada.', ancho: 'Amplada', alto: 'Alçada', fondo: 'Fondària', tele: 'No sé l’alçada: com una tele',
     qDist: 'Des de quina distància la mirarà la gent?', ayDist: 'Com més a prop, més fins han de ser els punts de llum.',
-    d1: ['Molt a prop', 'Menys de 2 m'], d2: ['Com en una botiga', 'De 2 a 5 m'], d3: ['Des de lluny', 'De 5 a 10 m'], d4: ['Molt lluny', 'Més de 10 m'], metros: 'o escriu els metres', dNoSe: (m) => ['No ho sé', 'Compto ' + m + ' m, el normal'],
+    d1: ['Molt a prop', 'Menys de 2 m'], d2: ['Com en una botiga', 'De 2 a 5 m'], d3: ['Des de lluny', 'De 5 a 10 m'], d4: ['Molt lluny', 'Més de 10 m'], metros: 'o escriu els metres', dNoSe: () => ['No ho sé', 'El pitch més gran que hi hagi en estoc'],
     qToca: 'La gent la podrà tocar?', oTocaSi: ['Sí, a l’alçada de la mà'], oTocaNo: ['No, és alta o protegida'],
     qAlt: 'A quina alçada de terra comença?', a0: ['A terra'], a80: ['A l’alçada d’una taula', '80 cm'], a200: ['Alta', '2 m'], cms: 'o escriu els centímetres',
     qPtipo: 'On projectaràs?', pPared: ['En una paret o una pantalla', 'Una sala, un auditori, una oficina'], pMap: ['A la façana d’un edifici', 'De nit'], pSala: ['En tota una sala', 'Per ficar-se dins de la imatge'],
@@ -189,13 +199,18 @@ const T = {
     semV: 'Es veurà bé amb aquesta llum.', semA: (a) => 'Es veurà una mica rentada: ' + a + '.', semR: (a) => 'Es veurà molt rentada: ' + a + '.', accLuz: 'calen més lúmens o controlar la llum ambient', accMas: 'fes la imatge més petita o afegeix un projector',
     pNoCabe: 'No hi ha un bon lloc per al projector amb aquestes mides: canvia la distància o mira-ho en PRO.',
     kLum: 'Lúmens', kLumS1: 'Brillantor del projector', kLumSn: 'Cada un', kOpt: (o) => 'Òptica ' + o, sCabe: 'El projector hi cap', vCabe: (a, b) => (a && b ? 'entre ' + a + ' i ' + b + ' m' : a ? 'a més de ' + a + ' m' : 'a menys de ' + b + ' m'), vCabeN: 'a qualsevol distància', sQue: 'Què', vSalaLed: 'Sala LED sencera', vVariasLed: 'Diverses pantalles LED', sPants: 'Pantalles', vPants: (n, a, b) => n + ' de ' + a + ' × ' + b + ' m', qLtipo: 'Què vols muntar?',
-    oLuna: ['Una pantalla LED', 'Una de sola, de la mida que vulguis'], oLvarias: ['Diverses pantalles LED', 'Iguals, una al costat de l’altra'], oLsala: ['Una sala LED sencera', 'Les parets de la sala, per ficar-se dins de la imatge'],
-    qPants: 'Quantes pantalles i de quina mida?', ayPants: 'Totes iguals. L’amplada i l’alçada són les de cadascuna.', cuantas: 'Quantes', qDondeV: 'On estaran les pantalles?', qUsoV: 'Es queden posades o són per a un esdeveniment?',
+    oLuna: ['Una pantalla LED', 'Una de sola, de la mida que vulguis'], oLvarias: ['Diverses pantalles LED', 'Fins a 4, una al costat de l’altra'], oLsala: ['Una sala LED sencera', 'Les parets de la sala, per ficar-se dins de la imatge'],
+    qPants: 'Quantes pantalles i de quina mida?', ayPants: 'Fins a 4, cadascuna amb la seva mida. Totes porten el mateix cabinet.', cuantas: 'Quantes', qDondeV: 'On estaran les pantalles?', qUsoV: 'Es queden posades o són per a un esdeveniment?',
     lSalaLed: 'LA TEVA SALA LED', lPantsLed: 'LES TEVES PANTALLES LED', cabs: (n) => n + ' cabinets', kLienzo: (w, h) => w + ' × ' + h + ' px', kCabs: 'Cabinets', kCabsS: (a, b) => 'De ' + a + ' × ' + b + ' mm', ajCab: (a, b) => 'demanaves ' + a + ' × ' + b + ' m: s’ajusta a cabinets sencers', vCabeE: (a) => 'a ' + a + ' m', vPubNS: 'no se sap', noSePub: ['No ho sé', 'El projector anirà al centre del que permet la seva òptica'], sMarca: 'Marques', qMarca: 'Amb quines marques vols calcular?', ayMarca: 'Es calcula amb els projectors de les marques enceses. Sempre en queda una.',
     noVale: (n) => 'Amb ' + n + ' no es pot aconseguir el que demanes.', queHago: 'QUÈ PUC FER', qConsejo: 'Amb aquest projector no es pot', ayConsejo: (n) => n + ' no dona aquesta imatge des d’aquesta distància, o la imatge passa de la seva mida màxima.',
     cAlt: (n) => 'Fer servir ' + n, cAltS: (d) => 'El més semblant que sí que pot' + (d ? ' · ' + d : ''), cOos: 'Activar fora d’especificació', cOosS: 'Imatge més gran que la que garanteix el fabricant: l’enfocament a les vores, la uniformitat i la brillantor poden ser pitjors. Prova-ho amb la imatge real abans d’instal·lar.',
     cAuto: 'Que triï el càlcul', cAutoS: 'El projector i l’òptica que encaixen millor', semOos: 'Fora d’especificació: l’enfocament a les vores, la uniformitat i la brillantor poden ser pitjors.', semOosC: 'I amb aquesta llum es veurà apagat.', quitar: 'TREURE', qCabe: 'A quina distància pots instal·lar el projector?', ayCabe: 'De la imatge al lloc més proper i al més llunyà on el pots posar (si només hi ha un lloc, posa el mateix als dos). Amb això se sap quina òptica val.', minimo: 'Mínim', maximo: 'Màxim', noSeCabe: ['No ho sé', 'On vagi millor'], sOpt: 'Òptica', sPdist: 'Projector a la paret', sPdistM: 'Projector a la façana', vAutoC: 'automàtica', qOpt: 'Quina òptica porta el projector?', ayOpt: 'Aquest projector porta l’òptica a part. Cadascuna dona aquesta imatge des d’una distància diferent.', oAuto: ['Automàtica', 'La que encaixa millor'], oOptD: (a, b) => (a === b ? 'a ' + a + ' m' : 'de ' + a + ' a ' + b + ' m'), qPdist: 'A quina distància va el projector?', ayPdistL: (o, a, b) => 'Amb l’òptica ' + o + ', per a aquesta imatge pot estar entre ' + a + ' i ' + b + ' m.', ayPdistA: 'Posa la distància que tinguis i es tria l’òptica que dona aquesta imatge des d’allà.', noSeAuto: ['No ho sé', 'Que la triï el càlcul'], lOpt: 'òptica', kCon: 'Contrast', kConS: (lx) => 'Amb ' + lx + ' lx al lloc',
     kDis: 'A la paret', kDisF: 'A la façana', kDisC: 'Penjat del sostre', kDisA: 'Recolzat en una taula', kBri: 'Brillantor', kBriS: 'A les superfícies', kRes: 'Imatge', kResS: (w, h) => w + ' × ' + h + ' px natius',
+    vSinDist: 'Sense dir · el pitch més gran en estoc',
+    sPitch: 'Pitch', qPitch: 'Quin pitch vols?', ayPitch: 'La distància entre punts de llum, en mil·límetres. Sense pitch, es tria el més gran que hi hagi en estoc i encaixi.', noSePitch: ['No ho sé', 'El més gran que hi hagi en estoc'],
+    lReunion: ['Sala de reunions', 'Oficina, reunions'], lAula: ['Aula', 'Classe, formació'], lEvento: ['Sala d’esdeveniments', 'Congressos, presentacions'], lSalon: ['Saló de casa', 'Llum de casa'], lTeatro: ['Cinema a casa', 'Gairebé a les fosques'], luxMano: 'o escriu els lux', vMano: 'A mà',
+    qAvisos: 'El que cal mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVÍS' : ' AVISOS'), cUnaS: 'Una sola imatge, sense solapaments', cOosNo: ['Treure fora d’especificació', 'Tornar al que garanteix el fabricant'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
+    lSinProc: 'Sense processador que cobreixi aquest projecte amb aquestes opcions: canvia el backup, la connexió o l’escalador en PRO.', lSinMedia: 'Cap mediaserver cobreix aquest projecte amb aquesta marca i aquestes opcions.', lCerca: (a, b) => 'No hi ha pitch ' + a + ': es fa servir el més proper, ' + b + ' mm.', lSinRes: (r) => 'Cap pitch arriba a ' + r + ' amb aquesta mida: es fa servir el més fi.',
     pers: 'Persona d’1,75 m', proy: 'Projector'
   }
 };
@@ -266,11 +281,16 @@ const distDef = () => (ED().tipo === 'OUTDOOR' ? 8 : 3);
 /* v10.55 · también varias pantallas LED iguales y la sala LED entera (una sola pantalla LED se calcula en la portada) */
 const modoCons = () => { const E = C().E; if (E.tecnologia === 'led') return E.cantidad === 'varias' ? (E.esp.tipo === 'sala' ? 'salaLed' : 'variasLed') : 'led'; if (E.cantidad === 'varias') return E.esp.tipo === 'sala' ? 'sala' : 'varias'; return E.proy.tipo === 'mapping' ? 'mapping' : 'pared'; };
 const esLedC = () => PAG === 'consola' && /Led$/.test(modoCons());
-const LUCES = [[10, 'l10', 'luna'], [50, 'l50', 'media'], [140, 'l140', 'bombilla'], [300, 'l300', 'sol']];
+/* v10.62 · los escalones de luz (los mismos que PRO): [clave, lux, texto, icono] */
+const LUCES = [['reunion', 140, 'lReunion', 'bombilla'], ['aula', 210, 'lAula', 'sol'], ['evento', 140, 'lEvento', 'media'], ['salon', 70, 'lSalon', 'casa'], ['teatro', 14, 'lTeatro', 'luna']];
+const luzDe = (E) => LUCES.find((x) => x[0] === E.proy.luzUso && x[1] === Number(E.proy.lux));
+/* v10.62 · medidas de cada pantalla LED (hasta 4) */
+const tamsDe = (q) => { const n = Math.max(1, Math.min(4, q.n | 0)), g = Array.isArray(q.tams) ? q.tams : []; return Array.from({ length: n }, (_, i) => { const x = g[i] || []; return [+x[0] > 0 ? +x[0] : q.ancho, +x[1] > 0 ? +x[1] : q.alto]; }); };
+const tamsTxt = (L) => (L.every((x) => Math.abs(x[0] - L[0][0]) < .005 && Math.abs(x[1] - L[0][1]) < .005) ? null : L.map((x) => fm(x[0]) + ' × ' + fm(x[1])).join(' + ') + ' m');
 const PAREDES = ['frontal', 'izquierda', 'derecha', 'trasera', 'suelo'];
 
 /* ajustes que solo se tocan en PRO: si alguno no es el de fábrica, el resultado no es el automático */
-const AJ_LED = ['backup', 'escalador', 'conexion', 'marca', 'cosido', 'transp', 'nitsMin', 'resMin', 'giro', 'crm', 'pitch', 'ajuste', 'procSel', 'mediaSel', 'dante', 'entradas', 'tipoEntrada', 'resEntrada'];
+const AJ_LED = ['backup', 'escalador', 'conexion', 'marca', 'cosido', 'transp', 'nitsMin', 'resMin', 'giro', 'crm', 'ajuste', 'procSel', 'mediaSel', 'dante', 'entradas', 'tipoEntrada', 'resEntrada'];
 const AJ_PROY_T = ['cuerpo', 'optica', 'idSuelo', 'solape', 'ganancia', 'orient', 'altura', 'oos'];
 /* v10.53 · la óptica y la distancia del proyector se eligen también en SIMPLE: no cuentan como ajuste de PRO */
 const AJ_PROY = ['idSuelo', 'solape', 'ganancia', 'orient', 'altura'];
@@ -286,7 +306,7 @@ function ajustesPro() {
   if (!listo()) return 0;
   if (PAG === 'portada') { const E = B().E, D = B().DEF; return AJ_LED.filter((k) => JSON.stringify(E[k]) !== JSON.stringify(D[k])).length; }
   const E = C().E, D = C().DEF();
-  if (esLedC()) return AJ_LEDC.filter((k) => JSON.stringify(E.led[k]) !== JSON.stringify(D.led[k])).length + AJ_ELEC.filter((k) => k !== 'proyEq' && k !== 'selBlend' && JSON.stringify(E.elec[k]) !== JSON.stringify(D.elec[k])).length + ((E.esp.obst || []).length ? 1 : 0) + (modoCons() === 'variasLed' && E.esp.sueltas.central ? 1 : 0);
+  if (esLedC()) return AJ_LEDC.filter((k) => JSON.stringify(E.led[k]) !== JSON.stringify(D.led[k])).length + AJ_ELEC.filter((k) => k !== 'proyEq' && k !== 'selBlend' && JSON.stringify(E.elec[k]) !== JSON.stringify(D.elec[k])).length + ((E.esp.obst || []).length ? 1 : 0);
   return AJ_PROY.filter((k) => JSON.stringify(E.proy[k]) !== JSON.stringify(D.proy[k])).length + AJ_ELEC.filter((k) => JSON.stringify(E.elec[k]) !== JSON.stringify(D.elec[k])).length + ((E.esp.obst || []).length ? 1 : 0);
 }
 function restablecePro() {
@@ -331,26 +351,28 @@ function filas() {
   const E = ED();
   if (PAG === 'portada') {
     const donde = { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[E.tipo] + (E.tipo !== 'INDOOR' && E.sol ? ' · ' + (E.sol === 'directo' ? t('vSolD') : t('vSolI')) : '') + (E.gold ? ' · ' + t('vMar') : '');
-    return [['donde', 'casa', t('sDonde'), donde], ['uso', 'pin', t('sUso'), E.clase === 'RENTAL' ? t('vRental') : t('vFija')], ['medida', 'regla', t('sTam'), fm(E.w) + ' × ' + fm(E.h) + ' m'],
-      ['dist', 'ojo', t('sDist'), E.dist ? fm(E.dist) + ' m' : distDef() + ' m · ' + t('vNormal')], E.tipo === 'INDOOR' ? ['tocar', 'mano', t('sToca'), E.protegido ? t('si') : t('no')] : null,
-      ['altura', 'altura', t('sAlt'), +E.elev ? fmt(E.elev, 0) + ' cm' : t('vSuelo')]].filter(Boolean);
+    return [['donde', 'casa', t('sDonde'), donde], ['uso', 'pin', t('sUso'), E.clase === 'RENTAL' ? t('vRental') : t('vFija')], ['medida', 'regla', t('sTam'), (() => { const u = { m: 1, cm: 100, mm: 1000 }[E.uni] ? E.uni : 'm', k = { m: 1, cm: 100, mm: 1000 }[u]; return (u === 'm' ? fm(E.w) + ' × ' + fm(E.h) : fmt(E.w * k, 0) + ' × ' + fmt(E.h * k, 0)) + ' ' + u; })()],   /* v10.62 · en la unidad en que se pidió */
+      ['dist', 'ojo', t('sDist'), E.dist ? fm(E.dist) + ' m' : +E.pitch ? t('vSinDist').split(' · ')[0] : t('vSinDist')], E.tipo === 'INDOOR' ? ['tocar', 'mano', t('sToca'), E.protegido ? t('si') : t('no')] : null,
+      ['altura', 'altura', t('sAlt'), +E.elev ? fmt(E.elev, 0) + ' cm' : t('vSuelo')],
+      /* v10.62 · el pitch pedido (en la petición o en PRO) se ve aquí, no como «ajuste de PRO» */
+      +E.pitch ? ['lpitch', 'calidad', t('sPitch'), [E.pitch].concat(E.pitchOtros || []).map((x) => 'P' + fm(x)).join(' · ')] : null].filter(Boolean);
   }
   if (esLedC()) {   /* v10.55 · varias pantallas LED o sala LED */
     const mL = modoCons(), L = E.led, sL = E.esp.sueltas, o = [['ltipo', mL === 'salaLed' ? 'cubo' : 'led', t('sQue'), mL === 'salaLed' ? t('vSalaLed') : t('vVariasLed')]];
     if (mL === 'salaLed') o.push(['ltam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => p !== 'suelo' && E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
-    else o.push(['ltam', 'regla', t('sPants'), t('vPants')(sL.n, fm(sL.ancho), fm(sL.alto))], ['ldonde', 'casa', t('sDonde'), { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[L.tipo] || L.tipo]);
+    else o.push(['ltam', 'regla', t('sPants'), (() => { const L = tamsDe(sL), x = tamsTxt(L); return x ? L.length + ' · ' + x : t('vPants')(L.length, fm(L[0][0]), fm(L[0][1])); })()], ['ldonde', 'casa', t('sDonde'), { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[L.tipo] || L.tipo]);
     o.push(['luso', 'pin', t('sUso'), L.clase === 'RENTAL' ? t('vRental') : t('vFija')]);
     if (mL === 'variasLed') o.push(['ldist', 'ojo', t('sDist'), fm(sL.dist) + ' m']);
     return o;
   }
-  const m = modoCons(), s = E.esp.sueltas, lux = Number(E.proy.lux), luz = LUCES.find((x) => x[0] === lux), mont = E.proy.montaje === 'colgado' ? t('vCol') : E.proy.montaje === 'apoyado' ? t('vApo') : t('vAuto');
+  const m = modoCons(), s = E.esp.sueltas, lux = Number(E.proy.lux), luz = luzDe(E), mont = E.proy.montaje === 'colgado' ? t('vCol') : E.proy.montaje === 'apoyado' ? t('vApo') : t('vAuto');
   const out = [['ptipo', m === 'sala' ? 'cubo' : m === 'mapping' ? 'edificio' : 'pared', t('sDonde'), m === 'sala' ? t('vSala') : m === 'mapping' ? t('vMap') : t('vPared')]];
   if (m === 'sala') out.push(['ptam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
   else out.push(['ptam', 'regla', t('sImg'), fm(s.ancho) + ' × ' + fm(s.alto) + ' m']);
-  if (m !== 'mapping') out.push(['luz', luz ? luz[2] : 'bombilla', t('sLuz'), (luz ? t(luz[1])[0] + ' · ' : '') + fmt(lux, 0) + ' lx']);
+  out.push(['luz', luz ? luz[3] : 'bombilla', t('sLuz'), (luz ? t(luz[2])[0] : t('vMano')) + ' · ' + fmt(lux, 0) + ' lx']);   /* v10.62 · también en mapping: la luz arranca en 140 lx como en Epson y se puede cambiar */
   if (m === 'pared') out.push(['pub', 'persona', t('sPub'), E.proy.pubNS ? t('vPubNS') : fm(s.dist) + ' m']);
   if (m !== 'mapping') out.push(['mont', E.proy.montaje === 'apoyado' ? 'mesa' : 'techo', t('sMont'), mont]);
-  if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), fm(s.techo || 3) + ' m']);
+  if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), +s.techo > 0 ? fm(s.techo) + ' m' : '—']);
   /* v10.53 · la óptica que lleva el proyector (con su relación de proyección) y la distancia a la que va: se ven siempre y se pueden cambiar */
   /* v10.54 · una sola pregunta para la distancia del proyector (un margen o un sitio fijo), la óptica que lleva y, si hay más de una, las marcas */
   if (m === 'pared' || m === 'mapping') { const a = Number(E.proy.distMin) || 0, b = Number(E.proy.distMax) || 0, d = Number(E.proy.dist) || 0; out.push(['pcabe', 'regla', t('sCabe'), d ? t('vCabeE')(fm(d)) : a || b ? t('vCabe')(a ? fm(a) : '', b ? fm(b) : '') : t('vCabeN')]); }
@@ -387,7 +409,8 @@ function simProy(prop, ancho, anchoPx) {
     fs.forEach((f) => { const w = f.r.ancho * k, h = f.r.alto * k, y = suelo - (el + f.r.alto) * k; g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="var(--ss-acento)" fill-opacity=".18" stroke="var(--ss-acento)" stroke-width="3"/>`; x += w + sep * k; });
     const f0 = fs[0], yc = suelo + Math.max(48, Math.round(fz * 1.6));
     g += `<line x1="${x0.toFixed(1)}" y1="${yc}" x2="${(x0 + anT * k).toFixed(1)}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${x0.toFixed(1)}" y1="${yc - 9}" x2="${x0.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${(x0 + anT * k).toFixed(1)}" y1="${yc - 9}" x2="${(x0 + anT * k).toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/>`;
-    g += `<text x="${(x0 + anT * k / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${esc(t('vPants')(fs.length, fm(f0.r.ancho), fm(f0.r.alto)))}</text></svg>`;
+    const Lr = fs.map((x) => [x.r.ancho, x.r.alto]), xr = tamsTxt(Lr);
+    g += `<text x="${(x0 + anT * k / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${esc(xr || t('vPants')(fs.length, fm(f0.r.ancho), fm(f0.r.alto)))}</text></svg>`;
     return g;
   }
   if (m === 'sala' || m === 'salaLed') {   /* sala entera: planta con las paredes iluminadas (de proyección o de LED) */
@@ -402,7 +425,7 @@ function simProy(prop, ancho, anchoPx) {
     return g;
   }
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], s = f.s, pos = f.pos || {};
-  const dP = Math.max(.5, +pos.dist || 0), dPub = m === 'pared' && !E.proy.pubNS ? Math.max(0, +c.dist || 0) : 0, y0 = isFinite(pos.y0) ? pos.y0 : s.elev, y1 = isFinite(pos.y1) ? pos.y1 : s.elev + s.alto;
+  const dReal = +pos.dist || 0, dP = Math.max(.5, dReal), dPub = m === 'pared' && !E.proy.pubNS ? Math.max(0, +c.dist || 0) : 0, y0 = isFinite(pos.y0) ? pos.y0 : s.elev, y1 = isFinite(pos.y1) ? pos.y1 : s.elev + s.alto;
   const techo = m === 'pared' && pos.techo > 0 ? +pos.techo : 0, yL = isFinite(pos.yLente) ? pos.yLente : (y0 + y1) / 2;
   /* v10.56 · el proyector y la persona se arrastran. Mientras se arrastra, la escala del dibujo es la que había al cogerlo (o la que se va
      abriendo al llegar al borde): así lo que se lleva no se mueve solo bajo el dedo */
@@ -440,9 +463,9 @@ function simProy(prop, ancho, anchoPx) {
     g += `<g ${asa('proy', zona, dP)}><rect x="${(lx - hw / 2).toFixed(1)}" y="${(ly - hh / 2).toFixed(1)}" width="${hw.toFixed(1)}" height="${hh.toFixed(1)}" fill="transparent"/>${pr}${fle(lx - pw / 2 - 5 * u, ly, -1, 'var(--ss-violeta-t)')}${fle(lx + pw / 2 + 5 * u, ly, 1, 'var(--ss-violeta-t)')}</g>`; }
   else g += pr;
   /* la cota de abajo: la distancia del proyector o, mientras se lleva a la persona, la suya */
-  const dC = ARR && ARR.q === 'pub' && arrU ? dPub : dP, cx = X(dC), yc = suelo + Math.max(48, Math.round(fz * 1.6));
-  g += `<line x1="${cx.toFixed(1)}" y1="${yc}" x2="${muroX}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${cx.toFixed(1)}" y1="${yc - 9}" x2="${cx.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${muroX}" y1="${yc - 9}" x2="${muroX}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><text x="${((cx + muroX) / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(dC)} m</text>`;
-  g += `<text x="${muroX + 26}" y="${((Y(y0) + Y(y1)) / 2 + 9).toFixed(1)}" class="ss-sv-c"${sz(fz)}>${fm(y1 - y0)} m</text></svg>`;
+  const dC = ARR && ARR.q === 'pub' && arrU ? dPub : dP, dTxt = ARR && ARR.q === 'pub' && arrU ? dPub : dReal, cx = X(dC), yc = suelo + Math.max(48, Math.round(fz * 1.6));
+  g += `<line x1="${cx.toFixed(1)}" y1="${yc}" x2="${muroX}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${cx.toFixed(1)}" y1="${yc - 9}" x2="${cx.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${muroX}" y1="${yc - 9}" x2="${muroX}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><text x="${((cx + muroX) / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(dTxt)} m</text>`;   /* v10.62 · la cota dice la distancia de verdad (el dibujo no baja de 0,5 m para no aplastarse) */
+  g += `<text x="${muroX + 26}" y="${((Y(y0) + Y(y1)) / 2 + 9).toFixed(1)}" class="ss-sv-c"${sz(fz)}>${fm(s.alto)} m</text></svg>`;   /* v10.62 · el alto pedido (la imagen que sobra ya se ve en el dibujo) */
   return g;
 }
 
@@ -509,7 +532,14 @@ function pintaSim() {
   else if (PAG === 'portada') {
     const R = B().R;
     if (R && R.r) {
-      try { svg = B().sim(Math.max(.75, Math.min(3, prop)), cu.clientWidth, { limpia: true }); } catch (e) { svg = ''; }
+      /* v10.62 · con el cuadro de resumen de PRO; en un hueco estrecho (móvil) el cuadro dentro del dibujo no se lee: va debajo, como una tira con la letra de la interfaz */
+      const hT = (el.querySelector('.ss-resumen') || {}).offsetHeight || 0, estr = cu.clientWidth > 0 && (cu.clientWidth < 600 || cu.clientHeight + hT < 360);   /* con la altura que tendría sin la tira, para que no vaya y venga */
+      try { svg = B().sim(Math.max(.75, Math.min(3, prop)), cu.clientWidth, { limpia: true, cajas: !estr }); } catch (e) { svg = ''; }
+      let ti = el.querySelector('.ss-resumen');
+      if (estr) { const { r, m } = R, cm = (v) => fmt(v * 100, 0) + ' cm';
+        if (!ti) { ti = document.createElement('div'); ti.className = 'ss-resumen'; el.appendChild(ti); }
+        ti.innerHTML = `<span><b>${r.resW} × ${r.resH}</b>${R.nivel && R.nivel[0] ? ' · ' + esc(R.nivel[0]) : ''}${R.formato ? ' · ' + esc(R.formato) : ''}</span><span><b>${r.cols} × ${r.rows}</b> = ${r.cab} ${t('rCabs')}</span><span><b>P${fm(m.pitch)}</b> · ${cm(r.ancho)} × ${cm(r.alto)}</span><span>${esc(t('rVis')(cm(m.pitch), cm(m.pitch * 3)))}</span>`; }
+      else if (ti) ti.remove();
       /* la rejilla de PRO (oculta) tiene su propio dibujo con los mismos id: los de aquí llevan su prefijo para no recortar con los de allí */
       [...new Set([...svg.matchAll(/\bid="([^"]+)"/g)].map((x) => x[1]))].forEach((id) => { svg = svg.split(`id="${id}"`).join(`id="ss-${id}"`).split(`url(#${id})`).join(`url(#ss-${id})`).split(`href="#${id}"`).join(`href="#ss-${id}"`); });
     } else if (R && R.vacio) msg = t('vacio');
@@ -532,6 +562,11 @@ const botones = () => `<div class="ss-acc" data-crudo><button type="button" clas
 /* la línea resumen: en una sola línea en escritorio (se encoge entera si no cabe); apilada, en dos (cada una se encoge por su lado) */
 const linea = (l1, l2) => `<p class="ss-linea ss-fit" data-crudo><span class="ss-l1 ss-fit">${l1}</span><span class="ss-l2 ss-fit"><i class="ss-lsep"> · </i>${l2}</span></p>`;
 const cabRes = (conBot) => `<header class="ss-res-cab">${cab('res', t('res'))}${conBot ? botones() : ''}</header>`;
+/* v10.62 · UN SOLO VEREDICTO: el semáforo enseña el aviso más grave del cálculo (el mismo que PRO pone arriba de RESULTADOS) y, si hay más,
+   un botón que abre la lista entera con lo que se puede hacer para corregirlos */
+let AV = [];
+const semHtml = (nivel, txt, bt, small, crudo) => `<p class="ss-sem ss-sem-${nivel}"${crudo === false ? '' : ' data-crudo'}><i></i><span class="ss-fit">${esc(txt)}${small ? ` <small data-crudo>${esc(nb(small))}</small>` : ''}</span>${bt || ''}</p>`;
+const btAvisos = (n, que) => (que ? `<button type="button" class="ss-mini" data-ss-q="pconsejo">${esc(t('queHago'))}</button>` : n > 1 ? `<button type="button" class="ss-mini" data-ss-q="pconsejo">${esc(t('nAvisos')(n - 1))}</button>` : '');
 function resLed() {
   const R = B().R, E = B().E;
   if (!R) return cabRes(false) + (B().estado() === 'error' ? `<p class="ss-msg" data-crudo>${esc(t('sinCat'))}</p><button type="button" class="ss-mini ss-grande" data-ss="reintenta">${esc(t('reintentar'))}</button>` : `<p class="ss-espera" data-crudo>${esc(B().estado() === 'cargando' ? t('cargando') : t('calculando'))}</p>`);
@@ -541,36 +576,45 @@ function resLed() {
   if (dh > 0) aj.push(t('ajMenosH')(dh)); else if (dh < 0) aj.push(t('ajMasH')(-dh));
   const st = window.SC_FICHA && window.SC_FICHA.stockIc ? window.SC_FICHA.stockIc(B().enStock(m)) : '';
   const l1 = esc(t('lLed')) + ' <b>' + esc(m.crm) + '</b>' + st, l2 = esc(nb(`${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px`));
-  const sem = R.relajado ? 'A' : 'V', semTxt = R.relajado ? R.relajado : t('semLedV'), ajTxt = aj.length ? '(' + aj.join(t('ajY')) + ', ' + t('ajFin') + ')' : '';
+  AV = [];
+  if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });
+  if (R.origen === 'cercano') AV.push({ n: 'A', txt: t('lCerca')(fm(E.pitch), fm(R.pitch)) });
+  if (R.origen === 'sinres') AV.push({ n: 'A', txt: t('lSinRes')(E.resMin) });
+  if (!R.proc) AV.push({ n: 'A', txt: t('lSinProc') });
+  if (E.marca !== 'ninguno' && !R.media) AV.push({ n: 'A', txt: t('lSinMedia') });
+  const sem = AV.length ? 'A' : 'V', semTxt = AV.length ? AV[0].txt : t('semLedV'), ajTxt = aj.length ? '(' + aj.join(t('ajY')) + ', ' + t('ajFin') + ')' : '';
   const lin = R.nLin || Math.max(1, Math.ceil((r.amp || 0) / 16)), nivel = R.nivel && R.nivel[0] ? (R.nivel[0] === 'FHD' ? 'FULL HD' : R.nivel[0]) : '', pt = fm(R.pitch);
   /* calidad: el nivel de imagen (HD, FULL HD, 4K, 8K) o, por debajo de HD, el pitch; sin repetir el formato */
   const C5 = [cifra(t('kCal'), nivel || 'P' + pt, '', nivel ? t('kCalS')(pt, R.formato || '') : t('kCalF')(R.formato || ''), 'calidad', 'var(--ss-azul)'),
     cifra(t('kNit'), fm(R.pitch / 1), 'm', t('kNitS')(fm(R.pitch * 3)), 'ojo', 'var(--ss-acento)')];
-  if (r.kw > 0) C5.push(cifra(t('kElec'), fmt(r.kw, 1), 'kW', R.ampCab > 0 ? t('kElecS')(lin) : '', 'rayo', 'var(--ss-rojo)'));
+  if (r.kw > 0) C5.push(cifra(t('kElec'), fmt(r.kw, 2), 'kW', R.ampCab > 0 ? t('kElecS')(lin) : '', 'rayo', 'var(--ss-rojo)'));
   if (r.peso > 0) C5.push(cifra(t('kPeso'), fmt(r.peso, 0), 'kg', +m.cabKg > 0 ? t('kPesoS')(fmt(m.cabKg, 1)) : '', 'peso', 'var(--ss-magenta)'));
   /* el procesador, con su icono de stock solo si lo hay (el dato es interno: nunca en texto) */
   if (R.proc && R.proc.modelo) C5.push(cifra(t('kCtrl'), R.proc.modelo, '', R.proc.marca || '', 'chip', 'var(--ss-violeta-t)', R.proc.enStock && window.SC_FICHA && window.SC_FICHA.stockIc ? window.SC_FICHA.stockIc(true) : ''));
   TXT = t('lLed') + ' ' + m.crm + ' · ' + `${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px` + '\n' + semTxt + (ajTxt ? ' ' + ajTxt : '') + '\n' +
-    [nivel ? t('kCal') + ': ' + nivel : '', t('kNit') + ' ' + fm(R.pitch) + ' m', r.kw > 0 ? t('kElec') + ': ' + fmt(r.kw, 1) + ' kW' : '', r.peso > 0 ? t('kPeso') + ': ' + fmt(r.peso, 0) + ' kg' : ''].filter(Boolean).join('\n');
-  return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}"${R.relajado ? '' : ' data-crudo'}><i></i><span class="ss-fit">${esc(semTxt)}${ajTxt ? ` <small data-crudo>${esc(nb(ajTxt))}</small>` : ''}</span></p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
+    [nivel ? t('kCal') + ': ' + nivel : '', t('kNit') + ' ' + fm(R.pitch) + ' m', r.kw > 0 ? t('kElec') + ': ' + fmt(r.kw, 2) + ' kW' : '', r.peso > 0 ? t('kPeso') + ': ' + fmt(r.peso, 0) + ' kg' : ''].filter(Boolean).join('\n');
+  return cabRes(true) + linea(l1, l2) + semHtml(sem, semTxt, btAvisos(AV.length), ajTxt, AV.length && AV[0].crudo === false ? false : true) + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
 /* v10.55 · varias pantallas LED o sala LED (consola): el cabinet elegido, cuántos hacen falta y las cifras del conjunto */
 function resLedC(m) {
   const c = C().c, E = C().E, est = C().estadoCat;
   if (!c || !c.modelo || !c.filas.length || !c.tot) return cabRes(false) + (est === 'cargando' ? `<p class="ss-espera" data-crudo>${esc(t('cargando'))}</p>` : `<p class="ss-msg" data-crudo>${esc(c && c.lista && !c.lista.length && est !== 'error' ? t('vacio') : t('sinCat'))}</p><button type="button" class="ss-mini ss-grande" data-ss="reintenta">${esc(t('reintentar'))}</button>`);
-  const T2 = c.tot, mo = c.modelo, av = c.avisoLed || [], sL = E.esp.sueltas, pt = fm(+mo.pitch), pr = c.elec && c.elec.proc;
+  const T2 = c.tot, mo = c.modelo, sL = E.esp.sueltas, pt = fm(+mo.pitch), pr = c.elec && c.elec.proc;
   const l1 = esc(m === 'salaLed' ? t('lSalaLed') : t('lPantsLed')) + ' <b>' + esc(mo.crm) + '</b>';
   /* las pantallas salen con cabinets enteros: se da su medida real y, si no es la pedida, se dice */
-  const f0 = c.filas.find((f) => f.r), real = m === 'variasLed' && f0 ? [f0.r.ancho, f0.r.alto] : null, ajTxt = real && (Math.abs(real[0] - sL.ancho) > .01 || Math.abs(real[1] - sL.alto) > .01) ? '(' + t('ajCab')(fm(sL.ancho), fm(sL.alto)) + ')' : '';
-  const med = m === 'salaLed' ? `${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => p !== 'suelo' && E.esp.paredes[p]).map((p) => t(p)).join(', ')}` : t('vPants')(c.filas.length, fm(real ? real[0] : sL.ancho), fm(real ? real[1] : sL.alto));
-  const l2 = esc(nb(med + ' · ' + t('cabs')(fmt(T2.cab, 0)))), sem = av.length ? 'A' : 'V', semTxt = av.length ? av[0] : t('semLedV');
+  /* v10.62 · cada pantalla con su medida: la real (cabinets enteros) y, si no es la pedida, se dice */
+  const fr = c.filas.filter((f) => f.r), pide = tamsDe(sL), real = m === 'variasLed' ? fr.map((f) => [f.r.ancho, f.r.alto]) : null;
+  const ajTxt = real && real.some((x, i) => pide[i] && (Math.abs(x[0] - pide[i][0]) > .01 || Math.abs(x[1] - pide[i][1]) > .01)) ? '(' + (pide.length === 1 || !tamsTxt(pide) ? t('ajCab')(fm(pide[0][0]), fm(pide[0][1])) : t('ajCab')(pide.map((x) => fm(x[0])).join('/'), pide.map((x) => fm(x[1])).join('/'))) + ')' : '';
+  const med = m === 'salaLed' ? `${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => p !== 'suelo' && E.esp.paredes[p]).map((p) => t(p)).join(', ')}` : (tamsTxt(real) ? real.length + ' · ' + tamsTxt(real) : t('vPants')(real.length, fm(real[0][0]), fm(real[0][1])));
+  AV = ((c.veredicto && c.veredicto.motivos) || []).map((x) => ({ n: x.n, txt: x.txt, crudo: false }));
+  const l2 = esc(nb(med + ' · ' + t('cabs')(fmt(T2.cab, 0)))), sem = AV.length ? 'A' : 'V', semTxt = AV.length ? AV[0].txt : t('semLedV');
   const C5 = [cifra(t('kCal'), 'P' + pt, '', t('kLienzo')(fmt(T2.lienzoW, 0), fmt(T2.lienzoH, 0)), 'calidad', 'var(--ss-azul)'),
     cifra(t('kNit'), pt, 'm', t('kNitS')(fm(+mo.pitch * 3)), 'ojo', 'var(--ss-acento)'),
     cifra(t('kCabs'), fmt(T2.cab, 0), '', +mo.cabAncho > 0 && +mo.cabAlto > 0 ? t('kCabsS')(String(+mo.cabAncho).replace('.', ','), String(+mo.cabAlto).replace('.', ',')) : '', 'led', 'var(--ss-violeta-t)')];
-  if (T2.kw > 0) C5.push(cifra(t('kElec'), fmt(T2.kw, 1), 'kW', T2.amp > 0 ? fmt(T2.amp, 1) + ' A · 230 V' : '', 'rayo', 'var(--ss-rojo)'));
+  if (T2.kw > 0) C5.push(cifra(t('kElec'), fmt(T2.kw, 2), 'kW', T2.amp > 0 ? fmt(T2.amp, 1) + ' A · 230 V' : '', 'rayo', 'var(--ss-rojo)'));
   if (T2.peso > 0) C5.push(cifra(t('kPeso'), fmt(T2.peso, 0), 'kg', +mo.cabKg > 0 ? t('kPesoS')(fmt(+mo.cabKg, 1)) : '', 'peso', 'var(--ss-magenta)'));
-  TXT = (m === 'salaLed' ? t('lSalaLed') : t('lPantsLed')) + ' ' + mo.crm + ' · ' + med + ' · ' + t('cabs')(fmt(T2.cab, 0)) + '\n' + semTxt + (ajTxt ? ' ' + ajTxt : '') + '\n' + [t('kCal') + ': P' + pt + ' · ' + t('kLienzo')(fmt(T2.lienzoW, 0), fmt(T2.lienzoH, 0)), T2.kw > 0 ? t('kElec') + ': ' + fmt(T2.kw, 1) + ' kW' : '', T2.peso > 0 ? t('kPeso') + ': ' + fmt(T2.peso, 0) + ' kg' : '', pr && pr.modelo ? t('kCtrl') + ': ' + pr.modelo : ''].filter(Boolean).join('\n');
-  return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}"${av.length ? '' : ' data-crudo'}><i></i><span class="ss-fit">${esc(semTxt)}${ajTxt ? ` <small data-crudo>${esc(nb(ajTxt))}</small>` : ''}</span></p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
+  TXT = (m === 'salaLed' ? t('lSalaLed') : t('lPantsLed')) + ' ' + mo.crm + ' · ' + med + ' · ' + t('cabs')(fmt(T2.cab, 0)) + '\n' + semTxt + (ajTxt ? ' ' + ajTxt : '') + '\n' + [t('kCal') + ': P' + pt + ' · ' + t('kLienzo')(fmt(T2.lienzoW, 0), fmt(T2.lienzoH, 0)), T2.kw > 0 ? t('kElec') + ': ' + fmt(T2.kw, 2) + ' kW' : '', T2.peso > 0 ? t('kPeso') + ': ' + fmt(T2.peso, 0) + ' kg' : '', pr && pr.modelo ? t('kCtrl') + ': ' + pr.modelo : ''].filter(Boolean).join('\n');
+  return cabRes(true) + linea(l1, l2) + semHtml(sem, semTxt, btAvisos(AV.length), ajTxt) + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
 function resProy() {
   const m = modoCons();
@@ -579,26 +623,29 @@ function resProy() {
   const c = C().c, E = C().E;
   if (!c || !c.filas || !c.filas.length || !c.proyector) return cabRes(false) + `<p class="ss-espera" data-crudo>${esc(t('calculando'))}</p>`;
   const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], pr = c.proyector, n = c.tot.n, con = c.tot.contrasteMin, pos = f.pos || {};
-  const mal = c.filas.some((x) => x.p && (x.p.fuera || x.p.noCubre || x.p.chica)), lux = Number(E.proy.lux) || 0;   /* v10.58 · también si la imagen es más pequeña que la mínima de la óptica */
-  /* v10.54 · el proyector elegido a mano no puede (se dice y se ofrece qué hacer), o se calcula fuera de especificación (se avisa y se puede quitar) */
-  const kj = m !== 'sala' ? c.consejo : null, nomb = [pr.marca, pr.modelo].filter(Boolean).join(' ') + (pr.optica ? ' + ' + pr.optica : ''), oosOn = !kj && !mal && !!E.proy.oos;
-  const semC = con >= 15 ? 'V' : con >= 7 ? 'A' : 'R', sem = mal || kj ? 'R' : oosOn && semC === 'V' ? 'A' : semC, acc = lux > 50 ? t('accLuz') : t('accMas');
-  const semTxt = kj ? t('noVale')(nomb) : mal ? t('pNoCabe') : oosOn ? t('semOos') + (semC === 'R' ? ' ' + t('semOosC') : '') : sem === 'V' ? t('semV') : sem === 'A' ? t('semA')(acc) : t('semR')(acc);
-  const semBt = kj ? `<button type="button" class="ss-mini" data-ss-q="pconsejo">${esc(t('queHago'))}</button>` : oosOn ? `<button type="button" class="ss-mini" data-ss="oos-no">${esc(t('quitar'))}</button>` : '';
+  /* v10.62 · el veredicto es el del cálculo (el mismo que PRO): el aviso más grave en el semáforo y los demás en su ventana */
+  const V = c.veredicto || { nivel: 'V', motivos: [] }, M = V.motivos, m0 = M[0], kj = c.consejo, lx = c.lx;
+  const nomQ = (q) => [q.marca, q.modelo].filter(Boolean).join(' ') + (q.optica ? ' + ' + q.optica : ''), G = c.grupos && c.grupos.length ? c.grupos : [{ q: pr, n }];
+  const nomb = G.length > 1 ? G.map((g) => g.n + ' × ' + nomQ(g.q)).join(' + ') : nomQ(pr);
+  AV = M.map((x) => ({ n: x.n, txt: x.k === 'consejo' ? t('noVale')(kj.nombre) : x.k === 'oos' ? t('semOos') : x.txt }));
+  const conR = Math.round(con * 10) / 10, semC = conR >= 15 ? 'V' : conR >= 7 ? 'A' : 'R', sem = V.nivel, semTxt = m0 ? AV[0].txt : t('semV');
+  const soloOos = M.length === 1 && m0.k === 'oos', semBt = soloOos ? `<button type="button" class="ss-mini" data-ss="oos-no">${esc(t('quitar'))}</button>` : btAvisos(M.length, !!(kj || c.unaImagen));
   /* la línea: el proyector y, detrás, la imagen (o la sala) y cuántos hacen falta, sin repetir el número */
+  const vert = c.filas.some((x) => x.p && x.p.vert) ? ' · ' + t('vVert') : '';
   const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc(nomb) + '</b>';
-  const l2 = m === 'sala' ? esc(nb(`${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')} · ${t('proys')(n)}`))
-    : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}`));
-  /* v10.60 · las mismas cifras que PRO: lúmenes TOTALES (con «N × L lm» debajo), el lienzo completo y el color del contraste según el propio contraste */
-  const lmTot = n > 1 && c.tot.lumenes > 0 ? c.tot.lumenes : pr.lumens, lz = n > 1 && c.tot.lienzoW > 0 && c.tot.lienzoH > 0;
-  const C5 = [cifra(t('kLum'), fmt(lmTot, 0), 'lm', (n > 1 ? fmt(n, 0) + ' × ' + fmt(pr.lumens, 0) + ' lm' : pr.optica ? t('kOpt')(pr.optica) : t('kLumS1')), 'bombilla', 'var(--ss-ambar)'),
-    cifra(t('kCon'), isFinite(con) ? fmt(con, 1) : '—', ':1', lux > 0 ? t('kConS')(fmt(lux, 0)) : '', 'contraste', semC === 'V' ? 'var(--ss-acento)' : semC === 'A' ? 'var(--ss-ambar)' : 'var(--ss-rojo)')];
+  const l2 = m === 'sala' ? esc(nb(`${fm(E.esp.ancho)} × ${fm(E.esp.fondo)} × ${fm(E.esp.alto)} m · ${PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')} · ${t('proys')(n)}${vert}`))
+    : esc(nb(`${fm(f.s.ancho)} × ${fm(f.s.alto)} m · ${fmt(Math.hypot(f.s.ancho, f.s.alto) / .0254)}″ · ${t('proys')(n)}${vert}`));
+  /* las mismas cifras que PRO: lúmenes TOTALES (debajo, cuántos de cada modelo), el lienzo completo y el contraste con el color de su valor */
+  const lmTot = c.tot.lumenes > 0 ? c.tot.lumenes : pr.lumens, lz = n > 1 && c.tot.lienzoW > 0 && c.tot.lienzoH > 0, lmSub = n > 1 ? G.map((g) => fmt(g.n, 0) + ' × ' + fmt(g.q.lumens, 0)).join(' + ') + ' lm' : pr.optica ? t('kOpt')(pr.optica) : t('kLumS1');
+  const conTxt = isFinite(con) ? fmt(con, 1, 0) : '∞';   /* v10.62 · como PRO: «7:1», no «7,0:1» */
+  const C5 = [cifra(t('kLum'), fmt(lmTot, 0), 'lm', lmSub, 'bombilla', 'var(--ss-ambar)'),
+    cifra(t('kCon'), conTxt, ':1', t('kConS')(fmt(lx, 0)), 'contraste', semC === 'V' ? 'var(--ss-acento)' : semC === 'A' ? 'var(--ss-ambar)' : 'var(--ss-rojo)')];
   if (m === 'sala') { if (c.tot.nitsMin > 0) C5.push(cifra(t('kBri'), fmt(c.tot.nitsMin, 0), 'nits', t('kBriS'), 'sol', 'var(--ss-acento)')); }
   else if (pos.dist > 0) C5.push(cifra(m === 'mapping' ? t('kDisF') : t('kDis'), fm(pos.dist), 'm', m === 'pared' ? (pos.apoyo ? t('kDisA') : t('kDisC')) : '', 'dist', 'var(--ss-azul)'));
   if (lz) C5.push(cifra(t('kRes'), fmt(c.tot.lienzoW, 0).replace(/\./g, '') + '×' + fmt(c.tot.lienzoH, 0).replace(/\./g, ''), 'px', fmt(n, 0) + ' × ' + (String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY), 'calidad', 'var(--ss-violeta-t)'));
   else if (pr.resX > 0 && pr.resY > 0) C5.push(cifra(t('kRes'), String(pr.resTxt || '').split('(')[0].trim() || pr.resX + '×' + pr.resY, '', t('kResS')(pr.resX, pr.resY), 'calidad', 'var(--ss-violeta-t)'));
-  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + '\n' + t('kLum') + ': ' + fmt(lmTot, 0) + ' lm' + (n > 1 ? ' (' + fmt(n, 0) + ' × ' + fmt(pr.lumens, 0) + ' lm)' : '') + (isFinite(con) ? '\n' + t('kCon') + ': ' + fmt(con, 1) + ':1' : '');
-  return cabRes(true) + linea(l1, l2) + `<p class="ss-sem ss-sem-${sem}" data-crudo><i></i><span class="ss-fit">${esc(semTxt)}</span>${semBt}</p>` + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
+  TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + (AV.length > 1 ? '\n' + AV.slice(1).map((x) => '· ' + x.txt).join('\n') : '') + '\n' + t('kLum') + ': ' + fmt(lmTot, 0) + ' lm' + (n > 1 ? ' (' + lmSub + ')' : '') + '\n' + t('kCon') + ': ' + conTxt + ':1';
+  return cabRes(true) + linea(l1, l2) + semHtml(sem, semTxt, semBt) + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
 function pintaRes() { const el = document.getElementById('ss-res'); if (!el) return; TXT = ''; el.innerHTML = listo() ? (PAG === 'portada' ? resLed() : resProy()) : cabRes(false) + (FALLO ? '' : espera()); }   /* el aviso de fallo, una sola vez (en LO QUE PIDES) */
 
@@ -631,15 +678,18 @@ const PREG = {
     pon: (v) => { const E = ED(); if (v.w) E.w = v.w; if (v.h) E.h = v.h; if (v.tele) E.h = Math.round(E.w * 9 / 16 * 100) / 100; } },
   dist: { rama: 'led', t: 'qDist', ay: 'ayDist', op: () => [[1.5, 'd1', 'ojo'], [3, 'd2', 'ojo'], [7, 'd3', 'ojo'], [15, 'd4', 'ojo']], val: () => +ED().dist || 0,
     num: () => [['d', t('metros'), ED().dist || '', .5, 200, 'm', true]], nose: () => t('dNoSe')(distDef()),
-    pon: (v) => { const E = ED(); E.dist = typeof v === 'object' ? (v.d || 0) : v === 'nose' ? 0 : v; E.pitch = 0; E.crm = ''; } },
+    pon: (v) => { const E = ED(); E.dist = typeof v === 'object' ? (v.d || 0) : v === 'nose' ? 0 : v; E.pitch = 0; E.pitchOtros = []; E.crm = ''; } },
+  lpitch: { rama: 'led', si: () => false, t: 'qPitch', ay: 'ayPitch', num: () => [['p', t('sPitch'), +ED().pitch || '', .5, 20, 'mm', true]], nose: () => t('noSePitch'),
+    pon: (v) => { const E = ED(), p = typeof v === 'object' ? +v.p || 0 : 0; E.pitch = p; E.pitchOtros = []; E.crm = ''; } },
   tocar: { rama: 'led', si: () => ED().tipo === 'INDOOR', t: 'qToca', op: () => [[true, 'oTocaSi', 'mano'], [false, 'oTocaNo', 'escudo']], val: () => !!ED().protegido, pon: (v) => { const E = ED(); E.protegido = !!v; E.crm = ''; } },
   altura: { rama: 'led', t: 'qAlt', op: () => [[0, 'a0', 'altura'], [80, 'a80', 'mesa'], [200, 'a200', 'altura']], val: () => +ED().elev,
     num: () => [['e', t('cms'), ED().elev, 0, 3000, 'cm', true]], pon: (v) => { const E = ED(); E.elev = typeof v === 'object' ? Math.round(v.e || 0) : v; } },
   /* v10.55 · rama LED de varias pantallas o sala entera (consola). «ltipo» es también el primer paso del LED en la portada */
   ltipo: { rama: 'ledc', t: 'qLtipo', op: () => [['una', 'oLuna', 'led'], ['varias', 'oLvarias', 'pared'], ['sala', 'oLsala', 'cubo']], val: () => (PAG === 'portada' ? 'una' : modoCons() === 'salaLed' ? 'sala' : modoCons() === 'variasLed' ? 'varias' : null), pon: () => {} },
   ltam: { rama: 'ledc', t: () => (modoCons() === 'salaLed' ? 'qSala' : 'qPants'), ay: () => (modoCons() === 'salaLed' ? '' : 'ayPants'), paredes: () => modoCons() === 'salaLed',
-    num: () => { const e = ED().esp, q = e.sueltas; return modoCons() === 'salaLed' ? [['a', t('ancho'), e.ancho, 1, 60, 'm'], ['f', t('fondo'), e.fondo, 1, 60, 'm'], ['h', t('alto'), e.alto, 1.5, 20, 'm']] : [['n', t('cuantas'), q.n, 2, 12, ''], ['w', t('ancho'), q.ancho, .5, 100, 'm'], ['h', t('alto'), q.alto, .3, 60, 'm']]; },
-    pon: (v) => { const E = ED(), e = E.esp; if (typeof v !== 'object') return; if (modoCons() === 'salaLed') { if (v.a) e.ancho = v.a; if (v.f) e.fondo = v.f; if (v.h) e.alto = v.h; } else { if (v.n) e.sueltas.n = Math.round(v.n); if (v.w) e.sueltas.ancho = v.w; if (v.h) e.sueltas.alto = v.h; } } },
+    /* v10.62 · varias LED: hasta 4, cada una con su medida (pants) */
+    num: () => { const e = ED().esp; return modoCons() === 'salaLed' ? [['a', t('ancho'), e.ancho, 1, 60, 'm'], ['f', t('fondo'), e.fondo, 1, 60, 'm'], ['h', t('alto'), e.alto, 1.5, 20, 'm']] : []; }, pants: () => modoCons() === 'variasLed',
+    pon: (v) => { const E = ED(), e = E.esp; if (typeof v !== 'object') return; if (modoCons() === 'salaLed') { if (v.a) e.ancho = v.a; if (v.f) e.fondo = v.f; if (v.h) e.alto = v.h; } else { const q = e.sueltas, L = tamsDe(q); L.forEach((x, i) => { if (v['w' + i]) x[0] = v['w' + i]; if (v['h' + i]) x[1] = v['h' + i]; }); q.tams = L; q.ancho = L[0][0]; q.alto = L[0][1]; } } },
   ldonde: { rama: 'ledc', si: () => modoCons() === 'variasLed', t: 'qDondeV', op: () => [['INDOOR', 'oIn', 'casa'], ['OUTDOOR', 'oOut', 'calle'], ['ESCAPARATE', 'oEsc', 'escaparate']], val: () => ED().led.tipo,
     pon: (v) => { const L = ED().led; if (L.tipo !== v) { L.tipo = v; L.crm = ''; L.nitsMin = 0; L.sol = ''; } } },
   luso: { rama: 'ledc', t: () => (modoCons() === 'salaLed' ? 'qUso' : 'qUsoV'), op: () => [['INSTALL', 'oFija', 'pin'], ['RENTAL', 'oRental', 'camion']], val: () => ED().led.clase, pon: (v) => { const L = ED().led; if (L.clase !== v) { L.clase = v; L.crm = ''; } } },
@@ -647,12 +697,15 @@ const PREG = {
     num: () => [['d', t('metros'), ED().esp.sueltas.dist || '', .5, 200, 'm', true]], pon: (v) => { const E = ED(), d = typeof v === 'object' ? v.d : v; if (d > 0) { E.esp.sueltas.dist = d; E.led.crm = ''; } } },
   /* rama PROYECTOR (consola) */
   ptipo: { rama: 'proy', t: 'qPtipo', op: () => [['pared', 'pPared', 'pared'], ['mapping', 'pMap', 'edificio'], ['sala', 'pSala', 'cubo']], val: () => (modoCons() === 'sala' ? 'sala' : modoCons() === 'mapping' ? 'mapping' : 'pared'),
-    pon: (v) => { const E = ED(); E.tecnologia = 'proy'; if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; } else { E.cantidad = 'una'; E.esp.tipo = 'sueltas'; E.proy.tipo = v; } C().luz(); } },
+    pon: (v) => { const E = ED(), antes = modoCons(); E.tecnologia = 'proy'; if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; } else { E.cantidad = 'una'; E.esp.tipo = 'sueltas'; E.proy.tipo = v; } if (v === 'mapping' && antes !== 'mapping' && C().mapping) C().mapping(); } },   /* v10.62 · la luz no cambia sola; el mapping arranca con 6 m de alto y a 6 m */
   ptam: { rama: 'proy', t: () => (modoCons() === 'sala' ? 'qSala' : 'qPtam'), ay: () => (modoCons() === 'sala' ? '' : 'ayPtam'), tele: () => modoCons() !== 'sala',
     num: () => (modoCons() === 'sala' ? [['a', t('ancho'), ED().esp.ancho, 1, 60, 'm'], ['f', t('fondo'), ED().esp.fondo, 1, 60, 'm'], ['h', t('alto'), ED().esp.alto, 1.5, 20, 'm']] : [['w', t('ancho'), ED().esp.sueltas.ancho, .5, 200, 'm'], ['h', t('alto'), ED().esp.sueltas.alto, .3, 120, 'm']]),
     paredes: () => modoCons() === 'sala',
     pon: (v) => { const E = ED(); if (modoCons() === 'sala') { if (v.a) E.esp.ancho = v.a; if (v.f) E.esp.fondo = v.f; if (v.h) E.esp.alto = v.h; } else { const s = E.esp.sueltas; if (v.w) s.ancho = v.w; if (v.h) s.alto = v.h; if (v.tele) s.alto = Math.round(s.ancho * 9 / 16 * 100) / 100; } } },
-  luz: { rama: 'proy', si: () => modoCons() !== 'mapping', t: 'qLuz', ay: 'ayLuz', op: () => LUCES.map((l) => [l[0], l[1], l[2]]), val: () => Number(ED().proy.lux), pon: (v) => { ED().proy.lux = v; } },
+  /* v10.62 · los escalones de Epson, o a mano (0 lx es 0) */
+  luz: { rama: 'proy', t: 'qLuz', ay: 'ayLuz', op: () => LUCES.map((l) => [l[0], l[2], l[3]]), val: () => { const l = luzDe(ED()); return l ? l[0] : null; },
+    num: () => [['lx', t('luxMano'), luzDe(ED()) ? '' : Number(ED().proy.lux), 0, 5000, 'lx', true]],
+    pon: (v) => { const P = ED().proy; if (typeof v === 'object') { if (v.lx != null) { P.lux = v.lx; P.luzUso = ''; } return; } const l = LUCES.find((x) => x[0] === v); if (l) { P.lux = l[1]; P.luzUso = l[0]; } } },
   pub: { rama: 'proy', si: () => modoCons() === 'pared', t: 'qPub', ay: 'ayPub', num: () => [['d', t('metros'), ED().proy.pubNS ? '' : ED().esp.sueltas.dist, 1, 100, 'm']], nose: () => t('noSePub'),
     /* v10.54 · «no lo sé»: el proyector va al centro de lo que permite su óptica (se cuenta 5 m para el resto) */
     pon: (v) => { const E = ED(), n = typeof v === 'object' && v.d > 0; E.esp.sueltas.dist = n ? v.d : 5; E.proy.pubNS = !n; } },
@@ -671,13 +724,16 @@ const PREG = {
     val: () => ED().proy.optica || '',
     pon: (v) => { const E = ED(), c = proyC(); if (v) { if (c) E.proy.cuerpo = c.proyector.modelo; E.proy.optica = v; } else { E.proy.optica = ''; E.proy.cuerpo = C().DEF().proy.cuerpo; } } },
   pmarca: { rama: 'proy', t: 'qMarca', ay: 'ayMarca', marcas: () => true, pon: () => {} },
-  pconsejo: { rama: 'proy', t: 'qConsejo', ay: () => { const c = proyC(), k = c && c.consejo; return k ? t('ayConsejo')(k.nombre) : ''; },
-    op: () => { const c = proyC(), k = c && c.consejo, o = []; if (!k) return [['auto', [t('cAuto'), t('cAutoS')], 'chispa']];
-      if (k.alt) { const q = k.alt; o.push(['alt', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cAltS')([q.lumens > 0 ? fmt(q.lumens, 0) + ' lm' : '', String(q.resTxt || '').split('(')[0].trim()].filter(Boolean).join(' · '))], 'proy']); }
-      if (k.oos) o.push(['oos', [t('cOos'), t('cOosS')], 'alerta']);
-      o.push(['auto', [t('cAuto'), t('cAutoS')], 'chispa']); return o; },
+  /* v10.62 · los avisos del veredicto (los mismos que PRO) y, debajo, lo que se puede hacer para corregirlos */
+  pconsejo: { t: () => (PAG === 'consola' && proyC() && proyC().consejo ? 'qConsejo' : 'qAvisos'), avisos: true,
+    op: () => { const c = PAG === 'consola' && !esLedC() ? proyC() : null, k = c && c.consejo, o = []; if (!c) return o;
+      if (k && k.alt) { const q = k.alt; o.push(['alt', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cAltS')([q.lumens > 0 ? fmt(q.lumens, 0) + ' lm' : '', String(q.resTxt || '').split('(')[0].trim()].filter(Boolean).join(' · '))], 'proy']); }
+      if (c.unaImagen) { const q = c.unaImagen; o.push(['una', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cUnaS') + (q.lumens > 0 ? ' · ' + fmt(q.lumens, 0) + ' lm' : '')], 'proy']); }
+      if (k && k.oos) o.push(['oos', [t('cOos'), t('cOosS')], 'alerta']);
+      if (ED().proy.oos) o.push(['oosno', t('cOosNo'), 'alerta']);
+      if (k || ED().proy.cuerpo || ED().proy.optica) o.push(['auto', [t('cAuto'), t('cAutoS')], 'chispa']); return o; },
     val: () => null,
-    pon: (v) => { const E = ED(), c = proyC(), k = c && c.consejo; if (v === 'alt' && k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; } else if (v === 'oos') E.proy.oos = true; else if (v === 'auto') { E.proy.cuerpo = C().DEF().proy.cuerpo; E.proy.optica = ''; } } }
+    pon: (v) => { const E = ED(), c = proyC(), k = c && c.consejo; if (v === 'alt' && k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; } else if (v === 'una' && c && c.unaImagen) { E.proy.cuerpo = c.unaImagen.modelo; E.proy.optica = c.unaImagen.optica || ''; } else if (v === 'oos') E.proy.oos = true; else if (v === 'oosno') E.proy.oos = false; else if (v === 'auto') { E.proy.cuerpo = C().DEF().proy.cuerpo; E.proy.optica = ''; } } }
 };
 const RAMA = { led: ['ltipo', 'donde', 'sol', 'mar', 'uso', 'medida', 'dist', 'tocar', 'altura'], ledc: ['ltipo', 'ltam', 'ldonde', 'luso', 'ldist'], proy: ['ptipo', 'ptam', 'luz', 'pub', 'pcabe', 'mont', 'techo'] };
 const visibles = (r) => RAMA[r].filter((id) => !PREG[id].si || PREG[id].si());
@@ -696,7 +752,7 @@ function siguiente() {
 function rama(r) {
   if (r === 'led' && PAG !== 'portada') r = 'ledc';   /* v10.55 · en la consola, la rama LED es la de varias pantallas o sala (una sola lleva a la portada) */
   if (r === 'proy' && PAG !== 'consola') { location.href = RAIZ + 'vista/consola.html?modo=una-proy&vista=simple&asis=proy'; return; }
-  if (r === 'proy') { const E = ED(); if (E.tecnologia !== 'proy' || modoCons() === 'varias') { E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; C().luz(); recalc(); } }
+  if (r === 'proy') { const E = ED(); if (E.tecnologia !== 'proy' || modoCons() === 'varias') { E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; recalc(); } }
   W.rama = r; va(visibles(r)[0]);
 }
 function pintaAsis() {
@@ -721,6 +777,12 @@ function pintaAsis() {
   } else if (q) {
     const ay = tx(q.ay), vals = q.val ? q.val() : null, ops = q.op ? q.op() : [], nums = q.num ? q.num() : [], mucho = ops.length >= 4;
     cuerpoA = `<h2 class="ss-q" id="ss-q">${esc(Lx[tx(q.t)])}</h2>${ay ? `<p class="ss-ay">${esc(typeof Lx[ay] === 'string' ? Lx[ay] : ay)}</p>` : ''}`;
+    if (q.avisos) { cuerpoA += `<ul class="ss-avisos">${AV.map((x) => `<li class="ss-av-${x.n}"${x.crudo === false ? '' : ''}>${esc(x.txt)}</li>`).join('')}</ul>`;
+      pie = `<button type="button" class="ss-sig" data-ss="pro"><span class="ss-fit">${esc(Lx.enPro)}</span></button>`; }
+    if (q.pants && q.pants()) { const sL = ED().esp.sueltas, L = tamsDe(sL);
+      cuerpoA += `<div class="ss-pars" role="group" aria-label="${esc(Lx.cuantas)}">${[2, 3, 4].map((k) => `<button type="button" class="ss-par${L.length === k ? ' on' : ''}" data-ss-pn="${k}" aria-pressed="${L.length === k}"><span class="ss-fit">${k}</span></button>`).join('')}</div>`;
+      cuerpoA += `<div class="ss-pants">${L.map((x, i) => `<span class="ss-pant-k ss-fit">${esc(Lx.pantK(i + 1))}</span>` + [['w', Lx.ancho, x[0], .3, 100], ['h', Lx.alto, x[1], .2, 60]].map((n2) => `<label class="ss-num"><span class="ss-fit">${esc(n2[1])}</span><span class="ss-num-c"><input type="text" inputmode="decimal" data-ss-n="${n2[0] + i}" value="${esc(fm(n2[2]))}" data-min="${n2[3]}" data-max="${n2[4]}" aria-label="${esc(Lx.pantK(i + 1) + ' · ' + n2[1])}"><i>m</i></span></label>`).join('')).join('')}</div>`;
+      pie = `<button type="button" class="ss-sig" data-ss="num-ok"><span class="ss-fit">${esc(W.full ? Lx.sig : Lx.listo)}</span></button>`; }
     /* v10.57 · con más de 12 opciones (un proyector con muchas ópticas), en lista de tres columnas: caben todas sin desplazar la ventana
        (con las fichas grandes, cuatro filas ya no cabían en pantallas de 720 de alto ni en la tableta) */
     if (ops.length) cuerpoA += `<div class="ss-ops ${ops.length > 12 ? 'ss-ops3 ss-ops-lista' : mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0]))).join('')}</div>`;
@@ -812,6 +874,7 @@ function clic(e) {
   if (b.dataset.ssOp != null) { let v; try { v = JSON.parse(b.dataset.ssOp); } catch (x) { v = b.dataset.ssOp; } responde(v); return; }
   if (b.dataset.ssQ) { abre(b.dataset.ssQ, false); return; }
   if (b.dataset.ssMarca) { if (C().marca(b.dataset.ssMarca)) { recalc(); pintaAsis(); } return; }
+  if (b.dataset.ssPn) { const q = ED().esp.sueltas, v = leeNums() || {}, L = tamsDe(q); L.forEach((x, i) => { if (v['w' + i]) x[0] = v['w' + i]; if (v['h' + i]) x[1] = v['h' + i]; }); q.tams = L; q.n = +b.dataset.ssPn; q.tams = tamsDe(q); recalc(); pintaAsis(); return; }   /* v10.62 · cuántas pantallas LED (2 a 4) */
   if (b.dataset.ssPar) { const E = ED(), k = b.dataset.ssPar; E.esp.paredes[k] = !E.esp.paredes[k]; if (!PAREDES.some((p) => E.esp.paredes[p] && !(esLedC() && p === 'suelo'))) E.esp.paredes.frontal = true; recalc(); pintaAsis(); return; }
   const a = b.dataset.ss; if (!a) return;
   if (a === 'asis') abre('que', true);
@@ -823,8 +886,8 @@ function clic(e) {
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta], [data-accion="reintentar"]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
   else if (a === 'ir-led') { location.href = RAIZ + 'index.html?vista=simple'; }
-  else if (a === 'ir-proy') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; C().luz(); C().actualizar(); }
-  else if (a === 'ir-sala') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'varias'; E.esp.tipo = 'sala'; C().luz(); C().actualizar(); }
+  else if (a === 'ir-proy') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; C().actualizar(); }
+  else if (a === 'ir-sala') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'varias'; E.esp.tipo = 'sala'; C().actualizar(); }
   else if (a === 'saltar') cierra();
   else if (a === 'atras') { if (W && W.hist.length) { W.paso = W.hist.pop(); pintaAsis(); } }
   else if (a === 'rec-sigue') rama(W.rec === 'proy' ? 'proy' : 'led');

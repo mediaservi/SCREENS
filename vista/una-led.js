@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.61';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.62';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.61';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.62';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.61';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.62';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -77,7 +77,7 @@ const tog = (on, attrs, txt, ic) => `<button type="button" class="tog" aria-pres
 
 /* ---------- estado ---------- */
 const GUARDA = 'screens-blocks-1';
-const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0' };
+const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0' };
 const E = Object.assign({}, DEF,
   (() => { try { return JSON.parse(localStorage.getItem(GUARDA) || '{}'); } catch (e) { return {}; } })());
 let USADO = false;   /* el resultado solo ocupa la casilla cuando ya se ha pedido o tocado algo: al abrir se ve la casilla vacía con su ejemplo */
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.61';
+const TEXV = '?v=10.62';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -120,18 +120,32 @@ if (E.fondo === 'propio' && !FPROP) E.fondo = DEF.fondo;
 function interpreta(raw) {
   const t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ', v = [];
   const U = '(mm|cm|m|mts?|metros?|metres?|meters?)?', aM = (n, u) => { n = parseFloat(n); return u === 'mm' ? n / 1000 : u === 'cm' ? n / 100 : n; };
-  const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'));
+  /* v10.62 · también «4 metros de ancho por 2,5 de alto» */
+  const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'))
+    || t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:ancho|ample|amplada|wide|width)\\s*(?:x|×|\\*|por|by|per|y|i|and|,)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:alto|alt|altura|alcada|high|height)'));
   let resto = t;
-  if (d) { const u = d[4] || d[2], u1 = d[2] || d[4]; E.w = aM(d[1], u1); E.h = aM(d[3], u); v.push(fmt(E.w, 2) + ' × ' + fmt(E.h, 2) + ' m'); resto = t.replace(d[0], ' '); }
+  if (d) { let u = d[4] || d[2], u1 = d[2] || d[4];
+    /* v10.62 · sin unidad: «3000 x 2000» son milímetros y «300 x 200», centímetros (nadie pide una pantalla de 300 m) */
+    if (!u && !u1) { const mx = Math.max(parseFloat(d[1]), parseFloat(d[3])); u = u1 = mx >= 1000 ? 'mm' : mx >= 50 ? 'cm' : ''; }
+    E.w = aM(d[1], u1); E.h = aM(d[3], u); resto = t.replace(d[0], ' ');
+    /* v10.62 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
+    E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
+  /* v10.62 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
+  if (d) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
   if (/escaparate|vitrina|shop ?window|storefront|aparador/.test(t)) { E.tipo = 'ESCAPARATE'; v.push('escaparate'); }
   else if (/exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa/.test(t)) { E.tipo = 'OUTDOOR'; v.push('exterior'); }
   else if (/interior|indoor|inside|\bsala\b|salon|oficina|office|\bstand\b|showroom/.test(t)) { E.tipo = 'INDOOR'; v.push('interior'); }
   if (/alquiler|lloguer|rental|\brent\b|evento|event|esdeveniment|\bgira\b|\btour\b|concierto|concert|feria|fira|escenario|escenari|\bstage\b|temporal/.test(t)) { E.clase = 'RENTAL'; v.push('alquiler'); }
   else if (/instalacion|instal.lacio|instalar|\bfij[oa]\b|\bfix[ae]?\b|fixed|permanent|install/.test(t)) { E.clase = 'INSTALL'; v.push('fija'); }
   const p = resto.match(/(?:pitch|paso)\s*(?:de\s*|:\s*)?(\d{1,2}(?:\.\d+)?)|\bp\s?(\d{1,2}(?:\.\d+)?)\b|(\d{1,2}(?:\.\d+)?)\s*(?:mm\s*)?(?:de\s*)?(?:pitch|paso)/) || (() => { const m = resto.match(/(?:^|[^\d.])(\d{1,2}(?:\.\d+)?)\s?p(?![a-z0-9])/); return m && (/\./.test(m[1]) || parseFloat(m[1]) <= 20) ? [0, m[1]] : null; })();
-  if (p) { E.pitch = parseFloat(p[1] || p[2] || p[3]); E.crm = ''; v.push('pitch ' + E.pitch); } else if (d || v.length) { E.pitch = 0; E.crm = ''; }
-  const ds = resto.match(/(?:\ba|\bat|desde|des de|from|hasta|fins a|distancia(?: de)?|distance(?: of)?|visto a|vist a|seen at)\s*(?:unos\s*|uns\s*|about\s*)?(\d+(?:\.\d+)?)\s*(m|mts?|metros?|metres?|meters?)(?![a-z])/);
+  if (p) { E.pitch = parseFloat(p[1] || p[2] || p[3]); E.crm = '';
+    /* v10.62 · varios pitch («P2.0 y P1.8»): valen todos y se elige entre ellos con las mismas reglas (encaje, stock…) */
+    E.pitchOtros = [...resto.matchAll(/\bp\s?(\d{1,2}(?:\.\d+)?)\b|(?:pitch|paso)\s*(?:de\s*|:\s*)?(\d{1,2}(?:\.\d+)?)/g)].map((x) => parseFloat(x[1] || x[2])).filter((x) => x > 0 && x <= 20 && x !== E.pitch);
+    v.push('pitch ' + [E.pitch].concat(E.pitchOtros).join(' / ')); } else if (d || v.length) { E.pitch = 0; E.pitchOtros = []; E.crm = ''; }
+  const ds = resto.match(/(?:\ba|\bat|desde|des de|from|hasta|fins a|distancia(?: de)?|distance(?: of)?|visto a|vist a|seen at)\s*(?:unos\s*|uns\s*|about\s*)?(\d+(?:\.\d+)?)\s*(m|mts?|metros?|metres?|meters?)(?![a-z])(?!\s*(?:de\s*|d'\s*)?(?:altura|alto|alcada|alt\b|height|high|del suelo|del terra|from the floor))/);
   if (ds) { E.dist = parseFloat(ds[1]); v.push('a ' + fmt(E.dist, 1) + ' m'); } else if (d) E.dist = 0;
+  { const rm = /\b(4k|uhd|2160p)\b/.test(t) ? '4K' : /\b(fhd|full ?hd|1080p)\b/.test(t) ? 'FHD' : /\b(hd|720p)\b/.test(t) ? 'HD' : '';
+    if (rm) { E.resMin = rm; v.push(rm); } }
   if (/transparen|\bholo|t.?glass/.test(t)) { E.transp = true; v.push('transparente'); }
   if (/sol directo|sol directe|pleno sol|ple sol|direct sun/.test(t)) E.sol = 'directo'; else if (/sol indirecto|sol indirecte|sombra|ombra|indirect sun|shade/.test(t)) E.sol = 'indirecto';
   if (/(sin|sense|without|no) (backup|redundanc)/.test(t)) E.backup = false; else if (/backup|redundan/.test(t)) E.backup = true;
@@ -144,10 +158,32 @@ function interpreta(raw) {
 /* brillo que hace falta según el sol (decisión pendiente de confirmar por Josep): a pleno sol, 5000 nits o más; con sol indirecto o sombra, de 2500 a 5000 */
 const SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500;
 const distDef = () => (E.tipo === 'OUTDOOR' ? 8 : 3);   /* v10.48 · distancia de visionado por defecto (decidido por Josep, 15-11-2026) */
-const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''), esHolo = (m) => famN(m).includes('holo'), esTransp = (m) => esHolo(m) || famN(m) === 'tglass';
+const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''), esHolo = (m) => famN(m).includes('holo'), esTransp = (m) => esHolo(m) || famN(m) === 'tglass' || /GLASS/i.test(String(m.crm || ''));
 const HOLO_DRIVER = 75;   /* mm de caja de drivers de cada cabinet HOLO: no lleva píxeles */
 const RESMIN = { HD: [1280, 720], FHD: [1920, 1080], '4K': [3840, 2160] };
 const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
+/* v10.62 · ELECCIÓN DEL CABINET (decidido por Josep, 16-11-2026), en este orden:
+   1) que encaje con la medida pedida: cada lado a menos de un 15 % de lo pedido (si ninguno encaja, el que menos se aparta);
+   2) que esté en stock (lo que llega en uno o dos meses ya va marcado como stock en el catálogo);
+   3) el pitch: el pedido o el más cercano (con varios pedidos, cualquiera de ellos), el que llega a la resolución mínima, el más grande que se ve
+      bien desde la distancia dicha o, si no se ha dicho ni pitch ni distancia, el más grande que haya en stock;
+   4) a igualdad: formato 16:9 si lo pedido está cerca de 16:9 («por poca diferencia»), el que menos se aparta de la medida y el orden del catálogo
+      (prioridad del panel y familia de la casa). */
+const ENCAJE = .15;
+function eligeCabinet(lista, pitches) {
+  const W = E.w, H = E.h, cerca = (p) => pitches.reduce((b, x) => (Math.abs(x - p) < Math.abs(b - p) ? x : b), pitches[0]);
+  const ped = [E.pitch].concat(E.pitchOtros || []).map(Number).filter((x) => x > 0);
+  let vale = pitches, origen = 'stock', grande = true;
+  if (ped.length) { vale = pitches.filter((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)); if (!vale.length) vale = [...new Set(ped.map(cerca))];   /* v10.62 · a ±0,2 mm cuentan como el pedido: decide el encaje y el stock */ origen = vale.some((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)) ? 'pedido' : 'cercano'; grande = false; }   /* «P4» es el 3,9; «P2», el 1,9 */
+  else if (E.resMin && RESMIN[E.resMin]) { const [tw, th] = RESMIN[E.resMin], ok = pitches.filter((x) => lista.some((m) => m.pitch === x && (() => { const q = calcularLed({ ancho: W, alto: H }, m, E.ajuste); return q.resW >= tw && q.resH >= th; })()));
+    vale = ok.length ? ok : [pitches[0]]; origen = ok.length ? 'resolucion' : 'sinres'; }
+  else if (E.dist) { const c = pitches.filter((x) => x <= E.dist + 1e-9); vale = c.length ? c : [pitches[0]]; origen = 'distancia'; }
+  const c169 = Math.abs(W / H - 16 / 9) / (16 / 9) < .12;
+  const cand = lista.map((m, i) => ({ m, i })).filter((x) => vale.includes(x.m.pitch)).map((x) => { const q = calcularLed({ ancho: W, alto: H }, x.m, E.ajuste), ew = Math.abs(q.ancho - W) / W, eh = Math.abs(q.alto - H) / H;
+    return { ...x, e: ew + eh, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9, f169: Math.abs(q.ancho / q.alto - 16 / 9) < .02, st: enStock(x.m) }; });
+  cand.sort((a, b) => (b.ok - a.ok) || (b.st - a.st) || (grande && Math.abs(b.m.pitch - a.m.pitch) > .2 + 1e-9 ? b.m.pitch - a.m.pitch : 0) || (c169 ? b.f169 - a.f169 : 0) || (a.e - b.e) || (a.i - b.i));
+  return { m: (cand[0] || { m: lista[0] }).m, origen };
+}
 function calcula() {
   R = null; if (!CAT.length) return;
   let lista = CAT.filter((m) => m.tipo === E.tipo && m.class === E.clase), relajado = '';
@@ -160,19 +196,16 @@ function calcula() {
   const conSol = E.tipo !== 'INDOOR' ? E.sol : '', base = conSol === 'directo' ? SOL_DIRECTO : conSol === 'indirecto' ? SOL_INDIRECTO : (MIN_NITS[E.tipo] || 0), nits = Math.max(base, +E.nitsMin || 0), tope = conSol === 'indirecto' && nits < SOL_DIRECTO ? SOL_DIRECTO : Infinity;
   { const enRango = lista.filter((m) => m.nits >= nits && m.nits < tope), conNits = lista.filter((m) => m.nits >= nits);
     if (enRango.length) lista = enRango; else if (conNits.length) { lista = conNits; if (conSol === 'indirecto') relajado += (relajado ? ' ' : '') + 'No hay cabinets entre ' + SOL_INDIRECTO + ' y ' + SOL_DIRECTO + ' nits: se muestran los de más brillo.'; }
-    else if (conSol) relajado += (relajado ? ' ' : '') + 'Ningún cabinet de este entorno llega a ' + nits + ' nits: se muestran los que hay.'; }
+    else if (nits > 0) relajado += (relajado ? ' ' : '') + 'Ningún cabinet de este entorno llega a ' + nits + ' nits: se muestran los que hay.'; }
   lista = ordenar(lista); if (!lista.length) { R = { vacio: true }; return; }
   /* al alcance del público: en interior fijo pasan delante los LED protegidos (UfixAvant HOB y UfixCOB), sin saltarse el stock */
   if (E.protegido && E.tipo === 'INDOOR') { const fam = (m) => String(m.family || '').toLowerCase().replace(/[^a-z0-9]/g, ''), tec = (m) => String(m.tech || '').toUpperCase().trim(), prot = (m) => (tec(m) === 'HOB' && fam(m) === 'ufixavant') || (tec(m) === 'COB' && fam(m) === 'ufixcob');
     lista = lista.map((m, i) => [m, i]).sort((a, b) => ((enStock(a[0]) ? 0 : 2) + (prot(a[0]) ? 0 : 1)) - ((enStock(b[0]) ? 0 : 2) + (prot(b[0]) ? 0 : 1)) || a[1] - b[1]).map((x) => x[0]); }
   const pitches = [...new Set(lista.map((m) => m.pitch))].sort((a, b) => a - b);
-  let pitch, origen;
-  if (E.crm && lista.some((m) => m.crm === E.crm)) { pitch = lista.find((m) => m.crm === E.crm).pitch; origen = E.pitch ? 'pedido' : 'elegido'; }
-  else if (E.pitch) { pitch = pitches.reduce((b, x) => (Math.abs(x - E.pitch) < Math.abs(b - E.pitch) ? x : b), pitches[0]); origen = pitch === E.pitch ? 'pedido' : 'cercano'; }
-  else if (E.resMin && RESMIN[E.resMin]) { const [tw, th] = RESMIN[E.resMin], vale = pitches.filter((x) => { const q = calcularLed({ ancho: E.w, alto: E.h }, lista.find((m) => m.pitch === x), E.ajuste); return q.resW >= tw && q.resH >= th; }); pitch = vale.length ? vale[vale.length - 1] : pitches[0]; origen = vale.length ? 'resolucion' : 'sinres'; }
-  else if (E.dist) { const c = pitches.filter((x) => x <= E.dist + 1e-9); pitch = c.length ? c[c.length - 1] : pitches[0]; origen = 'distancia'; }
-  else { const c = pitches.filter((x) => x <= distDef() + 1e-9); pitch = c.length ? c[c.length - 1] : pitches[0]; origen = 'distDef'; }   /* v10.48 · sin distancia, la de siempre (3 m dentro, 8 m en la calle) y no el pitch más fino (el más caro) */
-  const delPitch = lista.filter((m) => m.pitch === pitch), m0 = delPitch.find((x) => x.crm === E.crm) || delPitch[0], giraPosible = +m0.cabAncho !== +m0.cabAlto,
+  let pitch, origen, mEl = null;
+  if (E.crm && lista.some((m) => m.crm === E.crm)) { mEl = lista.find((m) => m.crm === E.crm); pitch = mEl.pitch; origen = E.pitch ? 'pedido' : 'elegido'; }
+  else { const x = eligeCabinet(lista, pitches); mEl = x.m; pitch = mEl.pitch; origen = x.origen; }
+  const delPitch = lista.filter((m) => m.pitch === pitch), m0 = mEl || delPitch[0], giraPosible = +m0.cabAncho !== +m0.cabAlto,
     /* cabinet girado 90°: se intercambian su ancho y su alto, en milímetros y en píxeles */
     m = E.giro && giraPosible && !esHolo(m0) ? { ...m0, cabAncho: m0.cabAlto, cabAlto: m0.cabAncho, cabPixAncho: m0.cabPixAlto, cabPixAlto: m0.cabPixAncho, girado: true } : m0;
   let r = calcularLed({ ancho: E.w, alto: E.h }, m, E.ajuste), holo = null; const pixCab = m.cabPixAncho * m.cabPixAlto;
@@ -218,7 +251,7 @@ function calcula() {
   else for (let f = 0, n = 0; f < r.rows; f++) for (let q = 0; q < r.cols; q++, n++) rutasE[Math.floor(n / cabLinea)].push([f % 2 ? r.cols - 1 - q : q, f]);
   const deLinea = {}; rutasE.forEach((ru, i) => ru.forEach(([c, f]) => { deLinea[c + '_' + f] = i; }));
   const linea = (c, f) => deLinea[c + '_' + f] || 0;
-  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: r.resW >= 7680 && r.resH >= 4320 ? ['8K', 'ULTRA HD'] : r.resW >= 3840 && r.resH >= 2160 ? ['4K', 'ULTRA HD'] : r.resW >= 1920 && r.resH >= 1080 ? ['FHD', 'FULL HD'] : r.resW >= 1280 && r.resH >= 720 ? ['HD', 'HD 720P'] : ['', ''], medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE,
+  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: r.resW >= 7680 && r.resH >= 4320 ? ['8K', 'ULTRA HD'] : r.resW >= 3840 && r.resH >= 2160 ? ['4K', 'ULTRA HD'] : r.resW >= 1920 && r.resH >= 1080 ? ['FHD', 'FULL HD'] : r.resW >= 1280 && r.resH >= 720 ? ['HD', 'HD READY'] : ['', ''], medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE,
     diag: Math.hypot(r.ancho, r.alto), lineasTxt: lineasCosido(r.cols, r.rows, pixCab) };
 }
 
@@ -233,12 +266,13 @@ const PARED = { hormigon: [3.6, 2.39, 1], madera: [2.4, 3.0], marmol: [2.4, 2.4]
 /* «prop» es ancho / alto del hueco donde se va a ver: el dibujo se hace con esa proporción para llenarlo */
 function svgSim(prop, anchoPx, o) {
   const LIMPIA = !!(o && o.limpia);   /* v10.50 · SIMPLE: sin los cuadros de datos ni el rótulo de abajo (los datos van en su RESULTADO) */
+  const CAJAS = !LIMPIA || !!(o && o.cajas);   /* v10.62 · el cuadro de resumen (resolución, cabinets, distancia de visionado) sale también en SIMPLE */
   /* v10.43 · las líneas de los cabinets se ven siempre (también sobre un contenido propio): normales en pantalla, más suaves en el PDF */
   const cabOp = o && o.pdf ? .3 : .55, cabLin = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-opacity="${(cabOp * .6).toFixed(2)}" stroke-width="2.4" pointer-events="none"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d4ff00" stroke-opacity="${cabOp}" stroke-width="1.1" pointer-events="none"/>`;
   if (!prop) { const c = document.querySelector('[data-blk="S1A"] .blk-cu'); prop = c && c.clientHeight > 40 ? c.clientWidth / c.clientHeight : 1.6; anchoPx = c ? c.clientWidth : 0; }
   /* hueco que hay que dejar arriba para los dos controles que van encima (elevación y pared), que no cambian de tamaño con el dibujo */
   const uPx = parseFloat(getComputedStyle(document.documentElement).fontSize) / 17 || 1, ARRIBA = LIMPIA ? 70 : anchoPx > 0 ? Math.max(120, Math.min(260, 92 * uPx / (anchoPx / 860) + 28)) : 150;
-  const { r, m } = R, W = 860, H = Math.round(W / Math.max(.75, Math.min(LIMPIA ? 3 : 1.5, prop))), sueloY = H - 56, elev = E.elev / 100, altoTotal = Math.max(2.2, r.alto + elev + .35), anchoTotal = Math.max(r.ancho + 1.9, 3), PANEL = LIMPIA ? 0 : 250, LIMA = '#c6e04a';
+  const { r, m } = R, W = 860, H = Math.round(W / Math.max(.75, Math.min(LIMPIA ? 3 : 1.5, prop))), sueloY = H - 56, CAJA_K = LIMPIA ? Math.min(anchoPx > 0 && anchoPx < 600 ? Math.min(1.6, 600 / anchoPx) : 1, (sueloY - 24) / 420) : 1   /* v10.62 · en el móvil el cuadro se agranda para que se lea */, elev = E.elev / 100, altoTotal = Math.max(2.2, r.alto + elev + .35), anchoTotal = Math.max(r.ancho + 1.9, 3), PANEL = CAJAS ? 250 * CAJA_K : 0, LIMA = '#c6e04a';
   const k = Math.min((sueloY - ARRIBA) / altoTotal, (W - PANEL - 70) / anchoTotal), pw = r.ancho * k, ph = r.alto * k, cx0 = PANEL + (W - PANEL) / 2, px = cx0 - pw / 2 + .4 * k, py = sueloY - elev * k - ph, hx = px - .62 * k;
   let g = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación de la pantalla a escala con una persona de 1,75 m">`;
   g += `<defs><clipPath id="cp"><rect x="${px}" y="${py}" width="${pw}" height="${ph}"/></clipPath></defs>`;
@@ -269,13 +303,13 @@ function svgSim(prop, anchoPx, o) {
     const rt = `${r.resW} × ${r.resH}${R.nivel[0] ? ' · ' + R.nivel[0] : ''} · ${R.formato}`, rf = Math.max(9, Math.min(22, pw / (rt.length * .72))), rw = rt.length * rf * .62 + rf * 1.6;
     if (rw < pw - 6 && ph > rf * 3) g += `<rect x="${px + pw / 2 - rw / 2}" y="${py + ph - rf * 2.5}" width="${rw}" height="${rf * 1.7}" rx="${rf * .3}" fill="#000" fill-opacity=".72"/><text x="${px + pw / 2}" y="${py + ph - rf * 1.3}" text-anchor="middle" font-size="${rf}" fill="#fff" font-family="Share Tech Mono, monospace">${rt}</text>`; }
   /* cuadros de datos a la izquierda, dentro de la imagen para que salgan en la captura: resolución, resumen y distancia de visionado */
-  if (!LIMPIA) { const X = 16, AN = 218, caja = (y, al) => `<rect x="${X}" y="${y}" width="${AN}" height="${al}" rx="9" fill="#17181c" fill-opacity=".93" stroke="#000" stroke-width="1.5"/>`, mono = 'font-family="Share Tech Mono, monospace"', cmS = (v) => fmt(v * 100) + 'cm';
-    let y = Math.max(70, Math.min(110, sueloY - 400));
-    g += caja(y, 156) + `<rect x="${X + 34}" y="${y + 12}" width="${AN - 68}" height="80" rx="7" fill="#050506" stroke="${LIMA}" stroke-opacity=".7" stroke-width="1.5"/>` + (R.nivel[0] ? `<text x="${X + AN / 2}" y="${y + 50}" text-anchor="middle" font-size="34" fill="${LIMA}" ${mono}>${R.nivel[0]}</text><text x="${X + AN / 2}" y="${y + 80}" text-anchor="middle" font-size="20" fill="#fff" ${mono}>${R.nivel[1]}</text>` : `<text x="${X + AN / 2}" y="${y + 60}" text-anchor="middle" font-size="22" fill="${LIMA}" ${mono}>${R.formato}</text>`) + `<text x="${X + AN / 2}" y="${y + 118}" text-anchor="middle" font-size="22" fill="#fff" ${mono}>${r.resW}x${r.resH}</text><text x="${X + AN / 2}" y="${y + 143}" text-anchor="middle" font-size="19" fill="#fff" ${mono}>pixels</text>`;
+  if (CAJAS) { g += `<g transform="scale(${CAJA_K})">`; const X = 16, AN = 218, caja = (y, al) => `<rect x="${X}" y="${y}" width="${AN}" height="${al}" rx="9" fill="#17181c" fill-opacity=".93" stroke="#000" stroke-width="1.5"/>`, mono = 'font-family="Share Tech Mono, monospace"', cmS = (v) => fmt(v * 100) + 'cm';
+    let y = LIMPIA ? 14 : Math.max(70, Math.min(110, sueloY - 400));
+    g += caja(y, 156) + `<rect x="${X + 34}" y="${y + 12}" width="${AN - 68}" height="80" rx="7" fill="#050506" stroke="${LIMA}" stroke-opacity=".7" stroke-width="1.5"/>` + (R.nivel[0] ? `<text x="${X + AN / 2}" y="${y + 50}" text-anchor="middle" font-size="34" fill="${LIMA}" ${mono}>${R.nivel[0]}</text><text x="${X + AN / 2}" y="${y + 80}" text-anchor="middle" font-size="20" fill="#fff" ${mono}>${R.nivel[1]}</text>` : `<text x="${X + AN / 2}" y="${y + 60}" text-anchor="middle" font-size="22" fill="${LIMA}" ${mono}>${R.formato}</text>`) + `<text x="${X + AN / 2}" y="${y + 118}" text-anchor="middle" font-size="22" fill="#fff" ${mono}>${r.resW}x${r.resH}</text><text x="${X + AN / 2}" y="${y + 143}" text-anchor="middle" font-size="19" fill="#fff" ${mono}>px</text>`;
     y += 168; const fila = (n, ic, t) => `<g transform="translate(${X + 18},${y + 16 + n * 30})" fill="none" stroke="${LIMA}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</g><text x="${X + 50}" y="${y + 33 + n * 30}" font-size="21" fill="#fff" ${mono}>${t}</text>`;
     g += caja(y, 140) + fila(0, '<rect x="1" y="1" width="7" height="7" rx="1"/><rect x="12" y="1" width="7" height="7" rx="1"/><rect x="1" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', r.cols + 'x' + r.rows) + fila(1, `<circle cx="10" cy="10" r="6" fill="${LIMA}"/>`, m.pitch + 'p') + fila(2, '<path d="M1 10h18M5 6l-4 4 4 4M15 6l4 4-4 4"/>', cmS(r.ancho)) + fila(3, '<path d="M10 1v18M6 5l4-4 4 4M6 15l4 4 4-4"/>', cmS(r.alto)) + `<text x="${X + AN - 46}" y="${y + 74}" text-anchor="middle" font-size="${r.cab > 999 ? 30 : 44}" fill="${LIMA}" ${mono}>${r.cab}</text><text x="${X + AN - 46}" y="${y + 98}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#b9bbc4" font-family="Inter, sans-serif" letter-spacing=".5">CABINETS</text>`;
     y += 152;
-    g += caja(y, 62) + `<g transform="translate(${X + 14},${y + 9}) scale(.8)" fill="none" stroke="${LIMA}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g><text x="${X + 40}" y="${y + 24}" font-size="15.5" fill="#fff" ${mono}>Distancia visionado</text><text x="${X + 14}" y="${y + 49}" font-size="${Math.min(15.5, (AN - 26) / (('Mínima ' + cmS(m.pitch) + ' Óptima ' + cmS(m.pitch * 3)).length * .56)).toFixed(1)}" fill="#fff" ${mono}>Mínima ${cmS(m.pitch)} Óptima ${cmS(m.pitch * 3)}</text>`; }
+    g += caja(y, 62) + `<g transform="translate(${X + 14},${y + 9}) scale(.8)" fill="none" stroke="${LIMA}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g><text x="${X + 40}" y="${y + 24}" font-size="15.5" fill="#fff" ${mono}>Distancia visionado</text><text x="${X + 14}" y="${y + 49}" font-size="${Math.min(15.5, (AN - 26) / (('Mínima ' + cmS(m.pitch) + ' Óptima ' + cmS(m.pitch * 3)).length * .56)).toFixed(1)}" fill="#fff" ${mono}>Mínima ${cmS(m.pitch)} Óptima ${cmS(m.pitch * 3)}</text></g>`; }
 
   const cota = (x1, y1, x2, y2, txt, vert) => { const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, tw = txt.length * 13.4 + 22; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#37c8ff" stroke-width="1.6" stroke-dasharray="5 4"/><g transform="translate(${mx},${my})${vert ? ' rotate(90)' : ''}"><rect x="${-tw / 2}" y="-18" width="${tw}" height="36" rx="7" fill="#fff" stroke="#0090d0" stroke-width="2"/><text y="8" text-anchor="middle" font-size="24" fill="#005a8a" font-family="Share Tech Mono, monospace">${txt}</text></g>`; };
   g += cota(px, py - 30, px + pw, py - 30, 'ANCHO ' + fmt(r.ancho * 100) + ' cm') + cota(px + pw + 34, py, px + pw + 34, py + ph, 'ALTO ' + fmt(r.alto * 100) + ' cm', true);
@@ -392,7 +426,7 @@ function pintaRejilla() {
     h += blk('m2a', 'M2A', 'Dimensiones', 'var(--marca)', dimEntra + distCtl(), dimUni) + ['m1b', 'm2b', 's1a', 's1b', 'm3a', 'm3b', 'm3c', 'm3d', 'm3e', 'm3f'].map((a) => blk(a, a.toUpperCase(), TIT[a], 'var(--linea)', a === 's1a' || a === 'm1b' ? `<div class="nota" style="margin:auto;font-size:calc(var(--u)*${a === 'm1b' ? 15 : 20});text-align:center">${msg}${reint}</div>` : '', '', a[0] === 's' ? 'pant' : '', '')).join('');
     el.innerHTML = h; return;
   }
-  const { m, r } = R, ip = R.pitches.indexOf(R.pitch), ORIG = { pedido: ['ok', 'Pitch pedido por ti', 'Pedido'], cercano: ['av', 'El más cercano al ' + E.pitch + ' que pediste', 'Cercano a ' + E.pitch], distancia: ['ok', 'Elegido por la distancia del público: ' + fmt(E.dist, 1) + ' m', 'Por distancia'], auto: ['av', 'Automático: el más fino', 'Automático'], distDef: ['ok', 'Elegido para verse bien a ' + distDef() + ' m: cámbialo con la distancia de visionado', 'A ' + distDef() + ' m'], resolucion: ['ok', 'Elegido para llegar a ' + E.resMin, 'Por ' + E.resMin], sinres: ['av', 'Ningún pitch llega a ' + E.resMin + ' con esta medida: el más fino', 'No llega a ' + E.resMin], elegido: ['ok', 'Elegido a mano', 'A mano'] }[R.origen];
+  const { m, r } = R, ip = R.pitches.indexOf(R.pitch), ORIG = { pedido: ['ok', 'Pitch pedido por ti', 'Pedido'], cercano: ['av', 'El más cercano al ' + E.pitch + ' que pediste', 'Cercano a ' + E.pitch], distancia: ['ok', 'Elegido por la distancia del público: ' + fmt(E.dist, 1) + ' m', 'Por distancia'], auto: ['av', 'Automático: el más fino', 'Automático'], distDef: ['ok', 'Elegido para verse bien a ' + distDef() + ' m: cámbialo con la distancia de visionado', 'A ' + distDef() + ' m'], stock: ['ok', 'Sin pitch ni distancia: el pitch más grande en stock que encaja con la medida', 'Por stock'], resolucion: ['ok', 'Elegido para llegar a ' + E.resMin, 'Por ' + E.resMin], sinres: ['av', 'Ningún pitch llega a ' + E.resMin + ' con esta medida: el más fino', 'No llega a ' + E.resMin], elegido: ['ok', 'Elegido a mano', 'A mano'] }[R.origen];
 
   const foto = m.urlFoto ? `<img src="${esc(m.urlFoto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='&lt;div class=&quot;sinfoto&quot;&gt;sin foto&lt;/div&gt;'">` : '<div class="sinfoto">sin foto</div>';
   h += blk('m1b', 'M1B', 'Cabinet', 'var(--violeta)', `<select class="sel" data-crm aria-label="Modelo de cabinet" title="Elegir el cabinet a mano: todos los modelos de este entorno, agrupados por pitch">${R.pitches.map((pt) => `<optgroup label="P${String(pt).replace('.', ',')}">${R.lista.filter((x) => x.pitch === pt).map((x) => `<option value="${esc(x.crm)}"${x.crm === m.crm ? ' selected' : ''}>${esc(x.crm)}</option>`).join('')}</optgroup>`).join('')}</select><div class="cabmini">${foto}<div style="min-width:0;flex:1">${dato('Cabinet', `${m.cabAncho}×${m.cabAlto} mm${m.girado ? ' ⟳' : ''}`)}${dato('Píxeles', `${m.cabPixAncho}×${m.cabPixAlto}`)}${dato('Brillo', m.nits ? fmt(m.nits) + ' nits' : '—')}${dato('Refresco', m.hz ? fmt(m.hz) + ' Hz' : '—')}</div></div><div class="fila envuelve">${FICHA.stockIc ? FICHA.stockIc(enStock(m)) : ''}<span class="chip">${esc(m.family || '')}</span></div>` + (R.holo ? `<div class="nota">HOLO · ${R.holo.bot ? 'dos filas contrapuestas de ' + R.holo.top + ' + ' + R.holo.bot + ' mm' : 'una fila de ' + R.holo.top + ' mm'} · caja de drivers de ${HOLO_DRIVER} mm${R.holo.comb ? ' · ' + R.holo.comb.cA * r.rows + ' × ' + esc(R.holo.comb.mA.crm) + ' + ' + R.holo.comb.cE * r.rows + ' × ' + esc(R.holo.comb.mE.crm) : ''}</div>` : ''), `<button type="button" class="tog mini" data-set="giro" data-v="${E.giro ? '' : '1'}" aria-pressed="${!!(E.giro && R.giraPosible)}"${R.giraPosible ? '' : ' disabled'} title="${R.giraPosible ? 'Girar el cabinet 90°: se monta tumbado o de pie' : 'Este cabinet es cuadrado: girarlo no cambia nada'}">${IC.gira}90°</button>` + bt('ojo', 'Ver la ficha completa del cabinet', 'data-ver="equipo"'));
@@ -432,7 +466,9 @@ function encoge(el, min = 7) { if (!el || !el.clientWidth) return; el.style.font
 let ctxP = null;
 function ajustaPhPide() { const i = $('#pide'); if (!i || !i.clientWidth) return; const cs = getComputedStyle(i), libre = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 4, ls = parseFloat(cs.letterSpacing) || 0; ctxP = ctxP || document.createElement('canvas').getContext('2d'); ctxP.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
   const ph = ['Escríbela: «pantalla de 3 x 4 para exterior 3.9p a 8 m»', 'Escríbela: «3 × 2 interior a 4 m»', 'Escríbela…'].find((x) => { const t = tr(x); return ctxP.measureText(t).width + t.length * ls <= libre; }) || 'Escríbela…'; if (i.dataset.ph !== ph) { i.dataset.ph = ph; i.placeholder = ph; } }
-function ajustaTextos() { ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); }
+/* v10.62 · casillas numéricas: si el valor no cabe entero (3000 en mm), se reduce la letra; nunca se corta */
+function encogeIn(i) { i.style.removeProperty('font-size'); if (!i.clientWidth) return; let fs = parseFloat(getComputedStyle(i).fontSize), k = 0; while (i.scrollWidth > i.clientWidth + .5 && fs > 10 && k++ < 30) { fs -= .5; i.style.setProperty('font-size', fs + 'px'); } }
+function ajustaTextos() { document.querySelectorAll('.num input').forEach(encogeIn); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); }
 function todo() { if (document.activeElement !== $('#pide')) EDITA = false; calcula(); pintaRejilla(); pintaPie(); guarda(); ajustaTextos(); requestAnimationFrame(ajustaTextos); if (window.SCSIMPLE) window.SCSIMPLE.aviso(); }   /* v10.49 · el modo SIMPLE se repinta con el mismo cálculo */   /* v10.45 · y otra vez cuando ya está traducido */
 
 /* ---------- ventana grande (el ojo) y ajustes (la ruedita) ---------- */
@@ -528,7 +564,7 @@ function monta() {
   /* el pie común de AVHUB (credito.js): mismo texto que el resto de apps, editable desde el panel, y con el aviso legal en su ventana */
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); pc.innerHTML = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()); }; pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
-    if (/proyect|projector|projecci|projectar|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
+    if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
     const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
   const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
@@ -536,7 +572,7 @@ function monta() {
     if ((b = q('[data-set]'))) pon(b.dataset.set, b.dataset.v);
     else if ((b = q('[data-nits]'))) { const L = [0].concat(R.nitsLista.filter((x) => x > R.nits || x === +E.nitsMin)).sort((a, b) => a - b), i = Math.max(0, L.indexOf(+E.nitsMin || 0)) + +b.dataset.nits; if (L[i] != null) { E.nitsMin = L[i]; E.crm = ''; todo(); } }
     else if ((b = q('[data-cf]'))) { const { m, r } = R, d = +b.dataset.d; if (R.holo) { if (b.dataset.cf === 'c') E.w = Math.max(+m.cabAncho, r.ancho * 1000 + d * m.cabAncho) / 1000; else E.h = (d > 0 ? R.holo.top * 2 : R.holo.top) / 1000; } else if (b.dataset.cf === 'c') E.w = Math.max(1, r.cols + d) * m.cabAncho / 1000 + .0004; else E.h = Math.max(1, r.rows + d) * m.cabAlto / 1000 + .0004; if (E.resMin) { E.pitch = R.pitch; } todo(); }
-    else if ((b = q('[data-pitch]'))) { const i = R.pitches.indexOf(R.pitch) + +b.dataset.pitch; if (R.pitches[i] != null) { E.pitch = R.pitches[i]; E.crm = ''; todo(); } }
+    else if ((b = q('[data-pitch]'))) { const i = R.pitches.indexOf(R.pitch) + +b.dataset.pitch; if (R.pitches[i] != null) { E.pitch = R.pitches[i]; E.pitchOtros = []; E.crm = ''; todo(); } }
     else if ((b = q('[data-pm]'))) { const k = b.dataset.pm, paso = k === 'elev' ? 10 : k === 'dist' ? .5 : k === 'entradas' ? 1 : .1; E[k] = Math.max(k === 'w' || k === 'h' ? .1 : 0, +((+E[k] || (k === 'entradas' ? 1 : 0)) + paso * +b.dataset.d).toFixed(2)); if (k === 'entradas') E[k] = Math.max(1, Math.min(16, Math.round(E[k]))); if (k === 'dist') { E.pitch = 0; E.crm = ''; } todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); }
     else if (q('[data-reintenta]')) { ESTADO = 'cargando'; todo(); cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); }); }
     else if (q('[data-deshacer]')) { if (DESH) { Object.assign(E, DESH.E); $('#pide').value = E.texto || ''; USADO = DESH.usado; DESH = null; todo(); tostada('Recuperado lo de antes.'); } }
@@ -567,9 +603,9 @@ function monta() {
     else if (q('[data-nuevo]')) { DESH = { E: JSON.parse(JSON.stringify(E)), usado: USADO }; const tema = E.tema; Object.assign(E, DEF, { tema }); sueltaCont(); CONT = null; FSEL = 0; URLP = ''; $('#pide').value = ''; EDITA = false; USADO = false; todo(); tostada('Nuevo cálculo: todo vuelve a como al empezar.', 6500, '<button type="button" class="calcular" data-deshacer>DESHACER</button>'); }
     else if (q('[data-cierra]') || e.target.id === 'velo') cierra(); });
   document.addEventListener('change', (e) => { const t = e.target; if (t.closest('.rejilla')) USADO = true;
-    if (t.dataset.num) { const k = t.dataset.num, v = parseFloat(String(t.value).replace(',', '.')); if (k === 'dist') { E.dist = v > 0 ? v : 0; E.pitch = 0; E.crm = ''; } else if (v >= 0) E[k] = k === 'elev' ? v : Math.max(.1, v / UNI[E.uni]); todo(); if (VENT && VENT.que === 'ajustes') abre('ajustes'); }
+    if (t.dataset.num) { const k = t.dataset.num, v = parseFloat(String(t.value).replace(',', '.')); if (k === 'dist') { E.dist = v > 0 ? v : 0; E.pitch = 0; E.pitchOtros = []; E.crm = ''; } else if (v >= 0) E[k] = k === 'elev' ? v : Math.max(.1, v / UNI[E.uni]); todo(); if (VENT && VENT.que === 'ajustes') abre('ajustes'); }
     else if (t.dataset.res) { const { m } = R, v = Math.max(1, Math.round(parseFloat(t.value) || 0)), ancho = t.dataset.res === 'w'; if (ancho) E.w = Math.ceil(v / m.cabPixAncho) * m.cabAncho / 1000 + .0004; else E.h = Math.ceil(v / m.cabPixAlto) * m.cabAlto / 1000 + .0004; E.pitch = R.pitch; E.crm = m.crm; E.resMin = ''; USADO = true; todo(); if (R && R.r && (ancho ? R.r.resW : R.r.resH) !== v) tostada('Con cabinets enteros queda en ' + R.r.resW + ' × ' + R.r.resH + ' px.', 4500); }
-    else if (t.dataset.crm !== undefined) { E.crm = t.value; E.pitch = 0; E.resMin = ''; E.dist = 0; todo(); }
+    else if (t.dataset.crm !== undefined) { E.crm = t.value; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); }
     else if (t.dataset.proc !== undefined) { E.procSel = t.value; todo(); }
     else if (t.dataset.media !== undefined) { E.mediaSel = t.value; todo(); }
     else if (t.dataset.fu !== undefined) { FU[+t.dataset.fu] = t.value.trim(); FSEL = +t.dataset.fu + 1; URLP = ''; try { localStorage.setItem('screens_fuentes_v2', JSON.stringify(FU)); } catch (er) {} abre('contenido'); }

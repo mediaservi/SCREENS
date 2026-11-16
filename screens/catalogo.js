@@ -118,7 +118,7 @@ export function ordenar(lista) {
     if (m.class === 'INSTALL' || !m.class) {
       if (m.tipo === 'INDOOR') f = tech === 'SMD' && fam(m) === 'ufixavant' ? 0 : 1;
       else if (m.tipo === 'ESCAPARATE') f = fam(m) === 'slimfix' ? 0 : 1;
-      else if (m.tipo === 'OUTDOOR') f = fam(m) === 'jfix' ? (/^JFIXII/.test(crm) ? 0 : /^JFIX-K/.test(crm) ? 1 : 2) : 3;
+      else if (m.tipo === 'OUTDOOR') f = fam(m) === 'jfix' ? (/^JFIX-K/.test(crm) ? 0 : /^JFIXII/.test(crm) ? 1 : 2) : 3;   // v10.62 · JFIX K (cobre, 6000 nits) delante de JFIX II
     }
     return (enStock(m) ? 0 : 10) + f;
   };

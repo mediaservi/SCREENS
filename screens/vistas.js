@@ -3,6 +3,7 @@
 // y el proyector que se puede arrastrar (la distancia y la altura quedan fijas, con su candado). GPL-3.0 · mediaservi.com
 import { t, idioma } from './i18n.js';
 import { HOLGURA } from './proyeccion.js';
+import { figuraSVG } from './figura.js';
 
 const fmt = (v, d = 2) => Number(v || 0).toLocaleString(idioma() === 'en' ? 'en-GB' : 'es-ES', { minimumFractionDigits: 0, maximumFractionDigits: d });
 const COL = { linea: '#6a6a75', suelo: '#9a9aa6', pared: '#e9e9ec', imagen: 'rgba(255,214,0,.38)', imagenB: '#ffd600', haz: 'rgba(255,214,0,.13)', rango: 'rgba(0,180,255,.16)',
@@ -36,7 +37,7 @@ function escala(W, H, m, xMin, xMax, yMin, yMax) {
   const ox = m.l + ((W - m.l - m.r) - (xMax - xMin) * k) / 2, oy = H - m.b - ((H - m.t - m.b) - (yMax - yMin) * k) / 2;
   return { k, X: (x) => ox + (x - xMin) * k, Y: (y) => oy - (y - yMin) * k, x: (px) => xMin + (px - ox) / k, y: (py) => yMin + (oy - py) / k };
 }
-const persona = (X, Y, x, k) => { const h = 1.75 * k, w = 0.45 * k; return `<g class="vt-persona" fill="none" stroke="${COL.persona}" stroke-width="1.4"><circle cx="${X(x)}" cy="${Y(0) - h + w * 0.28}" r="${w * 0.28}"/><path d="M${X(x)} ${Y(0) - h + w * 0.56}V${Y(0) - h * 0.45}M${X(x) - w / 2} ${Y(0) - h * 0.72}H${X(x) + w / 2}M${X(x)} ${Y(0) - h * 0.45}L${X(x) - w * 0.35} ${Y(0)}M${X(x)} ${Y(0) - h * 0.45}L${X(x) + w * 0.35} ${Y(0)}"/></g>`; };
+const persona = (X, Y, x, k) => figuraSVG(X(x), Y(0), k, `class="vt-persona" fill="${COL.persona}" fill-opacity=".8" stroke="none"`);   // v10.52 · la silueta oficial de 1,75 m, a escala
 
 // LATERAL: la pared a la izquierda, el proyector a su distancia (x) y altura (y); rango posible = zoom × desplazamiento vertical
 export function svgLateral(d, o = {}) {

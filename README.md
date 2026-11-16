@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.56** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.57** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -39,6 +39,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 - **Simulación a escala en 3D** (three.js): exterior, dentro y planta; carta de ajuste, panorámica, ascensor, contenido propio; rótulos y safety zone; se puede ver en grande.
 - **Resultados:** tabla por superficie, vistas técnicas de proyección (lateral, frontal y cenital, con el proyector arrastrable), posición, sombras, electrónica y equipo elegido; y las **seis cifras clave** en su fila.
 - **PDF** con la captura 3D, los resultados, la electrónica y los equipos.
+- **Proyectores:** Epson y Vivitek, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, imagen máxima y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK.
 
 **Fichas y motor común:** cabinets, proyectores, electrónicas y mediaservers se muestran con la misma ficha (`comun/ficha.js`, `comun/ficha.css`); el motor de electrónica es común (`comun/electronica.js`: NovaStar MCTRL, VX Pro, NovaPro, COEX MX, MBOX, reproductores Taurus TB y TU y H Series, con tarjetas de salida y de entrada, backup, escalador y fibra con CVT10 Pro; mediaservers NovaStar ET y PIXELHUE X400; switchers PIXELHUE). Los equipos salen de **una lista por marca** (`comun/equipos.js` de fábrica) que se gestiona desde el panel AVHUB ADMIN (EQUIPOS): lo guardado allí sustituye a la de fábrica sin publicar la app.
 
@@ -69,7 +70,27 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.56)
+## Cambios de la versión actual (v10.57)
+
+**Vivitek entra en el catálogo de proyección.**
+
+- **13 proyectores láser de Vivitek** con sus ópticas compatibles (129 combinaciones de cuerpo y óptica):
+  - DU7099Z, DU7199Z y DU7299Z (8.000 a 10.000 lm, WUXGA), con 17 ópticas de 0,37:1 a 8,26:1.
+  - DU8053Z, DU8055Z y DU8057Z (14.000 a 24.000 lm, WUXGA), con 13 ópticas.
+  - DK8150Z y DK8155Z (12.000 y 15.000 lm, 4K UHD+ 3840 × 2400), con 12 ópticas.
+  - DU9057Z y DU9059Z (27.000 y 30.000 lm, WUXGA), con 6 ópticas cada uno.
+  - DU5051Z, DU5053Z y DK5153Z (6.200 a 7.700 lm), con su óptica de serie de 1,15–1,9:1.
+- **Datos de cada combinación:** la relación de proyección según el chip del cuerpo, la imagen máxima de cada óptica, el desplazamiento de la óptica (con su tope cuando la óptica lo limita) y el tamaño del chasis, de la guía de ópticas y de las fichas del fabricante. Vivitek no publica imagen «fuera de especificación»: con sus proyectores ese modo no amplía nada, y la app lo dice.
+- **Marcas a la vista:** con dos marcas en el catálogo aparecen los botones EPSON y VIVITEK en MATERIAL (PRO) y la línea «Marcas» en LO QUE PIDES (SIMPLE). La lista de proyectores va agrupada por marca.
+- **En automático sigue mandando Epson:** una marca de menos prioridad solo sale si monta menos equipos o da claramente más brillo. Vivitek se calcula apagando Epson o eligiendo uno de sus proyectores.
+- **Ficha del proyector:** los de Vivitek llevan el enlace a la herramienta oficial del fabricante para verificar.
+- **SIMPLE, sin nada cortado con más líneas y más ópticas:**
+  - LO QUE PIDES admite hasta nueve líneas (proyección colgada, con óptica y marcas) más el aviso de ajustes de PRO sin desplazar la lista: las líneas se estrechan lo justo; con sitio de sobra siguen igual.
+  - La ventana «¿Qué óptica lleva el proyector?» pasa a lista compacta de tres columnas cuando hay más de 12 ópticas. Antes, con las 16 de Epson, la ventana ya se desplazaba un poco en pantallas de 720 de alto y en la tableta.
+- **PRO:** los botones de marca van sin rótulo encima para que MATERIAL quepa con el proyector y la óptica elegidos; y en un bloque abierto que no cabe, los rótulos ya no se aplastan (el bloque se recorre por dentro).
+- Pendiente de datos: las ópticas cortas opcionales de DU5051Z y DU5053Z (lotes ST05 y ST08), que no tienen ficha publicada.
+
+### v10.56
 
 **En SIMPLE, el proyector y la persona se arrastran en el dibujo.**
 

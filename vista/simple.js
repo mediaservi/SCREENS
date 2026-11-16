@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.56';
+const VERSION = 'v10.57';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -717,7 +717,9 @@ function pintaAsis() {
   } else if (q) {
     const ay = tx(q.ay), vals = q.val ? q.val() : null, ops = q.op ? q.op() : [], nums = q.num ? q.num() : [], mucho = ops.length >= 4;
     cuerpoA = `<h2 class="ss-q" id="ss-q">${esc(Lx[tx(q.t)])}</h2>${ay ? `<p class="ss-ay">${esc(typeof Lx[ay] === 'string' ? Lx[ay] : ay)}</p>` : ''}`;
-    if (ops.length) cuerpoA += `<div class="ss-ops ${mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0]))).join('')}</div>`;
+    /* v10.57 · con más de 12 opciones (un proyector con muchas ópticas), en lista de tres columnas: caben todas sin desplazar la ventana
+       (con las fichas grandes, cuatro filas ya no cabían en pantallas de 720 de alto ni en la tableta) */
+    if (ops.length) cuerpoA += `<div class="ss-ops ${ops.length > 12 ? 'ss-ops3 ss-ops-lista' : mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0]))).join('')}</div>`;
     if (nums.length) {
       const solo = nums.length === 1 && nums[0][6];
       cuerpoA += `<div class="ss-nums${solo ? ' ss-nums-o' : ''}">${nums.map((n) => `<label class="ss-num"><span class="ss-fit">${esc(n[1])}</span><span class="ss-num-c"><input type="text" inputmode="decimal" data-ss-n="${n[0]}" value="${n[2] === '' || n[2] == null ? '' : esc(fm(n[2]))}" data-min="${n[3]}" data-max="${n[4]}" aria-label="${esc(n[1])}"><i>${esc(n[5])}</i></span></label>`).join('')}${solo ? `<button type="button" class="ss-mini ss-grande" data-ss="num-ok">${esc(Lx.sig)}</button>` : ''}</div>`;

@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.56';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.57';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.56';
+const VERSION = 'v10.57';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -141,7 +141,8 @@ function calcular() {
   const pared1 = sups.find(s => s.tipo !== 'suelo'), trPared = pared1 ? (alMedio && hayRango ? (dMax > 0 ? (dMin + dMax) / 2 : dMin) : tiroPared) / pared1.ancho : 0;
   const pref0 = (q) => (tipoP === 'mapping' ? (hayRango ? (trPared ? desvTR(q, trPared) * 0.3 : 0) : !fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0) - q.lumens / 20000
     : tipoP === 'pared' ? (q.ust ? 0.5 : 0) + (trPared ? desvTR(q, trPared) * 0.3 : 0) : 0);
-  const pref = (q) => pref0(q) + prioMarca(q.marca) * 0.002;
+  // v10.57 · la marca desempata con margen: una de menos prioridad solo gana si monta menos equipos o da claramente más brillo (más de unos 5 nits)
+  const pref = (q) => pref0(q) + prioMarca(q.marca) * 0.05;
   const coloc = { montaje: E.proy.montaje || 'auto', altura: Math.max(0, Number(E.proy.altura) || 0) };
   const altoEsc = esp.tipo === 'sala' ? esp.alto : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;
   const obs = obstaculosDe(esp), haySuelo = sups.some(s => s.tipo === 'suelo');
@@ -286,12 +287,13 @@ function fichaCab(m) {
 // Epson: manual y especificaciones en setupnavi (referencia absoluta) y enlace de verificación del fabricante
 const epsonManual = (q) => `https://support.epson.net/setupnavi/?MKN=${encodeURIComponent(q.modelo)}&PINF=support&LG2=${({ es: 'ES', en: 'EN', ca: 'CA' })[idioma()] || 'ES'}&OSC=MI`;
 const EPSON_CALC = 'https://support.epson-europe.com/TDS/#/page/advanceMode';
+const VIVITEK_SIM = 'https://www.vivitekcorp.com/simulator/';   // v10.57 · herramienta oficial de Vivitek, para verificar
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';
 // relación de proyección de una combinación cuerpo + óptica («0,35:1» o «1,57–2,56:1»)
 const trTxt = (q) => (q.trMin === q.trMax ? fmt(q.trMin, 2) : fmt(q.trMin, 2) + '–' + fmt(q.trMax, 2)) + ':1';
 function fichaProy(q, cat) {
   return fichaHTML({ cat, icono: 'proy', marca: q.marca, modelo: q.nombre, claveFoto: q.modelo, foto: q.imagen, fotoTrasera: q.trasera, acento: '#00b4ff',
-    enlaces: q.marca === 'EPSON' ? [[epsonManual(q), t('epsonManual')], [EPSON_CALC, t('epsonCalc')]] : [],
+    enlaces: q.marca === 'EPSON' ? [[epsonManual(q), t('epsonManual')], [EPSON_CALC, t('epsonCalc')]] : q.marca === 'VIVITEK' ? [[VIVITEK_SIM, t('vivitekSim')]] : [],
     specs: [[t('kTR'), trTxt(q)], [t('kLm'), fmtPx(q.lumens) + ' lm'], [t('kFmt'), q.arTxt], [t('kRes'), q.resX + '×' + q.resY], [t('kDiag'), q.maxDiagPulg + '"'], [t('k4k'), q.k4nativo ? '4K' : q.k4 ? 'Enhancement' : '—'],
       [t('kShift'), q.shiftV ? `${q.shiftSube ? '+' : '±'}${q.shiftV} % / ±${q.shiftH} %` : '']] });
 }
@@ -396,8 +398,12 @@ function partesProy(c) {
   let mat = '', aj = bloquePos(c), luz = '', fic = '';   // v8.5 · la posición del proyector abre el bloque «Ajuste del equipo»
   // 2) proyector (cuerpo) y después su óptica, solo entre las compatibles (guía de ópticas de Epson)
   // v10.54 · marcas con las que se calcula: botones que se encienden y se apagan (siempre queda una)
-  if (MARCAS_PROY.length > 1) mat += campo(t('marcasProy'), `<div class="fila c${Math.min(3, MARCAS_PROY.length)}">${MARCAS_PROY.map(m => tog(mAct.includes(m), `data-accion="marca-proy" data-v="${m}" title="${t('marcasProyTit')}"`, m)).join('')}</div>`);
-  mat += campo(t('proyector'), `<select class="sel" data-sel="proy.cuerpo"><option value="">${t('auto')}${!p.cuerpo && sel ? ' · ' + sel.nombre : ''}</option>${CUERPOS.filter(q => mAct.includes(q.marca)).map(q => `<option value="${q.modelo}"${q.modelo === p.cuerpo ? ' selected' : ''}>${q.modelo} · ${fmtPx(q.lumens)} lm</option>`).join('')}</select>`);
+  // v10.57 · sin rótulo encima (los nombres de marca se explican solos): con el proyector y la óptica elegidos, el bloque no cabía en un portátil
+  if (MARCAS_PROY.length > 1) mat += `<div class="fila c${Math.min(3, MARCAS_PROY.length)}" role="group" aria-label="${t('marcasProy')}">${MARCAS_PROY.map(m => tog(mAct.includes(m), `data-accion="marca-proy" data-v="${m}" title="${t('marcasProyTit')}"`, m)).join('')}</div>`;
+  // v10.57 · con más de una marca, los proyectores van agrupados por marca
+  const opCu = (l) => l.map(q => `<option value="${q.modelo}"${q.modelo === p.cuerpo ? ' selected' : ''}>${q.modelo} · ${fmtPx(q.lumens)} lm</option>`).join(''), cuAct = CUERPOS.filter(q => mAct.includes(q.marca));
+  const opCuerpos = mAct.length > 1 ? mAct.map(m => `<optgroup label="${m}">${opCu(cuAct.filter(q => q.marca === m))}</optgroup>`).join('') : opCu(cuAct);
+  mat += campo(t('proyector'), `<select class="sel" data-sel="proy.cuerpo"><option value="">${t('auto')}${!p.cuerpo && sel ? ' · ' + sel.nombre : ''}</option>${opCuerpos}</select>`);
   const lentes = p.cuerpo ? PROYECTORES.filter(q => q.modelo === p.cuerpo && q.optica) : [];
   if (lentes.length) mat += campo(t('optica'), `<select class="sel" data-sel="proy.optica"><option value="">${t('auto')}${!p.optica && sel && sel.optica ? ' · ' + sel.optica : ''}</option>${lentes.map(q => `<option value="${q.optica}"${q.optica === p.optica ? ' selected' : ''}>${q.optica} · ${trTxt(q)}${q.ust ? ' · UST' : ''}</option>`).join('')}</select>`);
   if (haySuelo) mat += campo(t('proySuelo'), `<select class="sel" data-sel="proy.idSuelo"><option value="">= ${t('proyector')}</option>${opt(p.idSuelo)}</select>`);

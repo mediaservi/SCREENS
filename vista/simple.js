@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.63';
+const VERSION = 'v10.64';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -450,7 +450,10 @@ function simProy(prop, ancho, anchoPx) {
   g += `<polygon points="${lx.toFixed(1)},${ly.toFixed(1)} ${muroX},${Y(y1).toFixed(1)} ${muroX},${Y(y0).toFixed(1)}" fill="var(--ss-acento)" fill-opacity=".16" stroke="var(--ss-acento)" stroke-opacity=".55" stroke-width="2"/>`;
   g += `<rect x="${muroX - 5}" y="${Y(y1).toFixed(1)}" width="10" height="${((y1 - y0) * k).toFixed(1)}" fill="var(--ss-acento)" rx="3"/>`;
   /* el carril: por dónde puede ir el proyector con lo que has dicho y con su óptica */
-  if (arrP) zona.forEach((z) => { const a = Math.max(0, X(z[1])), b = Math.min(muroX - 8, X(z[0])); if (b >= a) g += `<line class="ss-arr-c" x1="${a.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${b.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="var(--ss-violeta)" stroke-opacity=".45" stroke-width="${(5 * u).toFixed(1)}" stroke-linecap="round"/>`; });
+  /* v10.64 · en ámbar y a trazos, el tramo que solo vale fuera de especificación; encima, en violeta, el garantizado */
+  const cZ = C().c || {}, rail = (l, col, op, das) => redZ(l).forEach((z) => { const a = Math.max(0, X(z[1])), b = Math.min(muroX - 8, X(z[0])); if (b >= a) g += `<line class="ss-arr-c" x1="${a.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${b.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="${col}" stroke-opacity="${op}" stroke-width="${(5 * u).toFixed(1)}" stroke-linecap="round"${das ? ` stroke-dasharray="${(10 * u).toFixed(1)} ${(8 * u).toFixed(1)}"` : ''}/>`; });
+  const resta = (A, B) => { let out = (A || []).map((z) => [z[0], z[1]]); (B || []).forEach((b) => { const n = []; out.forEach((a) => { if (b[1] <= a[0] || b[0] >= a[1]) { n.push(a); return; } if (b[0] > a[0]) n.push([a[0], b[0]]); if (b[1] < a[1]) n.push([b[1], a[1]]); }); out = n; }); return out.filter((z) => z[1] - z[0] > .02); };
+  if (arrP) { if (cZ.zonaO) rail(resta(cZ.zonaO, cZ.zonaN), 'var(--ss-ambar)', '.75', true); rail(cZ.zonaN || zona, 'var(--ss-violeta)', '.45', false); }
   const pw = Math.max(26, .5 * k), ph = Math.max(14, .22 * k);
   let pr = '';
   if (pos.apoyo) { const top = ly + ph / 2; pr += `<rect x="${(lx - pw * .9).toFixed(1)}" y="${top.toFixed(1)}" width="${(pw * 1.8).toFixed(1)}" height="6" fill="var(--ss-tenue)"/><line x1="${(lx - pw * .75).toFixed(1)}" y1="${top + 6}" x2="${(lx - pw * .75).toFixed(1)}" y2="${suelo}" stroke="var(--ss-tenue)" stroke-width="5"/><line x1="${(lx + pw * .75).toFixed(1)}" y1="${top + 6}" x2="${(lx + pw * .75).toFixed(1)}" y2="${suelo}" stroke="var(--ss-tenue)" stroke-width="5"/>`; }
@@ -473,14 +476,20 @@ function simProy(prop, ancho, anchoPx) {
    persona (desde dónde mira la gente). Al soltar el proyector, su distancia queda fijada (se libera en «El proyector cabe» → No lo sé). ---------- */
 let GEO = null, ARR = null;
 /* los tramos por los que se puede mover cada cosa, en metros (redondeados hacia dentro al centímetro) */
-function arrLim(q) { if (q === 'pub') return [[1, 100]]; const c = C().c; return ((c && c.zona) || []).map((z) => [Math.ceil(z[0] * 100 - 1e-6) / 100, Math.floor(z[1] * 100 + 1e-6) / 100]).filter((z) => z[1] >= z[0]); }
+const redZ = (l) => (l || []).map((z) => [Math.ceil(z[0] * 100 - 1e-6) / 100, Math.floor(z[1] * 100 + 1e-6) / 100]).filter((z) => z[1] >= z[0]);
+/* v10.64 · el proyector puede ir también por el tramo que solo vale fuera de especificación (en ámbar en el carril) */
+function arrLim(q) { if (q === 'pub') return [[1, 100]]; const c = C().c; if (!c) return []; const u = [...(c.zonaN || c.zona || []), ...(c.zonaO || [])].sort((a, b) => a[0] - b[0]), z = [];
+  u.forEach((x) => { const l = z[z.length - 1]; if (l && x[0] <= l[1] + .005) l[1] = Math.max(l[1], x[1]); else z.push([x[0], x[1]]); }); return redZ(z); }
+const enZ = (l, d) => (l || []).some((z) => d >= z[0] - .005 && d <= z[1] + .005);
 const arrVal = (q) => { if (q === 'pub') return +ED().esp.sueltas.dist || 0; const f = paredF(); return f && f.pos ? +f.pos.dist || 0 : 0; };
 /* el punto permitido más cercano */
 function arrCerca(lim, d) { let m = null; for (const z of lim) { if (d >= z[0] && d <= z[1]) return d; const p = d < z[0] ? z[0] : z[1]; if (m == null || Math.abs(p - d) < Math.abs(m - d)) m = p; } return m == null ? d : m; }
 function arrPon(q, d) {
   const E = ED(); d = Math.round(d * 100) / 100;
   if (q === 'pub') { if (!E.proy.pubNS && Math.abs((+E.esp.sueltas.dist || 0) - d) < .001) return false; E.esp.sueltas.dist = d; E.proy.pubNS = false; }
-  else { if (Math.abs((+E.proy.dist || 0) - d) < .001) return false; E.proy.dist = d; }
+  else { if (Math.abs((+E.proy.dist || 0) - d) < .001) return false; E.proy.dist = d;
+    /* v10.64 · más allá de lo garantizado pasa solo a «fuera de especificación» (con su aviso); si vuelve al tramo garantizado, se quita */
+    const c = C().c; if (c && c.zonaN) { if (!enZ(c.zonaN, d) && enZ(c.zonaO, d)) { E.proy.oos = true; E.proy.oosArr = true; } else if (E.proy.oosArr && enZ(c.zonaN, d)) { E.proy.oos = false; E.proy.oosArr = false; } } }
   C().actualizar(); return true;
 }
 /* de la posición del puntero a metros desde la pared */
@@ -882,7 +891,7 @@ function clic(e) {
   else if (a === 'compartir') compartir();
   else if (a === 'pro') ponVista('pro');
   else if (a === 'restablece') restablecePro();
-  else if (a === 'oos-no') { ED().proy.oos = false; recalc(); }
+  else if (a === 'oos-no') { ED().proy.oos = false; ED().proy.oosArr = false; recalc(); }
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta], [data-accion="reintentar"]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
   else if (a === 'ir-led') { location.href = RAIZ + 'index.html?vista=simple'; }

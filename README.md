@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.63** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.64** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.63)
+## Cambios de la versión actual (v10.64)
+- **CHRISTIE desactivado** (decidido por Josep, 16-11-2026): sus proyectores y ópticas dejan de salir en el cálculo y en los botones de marca hasta que pase la hoja de datos de Christie. Los datos siguen en `screens/proyeccion.js` (`CHRISTIE_ACTIVO = false`).
+- **Margen extra al arrastrar el proyector en SIMPLE** (pedido por Josep): al llegar al límite del carril violeta, el proyector puede seguir por el tramo en ámbar y a trazos, el que solo vale con imágenes más grandes que las garantizadas. Al soltarlo ahí, el cálculo pasa solo a «fuera de especificación» y lo avisa; si vuelve al tramo violeta, el modo se quita solo.
+
+### v10.63
 - **Hoja de Google desconectada** (decidido por Josep, 16-11-2026): el catálogo LED sale solo del panel AVHUB ADMIN. Comparadas las 49 referencias en 463 peticiones, el modelo, la medida, los cabinets y la resolución salen iguales; las pequeñas diferencias de amperios y peso se dan por buenas. En especificaciones manda la web y los PDF en línea de traulux.net y charmex.net.
 - **Nunca otra marca en las propuestas de proyección** (decidido por Josep, 16-11-2026): la de «basta una sola imagen» y la de «otro equipo que sí cabe» salen solo de la marca del proyecto; si la marca no tiene ninguno, no se propone nada.
 

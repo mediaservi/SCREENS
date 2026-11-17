@@ -11,26 +11,27 @@
 <script>(function(){try{var q=new URLSearchParams(location.search),m=q.get('modo');var vi=q.get('vista');if(m){location.replace('vista/consola.html?modo='+encodeURIComponent(m)+(vi?'&vista='+encodeURIComponent(vi):'')+location.hash);return;}var k=[],G=['lang','vista','asis'];q.forEach(function(v,n){if(G.indexOf(n)<0)k.push(n);});if(k.length){var o=new URLSearchParams();G.forEach(function(n){if(q.get(n))o.set(n,q.get(n));});var t=o.toString();history.replaceState(null,'',location.pathname+(t?'?'+t:'')+location.hash);}}catch(e){}})();</script>
 <base href="vista/">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>/* tableta en horizontal (táctil, de 901 a 1280 px de ancho): se maqueta a 900 px, como la tableta en vertical, para que ninguna letra quede ilegible */(function(){var m=document.querySelector('meta[name=viewport]');if(!m)return;var f=function(){var w=Math.max(screen.width,screen.height),c=matchMedia('(pointer: coarse)').matches,l=matchMedia('(orientation: landscape)').matches;m.setAttribute('content',c&&l&&w>900&&w<=1280?'width=900, viewport-fit=cover':'width=device-width, initial-scale=1, viewport-fit=cover');};f();addEventListener('orientationchange',function(){setTimeout(f,60);});})();</script>
 <title>SCREENS</title>
 <meta name="description" content="SCREENS: cálculo de pantallas LED y de proyección, con simulación a escala, cableado, esquema de conexión, lista de material y PDF.">
 <meta name="theme-color" content="#232325">
-<link rel="icon" href="../assets/screens-icono.svg?v=10.64" type="image/svg+xml">
-<link rel="icon" href="../assets/screens-icono-32.png?v=10.64" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../assets/screens-icono-180.png?v=10.64">
-<link rel="manifest" href="../manifest.json?v=10.64">
-<link rel="stylesheet" href="../comun/ficha.css?v=10.64">
-<link rel="stylesheet" href="iconos.css?v=10.64">
-<link rel="stylesheet" href="blocks.css?v=10.64">
-<link rel="stylesheet" href="simple.css?v=10.64">
+<link rel="icon" href="../assets/screens-icono.svg?v=10.65" type="image/svg+xml">
+<link rel="icon" href="../assets/screens-icono-32.png?v=10.65" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../assets/screens-icono-180.png?v=10.65">
+<link rel="manifest" href="../manifest.json?v=10.65">
+<link rel="stylesheet" href="../comun/ficha.css?v=10.65">
+<link rel="stylesheet" href="iconos.css?v=10.65">
+<link rel="stylesheet" href="blocks.css?v=10.65">
+<link rel="stylesheet" href="simple.css?v=10.65">
 </head>
 <body>
 <div id="app"></div>
 <noscript>SCREENS necesita JavaScript.</noscript>
-<script src="../credito.js?v=10.64"></script>
-<script src="../fallo.js?v=10.64"></script>
-<script src="../instalar.js?v=10.64"></script>
-<script src="../pdf.js?v=10.64"></script>
-<script type="module" src="simple.js?v=10.64"></script>
-<script type="module" src="una-led.js?v=10.64"></script>
+<script src="../credito.js?v=10.65"></script>
+<script src="../fallo.js?v=10.65"></script>
+<script src="../instalar.js?v=10.65"></script>
+<script src="../pdf.js?v=10.65"></script>
+<script type="module" src="simple.js?v=10.65"></script>
+<script type="module" src="una-led.js?v=10.65"></script>
 </body>
 </html>

@@ -11,22 +11,23 @@
   <meta charset="utf-8">
   <base href="../">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>/* tableta en horizontal (táctil, de 901 a 1280 px de ancho): se maqueta a 900 px, como la tableta en vertical, para que ninguna letra quede ilegible */(function(){var m=document.querySelector('meta[name=viewport]');if(!m)return;var f=function(){var w=Math.max(screen.width,screen.height),c=matchMedia('(pointer: coarse)').matches,l=matchMedia('(orientation: landscape)').matches;m.setAttribute('content',c&&l&&w>900&&w<=1280?'width=900, viewport-fit=cover':'width=device-width, initial-scale=1, viewport-fit=cover');};f();addEventListener('orientationchange',function(){setTimeout(f,60);});})();</script>
   <title>SCREENS · varias pantallas y proyección</title>
   <meta name="description" content="SCREENS: cálculo y simulación 3D de varias pantallas LED o de proyección y salas inmersivas de hasta 4 paredes y suelo.">
   <meta name="theme-color" content="#232325">
-  <link rel="icon" href="assets/screens-icono.svg?v=10.64" type="image/svg+xml">
-  <link rel="icon" href="assets/screens-icono-32.png?v=10.64" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/screens-icono-180.png?v=10.64">
-  <link rel="manifest" href="manifest.json?v=10.64">
+  <link rel="icon" href="assets/screens-icono.svg?v=10.65" type="image/svg+xml">
+  <link rel="icon" href="assets/screens-icono-32.png?v=10.65" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/screens-icono-180.png?v=10.65">
+  <link rel="manifest" href="manifest.json?v=10.65">
   <!-- v7.2 · preferencias guardadas: pasan una sola vez de las claves antiguas a las nuevas (screens_*) -->
   <script>(function(){try{var L=localStorage,A='screencalc_',m={lang:'idioma',tema:'tema',pared:'pared',fuentes_v2:'fuentes_v2',descarga:'descarga'};Object.keys(m).forEach(function(k){var v=L.getItem(A+k);if(v!==null&&L.getItem('screens_'+m[k])===null)L.setItem('screens_'+m[k],v);L.removeItem(A+k);});['modelos_cache','electronicas_cache','hierros_cache','cache_timestamp'].forEach(function(k){L.removeItem(A+k);});}catch(e){}})();</script>
-  <link rel="stylesheet" href="comun/ficha.css?v=10.64">
+  <link rel="stylesheet" href="comun/ficha.css?v=10.65">
   <link rel="stylesheet" href="screens/estilo.css">
   <!-- v10.27 · la misma consola de siempre (screens/app.js: mismo cálculo, mismas funciones) con el formato de la portada: vista/consola.css y vista/consola.js -->
-  <link rel="stylesheet" href="vista/iconos.css?v=10.64">
-  <link rel="stylesheet" href="vista/consola.css?v=10.64">
-  <link rel="stylesheet" href="vista/simple.css?v=10.64">
-  <script src="vista/consola.js?v=10.64"></script>
+  <link rel="stylesheet" href="vista/iconos.css?v=10.65">
+  <link rel="stylesheet" href="vista/consola.css?v=10.65">
+  <link rel="stylesheet" href="vista/simple.css?v=10.65">
+  <script src="vista/consola.js?v=10.65"></script>
   <script type="importmap">
   { "imports": {
       "three": "./assets/lib/three/three.module.min.js",
@@ -54,7 +55,7 @@
   <script src="fallo.js"></script>
   <script src="instalar.js"></script>
   <script src="pdf.js"></script>
-  <script type="module" src="vista/simple.js?v=10.64"></script>
-  <script type="module" src="screens/app.js?v=10.64"></script>
+  <script type="module" src="vista/simple.js?v=10.65"></script>
+  <script type="module" src="screens/app.js?v=10.65"></script>
 </body>
 </html>

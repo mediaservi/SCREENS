@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.64** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.65** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.64)
+## Cambios de la versión actual (v10.65)
+- **Tableta en horizontal con letra legible** (aprobado por Josep, 16-11-2026): en pantallas táctiles de 901 a 1280 px de ancho en horizontal (iPad, tabletas Android de 10–12″), la página se maqueta a 900 px como la tableta en vertical, con los bloques uno debajo de otro y desplazamiento. Antes los bloques de PRO salían con letra de unos 6–7 px en 1024 × 768. En ordenador y TV no cambia nada.
+
+### v10.64
 - **CHRISTIE desactivado** (decidido por Josep, 16-11-2026): sus proyectores y ópticas dejan de salir en el cálculo y en los botones de marca hasta que pase la hoja de datos de Christie. Los datos siguen en `screens/proyeccion.js` (`CHRISTIE_ACTIVO = false`).
 - **Margen extra al arrastrar el proyector en SIMPLE** (pedido por Josep): al llegar al límite del carril violeta, el proyector puede seguir por el tramo en ámbar y a trazos, el que solo vale con imágenes más grandes que las garantizadas. Al soltarlo ahí, el cálculo pasa solo a «fuera de especificación» y lo avisa; si vuelve al tramo violeta, el modo se quita solo.
 

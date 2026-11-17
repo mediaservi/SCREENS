@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.63';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.64';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.63';
+const VERSION = 'v10.64';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -237,14 +237,19 @@ function calcular() {
       apoyo: !!bajo.apoyo, altura: bajo.apoyo ? bajo.lente.y - altoCh(bajo) / 2 : alto.lente.y + altoCh(alto) / 2 + 0.05 }; });
   // v10.56 · por dónde puede ir el proyector (para arrastrarlo en el dibujo de SIMPLE): lo que da el zoom de cada óptica posible con la imagen
   // pedida (la elegida a mano o, en automático, las del catálogo activo), dentro del margen de instalación que se haya dicho. Tramos en metros.
-  let zona = null;
+  // v10.64 · también el tramo que solo se alcanza fuera de especificación (imágenes más grandes que las garantizadas): al llegar al límite del
+  // carril, el proyector puede seguir por él y el cálculo pasa solo a «fuera de especificación», con su aviso
+  let zona = null, zonaN = null, zonaO = null;
   if (esp.tipo !== 'sala' && sup1) {
-    const zA = Math.max(0, Number(E.proy.distMin) || 0), zB = Math.max(0, Number(E.proy.distMax) || 0), tr = [];
-    lista.forEach(q => { const r = calcularPared(sup1, q, { ...opc, orient: E.proy.orient || 'auto' }); if (r.limite || r.chica) return; const a = Math.max(r.tMin, zA), b = Math.min(r.tMaxZ, zB > 0 ? zB : Infinity); if (b >= a - 1e-9) tr.push([a, Math.max(a, b)]); });
-    tr.sort((x, y) => x[0] - y[0]); zona = [];
-    tr.forEach(x => { const u = zona[zona.length - 1]; if (u && x[0] <= u[1] + 0.005) u[1] = Math.max(u[1], x[1]); else zona.push([x[0], x[1]]); });
+    const zA = Math.max(0, Number(E.proy.distMin) || 0), zB = Math.max(0, Number(E.proy.distMax) || 0);
+    const tramos = (oos) => { const tr = [], z = [];
+      lista.forEach(q => { const r = calcularPared(sup1, q, { ...opc, oos, orient: E.proy.orient || 'auto' }); if (r.limite || r.chica) return; const a = Math.max(r.tMin, zA), b = Math.min(r.tMaxZ, zB > 0 ? zB : Infinity); if (b >= a - 1e-9) tr.push([a, Math.max(a, b)]); });
+      tr.sort((x, y) => x[0] - y[0]);
+      tr.forEach(x => { const u = z[z.length - 1]; if (u && x[0] <= u[1] + 0.005) u[1] = Math.max(u[1], x[1]); else z.push([x[0], x[1]]); });
+      return z; };
+    zonaN = tramos(false); zonaO = tramos(true); zona = E.proy.oos ? zonaO : zonaN;
   }
-  const c = { esp, dist, proyector, prSuelo, filas, tot, autoPropone: auto, consejo, unaImagen, grupos, lx, gan, tipoP, zona };
+  const c = { esp, dist, proyector, prSuelo, filas, tot, autoPropone: auto, consejo, unaImagen, grupos, lx, gan, tipoP, zona, zonaN, zonaO };
   c.sombras = inst.S;
   c.elec = electronica(c); c.veredicto = veredicto(c); return c;
 }
@@ -1059,11 +1064,11 @@ document.addEventListener('click', (ev) => {
     actualizar(); return; }
   if (a === 'marca-proy') { if (alternaMarca(b.dataset.v)) actualizar(); return; }
   if (a === 'pub-ns-no') { E.proy.pubNS = false; actualizar(); return; }
-  if (a === 'consejo-oos') { E.proy.oos = true; actualizar(); return; }
+  if (a === 'consejo-oos') { E.proy.oos = true; E.proy.oosArr = false; actualizar(); return; }
   if (a === 'una-imagen') { const q = calculo && calculo.unaImagen; if (q) { E.proy.cuerpo = q.modelo; E.proy.optica = q.optica || ''; actualizar(); } return; }   // v10.63
   if (a === 'consejo-alt') { const k = calculo && calculo.consejo; if (k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; actualizar(); } return; }
   if (a === 'quita-margen') { E.proy.distMin = 0; E.proy.distMax = 0; actualizar(); return; }
-  if (a === 'proy-oos') { E.proy.oos = !E.proy.oos; actualizar(); return; }
+  if (a === 'proy-oos') { E.proy.oos = !E.proy.oos; E.proy.oosArr = false; actualizar(); return; }
   if (a === 'vt-modo') { E.vista.tec = b.dataset.v; actualizar(true); return; }   // v8.3 · distribución de las vistas técnicas
 });
 let tNum = 0, tRep = 0, nRep = 0, pasoPendiente = false;

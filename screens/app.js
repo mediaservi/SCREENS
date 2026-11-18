@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.66';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.67';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.66';
+const VERSION = 'v10.67';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -71,7 +71,8 @@ const ICO = {
 // siempre está al alcance de las paredes: el LED protegido va siempre. Si no hay modelos que cumplan, se muestran los normales con un aviso.
 const SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500, MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
 const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''), tecN = (m) => String(m.tech || '').toUpperCase().trim();
-const esTransp = (m) => famN(m).includes('holo') || famN(m) === 'tglass', esProt = (m) => (tecN(m) === 'HOB' && famN(m) === 'ufixavant') || (tecN(m) === 'COB' && famN(m) === 'ufixcob');
+const esTransp = (m) => famN(m).includes('holo') || famN(m) === 'tglass' || /GLASS/i.test(String(m.crm || '')),   // v10.67 · T·Rent Glass también, como en una pantalla LED
+  esProt = (m) => (tecN(m) === 'HOB' && famN(m) === 'ufixavant') || (tecN(m) === 'COB' && famN(m) === 'ufixcob');
 const salaLed = () => E.cantidad === 'varias' && E.esp.tipo === 'sala' && E.tecnologia === 'led';
 const protegidoLed = () => E.led.tipo === 'INDOOR' && (salaLed() || !!E.led.protegido);
 let avisoLed = [];
@@ -79,6 +80,9 @@ function listaLed() {
   const L = E.led; avisoLed = [];
   let lista = catalogo.filter(m => m.class === L.clase && m.tipo === L.tipo);
   if (!lista.length) { lista = catalogo.filter(m => m.tipo === L.tipo); if (lista.length) avisoLed.push(t('relClase')); }
+  // v10.67 · install que se puede resolver con rental (regla de Josep, 18-11-2026)
+  if (L.clase === 'INSTALL' && (L.transp || L.gold)) { const pide = (m) => (!L.transp || esTransp(m)) && (!L.gold || /gold/i.test(String(m.tech || '')));
+    if (!lista.some(pide)) { const rent = catalogo.filter(m => m.tipo === L.tipo && m.class === 'RENTAL' && pide(m)); if (rent.length) { lista = rent; avisoLed = [t('relRental')]; } } }
   { const tr = lista.filter(esTransp); if (L.transp) { if (tr.length) lista = tr; else avisoLed.push(t('relTransp')); } else if (tr.length < lista.length) lista = lista.filter(m => !esTransp(m)); }
   if (L.gold) { const g = lista.filter(m => /gold/i.test(String(m.tech || ''))); if (g.length) lista = g; else avisoLed.push(t('relGold')); }
   const conSol = L.tipo !== 'INDOOR' ? L.sol : '', base = conSol === 'directo' ? SOL_DIRECTO : conSol === 'indirecto' ? SOL_INDIRECTO : (MIN_NITS[L.tipo] || 0), nits = Math.max(base, +L.nitsMin || 0), tope = conSol === 'indirecto' && nits < SOL_DIRECTO ? SOL_DIRECTO : Infinity;

@@ -7,11 +7,11 @@ import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.66';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.67';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.66';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.67';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.66';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.67';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -108,7 +108,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.66';
+const TEXV = '?v=10.67';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -188,6 +188,10 @@ function calcula() {
   R = null; if (!CAT.length) return;
   let lista = CAT.filter((m) => m.tipo === E.tipo && m.class === E.clase), relajado = '';
   if (!lista.length) { lista = CAT.filter((m) => m.tipo === E.tipo); relajado = 'No hay modelos de ' + (E.clase === 'RENTAL' ? 'alquiler' : 'instalación fija') + ' para este entorno: se muestran todos.'; }
+  /* v10.67 · install que se puede resolver con rental (regla de Josep, 18-11-2026): si se pide instalación fija y ningún cabinet fijo de este
+     entorno da lo pedido (transparente, GOLD) pero uno de alquiler sí, se propone el de alquiler, avisándolo: muchas gamas se dejan instaladas */
+  if (E.clase === 'INSTALL' && (E.transp || E.gold)) { const pide = (m) => (!E.transp || esTransp(m)) && (!E.gold || /gold/i.test(String(m.tech || '')));
+    if (!lista.some(pide)) { const rent = CAT.filter((m) => m.tipo === E.tipo && m.class === 'RENTAL' && pide(m)); if (rent.length) { lista = rent; relajado = 'Se propone un cabinet de alquiler: cumple lo pedido y muchas gamas de alquiler se pueden dejar instaladas.'; } } }
   /* LED transparente: las familias HOLO y T·Glass solo se proponen con el botón TRANSPARENTE; sin él quedan fuera para que una petición normal no acabe en una malla */
   { const tr = lista.filter(esTransp); if (E.transp) { if (tr.length) lista = tr; else relajado += (relajado ? ' ' : '') + 'No hay LED transparente (HOLO o T·Glass) para este entorno: se muestran los normales.'; } else if (tr.length < lista.length) lista = lista.filter((m) => !esTransp(m)); }
   /* entorno marino o tropical: solo cabinets con contactos de oro (tecnología GOLD), como en la clásica */

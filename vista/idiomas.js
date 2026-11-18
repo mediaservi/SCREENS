@@ -125,6 +125,7 @@ const MAPA = {
   'Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.': ['No processor covers this project with these options: change the backup, the connection or the scaler.', 'Cap processador cobreix aquest projecte amb aquestes opcions: canvia el backup, la connexió o l’escalador.'],
   // beta 15
   'Transparente': ['Transparent', 'Transparent'], 'LED transparente: solo las familias HOLO y T·Glass': ['Transparent LED: only the HOLO and T·Glass families', 'LED transparent: només les famílies HOLO i T·Glass'],
+  'Se propone un cabinet de alquiler: cumple lo pedido y muchas gamas de alquiler se pueden dejar instaladas.': ['A rental cabinet is proposed: it meets the request, and many rental ranges can be left installed.', 'Es proposa un cabinet de lloguer: compleix el que es demana i moltes gammes de lloguer es poden deixar instal·lades.'],
   'No hay LED transparente (HOLO o T·Glass) para este entorno: se muestran los normales.': ['No transparent LED (HOLO or T·Glass) for this environment: showing the standard ones.', 'No hi ha LED transparent (HOLO o T·Glass) per a aquest entorn: es mostren els normals.'],
   // beta 14
   'Sol directo': ['Direct sun', 'Sol directe'], 'Sol indirecto': ['Indirect sun', 'Sol indirecte'],

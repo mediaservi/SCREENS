@@ -78,6 +78,8 @@ export function interpretar(texto) {
   // «torre de 6 m», «colgados de un truss a 8 m», «sobremesa»)
   if (/(?:proyector|projector|proyectar|projectar)[^.]{0,40}\b(?:en )?vertical|\ben vertical\b|portrait|modo retrato|in portrait/.test(t)) { c.proy.orient = 'vertical'; vistos.push({ k: 'vertical' }); }
   else if (/(?:proyector|projector)[^.]{0,40}\ben horizontal|\bin landscape\b/.test(t)) { c.proy.orient = 'horizontal'; vistos.push({ k: 'horizontal' }); }
+  // v10.66 · una pantalla = un proyector, salvo que se pida multiproyección (blending)
+  if (/multiproyecc|multiprojecc|multi-?projection|blending|edge ?blend|varios proyectores|diversos projectors|several projectors/.test(t)) { c.proy.multi = true; if (!tecnologia) tecnologia = 'proy'; vistos.push({ k: 'multi' }); }
   const dP = t.match(/(?:proyector(?:es)?|projector(?:s)?|projectors|torres?|towers?)[^.\d]{0,40}?(?:\ba|\bat|desde|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b/) || t.match(/(?:\ba|\bat)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\s*(?:de|from|of)\s*(?:la |el |the )?(?:fachada|pared|pantalla|superficie|edificio|facade|wall|screen|facana|paret|edifici)/);
   if (dP) { c.proy.dist = n(dP[1]); vistos.push({ k: 'distProy', v: c.proy.dist }); }
   // v8.4 · en un mapping, «a 40 m (de distancia)» sin hablar del público es la distancia de los proyectores a la fachada

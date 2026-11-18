@@ -225,14 +225,16 @@ const anchoMin = (p) => (p.minDiagPulg > 0 ? p.minDiagPulg * 0.0254 * p.ar / Mat
 //   mínimo al máximo de blending.
 // v8.2 · sin distancia fijada: trObjetivo, la relación de proyección preferida (mapping: el proyector lejos, unas 2 veces el ancho);
 // tiroObjetivo, la distancia preferida en metros (pared: el proyector a la altura del público). Si el zoom no llega, el extremo más cercano
-export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0 } = {}) {
+// v10.66 · una: una pantalla = un proyector (regla de Josep, 18-11-2026). Con «una», la rejilla es siempre 1 × 1: si esa imagen no llega,
+// no cubre o pasa del máximo, sale así, con su aviso, en vez de repartirla en varios equipos. El blending solo se calcula si se pide.
+export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false } = {}) {
   const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
   const puedeV = !(p.ust && (p.shiftSube || !p.optica));
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
   let mejor = null;
   for (const o of ors) {
     const a = o === 'v' ? 1 / p.ar : p.ar;   // ancho / alto de la imagen sobre la superficie
-    for (let rows = 1; rows <= 8; rows++) for (let cols = 1; cols <= 12; cols++) {
+    for (let rows = 1; rows <= (una ? 1 : 8); rows++) for (let cols = 1; cols <= (una ? 1 : 12); cols++) {
       if (cols * rows > 40) continue;
       const kc = 1 + (cols - 1) * (1 - sMin), kr = 1 + (rows - 1) * (1 - sMin);
       const ihNec = Math.max(H / kr, W / (a * kc));   // la imagen más pequeña que cubre con el solape mínimo
@@ -252,9 +254,11 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       const exS = Math.max(0, oxR - SOLAPE_MAX) + Math.max(0, oyR - SOLAPE_MAX), exR = Math.max(0, recX - RECORTE_MAX) + Math.max(0, recY - RECORTE_MAX);
       const fuera = alcance != null && tiro > alcance + 1e-9;
       const lux = p.lumens / (iw * ih);
+      // v10.66 · un solape por encima del máximo de blending pesa ya más que no cubrir: con una óptica fija a una distancia fija salían cuatro
+      // proyectores casi uno encima de otro (2×2 al 92 %) en vez de decir que desde ahí no se llega
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
-      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exS > 0 ? 3e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
+      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
         + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0);
       if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste };
     }

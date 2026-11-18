@@ -1,7 +1,7 @@
 /* SCREENS · service worker: uso sin conexión.
    Estrategia: red primero (datos siempre actualizados) y, si no hay red, la copia guardada
    (aplicación, librerías e imágenes). */
-const CACHE = 'screens-offline-v67';
+const CACHE = 'screens-offline-v68';
 const EXCLUIR = /youtube|googlevideo|ytimg|google-analytics|script\.google\.com|docs\.google\.com|googleusercontent|google\.com/;
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -14,7 +14,9 @@ self.addEventListener('fetch', (e) => {
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const res = await fetch(req);
+      // v10.68 · sin caché: lo de la propia app se pide siempre al servidor (revalidando), sin pasar por la copia del navegador;
+      // GitHub Pages no deja poner cabeceras propias y sirve con 10 minutos de caducidad
+      const res = await (new URL(req.url).origin === self.location.origin ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req));
       if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()).catch(() => {});
       return res;
     } catch (err) {

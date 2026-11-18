@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.67** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.68** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.67)
+## Cambios de la versión actual (v10.68)
+- **Sin caché** (pedido por Josep, 18-11-2026): todas las páginas llevan las etiquetas equivalentes a `Cache-Control: no-cache, no-store, must-revalidate`; los recursos que faltaban llevan la versión en su dirección; y el service worker pide siempre al servidor lo de la propia app, revalidando, sin pasar por la copia del navegador (GitHub Pages no admite cabeceras propias). Sin conexión sigue funcionando con la copia guardada.
+
+### v10.67
 - **Install que se puede resolver con rental** (regla de Josep, 18-11-2026): si se pide instalación fija y ningún cabinet fijo del entorno da lo pedido (transparente o GOLD) pero uno de alquiler sí, se propone el de alquiler con su aviso, porque muchas gamas de alquiler se dejan instaladas. Caso: LED transparente de exterior fijo → T-RENT-GLASS-O-100. Si hay un cabinet fijo que cumple, sale el fijo.
 - En varias pantallas LED y sala LED, T·Rent Glass cuenta ya como LED transparente, igual que en una pantalla LED.
 

@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.65';
+const VERSION = 'v10.66';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -93,7 +93,7 @@ const T = {
     vSinDist: 'Sin decir · el pitch más grande en stock',
     sPitch: 'Pitch', qPitch: '¿Qué pitch quieres?', ayPitch: 'La distancia entre puntos de luz, en milímetros. Sin pitch, se elige el más grande que haya en stock y encaje.', noSePitch: ['No lo sé', 'El más grande que haya en stock'],
     lReunion: ['Sala de reuniones', 'Oficina, reuniones'], lAula: ['Aula', 'Clase, formación'], lEvento: ['Sala de eventos', 'Congresos, presentaciones'], lSalon: ['Salón de casa', 'Luz de casa'], lTeatro: ['Cine en casa', 'Casi a oscuras'], luxMano: 'o escribe los lux', vMano: 'A mano',
-    qAvisos: 'Lo que hay que mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVISO' : ' AVISOS'), cUnaS: 'Una sola imagen, sin solapes', cOosNo: ['Quitar fuera de especificación', 'Volver a lo que garantiza el fabricante'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
+    qAvisos: 'Lo que hay que mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVISO' : ' AVISOS'), cUnaS: 'Una sola imagen, sin solapes', cMulti: (n) => 'Usar multiproyección · ' + n + ' proyectores', cMultiS: 'Varias imágenes unidas con blending sobre la misma pantalla', cUnaSola: ['Volver a una imagen', 'Una pantalla, un proyector'], cOosNo: ['Quitar fuera de especificación', 'Volver a lo que garantiza el fabricante'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
     lSinProc: 'Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador en PRO.', lSinMedia: 'Ningún mediaserver cubre este proyecto con esta marca y estas opciones.', lCerca: (a, b) => 'No hay pitch ' + a + ': se usa el más cercano, ' + b + ' mm.', lSinRes: (r) => 'Ningún pitch llega a ' + r + ' con esta medida: se usa el más fino.',
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
@@ -151,7 +151,7 @@ const T = {
     vSinDist: 'Not given · the largest pitch in stock',
     sPitch: 'Pitch', qPitch: 'Which pitch do you want?', ayPitch: 'The distance between the light dots, in millimetres. Without a pitch, the largest one in stock that fits is chosen.', noSePitch: ['I don’t know', 'The largest one in stock'],
     lReunion: ['Meeting room', 'Office, meetings'], lAula: ['Classroom', 'Lessons, training'], lEvento: ['Event hall', 'Conferences, presentations'], lSalon: ['Living room', 'Home lighting'], lTeatro: ['Home theatre', 'Almost dark'], luxMano: 'or type the lux', vMano: 'Custom',
-    qAvisos: 'What needs checking', nAvisos: (n) => '+' + n + (n === 1 ? ' WARNING' : ' WARNINGS'), cUnaS: 'A single image, no overlap', cOosNo: ['Turn off out of specification', 'Back to what the manufacturer guarantees'], vVert: 'portrait', pantK: (k) => 'Screen ' + k,
+    qAvisos: 'What needs checking', nAvisos: (n) => '+' + n + (n === 1 ? ' WARNING' : ' WARNINGS'), cUnaS: 'A single image, no overlap', cMulti: (n) => 'Use multi-projection · ' + n + ' projectors', cMultiS: 'Several images joined with blending on the same screen', cUnaSola: ['Back to one image', 'One screen, one projector'], cOosNo: ['Turn off out of specification', 'Back to what the manufacturer guarantees'], vVert: 'portrait', pantK: (k) => 'Screen ' + k,
     lSinProc: 'No processor covers this project with these options: change the backup, the connection or the scaler in PRO.', lSinMedia: 'No media server covers this project with this brand and these options.', lCerca: (a, b) => 'There is no ' + a + ' pitch: the nearest one is used, ' + b + ' mm.', lSinRes: (r) => 'No pitch reaches ' + r + ' at this size: the finest one is used.',
     pers: '1.75 m person', proy: 'Projector'
   },
@@ -209,7 +209,7 @@ const T = {
     vSinDist: 'Sense dir · el pitch més gran en estoc',
     sPitch: 'Pitch', qPitch: 'Quin pitch vols?', ayPitch: 'La distància entre punts de llum, en mil·límetres. Sense pitch, es tria el més gran que hi hagi en estoc i encaixi.', noSePitch: ['No ho sé', 'El més gran que hi hagi en estoc'],
     lReunion: ['Sala de reunions', 'Oficina, reunions'], lAula: ['Aula', 'Classe, formació'], lEvento: ['Sala d’esdeveniments', 'Congressos, presentacions'], lSalon: ['Saló de casa', 'Llum de casa'], lTeatro: ['Cinema a casa', 'Gairebé a les fosques'], luxMano: 'o escriu els lux', vMano: 'A mà',
-    qAvisos: 'El que cal mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVÍS' : ' AVISOS'), cUnaS: 'Una sola imatge, sense solapaments', cOosNo: ['Treure fora d’especificació', 'Tornar al que garanteix el fabricant'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
+    qAvisos: 'El que cal mirar', nAvisos: (n) => '+' + n + (n === 1 ? ' AVÍS' : ' AVISOS'), cUnaS: 'Una sola imatge, sense solapaments', cMulti: (n) => 'Fer servir multiprojecció · ' + n + ' projectors', cMultiS: 'Diverses imatges unides amb blending sobre la mateixa pantalla', cUnaSola: ['Tornar a una imatge', 'Una pantalla, un projector'], cOosNo: ['Treure fora d’especificació', 'Tornar al que garanteix el fabricant'], vVert: 'en vertical', pantK: (k) => 'Pantalla ' + k,
     lSinProc: 'Sense processador que cobreixi aquest projecte amb aquestes opcions: canvia el backup, la connexió o l’escalador en PRO.', lSinMedia: 'Cap mediaserver cobreix aquest projecte amb aquesta marca i aquestes opcions.', lCerca: (a, b) => 'No hi ha pitch ' + a + ': es fa servir el més proper, ' + b + ' mm.', lSinRes: (r) => 'Cap pitch arriba a ' + r + ' amb aquesta mida: es fa servir el més fi.',
     pers: 'Persona d’1,75 m', proy: 'Projector'
   }
@@ -638,7 +638,7 @@ function resProy() {
   const nomb = G.length > 1 ? G.map((g) => g.n + ' × ' + nomQ(g.q)).join(' + ') : nomQ(pr);
   AV = M.map((x) => ({ n: x.n, txt: x.k === 'consejo' ? t('noVale')(kj.nombre) : x.k === 'oos' ? t('semOos') : x.txt }));
   const conR = Math.round(con * 10) / 10, semC = conR >= 15 ? 'V' : conR >= 7 ? 'A' : 'R', sem = V.nivel, semTxt = m0 ? AV[0].txt : t('semV');
-  const soloOos = M.length === 1 && m0.k === 'oos', semBt = soloOos ? `<button type="button" class="ss-mini" data-ss="oos-no">${esc(t('quitar'))}</button>` : btAvisos(M.length, !!(kj || c.unaImagen));
+  const soloOos = M.length === 1 && m0.k === 'oos', semBt = soloOos ? `<button type="button" class="ss-mini" data-ss="oos-no">${esc(t('quitar'))}</button>` : btAvisos(M.length, !!(kj || c.unaImagen || c.multiPosible || (c.multi && E.proy.multi)));
   /* la línea: el proyector y, detrás, la imagen (o la sala) y cuántos hacen falta, sin repetir el número */
   const vert = c.filas.some((x) => x.p && x.p.vert) ? ' · ' + t('vVert') : '';
   const l1 = esc(m === 'sala' ? t('lSala') : t('lProy')) + ' <b>' + esc(nomb) + '</b>';
@@ -738,11 +738,13 @@ const PREG = {
     op: () => { const c = PAG === 'consola' && !esLedC() ? proyC() : null, k = c && c.consejo, o = []; if (!c) return o;
       if (k && k.alt) { const q = k.alt; o.push(['alt', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cAltS')([q.lumens > 0 ? fmt(q.lumens, 0) + ' lm' : '', String(q.resTxt || '').split('(')[0].trim()].filter(Boolean).join(' · '))], 'proy']); }
       if (c.unaImagen) { const q = c.unaImagen; o.push(['una', [t('cAlt')([q.marca, q.nombre].filter(Boolean).join(' ')), t('cUnaS') + (q.lumens > 0 ? ' · ' + fmt(q.lumens, 0) + ' lm' : '')], 'proy']); }
+      if (c.multiPosible) o.push(['multi', [t('cMulti')(c.multiPosible.n), t('cMultiS')], 'proy']);   /* v10.66 */
+      if (c.multi && ED().proy.multi) o.push(['unasola', t('cUnaSola'), 'proy']);
       if (k && k.oos) o.push(['oos', [t('cOos'), t('cOosS')], 'alerta']);
       if (ED().proy.oos) o.push(['oosno', t('cOosNo'), 'alerta']);
       if (k || ED().proy.cuerpo || ED().proy.optica) o.push(['auto', [t('cAuto'), t('cAutoS')], 'chispa']); return o; },
     val: () => null,
-    pon: (v) => { const E = ED(), c = proyC(), k = c && c.consejo; if (v === 'alt' && k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; } else if (v === 'una' && c && c.unaImagen) { E.proy.cuerpo = c.unaImagen.modelo; E.proy.optica = c.unaImagen.optica || ''; } else if (v === 'oos') E.proy.oos = true; else if (v === 'oosno') E.proy.oos = false; else if (v === 'auto') { E.proy.cuerpo = C().DEF().proy.cuerpo; E.proy.optica = ''; } } }
+    pon: (v) => { const E = ED(), c = proyC(), k = c && c.consejo; if (v === 'alt' && k && k.alt) { E.proy.cuerpo = k.alt.modelo; E.proy.optica = k.alt.optica || ''; } else if (v === 'una' && c && c.unaImagen) { E.proy.cuerpo = c.unaImagen.modelo; E.proy.optica = c.unaImagen.optica || ''; } else if (v === 'multi') E.proy.multi = true; else if (v === 'unasola') E.proy.multi = false; else if (v === 'oos') E.proy.oos = true; else if (v === 'oosno') E.proy.oos = false; else if (v === 'auto') { E.proy.cuerpo = C().DEF().proy.cuerpo; E.proy.optica = ''; } } }
 };
 const RAMA = { led: ['ltipo', 'donde', 'sol', 'mar', 'uso', 'medida', 'dist', 'tocar', 'altura'], ledc: ['ltipo', 'ltam', 'ldonde', 'luso', 'ldist'], proy: ['ptipo', 'ptam', 'luz', 'pub', 'pcabe', 'mont', 'techo'] };
 const visibles = (r) => RAMA[r].filter((id) => !PREG[id].si || PREG[id].si());

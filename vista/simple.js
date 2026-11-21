@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.68';
+const VERSION = 'v10.69';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -587,6 +587,7 @@ function resLed() {
   const l1 = esc(t('lLed')) + ' <b>' + esc(m.crm) + '</b>' + st, l2 = esc(nb(`${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px`));
   AV = [];
   if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });
+  if (R.alt) AV.push({ n: 'A', txt: R.alt, crudo: false });   /* v10.69 · alternativa de alquiler en stock */
   if (R.origen === 'cercano') AV.push({ n: 'A', txt: t('lCerca')(fm(E.pitch), fm(R.pitch)) });
   if (R.origen === 'sinres') AV.push({ n: 'A', txt: t('lSinRes')(E.resMin) });
   if (!R.proc) AV.push({ n: 'A', txt: t('lSinProc') });

@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.68** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.69** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.68)
+## Cambios de la versión actual (v10.69)
+- **Solape de blending en dos tramos** (decidido por Josep, 21-11-2026): hasta el 45 % es el recomendable y no avisa; del 45 al 65 % sale como «posible», con un aviso ámbar (se pierde luz y resolución); por encima del 65 % sigue siendo «no recomendable». El cálculo no cambia: cambia lo que se avisa.
+- **Rental como alternativa** (regla de Josep, 21-11-2026): si se pide instalación fija y hay un cabinet fijo que cumple, el fijo sigue siendo el propuesto; cuando ese fijo va bajo pedido y hay uno de alquiler en stock que da lo mismo (entorno, transparente, GOLD, brillo, pitch a ±0,2 mm y medida), se nombra como alternativa con su aviso. En una pantalla LED y en varias.
+
+### v10.68
 - **Sin caché** (pedido por Josep, 18-11-2026): todas las páginas llevan las etiquetas equivalentes a `Cache-Control: no-cache, no-store, must-revalidate`; los recursos que faltaban llevan la versión en su dirección; y el service worker pide siempre al servidor lo de la propia app, revalidando, sin pasar por la copia del navegador (GitHub Pages no admite cabeceras propias). Sin conexión sigue funcionando con la copia guardada.
 
 ### v10.67

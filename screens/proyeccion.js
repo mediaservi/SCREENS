@@ -44,6 +44,8 @@ export const OPTICAS = [
 ];
 
 export const SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
+// v10.69 · dos tramos (decidido por Josep, 21-11-2026): hasta el 45 % el solape es «recomendable»; del 45 al 65 %, «posible, con aviso»
+export const SOLAPE_RECO = 0.45;
 export const RECORTE_MAX = 0.2;                       // lo que puede sobresalir la imagen de la superficie (se enmascara)
 // Chasis (ancho × fondo × alto, m) según las fichas de Epson (guía 08/2026, con las patas); la serie L695SE/L795SE/L695SU comparte chasis
 const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.210], 'EB-L695SE': [0.440, 0.368, 0.151], 'EB-L795SE': [0.440, 0.368, 0.151], 'EB-L695SU': [0.440, 0.368, 0.151],

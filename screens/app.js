@@ -1,7 +1,7 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
 import { cargarCatalogo, cargarEquipos, ordenar, enStock } from './catalogo.js';
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
-import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
+import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
 const MARCAS_PROY = [...new Set(PROYECTORES.map(q => q.marca))].sort((a, b) => prioMarca(a) - prioMarca(b));
@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.68';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.69';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.68';
+const VERSION = 'v10.69';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -75,7 +75,7 @@ const esTransp = (m) => famN(m).includes('holo') || famN(m) === 'tglass' || /GLA
   esProt = (m) => (tecN(m) === 'HOB' && famN(m) === 'ufixavant') || (tecN(m) === 'COB' && famN(m) === 'ufixcob');
 const salaLed = () => E.cantidad === 'varias' && E.esp.tipo === 'sala' && E.tecnologia === 'led';
 const protegidoLed = () => E.led.tipo === 'INDOOR' && (salaLed() || !!E.led.protegido);
-let avisoLed = [];
+let avisoLed = [], nitsLed = 0;
 function listaLed() {
   const L = E.led; avisoLed = [];
   let lista = catalogo.filter(m => m.class === L.clase && m.tipo === L.tipo);
@@ -87,7 +87,7 @@ function listaLed() {
   if (L.gold) { const g = lista.filter(m => /gold/i.test(String(m.tech || ''))); if (g.length) lista = g; else avisoLed.push(t('relGold')); }
   const conSol = L.tipo !== 'INDOOR' ? L.sol : '', base = conSol === 'directo' ? SOL_DIRECTO : conSol === 'indirecto' ? SOL_INDIRECTO : (MIN_NITS[L.tipo] || 0), nits = Math.max(base, +L.nitsMin || 0), tope = conSol === 'indirecto' && nits < SOL_DIRECTO ? SOL_DIRECTO : Infinity;
   { const enRango = lista.filter(m => m.nits >= nits && m.nits < tope), conNits = lista.filter(m => m.nits >= nits);
-    if (enRango.length) lista = enRango; else if (conNits.length) lista = conNits; else if (nits) avisoLed.push(t('relNits', { n: nits })); }
+    if (enRango.length) lista = enRango; else if (conNits.length) lista = conNits; else if (nits) avisoLed.push(t('relNits', { n: nits })); nitsLed = nits; }
   if (protegidoLed()) { const p = lista.filter(esProt); if (p.length) lista = p; else avisoLed.push(t('relProt')); }
   return ordenar(lista);
 }
@@ -129,6 +129,13 @@ function calcular(forzarMulti) {
     const sups = superficies(esp, grosor);
     const puertas = puertasDe(esp);
     const filas = sups.map(s => ({ s, r: aplicarPuertas(calcularLed(s, modelo, E.led.ajuste), s, modelo, puertas.filter(p => p.pared === s.id)), nombre: nombreSup(s), grosor }));
+    // v10.69 · rental como alternativa (regla de Josep, 21-11-2026): con un cabinet fijo que cumple, el fijo sigue siendo el principal; el de
+    // alquiler solo se ofrece, con aviso, si está en stock y el fijo no. Tiene que dar lo mismo: entorno, transparente, GOLD, brillo, pitch y medida
+    if (E.led.clase === 'INSTALL' && modelo.class === 'INSTALL' && !enStock(modelo) && !protegidoLed()) {
+      const encaja = (x) => sups.every(s => { const q = calcularLed(s, x, E.led.ajuste); return Math.abs(q.ancho - s.ancho) <= s.ancho * 0.15 + 1e-9 && Math.abs(q.alto - s.alto) <= s.alto * 0.15 + 1e-9; });
+      const alt = ordenar(catalogo.filter(x => x.tipo === modelo.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(modelo) && (!E.led.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nitsLed && Math.abs(x.pitch - modelo.pitch) <= 0.2 + 1e-9 && encaja(x)))[0];
+      if (alt) avisoLed.push(t('altRental', { m: alt.crm }));
+    }
     const c = { esp, dist, modelo, lista, filas, tot: totales(filas), avisoLed: avisoLed.slice() };
     c.elec = electronica(c); c.veredicto = veredicto(c); return c;
   }
@@ -308,6 +315,8 @@ function veredicto(c) {
     if (con < 7) R('contraste', t('vConR'));
     { const L = pw.filter(f => f.p.limite); if (L.length) A('limite', t('limite') + ': ' + nom(L) + '.'); }
     pw.filter(f => f.p.solapeRel > SOLAPE_MAX + 1e-6).forEach(f => A('solape', t('vSolape', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre }) + (c.unaImagen ? ' ' + t('vSolapeUna', { b: nombreQ(c.unaImagen) }) : '')));
+    // v10.69 · solape entre el recomendable (45 %) y el máximo (65 %): posible, con aviso
+    pw.filter(f => f.p.solapeRel > SOLAPE_RECO + 1e-6 && f.p.solapeRel <= SOLAPE_MAX + 1e-6).forEach(f => A('solapeMedio', t('vSolapeMedio', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre, r: fmt(SOLAPE_RECO * 100, 0) })));
     pw.filter(f => Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6).forEach(f => A('recorte', t('vRecorte', { p: fmt(Math.max(f.p.recorte, f.p.recorteX) * 100, 0), n: f.nombre })));
     if (pw.some(f => f.p.fueraZoom && !f.p.noCubre)) A('zoom', t('fueraZoom'));
     { const L = pw.filter(pasaShift); if (L.length) A('shift', t('vShift', { s: nom(L) })); }
@@ -633,7 +642,7 @@ function modSuperficies(c) {
   c.filas.forEach(f => {
     const r = f.r, p = f.p;
     const linea = r ? `${fmt(r.ancho)} × ${fmt(r.alto)} m · ${r.cols}×${r.rows} · ${r.resW}×${r.resH}` : `${p.n} ${t('p')} · ${p.resW}×${p.resH} · ${fmt(p.nits, 0)} nits`;
-    const av = p ? [p.fuera ? t('fuera') : '', p.limite ? t('limite') : '', p.chica ? t('chica') : '', p.solapeRel > SOLAPE_MAX ? t('solapeAlto') : '', p.recorte > 0.005 ? t('recorte') + ' ' + fmt(p.recorte * 100, 0) + ' %' : ''].filter(Boolean).join(' · ') : '';
+    const av = p ? [p.fuera ? t('fuera') : '', p.limite ? t('limite') : '', p.chica ? t('chica') : '', p.solapeRel > SOLAPE_MAX ? t('solapeAlto') : p.solapeRel > SOLAPE_RECO + 1e-6 ? t('solapeMedio') : '', p.recorte > 0.005 ? t('recorte') + ' ' + fmt(p.recorte * 100, 0) + ' %' : ''].filter(Boolean).join(' · ') : '';
     h += `<div class="sup"><b class="mono" style="color:var(--verde)">●</b><div class="sup-dat"><b>${f.nombre}</b><span>${linea}</span>${av ? `<span style="color:#ffc94d">${av}</span>` : ''}</div><span></span></div>`;
   });
   return h + '</div></section>';

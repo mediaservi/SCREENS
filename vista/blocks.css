@@ -568,3 +568,6 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
   .pide-res { display: flex; flex-direction: column; justify-content: center; white-space: nowrap; font-size: calc(var(--u) * 12) !important; line-height: 1.15; }
   .pide-res span { display: block; white-space: nowrap; overflow: hidden; width: 100%; }
 }
+/* v10.71 · candado del pie: acceso interno con el Gmail de Josep (stock real); encendido cuando está activo */
+.admin-esq.on { opacity: 1; color: #3fdc5b; }
+:root[data-tema="claro"] .admin-esq.on { color: #17842f; }

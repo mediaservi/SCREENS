@@ -67,11 +67,21 @@ function normalizar(data) {
     && ['INSTALL', 'RENTAL'].includes(it.class) && ['INDOOR', 'OUTDOOR', 'ESCAPARATE'].includes(it.tipo)
     && it.cabAncho > 0 && it.cabAlto > 0 && it.cabPixAncho > 0 && it.cabPixAlto > 0);
 }
+/* v10.71 · STOCK INTERNO: las unidades reales (semáforo de 3 rayas y aviso de lote) solo llegan con la llave que da el panel AVHUB ADMIN
+   a Josep al entrar con su Gmail (candado del pie). Sin llave, el catálogo solo trae «en stock» o «bajo pedido». */
+const LLAVE_K = 'sc_llave_stock';
+function llave() {
+  try { const m = /[#&]llave=([\w.-]+)/.exec(location.hash); if (m) { localStorage.setItem(LLAVE_K, m[1]); history.replaceState(null, '', location.href.split('#')[0]); } return localStorage.getItem(LLAVE_K) || ''; } catch (e) { return ''; }
+}
+export const esInterno = () => { try { return !!localStorage.getItem(LLAVE_K); } catch (e) { return false; } };
+export const urlAccesoInterno = () => ADMIN_URL + '?accion=llave&vuelta=' + encodeURIComponent(location.href.split('#')[0]);
 async function leerMaestro() {
   try {
-    const r = await fetch(ADMIN_URL + '?accion=catalogo', { cache: 'no-store' });
+    const k = llave();
+    const r = await fetch(ADMIN_URL + '?accion=catalogo' + (k ? '&llave=' + encodeURIComponent(k) : ''), { cache: 'no-store' });
     if (!r.ok) return null;
     const j = await r.json();
+    if (k && j && j.interno === false) try { localStorage.removeItem(LLAVE_K); } catch (e) {}   // llave caducada o no válida
     // v7.8 · fotos de los equipos que busca el motor cada noche (frontal, trasera y otras vistas)
     if (j && j.e && globalThis.SC_FICHA && globalThis.SC_FICHA.recibirFotos) globalThis.SC_FICHA.recibirFotos(j.e);
     if (!j || !j.d) return null;
@@ -93,8 +103,8 @@ export async function cargarCatalogo(alActualizar) {
    Mínimo de un proyecto: 5×5 cabinets + 1 de backup del mismo batch (26). Sin dato del CRM, la regla de siempre (disp/stock). */
 const numSt = (v) => (v === '' || v == null || isNaN(parseFloat(v)) ? null : parseFloat(v));
 export const dispBatch = (m) => { const b = numSt(m.batchDisp); return b != null ? Math.max(0, b) : numSt(m.stockUds); };
-export const nivelStock = (m) => { const u = dispBatch(m); return u == null ? null : u >= 100 ? 3 : u >= 30 ? 2 : 1; };
-export const cabeEnBatch = (m, n) => { const u = dispBatch(m); return u == null || !n ? null : n + 1 <= u; };
+export const nivelStock = (m) => { if (!esInterno()) return null; const u = dispBatch(m); return u == null ? null : u >= 100 ? 3 : u >= 30 ? 2 : 1; };
+export const cabeEnBatch = (m, n) => { if (!esInterno()) return null; const u = dispBatch(m); return u == null || !n ? null : n + 1 <= u; };
 export const enStock = (m) => { const u = dispBatch(m); if (u != null) return u >= 26; return String(m.disp || m.stock || '').toUpperCase() === 'STOCK' || String(m.stock || '').toUpperCase() === 'SI'; };
 // Prioridad a igual pitch (misma regla que led.html): 1º stock, 2º prioridad manual, 3º familia preferente (v10.1)
 export function ordenar(lista) {

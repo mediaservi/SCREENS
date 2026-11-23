@@ -1,18 +1,18 @@
 /* SCREENS · una pantalla LED en BLOCKS (beta) · mediaservi.com · GPL-3.0
    Misma lógica de cálculo que la consola (screens/led.js, comun/electronica.js) y el mismo catálogo en vivo (screens/catalogo.js);
    aquí solo cambia cómo se presenta: cada dato tiene su bloque fijo y no hay desplazamiento de página. */
-import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch } from '../screens/catalogo.js';
+import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno } from '../screens/catalogo.js';
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.70';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
-import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.70';
+import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.70';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.71';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -109,7 +109,7 @@ let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
 /* v10.38 · además de las seis paredes: «ninguno» (sin fondo) y «propio» (una imagen subida o un enlace pegado) */
 const FONDOS = ['hormigon', 'madera', 'marmol', 'ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro', 'ninguno', 'propio'];
-const TEXV = '?v=10.70';
+const TEXV = '?v=10.71';
 /* v10.38 · candado discreto del pie: abre el panel AVHUB ADMIN (Apps Script), como el de la consola */
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';   /* rompe la caché del navegador cuando cambia una textura */
 /* fondo propio: la imagen ya reducida (data:) o el enlace, guardado en este navegador */
@@ -572,7 +572,7 @@ function monta() {
       <div data-blk="HM2">${bt('proyecto', 'Datos del proyecto: nombre, cliente, fuentes de vídeo y observaciones', 'data-ver="proyecto"', 'g')}${bt('pega', 'Pegar una petición copiada', 'data-pega', 'g')}<div class="pide-caja"><input class="pide" id="pide" type="text" autocomplete="off" spellcheck="false" placeholder="Escríbela: «pantalla de 3 x 4 para exterior 3.9p a 8 m»" aria-label="Describe la pantalla" value="${esc(E.texto)}"><button type="button" class="pide-res" id="pide-res" hidden title="Resultado del cálculo. Toca para escribir otra petición"></button></div>${bt('copia', 'Copiar el texto de la casilla (la petición o el resultado)', 'data-copiatxt', 'g')}${bt('mic', 'Dictar la petición con el micrófono', 'data-mic', 'g')}${bt('audio', 'Pasar a texto una nota de voz (archivo de audio)', 'data-audio', 'g')}<input type="file" id="f-audio" accept="audio/*,.opus,.ogg,.m4a,.mp3,.wav,.webm" hidden><input type="file" id="f-cont" accept="image/*,video/*" hidden><input type="file" id="f-fondo" accept="image/*" hidden></div>
       <div data-blk="HM3"><button type="button" class="calcular" id="calcular">CALCULAR →</button></div></div>
     <main class="rejilla" id="rejilla"></main>
-    <footer class="franja f-f1"><div data-blk="F1L" id="pie-l"></div><div data-blk="F1C" id="pie-c" class="f-cred">SCREENS ${esc(VERSION.split('SCREENS ')[1])} 2026 forma parte del proyecto AVHUB ideado por el fundador de <a href="https://mediaservi.com/" target="_blank" rel="noopener">mediaservi.com</a> · <a href="https://screens.mediaservi.com/#aviso" target="_blank" rel="noopener">Aviso legal</a></div><div data-blk="F1R" class="f1r" id="hueco-comun"></div><a class="admin-esq" href="${ADMIN_URL}" target="_blank" rel="noopener" title="Panel de administración" aria-label="Panel de administración"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></a></footer>
+    <footer class="franja f-f1"><div data-blk="F1L" id="pie-l"></div><div data-blk="F1C" id="pie-c" class="f-cred">SCREENS ${esc(VERSION.split('SCREENS ')[1])} 2026 forma parte del proyecto AVHUB ideado por el fundador de <a href="https://mediaservi.com/" target="_blank" rel="noopener">mediaservi.com</a> · <a href="https://screens.mediaservi.com/#aviso" target="_blank" rel="noopener">Aviso legal</a></div><div data-blk="F1R" class="f1r" id="hueco-comun"></div><a class="admin-esq${esInterno() ? ' on' : ''}" href="${esc(urlAccesoInterno())}" title="${esInterno() ? 'Acceso interno activo: ves el stock real' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></a></footer>
   </div><div class="velo" id="velo"></div><div class="tostada" id="tostada" role="status" aria-live="polite"></div>`;
   /* el pie común de AVHUB (credito.js): mismo texto que el resto de apps, editable desde el panel, y con el aviso legal en su ventana */
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); pc.innerHTML = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()); }; pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }

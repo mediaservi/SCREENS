@@ -1,6 +1,6 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
-document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.81 · candado verde: cerrar el acceso interno */
+document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.82 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -24,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.81';
+const VERSION = 'v10.82';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -403,7 +403,7 @@ const MOTOR = globalThis.SC_MOTOR;
 const trMotor = (txt) => { let r = String(txt || ''); (MOTOR[idioma()] || []).forEach(([a, b]) => { r = r.replace(a, b); }); return r; };
 // v10.70 · cabinets de todo el proyecto (todas las superficies): van del mismo batch
 const totalCab = (c) => ((c && c.filas) || []).reduce((s, f) => s + ((f.r && f.r.cab) || 0), 0);
-/* v10.81 · STOCK INTERNO (solo admin, con la llave del candado): en el bloque MATERIAL, nunca en resultados, fichas ni PDF */
+/* v10.82 · STOCK INTERNO (solo admin, con la llave del candado): en el bloque MATERIAL, nunca en resultados, fichas ni PDF */
 function stockAdmin(m, nCab) {
   if (!esInterno()) return '';
   const n = (v) => { const x = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(x) ? x : null; };
@@ -415,7 +415,7 @@ function stockAdmin(m, nCab) {
     + f('Próxima llegada', m.llegada ? String(m.llegada).replace(/[<>&]/g, '') : '—') + '</div>';
 }
 function fichaCab(m, nCab) {
-  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), avisos: [],   /* v10.81 · la ficha es pública y sale en el PDF: nada de stock interno aquí */
+  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), avisos: [],   /* v10.82 · la ficha es pública y sale en el PDF: nada de stock interno aquí */
     specs: [[t('kPitch'), m.pitch + ' mm'], [t('kCab'), `${m.cabAncho}×${m.cabAlto}${m.thick ? '×' + m.thick : ''} mm`], [t('kPx'), `${m.cabPixAncho}×${m.cabPixAlto}`], [t('kNits'), m.nits ? m.nits + ' nits' : ''], [t('kHz'), m.hz ? m.hz + ' Hz' : ''],
       [t('kKg'), m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], [t('kW'), m.wMax ? fmt(m.wMax, 0) + ' W' : ''], [t('kCard'), m.card || ''], [t('kTech'), m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: t('fichaFab') });
@@ -525,7 +525,7 @@ function partesLed(c) {
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;
   mat += campo(t('modelo'), `<select class="sel" data-sel="led.crm"><option value="">${t('auto')}${c.modelo && !l.crm ? ' · [' + c.modelo.pitch + 'p] ' + c.modelo.crm : ''}</option>${opts}</select>`);
   mat += `<p class="ayuda">${t('autoAyudaLed', { d: fmt(c.dist, 1) })}</p>`;
-  if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.81 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
+  if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.82 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
   const aj = `<div class="fila c2">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
   const m = c.modelo;
   return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
@@ -608,6 +608,22 @@ function bloquePos(c) {
   return h;
 }
 // v8.3 · el proyector arrastrado en las vistas técnicas (o el desplazamiento de la óptica) fija la distancia y la altura, con su candado
+/* v10.82 · VISTAS TÉCNICAS EN GRANDE (consola): páginas Pantalla 1 · lateral / frontal / cenital, Pantalla 2 …, con restablecer, deshacer y rehacer.
+   Lo que se toca en las vistas es la distancia y la altura del proyector (y su montaje): eso es lo que se guarda en el historial */
+const HVT = { atras: [], adelante: [] };
+const fotoVt = () => ({ dist: E.proy.dist, altura: E.proy.altura, montaje: E.proy.montaje });
+const ponVt = (s) => { Object.assign(E.proy, s); actualizar(); };
+function fijarVt(o, d) { HVT.atras.push(fotoVt()); if (HVT.atras.length > 60) HVT.atras.shift(); HVT.adelante = []; fijarDesdeVistas(o, d); }
+window.SC_VT = {
+  paginas() { const c = calculo; if (!c || !c.filas || E.tecnologia === 'led') return []; const fs = c.filas.filter(f => f.s.tipo !== 'suelo' && f.pos); const P = [];
+    fs.forEach((f, i) => ['lateral', 'frontal', 'cenital'].forEach(v => P.push({ i, fila: c.filas.indexOf(f), nombre: f.nombre, v, tit: f.nombre + ' · ' + t('vt_' + v) }))); return P; },
+  pinta(cont, i, v) { cont.innerHTML = vistasTecnicas(calculo, v, i); activarVistas(cont, calculo, fijarVt); },
+  reset() { const a = fotoVt(), b = { dist: 0, altura: 0, montaje: 'auto' }; if (a.dist === b.dist && a.altura === b.altura && a.montaje === b.montaje) return false; HVT.atras.push(a); HVT.adelante = []; ponVt(b); return true; },
+  deshacer() { if (!HVT.atras.length) return false; HVT.adelante.push(fotoVt()); ponVt(HVT.atras.pop()); return true; },
+  rehacer() { if (!HVT.adelante.length) return false; HVT.atras.push(fotoVt()); ponVt(HVT.adelante.pop()); return true; },
+  get puede() { return { atras: HVT.atras.length > 0, adelante: HVT.adelante.length > 0, reset: !(Number(E.proy.dist) === 0 && Number(E.proy.altura) === 0 && E.proy.montaje === 'auto') }; },
+  txt: (k) => t(k)
+};
 function fijarDesdeVistas(o, d) {
   if (o.dist != null) E.proy.dist = Math.round(o.dist * 100) / 100;
   if (o.yL != null) {
@@ -664,7 +680,7 @@ function modSuperficies(c) {
 }
 // sin filas: o falta el catálogo LED (cargando / sin conexión) o no hay ninguna superficie activa
 function sinFilas(c) { if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat') + ` <button type="button" class="sec-btn" data-accion="reintentar">${t('reintentar')}</button>`; return t('nada'); }
-/* v10.81 · consola de escritorio, PROYECCIÓN: la fila de abajo pasa a sumario técnico (azul) · vistas técnicas (verde) · observaciones y avisos (rosa).
+/* v10.82 · consola de escritorio, PROYECCIÓN: la fila de abajo pasa a sumario técnico (azul) · vistas técnicas (verde) · observaciones y avisos (rosa).
    Solo se ven en la consola de escritorio (html.bk); en móvil siguen las seis cifras */
 function bkSumario(c, T, p, tiros) {
   const fil = (k, v) => `<div class="f"><dt>${k}</dt><dd>${v}</dd></div>`, sup = c.filas.filter(f => f.s.tipo !== 'suelo');
@@ -975,7 +991,8 @@ function vistaTrabajo() {
 }
 function barraEscena() {
   const v = E.vista;
-  $('#esc-vistas').innerHTML = ['exterior', 'interior', 'planta'].map(k => tog(v.camara === k, `data-cam="${k}"`, t(k))).join('');
+  $('#esc-vistas').innerHTML = ['exterior', 'interior', 'planta'].map(k => tog(v.camara === k, `data-cam="${k}"`, t(k))).join('')
+    + (E.tecnologia !== 'led' && window.SC_VT.paginas().length ? ['lateral', 'frontal', 'cenital'].map(k => `<button type="button" class="tog vt-abre" data-bk="vt" data-v="${k}" title="${t('vtTit')} · ${t('vt_' + k)}">${t('vt_' + k)}</button>`).join('') : '');   /* v10.82 · las tres vistas técnicas, en grande */
   $('#esc-cont').innerHTML = ['carta', 'panorama', 'ascensor', 'propio', 'apagado'].map(k => tog(v.contenido === k, `data-set="vista.contenido" data-v="${k}"`, t(k))).join('') + tog(v.etiquetas, 'data-accion="etiquetas"', t('etiquetas')) + (E.tecnologia === 'proy' ? tog(v.zona, 'data-accion="zona"', t('zonaBtn')) : '');
   $('#esc-medio').innerHTML = (v.contenido === 'propio' ? `<button type="button" class="sec-btn" data-accion="subir">⬆ ${medio ? medio.nombre : t('subir')}</button><select class="sel" data-sel="vista.modo" aria-label="${t('modoMedio')}">${['continuo', 'estirar', 'rellenar', 'encajar', 'repetir', 'espejo'].map(k => `<option value="${k}"${v.modo === k ? ' selected' : ''}>${t('m_' + k)}</option>`).join('')}</select><input type="file" id="medio-archivo" accept="image/*,video/*" hidden>` : '');
 }
@@ -1001,8 +1018,9 @@ function actualizar(sinEscena) {
   $('#res').innerHTML = vistaResultados(calculo) + z.equipo + modSuperficies(calculo);
   plegar();
   ['A', 'B'].forEach(k => { if (!sc[k]) return; const m = $(`#panel${k} .blq.act[data-blq="${sc[k][0]}"] .blq-cuerpo`); if (m) m.scrollTop = sc[k][1]; });
-  activarVistas($('#res'), calculo, fijarDesdeVistas);
+  activarVistas($('#res'), calculo, fijarVt);
   barraEscena(); bandaOos();
+  try { dispatchEvent(new Event('sc-calculo')); } catch (e) {}   /* v10.82 · la ventana grande de las vistas técnicas se vuelve a pintar */
   if (!sinEscena) { clearTimeout(tEsc); tEsc = setTimeout(construirEscena, 60); }
   if (window.SCSIMPLE) window.SCSIMPLE.aviso();   // v10.49 · el modo SIMPLE se repinta con el mismo cálculo
 }
@@ -1299,7 +1317,7 @@ function ajustarTextos() {
 function ajustarCasilla(i) { i.style.removeProperty('font-size'); let fs = parseFloat(getComputedStyle(i).fontSize), k = 0; while (i.scrollWidth > i.clientWidth + 0.5 && fs > 10 && k++ < 14) { fs -= 0.5; i.style.setProperty('font-size', fs + 'px'); } }
 function anchoTexto(el) { const r = document.createRange(); r.selectNodeContents(el); const rs = [...r.getClientRects()]; if (!rs.length) return 0; return Math.max(...rs.map(q => q.right)) - Math.min(...rs.map(q => q.left)); }
 const obsTextos = new MutationObserver(() => requestAnimationFrame(ajustarTextos));
-/* v10.81 · si un título cambia de ancho sin cambiar el DOM (p. ej. cuando la consola le añade botones), se vuelve a ajustar */
+/* v10.82 · si un título cambia de ancho sin cambiar el DOM (p. ej. cuando la consola le añade botones), se vuelve a ajustar */
 const roTextos = typeof ResizeObserver === 'function' ? new ResizeObserver(() => requestAnimationFrame(ajustarTextos)) : null;
 new MutationObserver(() => { if (roTextos) document.querySelectorAll('.blq-nom:not([data-ro])').forEach((e) => { e.setAttribute('data-ro', ''); roTextos.observe(e); }); }).observe(document.body, { childList: true, subtree: true });
 ['app', 'consola'].forEach(id => obsTextos.observe(document.getElementById(id), { childList: true, subtree: true }));
@@ -1312,7 +1330,7 @@ function pintarCabecera() {
   $('#btn-idioma').title = t('idioma');
   [['#btn-inicio', 'nuevo'], ['#btn-pdf', 'pdf'], ['#btn-info', 'info']].forEach(([id, k]) => { const b = $(id); b.title = t(k); b.setAttribute('aria-label', t(k)); });
   $('.marca').title = t('nuevo');
-  $('#pie').innerHTML = (window.AVCREDITO ? (() => { const h = window.AVCREDITO.html('SCREENS', VERSION, idioma()), k = h.indexOf(' · <a href="#aviso"'); return `<span class="cred-ver">SCREENS ${VERSION}</span>` + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); })() :   /* v10.81 · en móvil vertical solo «SCREENS vX · Aviso legal» */ `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn${esInterno() ? ' on' : ''}" href="${urlAccesoInterno()}"${esInterno() ? ' data-salir-interno' : ''} title="${esInterno() ? 'Acceso interno activo (ves el stock real) · toca para cerrarlo' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><i class="ic ic-admin" aria-hidden="true"></i></a>`;   /* v10.81 · como en UNA: el candado da la llave del stock interno, se ve verde si está activa y al tocarlo se cierra */
+  $('#pie').innerHTML = (window.AVCREDITO ? (() => { const h = window.AVCREDITO.html('SCREENS', VERSION, idioma()), k = h.indexOf(' · <a href="#aviso"'); return `<span class="cred-ver">SCREENS ${VERSION}</span>` + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); })() :   /* v10.82 · en móvil vertical solo «SCREENS vX · Aviso legal» */ `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn${esInterno() ? ' on' : ''}" href="${urlAccesoInterno()}"${esInterno() ? ' data-salir-interno' : ''} title="${esInterno() ? 'Acceso interno activo (ves el stock real) · toca para cerrarlo' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><i class="ic ic-admin" aria-hidden="true"></i></a>`;   /* v10.82 · como en UNA: el candado da la llave del stock interno, se ve verde si está activa y al tocarlo se cierra */
 }
 fijarIdioma(idiomaInicial(), false);
 pintarCabecera();

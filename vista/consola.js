@@ -105,7 +105,7 @@
   var enCompleta = function () { return !!(document.fullscreenElement || document.webkitFullscreenElement); };
   function salCompleta() { if (enCompleta()) { try { var r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(function () {}); } catch (e) {} } }
   function cierra() { var pr0 = document.getElementById('pie-r'); if (pr0) ['btn-instala', 'btn-fallo'].forEach(function (id) { var x = document.getElementById(id); if (x && x.parentNode !== pr0) pr0.insertBefore(x, pr0.querySelector('.admin-btn')); });
-    var v = document.getElementById('bk-velo'); if (!v) return; if (VENT === 'visor') { devuelveEscena(); VIS = null; } if (VENT === 'pdf') { salCompleta(); if (PV && PV.url) URL.revokeObjectURL(PV.url); PV = null; } v.classList.remove('on'); v.innerHTML = ''; VENT = null; }
+    var v = document.getElementById('bk-velo'); if (!v) return; if (VENT === 'visor') { devuelveEscena(); VIS = null; } if (VENT === 'vt') VT = null; if (VENT === 'pdf') { salCompleta(); if (PV && PV.url) URL.revokeObjectURL(PV.url); PV = null; } v.classList.remove('on'); v.innerHTML = ''; VENT = null; }
   function proyecto() { var l = L(), e = leeE(), v = velo();
     v.innerHTML = '<div class="bk-vent ajustes" role="dialog" aria-modal="true" aria-label="' + esc(l.datos) + '"><div class="bk-vent-cab">' + IC.proyecto + '<span>' + esc(l.datos) + '</span><span class="sep"></span><button type="button" class="ic-bt" data-bk="cierra" title="' + esc(l.cierra) + '" aria-label="' + esc(l.cierra) + '">' + IC.x + '</button></div>' +
       '<div class="bk-vent-cu"><div class="rot">' + esc(l.pyc) + '</div><div class="fila"><input type="text" class="pide" data-pr="proy" maxlength="80" value="' + esc(e.proy || '') + '" placeholder="' + esc(l.nombre) + '" aria-label="' + esc(l.nombre) + '"><input type="text" class="pide" data-pr="cliente" maxlength="80" value="' + esc(e.cliente || '') + '" placeholder="' + esc(l.cliente) + '" aria-label="' + esc(l.cliente) + '"></div>' +
@@ -190,6 +190,23 @@
     if (p.k === 'sim') { var es = $('#escena'); if (es) { VIS.esc = { par: es.parentNode, sig: es.nextSibling }; cu.appendChild(es); } VIS.src = null; }
     else { var z = document.createElement('div'); z.className = 'vis-zoom'; z.style.zoom = ANCHO() ? Math.max(1.15, Math.min(2.4, innerWidth / 1100)).toFixed(2) : ''; p.nodos.forEach(function (n) { var c = n.cloneNode(true); c.removeAttribute('id'); z.appendChild(c); }); cu.appendChild(z); VIS.src = p.nodos; }
     VENT = 'visor'; v.classList.add('on'); }
+  /* v10.82 · VISTAS TÉCNICAS EN GRANDE: una página por pantalla y vista (Pantalla 1 · lateral, frontal, cenital; Pantalla 2 …),
+     a todo el espacio para arrastrar bien el proyector, con volver a la posición propuesta, deshacer y rehacer */
+  var VT = null;
+  var IC_VT = { reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+    atras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+    adelante: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg>' };
+  function vtAbre(v, fila) { var S = window.SC_VT; if (!S) return; var P = S.paginas(); if (!P.length) return; var j = 0;
+    for (var k = 0; k < P.length; k++) if (P[k].v === v && (fila == null || P[k].fila === fila)) { j = k; break; }
+    VT = { j: j }; vtPinta(); }
+  function vtPinta() { var S = window.SC_VT, l = L(); if (!S || !VT) return; var P = S.paginas(); if (!P.length) { cierra(); return; } VT.j = Math.max(0, Math.min(P.length - 1, VT.j)); var p = P[VT.j], q = S.puede, v = velo();
+    var bt = function (k, ic, t, no, cl) { return '<button type="button" class="ic-bt' + (cl || '') + '" data-bk="' + k + '" title="' + esc(t) + '" aria-label="' + esc(t) + '"' + (no ? ' disabled' : '') + '>' + ic + '</button>'; };
+    if (VENT !== 'vt') devuelveEscena();
+    v.innerHTML = '<div class="bk-vent visor vt-gr" role="dialog" aria-modal="true" aria-label="' + esc(p.tit) + '"><div class="bk-vent-cab"><i class="blk-ic" aria-hidden="true">' + IC.proy + '</i><span class="vis-tit">' + esc(p.tit) + '</span><span class="sep"></span>' +
+      bt('vt-reset', IC_VT.reset, S.txt('vtReset'), !q.reset, ' vt-rst') + bt('vt-atras', IC_VT.atras, S.txt('vtAtras'), !q.atras) + bt('vt-adelante', IC_VT.adelante, S.txt('vtAdelante'), !q.adelante) +
+      '<span class="vis-pag">' + (VT.j + 1) + ' / ' + P.length + '</span>' + bt('vt-ant', IC.ant, l.ant, P.length < 2) + bt('vt-sig', IC.sig, l.sig, P.length < 2) + bt('cierra', IC.x, l.cierra) + '</div><div class="bk-vent-cu vt-gr-cu"></div></div>';
+    S.pinta(v.querySelector('.vt-gr-cu'), p.i, p.v); VENT = 'vt'; v.classList.add('on'); }
+  addEventListener('sc-calculo', function () { if (VENT === 'vt' && VT) requestAnimationFrame(vtPinta); });
   function pasaPagina(d) { var P = paginas(), i = 0; P.forEach(function (p, j) { if (p.k === VIS.k) i = j; }); VIS.k = P[(i + d + P.length) % P.length].k; pintaVisor(); }
   /* si el cálculo cambia con la ventana abierta (un botón de la copia, por ejemplo), la página se vuelve a copiar */
   function refrescaVisor() { if (VENT !== 'visor' || !VIS || !VIS.src) return; var r = $('#res'); if (VIS.src.some(function (n) { return n.parentNode !== r; })) pintaVisor(); }
@@ -199,6 +216,11 @@
     if (b.hasAttribute('data-pv')) { accionPv(b.getAttribute('data-pv')); return; }
     if (k === 'cierra') cierra();
     else if (k === 'ver') visor(b.getAttribute('data-k'));
+    else if (k === 'vt') { var sec = b.closest('.vt'); vtAbre(b.getAttribute('data-v'), sec && sec.dataset.vtSup != null && b.classList.contains('vt-ojo') ? Number(sec.dataset.vtSup) : null); }
+    else if (k === 'vt-ant' || k === 'vt-sig') { var n = window.SC_VT.paginas().length; VT.j = (VT.j + (k === 'vt-ant' ? -1 : 1) + n) % n; vtPinta(); }
+    else if (k === 'vt-reset') window.SC_VT.reset();
+    else if (k === 'vt-atras') window.SC_VT.deshacer();
+    else if (k === 'vt-adelante') window.SC_VT.rehacer();
     else if (k === 'ant' || k === 'sig') pasaPagina(k === 'ant' ? -1 : 1);
     else if (k === 'tema') { var c = de.getAttribute('data-tema') === 'claro' ? 'oscuro' : 'claro'; de.setAttribute('data-tema', c); guardaE({ tema: c }); }
     else if (k === 'proyecto') proyecto();
@@ -208,6 +230,8 @@
     else if (k === 'pega') { (navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject()).then(function (s) { s = String(s || '').replace(/\s+/g, ' ').trim(); if (!s) { tostada(l.nadaPega); return; } var i = $('#nl-texto'); if (!i) return; i.value = s; i.dispatchEvent(new Event('input', { bubbles: true })); i.focus(); }, function () { var i = $('#nl-texto'); if (i) i.focus(); tostada(l.noPega, 5000); }); } }, true);
   document.addEventListener('input', function (ev) { var k = ev.target && ev.target.getAttribute && ev.target.getAttribute('data-pr'); if (!k) return; var c = {}; c[k] = ev.target.value; guardaE(c); });
   document.addEventListener('keydown', function (ev) {
+    if (VENT === 'vt' && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !(ev.target && /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName))) { ev.preventDefault(); var n2 = window.SC_VT.paginas().length; VT.j = (VT.j + (ev.key === 'ArrowLeft' ? -1 : 1) + n2) % n2; vtPinta(); return; }
+    if (VENT === 'vt' && (ev.ctrlKey || ev.metaKey) && /^z$/i.test(ev.key)) { ev.preventDefault(); if (ev.shiftKey) window.SC_VT.rehacer(); else window.SC_VT.deshacer(); return; }
     if (VENT === 'visor' && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !(ev.target && /^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(ev.target.tagName))) { ev.preventDefault(); pasaPagina(ev.key === 'ArrowLeft' ? -1 : 1); return; }
     if (ev.key === 'Escape' && document.getElementById('bk-guia')) { ev.stopPropagation(); guia(null); return; }
     if (ev.key === 'Escape' && VENT) { ev.stopPropagation(); cierra(); } }, true);

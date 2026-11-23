@@ -1,6 +1,7 @@
 // SCREENS · textos en español, inglés y catalán (nativos)
 const T = {
   es: {
+    vtGrande: 'Ver en grande', vtReset: 'Volver a la posición propuesta', vtAtras: 'Deshacer', vtAdelante: 'Rehacer', 
     sumTit: 'Sumario técnico', obsTit: 'Observaciones y avisos', obsOk: 'Sin avisos: todo dentro de lo recomendado.', sumProy: 'Proyectores', sumLum: 'Lúmenes', sumLienzo: 'Lienzo', sumBrillo: 'Brillo', sumContr: 'Contraste', sumTiro: 'Distancia óptica', sumSup: 'Superficies', sumLuz: 'Luz y ganancia',
     lema: 'Pantallas LED y proyección para una o varias superficies, hasta salas inmersivas de 4 paredes y suelo.',
     titulo: '¿Qué vas a calcular?', cuantas: 'Superficies', tecno: 'Tecnología',
@@ -92,6 +93,7 @@ const T = {
     ledMax4: 'Hasta 4 pantallas, cada una con su medida y todas del mismo cabinet.'
   },
   en: {
+    vtGrande: 'View larger', vtReset: 'Back to the proposed position', vtAtras: 'Undo', vtAdelante: 'Redo', 
     sumTit: 'Technical summary', obsTit: 'Notes and warnings', obsOk: 'No warnings: everything within the recommended range.', sumProy: 'Projectors', sumLum: 'Lumens', sumLienzo: 'Canvas', sumBrillo: 'Brightness', sumContr: 'Contrast', sumTiro: 'Throw distance', sumSup: 'Surfaces', sumLuz: 'Light and gain',
     lema: 'LED screens and projection for one or more surfaces, up to immersive rooms with 4 walls and floor.',
     titulo: 'What are you calculating?', cuantas: 'Surfaces', tecno: 'Technology',
@@ -183,6 +185,7 @@ const T = {
     ledMax4: 'Up to 4 screens, each with its own size and all with the same cabinet.'
   },
   ca: {
+    vtGrande: 'Veure en gran', vtReset: 'Tornar a la posició proposada', vtAtras: 'Desfés', vtAdelante: 'Refés', 
     sumTit: 'Sumari tècnic', obsTit: 'Observacions i avisos', obsOk: 'Sense avisos: tot dins del que es recomana.', sumProy: 'Projectors', sumLum: 'Lúmens', sumLienzo: 'Llenç', sumBrillo: 'Brillantor', sumContr: 'Contrast', sumTiro: 'Distància òptica', sumSup: 'Superfícies', sumLuz: 'Llum i guany',
     lema: 'Pantalles LED i projecció per a una o diverses superfícies, fins a sales immersives de 4 parets i terra.',
     titulo: 'Què calcularàs?', cuantas: 'Superfícies', tecno: 'Tecnologia',

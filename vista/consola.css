@@ -522,3 +522,29 @@ html.bk #bk-tot .bk-obs .obs-cu > * { margin: 0; padding: 0; }
 /* v10.81 · un título de bloque largo (p. ej. «Electrónica de control» junto a sus botones) se encoge en vez de quedar tapado */
 html.piel .mod-tit > .blq-cab { min-width: 0; flex: 1 1 auto; overflow: hidden; }
 html.piel .mod-tit .blq-nom { overflow: hidden; }
+
+/* v10.82 · vistas técnicas en grande: la vista ocupa todo el espacio de la ventana para arrastrar bien el proyector */
+.bk-vent.vt-gr .bk-vent-cab .ic-bt[disabled] { opacity: .35; cursor: default; }
+.bk-vent.vt-gr .bk-vent-cab .vt-rst { margin-left: 4px; }
+.vt-gr-cu { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; padding: 10px 14px 12px !important; overflow: hidden; }
+.vt-gr-cu > .vt { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin: 0; padding: 0; }
+.vt-gr-cu .vt-cab { display: none !important; }
+.vt-gr-cu .vt-rejilla, .vt-gr-cu .vt-rejilla.una { flex: 1 1 auto; min-height: 0; display: flex !important; }
+.vt-gr-cu .vt-fig { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin: 0; }
+.vt-gr-cu .vt-fig figcaption { flex: none; display: flex; align-items: center; gap: 14px; font-size: 13px; }
+.vt-gr-cu .vt-lienzo { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.vt-gr-cu .vt-lienzo svg { width: 100%; height: 100%; max-height: 100%; }
+.vt-gr-cu .vt-ojo { display: none !important; }
+.vt-gr-cu .vt-shift { flex: none; margin-top: 8px; }
+.vt-gr-cu > .vt > :not(.vt-cab):not(.vt-rejilla):not(.vt-shift) { flex: none; }
+/* el ojo de cada vista pequeña (abre la ventana grande) */
+.vt-fig figcaption { position: relative; }
+.vt-ojo { margin-left: auto; flex: none; width: 28px; height: 28px; padding: 0; display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--linea); background: var(--blk2, #2a2d33); color: var(--txt); cursor: pointer; }
+.vt-ojo svg { width: 16px; height: 16px; }
+.vt-ojo:hover, .vt-ojo:focus-visible { color: var(--marca); border-color: var(--marca); }
+html.bk #bk-tot .bk-vts .vt-fig figcaption { display: flex; align-items: center; gap: 6px; overflow: visible; }
+/* los tres botones de vistas en la barra de la simulación */
+.vt-abre { border-style: dashed !important; }
+.bk-vent.vt-gr { display: flex; flex-direction: column; }
+.bk-vent.vt-gr > .bk-vent-cab { flex: none; }
+.vt-gr-cu .vt-fig, .vt-gr-cu .vt-rejilla, .vt-gr-cu .vt-lienzo { width: 100%; }

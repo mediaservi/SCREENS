@@ -1,6 +1,6 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
-document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.80 · candado verde: cerrar el acceso interno */
+document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.81 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -24,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.80';
+const VERSION = 'v10.81';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -403,7 +403,7 @@ const MOTOR = globalThis.SC_MOTOR;
 const trMotor = (txt) => { let r = String(txt || ''); (MOTOR[idioma()] || []).forEach(([a, b]) => { r = r.replace(a, b); }); return r; };
 // v10.70 · cabinets de todo el proyecto (todas las superficies): van del mismo batch
 const totalCab = (c) => ((c && c.filas) || []).reduce((s, f) => s + ((f.r && f.r.cab) || 0), 0);
-/* v10.80 · STOCK INTERNO (solo admin, con la llave del candado): en el bloque MATERIAL, nunca en resultados, fichas ni PDF */
+/* v10.81 · STOCK INTERNO (solo admin, con la llave del candado): en el bloque MATERIAL, nunca en resultados, fichas ni PDF */
 function stockAdmin(m, nCab) {
   if (!esInterno()) return '';
   const n = (v) => { const x = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(x) ? x : null; };
@@ -415,7 +415,7 @@ function stockAdmin(m, nCab) {
     + f('Próxima llegada', m.llegada ? String(m.llegada).replace(/[<>&]/g, '') : '—') + '</div>';
 }
 function fichaCab(m, nCab) {
-  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), avisos: [],   /* v10.80 · la ficha es pública y sale en el PDF: nada de stock interno aquí */
+  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), avisos: [],   /* v10.81 · la ficha es pública y sale en el PDF: nada de stock interno aquí */
     specs: [[t('kPitch'), m.pitch + ' mm'], [t('kCab'), `${m.cabAncho}×${m.cabAlto}${m.thick ? '×' + m.thick : ''} mm`], [t('kPx'), `${m.cabPixAncho}×${m.cabPixAlto}`], [t('kNits'), m.nits ? m.nits + ' nits' : ''], [t('kHz'), m.hz ? m.hz + ' Hz' : ''],
       [t('kKg'), m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], [t('kW'), m.wMax ? fmt(m.wMax, 0) + ' W' : ''], [t('kCard'), m.card || ''], [t('kTech'), m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: t('fichaFab') });
@@ -525,7 +525,7 @@ function partesLed(c) {
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;
   mat += campo(t('modelo'), `<select class="sel" data-sel="led.crm"><option value="">${t('auto')}${c.modelo && !l.crm ? ' · [' + c.modelo.pitch + 'p] ' + c.modelo.crm : ''}</option>${opts}</select>`);
   mat += `<p class="ayuda">${t('autoAyudaLed', { d: fmt(c.dist, 1) })}</p>`;
-  if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.80 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
+  if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.81 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
   const aj = `<div class="fila c2">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
   const m = c.modelo;
   return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
@@ -664,6 +664,29 @@ function modSuperficies(c) {
 }
 // sin filas: o falta el catálogo LED (cargando / sin conexión) o no hay ninguna superficie activa
 function sinFilas(c) { if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat') + ` <button type="button" class="sec-btn" data-accion="reintentar">${t('reintentar')}</button>`; return t('nada'); }
+/* v10.81 · consola de escritorio, PROYECCIÓN: la fila de abajo pasa a sumario técnico (azul) · vistas técnicas (verde) · observaciones y avisos (rosa).
+   Solo se ven en la consola de escritorio (html.bk); en móvil siguen las seis cifras */
+function bkSumario(c, T, p, tiros) {
+  const fil = (k, v) => `<div class="f"><dt>${k}</dt><dd>${v}</dd></div>`, sup = c.filas.filter(f => f.s.tipo !== 'suelo');
+  const trs = sup.map(f => f.p && f.p.ratio).filter(Boolean);
+  return `<div class="bk-sum"><div class="t">${t('sumTit')}</div><dl>`
+    + fil(t('sumProy'), `${fmtPx(T.n)} × ${c.grupos.length > 1 ? c.grupos.map(g => fmtPx(g.n) + ' × ' + nombreQ(g.q)).join(' + ') : nombreQ(p)}${c.filas.some(f => f.p.vert) ? ' · ' + t('vert') : ''}`)
+    + fil(t('sumLum'), `${fmtPx(T.lumenes)} lm <small>(${c.grupos.map(g => `${fmtPx(g.n)} × ${fmtPx(g.q.lumens)}`).join(' + ')})</small>`)
+    + fil(t('sumLienzo'), `${fmtPx(T.lienzoW)} × ${fmtPx(T.lienzoH)} px`)
+    + fil(t('sumSup'), sup.map(f => `${f.nombre}: ${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m`).join(' · '))
+    + fil(t('sumBrillo'), `${fmt(T.nitsMin === Infinity ? 0 : T.nitsMin, 0)} nits`)
+    + fil(t('sumContr'), `${fmt(T.contrasteMin, 1)}:1 <small>(${nivelContraste(T.contrasteMin)})</small>`)
+    + fil(t('sumTiro'), `${tiros.length ? fmt(Math.max(...tiros), 2) + ' m' : '—'}${trs.length ? ` · TR ${fmt(Math.max(...trs), 2)}:1` : ''}`)
+    + fil(t('sumLuz'), `${fmt(c.lx, 0)} lx · ×${fmt(c.gan, 1)}`)
+    + '</dl></div>';
+}
+function bkAvisos(c, T) {
+  const sem = semaforo(T.contrasteMin), li = [];
+  if (sem !== 'semV') li.push(`<li class="${sem === 'semR' ? 'mal' : 'amb'}"><b>${t(sem)}</b> · ${t('contraste')} ${fmt(T.contrasteMin, 1)}:1 · ${fmt(c.lx, 0)} lx</li>`);
+  c.filas.forEach(f => { const q = f.p; if (!q || f.s.tipo === 'suelo') return; const a = [q.fuera ? t('fuera') : '', q.limite ? t('limite') : '', q.chica ? t('chica') : ''].filter(Boolean);   /* el solape y el recorte ya los explica el veredicto */ if (a.length) li.push(`<li class="amb"><b>${f.nombre}</b> · ${a.join(' · ')}</li>`); });
+  const ver = vistaVeredicto(c);
+  return `<div class="bk-obs"><div class="t">${t('obsTit')}</div><div class="obs-cu">${ver}${li.length ? `<ul class="avisos">${li.join('')}</ul>` : ''}${!ver && !li.length ? `<p class="ok">${t('obsOk')}</p>` : ''}</div></div>`;
+}
 function tarjeta(t1, v, uni, sub, ac) { return `<div class="tar" style="--ac:${ac}"><div class="t">${t1}</div><div class="v">${v}<small>${uni || ''}</small></div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`; }
 // v10.41 · fuera de especificación: el aviso también en la simulación 3D, en los resultados (y su ventana grande) y en el PDF
 function oosDatos(c) {
@@ -704,6 +727,7 @@ function vistaResultados(c) {
       ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b> ` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', `TR ${fmt(Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio)), 2)}:1`, '#00ff04')}
       ${tarjeta(t('lumenes'), fmtPx(T.lumenes), 'lm', c.grupos.map(g => `${fmtPx(g.n)} × ${fmtPx(g.q.lumens)}`).join(' + ') + ' lm', '#ff4d5e')}
+      ${bkSumario(c, T, p, tiros)}${bkAvisos(c, T)}
     </div>`;
     /* v10.63 · el veredicto único (el mismo que SIMPLE), arriba, antes de la tabla: también va al PDF */
     h += vistaVeredicto(c);
@@ -1275,6 +1299,9 @@ function ajustarTextos() {
 function ajustarCasilla(i) { i.style.removeProperty('font-size'); let fs = parseFloat(getComputedStyle(i).fontSize), k = 0; while (i.scrollWidth > i.clientWidth + 0.5 && fs > 10 && k++ < 14) { fs -= 0.5; i.style.setProperty('font-size', fs + 'px'); } }
 function anchoTexto(el) { const r = document.createRange(); r.selectNodeContents(el); const rs = [...r.getClientRects()]; if (!rs.length) return 0; return Math.max(...rs.map(q => q.right)) - Math.min(...rs.map(q => q.left)); }
 const obsTextos = new MutationObserver(() => requestAnimationFrame(ajustarTextos));
+/* v10.81 · si un título cambia de ancho sin cambiar el DOM (p. ej. cuando la consola le añade botones), se vuelve a ajustar */
+const roTextos = typeof ResizeObserver === 'function' ? new ResizeObserver(() => requestAnimationFrame(ajustarTextos)) : null;
+new MutationObserver(() => { if (roTextos) document.querySelectorAll('.blq-nom:not([data-ro])').forEach((e) => { e.setAttribute('data-ro', ''); roTextos.observe(e); }); }).observe(document.body, { childList: true, subtree: true });
 ['app', 'consola'].forEach(id => obsTextos.observe(document.getElementById(id), { childList: true, subtree: true }));
 window.addEventListener('resize', () => requestAnimationFrame(() => { plegar(); ajustarPh(); }));
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { ajustarTextos(); ajustarPh(); });
@@ -1285,7 +1312,7 @@ function pintarCabecera() {
   $('#btn-idioma').title = t('idioma');
   [['#btn-inicio', 'nuevo'], ['#btn-pdf', 'pdf'], ['#btn-info', 'info']].forEach(([id, k]) => { const b = $(id); b.title = t(k); b.setAttribute('aria-label', t(k)); });
   $('.marca').title = t('nuevo');
-  $('#pie').innerHTML = (window.AVCREDITO ? window.AVCREDITO.html('SCREENS', VERSION, idioma()) : `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn${esInterno() ? ' on' : ''}" href="${urlAccesoInterno()}"${esInterno() ? ' data-salir-interno' : ''} title="${esInterno() ? 'Acceso interno activo (ves el stock real) · toca para cerrarlo' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><i class="ic ic-admin" aria-hidden="true"></i></a>`;   /* v10.80 · como en UNA: el candado da la llave del stock interno, se ve verde si está activa y al tocarlo se cierra */
+  $('#pie').innerHTML = (window.AVCREDITO ? (() => { const h = window.AVCREDITO.html('SCREENS', VERSION, idioma()), k = h.indexOf(' · <a href="#aviso"'); return `<span class="cred-ver">SCREENS ${VERSION}</span>` + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); })() :   /* v10.81 · en móvil vertical solo «SCREENS vX · Aviso legal» */ `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn${esInterno() ? ' on' : ''}" href="${urlAccesoInterno()}"${esInterno() ? ' data-salir-interno' : ''} title="${esInterno() ? 'Acceso interno activo (ves el stock real) · toca para cerrarlo' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><i class="ic ic-admin" aria-hidden="true"></i></a>`;   /* v10.81 · como en UNA: el candado da la llave del stock interno, se ve verde si está activa y al tocarlo se cierra */
 }
 fijarIdioma(idiomaInicial(), false);
 pintarCabecera();

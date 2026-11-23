@@ -41,7 +41,10 @@
   function coloca() { var t = $('.trabajo'), r = $('#res'); if (!t || !r) return;
     var tot = r.querySelector(':scope > .res-tot') || $('#bk-tot > .res-tot');
     if (tot) { var k = tec(); [].forEach.call(tot.querySelectorAll('.tar'), function (x, i) { var ti = x.querySelector('.t'); if (ti && !ti.querySelector('.blk-ic')) ti.insertAdjacentHTML('afterbegin', '<i class="blk-ic" aria-hidden="true">' + ((ICT[k] || ICT.led)[i] || '') + '</i>'); }); }
-    if (!de.classList.contains('bk')) { var v = $('#bk-tot > .res-tot'); if (v && !r.querySelector(':scope > .res-tot')) r.prepend(v); return; }
+    /* v10.81 · PROYECCIÓN en escritorio: las vistas técnicas bajan a la fila de abajo (entre el sumario y los avisos); en móvil vuelven a los resultados */
+    var vtd = document.querySelector('.bk-vts > .vt');
+    if (!de.classList.contains('bk')) { if (vtd) { var tc = r.querySelector(':scope > .tabla-caja'); if (tc) tc.after(vtd); else r.appendChild(vtd); } var v = $('#bk-tot > .res-tot'); if (v && !r.querySelector(':scope > .res-tot')) r.prepend(v); return; }
+    if (tot && tec() === 'proy') { var vt = r.querySelector(':scope > .vt'), sl = tot.querySelector(':scope > .bk-vts'); if (!sl) { sl = document.createElement('div'); sl.className = 'bk-vts'; var ob = tot.querySelector(':scope > .bk-obs'); tot.insertBefore(sl, ob); } if (vt) { sl.textContent = ''; sl.appendChild(vt); } }
     tot = r.querySelector(':scope > .res-tot'); if (!tot) return;
     var c = document.getElementById('bk-tot'); if (!c || c.parentNode !== t) { if (c) c.remove(); c = document.createElement('div'); c.id = 'bk-tot'; t.appendChild(c); } c.textContent = ''; c.appendChild(tot); }
 
@@ -83,7 +86,7 @@
     [['b1', 'equipo'], ['b3', 'elec']].forEach(function (q) { var t = $('.blq[data-blq="' + q[0] + '"] .mod-tit'); if (!t || t.querySelector('.ojo')) return; var r = t.querySelector('.reset'), b6 = document.createElement('button'); b6.type = 'button'; b6.className = 'ic-bt ojo'; b6.setAttribute('data-bk', 'ver'); b6.setAttribute('data-k', q[1]); b6.title = l.ver; b6.setAttribute('aria-label', l.ver); b6.innerHTML = IC.ojo; if (r) t.insertBefore(b6, r); else t.appendChild(b6); });
     [].forEach.call(document.querySelectorAll('.mod-tit .reset'), function (r) { var s = r.textContent.trim(); atr(r, 'title', s); });
     var pl = $('#pie-l'); if (pl) { var n = pl.querySelector('.nota > span'); if (!n) { pl.innerHTML = '<span class="nota"><svg class="av-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 2.4 20.2h19.2z"/><path d="M12 9.6v5"/><path d="M12 17.6h.01"/></svg><span></span></span>'; n = pl.querySelector('.nota > span'); } if (n.textContent !== l.aviso) { n.textContent = l.aviso; encoge(n, 7); } }
-    var pr = $('#pie-r'); if (pr) { ['btn-instala', 'btn-fallo'].forEach(function (id) { var x = document.getElementById(id); if (x && x.parentNode !== pr) pr.appendChild(x); });
+    var pr = $('#pie-r'); if (pr) { ['btn-instala', 'btn-fallo'].forEach(function (id) { var x = document.getElementById(id); if (x && x.parentNode !== pr && !x.closest('#info-comun')) pr.appendChild(x); });
       /* v10.42 · el candado del panel va el último del grupo de la derecha (app.js lo vuelve a pintar dentro del crédito: se cambia por el nuevo) */
       var ad = document.querySelector('#pie .admin-btn'); if (ad) { [].forEach.call(pr.querySelectorAll('.admin-btn'), function (z) { z.remove(); }); pr.appendChild(ad); } else if (pr.lastElementChild && !pr.lastElementChild.classList.contains('admin-btn')) { var q = pr.querySelector('.admin-btn'); if (q) pr.appendChild(q); } } }
 
@@ -101,7 +104,8 @@
   function velo() { var v = document.getElementById('bk-velo'); if (!v) { v = document.createElement('div'); v.id = 'bk-velo'; v.className = 'bk-velo'; de.appendChild(v); v.addEventListener('click', function (ev) { if (ev.target === v) cierra(); }); } return v; }
   var enCompleta = function () { return !!(document.fullscreenElement || document.webkitFullscreenElement); };
   function salCompleta() { if (enCompleta()) { try { var r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(function () {}); } catch (e) {} } }
-  function cierra() { var v = document.getElementById('bk-velo'); if (!v) return; if (VENT === 'visor') { devuelveEscena(); VIS = null; } if (VENT === 'pdf') { salCompleta(); if (PV && PV.url) URL.revokeObjectURL(PV.url); PV = null; } v.classList.remove('on'); v.innerHTML = ''; VENT = null; }
+  function cierra() { var pr0 = document.getElementById('pie-r'); if (pr0) ['btn-instala', 'btn-fallo'].forEach(function (id) { var x = document.getElementById(id); if (x && x.parentNode !== pr0) pr0.insertBefore(x, pr0.querySelector('.admin-btn')); });
+    var v = document.getElementById('bk-velo'); if (!v) return; if (VENT === 'visor') { devuelveEscena(); VIS = null; } if (VENT === 'pdf') { salCompleta(); if (PV && PV.url) URL.revokeObjectURL(PV.url); PV = null; } v.classList.remove('on'); v.innerHTML = ''; VENT = null; }
   function proyecto() { var l = L(), e = leeE(), v = velo();
     v.innerHTML = '<div class="bk-vent ajustes" role="dialog" aria-modal="true" aria-label="' + esc(l.datos) + '"><div class="bk-vent-cab">' + IC.proyecto + '<span>' + esc(l.datos) + '</span><span class="sep"></span><button type="button" class="ic-bt" data-bk="cierra" title="' + esc(l.cierra) + '" aria-label="' + esc(l.cierra) + '">' + IC.x + '</button></div>' +
       '<div class="bk-vent-cu"><div class="rot">' + esc(l.pyc) + '</div><div class="fila"><input type="text" class="pide" data-pr="proy" maxlength="80" value="' + esc(e.proy || '') + '" placeholder="' + esc(l.nombre) + '" aria-label="' + esc(l.nombre) + '"><input type="text" class="pide" data-pr="cliente" maxlength="80" value="' + esc(e.cliente || '') + '" placeholder="' + esc(l.cliente) + '" aria-label="' + esc(l.cliente) + '"></div>' +
@@ -110,8 +114,10 @@
     VENT = 'proyecto'; v.classList.add('on'); var f = v.querySelector('[data-pr="proy"]'); if (f) f.focus({ preventScroll: true }); }
   function info() { var l = L(), v = velo();
     v.innerHTML = '<div class="bk-vent ajustes" role="dialog" aria-modal="true" aria-label="' + esc(l.info) + '"><div class="bk-vent-cab"><span class="ic ic-info" aria-hidden="true"></span><span>' + esc(l.infoT) + '</span><span class="sep"></span><button type="button" class="ic-bt" data-bk="cierra" title="' + esc(l.cierra) + '" aria-label="' + esc(l.cierra) + '">' + IC.x + '</button></div>' +
-      '<div class="bk-vent-cu info">' + l.infoH + '<div class="fila fin"><button type="button" class="tog" data-bk="guia">' + esc(l.guiaB) + '</button><a class="tog" href="https://github.com/mediaservi/SCREENS#readme" target="_blank" rel="noopener">' + esc(l.manual) + '</a><button type="button" class="pri" data-bk="cierra">' + esc(l.listo) + '</button></div></div></div>';
-    VENT = 'info'; v.classList.add('on'); }
+      '<div class="bk-vent-cu info">' + l.infoH + '<div class="fila fin"><button type="button" class="tog" data-bk="guia">' + esc(l.guiaB) + '</button><span class="info-comun" id="info-comun"></span><a class="tog" href="https://github.com/mediaservi/SCREENS#readme" target="_blank" rel="noopener">' + esc(l.manual) + '</a><button type="button" class="pri" data-bk="cierra">' + esc(l.listo) + '</button></div></div></div>';
+    VENT = 'info'; v.classList.add('on');
+    if (movilV()) { var ic = document.getElementById('info-comun'); ['btn-instala', 'btn-fallo'].forEach(function (id) { var x = document.getElementById(id); if (x && ic) ic.appendChild(x); }); } }   /* v10.81 · en móvil vertical, instalar y avisar de un fallo van aquí */
+  var movilV = function () { return matchMedia('(max-width: 559px) and (orientation: portrait)').matches; };
   /* guía rápida (la primera vez y desde Información), como la de la portada */
   var GUIA_K = 'screens-consola-guia';
   var GZONAS = [null, ['#consola .con-nl'], ['#panelA', '#panelB'], ['.bk-marco[data-area="s1a"]', '.bk-marco[data-area="s1b"]', '#bk-tot', '#escena', '#res']];
@@ -188,7 +194,8 @@
   /* si el cálculo cambia con la ventana abierta (un botón de la copia, por ejemplo), la página se vuelve a copiar */
   function refrescaVisor() { if (VENT !== 'visor' || !VIS || !VIS.src) return; var r = $('#res'); if (VIS.src.some(function (n) { return n.parentNode !== r; })) pintaVisor(); }
 
-  document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('[data-bk], [data-pv]'); if (!b) return; var k = b.getAttribute('data-bk'), l = L();
+  document.addEventListener('click', function (ev) { var nt = ev.target.closest && ev.target.closest('#pie-l .nota'); if (nt && movilV()) { tostada(nt.textContent.trim(), 6000); return; }   /* v10.81 · móvil: el triángulo enseña el aviso */
+    var b = ev.target.closest && ev.target.closest('[data-bk], [data-pv]'); if (!b) return; var k = b.getAttribute('data-bk'), l = L();
     if (b.hasAttribute('data-pv')) { accionPv(b.getAttribute('data-pv')); return; }
     if (k === 'cierra') cierra();
     else if (k === 'ver') visor(b.getAttribute('data-k'));

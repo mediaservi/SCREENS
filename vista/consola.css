@@ -425,3 +425,100 @@ html.piel #pie-r { gap: 10px; align-items: center; }
 html.piel #pie-r .admin-btn { width: 18px; height: 18px; margin: 0 0 0 4px; align-self: center; opacity: .7; }
 html.piel #pie-r .admin-btn .ic { width: 18px; height: 18px; }
 html.piel #pie-r .admin-btn.on, html.piel .f-f1 .pie .admin-btn.on { opacity: 1; color: #3fdc5b; }
+
+/* v10.81 · PROYECCIÓN en escritorio: fila de abajo = sumario técnico (2) · vistas técnicas (3) · observaciones y avisos (1) */
+.res-tot > .bk-sum, .res-tot > .bk-obs, .res-tot > .bk-vts { display: none; }
+html.bk #bk-tot .res-tot:has(> .bk-sum) > .tar { display: none; }
+html.bk #bk-tot .res-tot > :is(.bk-sum, .bk-obs, .bk-vts) { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-radius: 18px; box-shadow: var(--relieve); background: var(--panel, var(--campo)); }
+html.bk #bk-tot .res-tot > .bk-sum { grid-column: span 2; }
+html.bk #bk-tot .res-tot > .bk-vts { grid-column: span 3; padding: 0; }
+html.bk #bk-tot .res-tot > .bk-obs { grid-column: span 1; }
+html.bk #bk-tot :is(.bk-sum, .bk-obs) > .t { display: flex; align-items: center; min-height: 40px; padding: 6px 14px; background: var(--banda); font: 900 13px/1.1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--txt); flex: none; }
+html.bk #bk-tot .bk-sum dl { margin: 0; padding: 8px 14px 10px; overflow: auto; display: grid; gap: 4px; align-content: start; }
+html.bk #bk-tot .bk-sum .f { display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 3px 0; border-bottom: 1px solid var(--linea); }
+html.bk #bk-tot .bk-sum dt { font: 800 12px/1.3 Inter, system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--tenue); }
+html.bk #bk-tot .bk-sum dd { margin: 0; font: 600 15px/1.3 Inter, system-ui, sans-serif; color: var(--txt); overflow-wrap: anywhere; }
+html.bk #bk-tot .bk-sum dd small { font-size: 12.5px; color: var(--tenue); font-weight: 500; }
+html.bk #bk-tot .bk-obs > :not(.t) { margin: 0; padding: 8px 14px; overflow: auto; }
+html.bk #bk-tot .bk-obs ul { list-style: none; display: grid; gap: 8px; font: 500 14px/1.35 Inter, system-ui, sans-serif; }
+html.bk #bk-tot .bk-obs ul + ul { padding-top: 0; }
+html.bk #bk-tot .bk-obs li { padding-left: 16px; position: relative; color: var(--txt); }
+html.bk #bk-tot .bk-obs li::before { content: ''; position: absolute; left: 0; top: .45em; width: 8px; height: 8px; border-radius: 50%; background: #ffb000; }
+html.bk #bk-tot .bk-obs li.mal::before { background: #ff4d5e; }
+html.bk #bk-tot .bk-obs .av-fila { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+html.bk #bk-tot .bk-obs .ok { font: 600 14px/1.35 Inter, system-ui, sans-serif; color: #3fdc5b; }
+html.bk body:not(.con-led) #res > ul.veredicto { display: none; }
+/* las tres vistas, una al lado de otra, a toda la altura de la fila */
+html.bk #bk-tot .bk-vts > .vt { display: flex; flex-direction: column; height: 100%; min-height: 0; margin: 0; padding: 0; }
+html.bk #bk-tot .bk-vts .vt-cab { flex: none; min-height: 40px; margin: 0; padding: 4px 10px 4px 14px; background: var(--banda); display: flex; align-items: center; gap: 8px; font: 900 13px/1.1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+html.bk #bk-tot .bk-vts .vt-cab .vt-modos { display: none; }
+html.bk #bk-tot .bk-vts .vt-cab .vt-sup { margin-left: auto; height: 30px; width: auto; min-width: 140px; }
+html.bk #bk-tot .bk-vts .vt-rejilla { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px; }
+html.bk #bk-tot .bk-vts .vt-rejilla.una { grid-template-columns: 1fr; }
+html.bk #bk-tot .bk-vts .vt-fig { margin: 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+html.bk #bk-tot .bk-vts .vt-fig figcaption { flex: none; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.bk #bk-tot .bk-vts .vt-lienzo { flex: 1 1 auto; min-height: 0; display: flex; }
+html.bk #bk-tot .bk-vts .vt-lienzo svg { width: 100%; height: 100%; max-height: 100%; }
+html.bk #bk-tot .bk-vts .vt-shift { flex: none; padding: 0 12px 8px; font-size: 12px; }
+html.bk #bk-tot .bk-vts .vt > :not(.vt-cab):not(.vt-rejilla):not(.vt-shift) { display: none; }
+html.bk #bk-tot .bk-vts .vt-fig .vt-ley { display: none; }
+html.bk #bk-tot .bk-vts .vt-cab::after { content: ''; }
+html.bk #bk-tot .bk-sum dl { gap: 0; padding: 4px 14px 8px; }
+html.bk #bk-tot .bk-sum .f { padding: 4px 0; }
+html.bk #bk-tot .bk-sum dd { font-size: 14px; }
+html.bk #bk-tot .bk-obs > .obs-cu { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 14px; display: grid; gap: 8px; align-content: start; }
+html.bk #bk-tot .bk-obs .obs-cu > * { margin: 0; padding: 0; }
+
+/* v10.81 · burbuja SIMPLE/PRO: solo en móvil vertical (en escritorio ya está el interruptor) · isotipo y versión corta solo en móvil */
+.ss-bur, .marca .logo-iso, .pie .cred-ver { display: none; }
+@media (max-width: 559px) and (orientation: portrait) {
+  /* cabecera en una sola fila: isotipo · burbuja · iconos · AVHUB */
+  html.piel .cab { display: flex !important; flex-wrap: nowrap !important; align-items: center; gap: 6px; padding: 6px 8px !important; row-gap: 0 !important; min-height: 0; }
+  html.piel .cab > * { padding: 0 !important; }
+  html.piel .cab-izq { flex: 0 0 auto !important; gap: 6px !important; order: 1; }
+  html.piel :root .marca img, html.piel .marca img:not(.logo-iso) { display: none !important; }
+  html.piel .marca .logo-iso { display: block !important; width: 30px !important; height: 30px !important; }
+  html.piel .cab .ss-sw { display: none !important; }
+  html.piel .cab .ss-bur { display: inline-flex; align-items: center; gap: 5px; flex: none; height: 26px; padding: 0 9px; border-radius: 13px; border: 1px solid var(--linea, #3a3d44); background: #07090a; color: #eeeef1; font: 800 10.5px/1 Inter, system-ui, sans-serif; letter-spacing: .1em; cursor: pointer; box-shadow: inset 0 1px 4px #000; }
+  html.piel .cab .ss-bur i { width: 7px; height: 7px; border-radius: 50%; background: #d4ff00; box-shadow: 0 0 6px #d4ff00; }
+  html.piel .cab .ss-bur.pro i { background: #b566ff; box-shadow: 0 0 6px #b566ff; }
+  html.piel .cab-der { order: 2; flex: 1 1 auto !important; min-width: 0; justify-content: flex-end; gap: 3px !important; }
+  html.piel .cab-der .hdr-btn { width: 30px !important; height: 30px !important; min-width: 0; }
+  html.piel .cab-der .hdr-btn .ic, html.piel .cab-der .hdr-btn svg { width: 17px !important; height: 17px !important; }
+  html.piel .cab .fam { order: 3; flex: 0 0 auto !important; display: flex !important; }
+  html.piel .cab .fam a:not(.av) { display: none !important; }
+  html.piel .cab .fam .av img { height: 26px !important; width: auto; }
+  html.piel .fam-pie { display: none !important; }
+  /* pie en una sola fila: triángulo · SCREENS vX · Aviso legal · candado */
+  html.piel .f-f1 { display: flex !important; flex-wrap: nowrap !important; align-items: center; gap: 10px; padding: 4px 10px !important; min-height: 0; }
+  html.piel #pie-l { order: 1; flex: 0 0 auto !important; width: auto !important; }
+  html.piel #pie-l .nota { display: flex !important; cursor: pointer; padding: 0 !important; }
+  html.piel #pie-l .nota > span { display: none !important; }
+  html.piel #pie-l .nota svg { width: 20px; height: 20px; }
+  html.piel #pie { order: 2; flex: 1 1 auto !important; display: flex !important; justify-content: space-evenly; align-items: center; font-size: 12px !important; white-space: nowrap !important; padding: 0 !important; }
+  html.piel #pie .cred-txt { display: none !important; }
+  html.piel #pie .cred-ver { display: inline; font-weight: 600; letter-spacing: .04em; color: var(--tenue); }
+  html.piel #pie-r { order: 3; flex: 0 0 auto !important; width: auto !important; }
+  html.piel #pie-r > :not(.admin-btn) { display: none !important; }
+  html.piel .info-comun { display: inline-flex; gap: 8px; align-items: center; }
+  html.piel .info-comun > * { display: inline-flex !important; }
+  /* fila de modos: sin la etiqueta BETA (ya la avisa la casilla) y cada botón a la medida de su texto, sin encoger la letra */
+  html.piel #nl-beta { display: none !important; }
+  html.piel .con-grupo { flex: 1 1 auto !important; }
+  html.piel .con-grupo .tog { flex: 1 1 auto !important; padding: 0 6px !important; font-size: 11.5px !important; letter-spacing: .02em !important; }
+  html.piel .con-grupo .tog span { font-size: inherit !important; }
+}
+@media (max-width: 389px) and (orientation: portrait) {
+  html.piel .cab { gap: 4px; padding: 6px !important; }
+  html.piel .cab-der .hdr-btn { width: 27px !important; height: 27px !important; }
+  html.piel .cab .ss-bur { height: 24px; padding: 0 7px; font-size: 9.5px; }
+  html.piel .con-grupo .tog { font-size: 10.5px !important; padding: 0 4px !important; }
+  html.piel .con-calc { font-size: 13px !important; letter-spacing: .08em !important; padding: 0 8px !important; }
+  html.piel .con-ico { width: 34px !important; height: 34px !important; }
+  html.piel .bk-cab b { font-size: 13px !important; letter-spacing: .06em !important; }
+  html.piel .con-ico svg, html.piel .con-ico .ic { width: 18px !important; height: 18px !important; min-width: 18px; flex: none; padding: 0 !important; }
+  html.piel .con-ico { padding: 0 !important; }
+}
+/* v10.81 · un título de bloque largo (p. ej. «Electrónica de control» junto a sus botones) se encoge en vez de quedar tapado */
+html.piel .mod-tit > .blq-cab { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+html.piel .mod-tit .blq-nom { overflow: hidden; }

@@ -1,6 +1,7 @@
 // SCREENS · textos en español, inglés y catalán (nativos)
 const T = {
   es: {
+    sumTit: 'Sumario técnico', obsTit: 'Observaciones y avisos', obsOk: 'Sin avisos: todo dentro de lo recomendado.', sumProy: 'Proyectores', sumLum: 'Lúmenes', sumLienzo: 'Lienzo', sumBrillo: 'Brillo', sumContr: 'Contraste', sumTiro: 'Distancia óptica', sumSup: 'Superficies', sumLuz: 'Luz y ganancia',
     lema: 'Pantallas LED y proyección para una o varias superficies, hasta salas inmersivas de 4 paredes y suelo.',
     titulo: '¿Qué vas a calcular?', cuantas: 'Superficies', tecno: 'Tecnología',
     una: 'Una pantalla', unaD: 'Una sola superficie', varias: 'Varias · sala inmersiva', variasD: 'Dos o más pantallas, o una sala de hasta 4 paredes y suelo',
@@ -91,6 +92,7 @@ const T = {
     ledMax4: 'Hasta 4 pantallas, cada una con su medida y todas del mismo cabinet.'
   },
   en: {
+    sumTit: 'Technical summary', obsTit: 'Notes and warnings', obsOk: 'No warnings: everything within the recommended range.', sumProy: 'Projectors', sumLum: 'Lumens', sumLienzo: 'Canvas', sumBrillo: 'Brightness', sumContr: 'Contrast', sumTiro: 'Throw distance', sumSup: 'Surfaces', sumLuz: 'Light and gain',
     lema: 'LED screens and projection for one or more surfaces, up to immersive rooms with 4 walls and floor.',
     titulo: 'What are you calculating?', cuantas: 'Surfaces', tecno: 'Technology',
     una: 'One screen', unaD: 'A single surface', varias: 'Several · immersive room', variasD: 'Two or more screens, or a room with up to 4 walls and floor',
@@ -181,6 +183,7 @@ const T = {
     ledMax4: 'Up to 4 screens, each with its own size and all with the same cabinet.'
   },
   ca: {
+    sumTit: 'Sumari tècnic', obsTit: 'Observacions i avisos', obsOk: 'Sense avisos: tot dins del que es recomana.', sumProy: 'Projectors', sumLum: 'Lúmens', sumLienzo: 'Llenç', sumBrillo: 'Brillantor', sumContr: 'Contrast', sumTiro: 'Distància òptica', sumSup: 'Superfícies', sumLuz: 'Llum i guany',
     lema: 'Pantalles LED i projecció per a una o diverses superfícies, fins a sales immersives de 4 parets i terra.',
     titulo: 'Què calcularàs?', cuantas: 'Superfícies', tecno: 'Tecnologia',
     una: 'Una pantalla', unaD: 'Una sola superfície', varias: 'Diverses · sala immersiva', variasD: 'Dues o més pantalles, o una sala de fins a 4 parets i terra',

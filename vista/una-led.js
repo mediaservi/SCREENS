@@ -1,7 +1,8 @@
 /* SCREENS · una pantalla LED en BLOCKS (beta) · mediaservi.com · GPL-3.0
    Misma lógica de cálculo que la consola (screens/led.js, comun/electronica.js) y el mismo catálogo en vivo (screens/catalogo.js);
    aquí solo cambia cómo se presenta: cada dato tiene su bloque fijo y no hay desplazamiento de página. */
-import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock } from '../screens/catalogo.js';
+import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch } from '../screens/catalogo.js';
+const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
@@ -551,7 +552,7 @@ function abre(que) {
 function cierra() { if (VENT && VENT.que === 'pdf') { sueltaPv(); if (enCompleta()) { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} } } $('#velo').classList.remove('on'); $('#velo').innerHTML = ''; VENT = null; }
 function fichas() {
   const { m } = R, f = [];
-  f.push(FICHA.fichaHTML({ cat: 'Cabinet LED', icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), nivel: nivelStock(m),
+  f.push(FICHA.fichaHTML({ cat: 'Cabinet LED', icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), nivel: nivelStock(m), avisos: cabeEnBatch(m, R.r && R.r.cab) === false ? [AV_BATCH()] : [],
     specs: [['Pitch', m.pitch + ' mm'], ['Cabinet', `${m.cabAncho}×${m.cabAlto}${m.thick ? '×' + m.thick : ''} mm`], ['Píxeles', `${m.cabPixAncho}×${m.cabPixAlto}`], ['Brillo', m.nits ? m.nits + ' nits' : ''], ['Refresco', m.hz ? m.hz + ' Hz' : ''], ['Peso', m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], ['Consumo máx.', m.wMax ? fmt(m.wMax) + ' W' : ''], ['Tarjeta', m.card || ''], ['Tecnología', m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: 'Ficha del fabricante' }));
   R.procs.filter((x, i) => i < 4 || x === R.proc).forEach((x, i) => f.push(FICHA.fichaHTML({ cat: x.reproductor ? 'Reproductor multimedia con controladora' : i ? 'Procesador alternativo' : 'Procesador recomendado', icono: 'elec', marca: x.marca, modelo: x.modelo, foto: x.front, fotoTrasera: x.back, acento: '#d4ff00', stock: x.enStock ? true : null, sel: !i,
@@ -893,7 +894,7 @@ addEventListener('resize', () => { const g = $('#guia'); if (g) { const n = [...
   const ae = document.querySelector('.admin-esq'); if (ae) h.appendChild(ae); } }
 cargarEquipos(() => { if (R) todo(); });
 cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); });
-window.__blocks = { E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
+window.__blocks = { E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock, cabeEnBatch, AV_BATCH };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();
 /* v10.53 · COSIDO y MANGUERA (SEÑAL y ELÉCTRICO) caben siempre en su dibujo: si la fila es más ancha que el lienzo, se reduce entera (también en «Ver en grande») */
 (() => { let pend = 0; const encaja = () => { pend = 0; document.querySelectorAll('.cosidos, .mangas').forEach((f) => { const p = f.parentElement; if (!p || !p.clientWidth) return; f.style.transform = ''; const w = f.scrollWidth, max = p.clientWidth * .96; f.style.transformOrigin = '50% 0'; if (w > max) f.style.transform = `translateX(-50%) scale(${(max / w).toFixed(3)})`; }); };

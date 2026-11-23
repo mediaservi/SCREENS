@@ -588,6 +588,7 @@ function resLed() {
   AV = [];
   if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });
   if (R.alt) AV.push({ n: 'A', txt: R.alt, crudo: false });   /* v10.69 · alternativa de alquiler en stock */
+  if (B().cabeEnBatch && B().cabeEnBatch(m, r.cab) === false) AV.push({ n: 'A', txt: B().AV_BATCH(), crudo: false });   /* v10.70 · pantalla + reserva > batch mayor */
   if (R.origen === 'cercano') AV.push({ n: 'A', txt: t('lCerca')(fm(E.pitch), fm(R.pitch)) });
   if (R.origen === 'sinres') AV.push({ n: 'A', txt: t('lSinRes')(E.resMin) });
   if (!R.proc) AV.push({ n: 'A', txt: t('lSinProc') });

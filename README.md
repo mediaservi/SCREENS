@@ -72,7 +72,7 @@ Los calculadores de audio y escenario que nacieron aquí (primero como «Hardwar
 
 ## Cambios de la versión actual (v10.70)
 - **Semáforo de stock por batch** (pedido por Josep, 23-11-2026): junto al icono de stock de la ficha del cabinet salen 3 rayas (1 roja, 2 ámbar, 3 verdes) según lo disponible en el **batch más grande** del CRM (rojo < 30, ámbar 30-99, verde ≥ 100), sin escribir cifras. El dato llega del panel AVHUB ADMIN v12.15 (`batchDisp`, `stockUds`), que lo lee del CRM los días 1 y 15.
-- **Un proyecto nunca mezcla batches**: si la pantalla (todas sus superficies) más 1 cabinet de reserva necesita más piezas de las que quedan en un mismo lote, la ficha avisa de consultar la disponibilidad antes de ofertar. «En stock» pasa a significar que el batch mayor da al menos para 5×5 + 1 (26); sin dato del CRM se usa la regla de siempre.
+- **Un proyecto nunca mezcla batches**: si la pantalla (todas sus superficies) más 1 cabinet de reserva necesita más piezas de las que quedan en un mismo lote, la ficha y el resultado de SIMPLE avisan de consultar la disponibilidad antes de ofertar (en la portada, en la consola y en SIMPLE). «En stock» pasa a significar que el batch mayor da al menos para 5×5 + 1 (26); sin dato del CRM se usa la regla de siempre.
 
 ### v10.69
 - **Solape de blending en dos tramos** (decidido por Josep, 21-11-2026): hasta el 45 % es el recomendable y no avisa; del 45 al 65 % sale como «posible», con un aviso ámbar (se pierde luz y resolución); por encima del 65 % sigue siendo «no recomendable». El cálculo no cambia: cambia lo que se avisa.

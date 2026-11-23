@@ -571,3 +571,9 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 /* v10.71 · candado del pie: acceso interno con el Gmail de Josep (stock real); encendido cuando está activo */
 .admin-esq.on { opacity: 1; color: #3fdc5b; }
 :root[data-tema="claro"] .admin-esq.on { color: #17842f; }
+
+/* v10.72 · stock interno en el bloque CABINET (solo con la llave del candado) */
+.stk-int { flex: none; display: flex; flex-direction: column; gap: calc(var(--u) * 2); font-size: calc(var(--u) * 13); line-height: 1.25; color: var(--tenue); font-variant-numeric: tabular-nums; min-width: 0; }
+.stk-int > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stk-int b { font-weight: 700; } .stk-int .v { color: #3fdc5b; } .stk-int .a { color: #ffb000; } .stk-int .r { color: #ff4b3e; }
+:root[data-tema="claro"] .stk-int .v { color: #17842f; } :root[data-tema="claro"] .stk-int .a { color: #9a5c00; } :root[data-tema="claro"] .stk-int .r { color: #c22a1f; }

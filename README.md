@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.71** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.72** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.71)
+## Cambios de la versión actual (v10.72)
+- **Stock interno en el bloque CABINET** (pedido por Josep, 23-11-2026): con la llave interna (candado del pie en verde), el bloque CABINET de la vista PRO muestra, bajo la familia, el semáforo de 3 rayas junto al icono de stock, el mayor batch disponible, el total en SPM, la próxima llegada y si la pantalla más 1 cabinet de reserva cabe en un mismo batch. Si el modelo no tiene dato en el CRM, lo dice. El público no ve nada de esto.
+
+## Cambios de la v10.71
 - **Stock interno solo para el propietario** (pedido por Josep, 23-11-2026): el semáforo de 3 rayas y el aviso de lote ya no son públicos. El catálogo público del panel (v12.17) solo trae «en stock» o «bajo pedido» (icono verde o naranja, como antes). Con el candado del pie se entra al panel con el Gmail de Josep, que devuelve una llave de 180 días: con ella, en ese navegador, SCREENS enseña el stock real. El candado se enciende en verde cuando el acceso interno está activo; si la llave caduca, se apaga sola.
 
 ## Cambios de la v10.70

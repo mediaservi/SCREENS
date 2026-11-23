@@ -14,6 +14,11 @@ Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo l
 
 SCREENS es uno de los apartados de AVHUB, cada uno con su subdominio: screens, systems, adposter, vjshow y msgame (`*.mediaservi.com`); avhub.mediaservi.com los reúne.
 
+
+## Icono
+
+Icono de pestaña y de app (noviembre 2026) en el estilo de placa de la familia AVHUB: placa con degradado negro a morado, filete negro y sombra verde, con el isotipo de la app. El logo de la cabecera no cambia.
+
 ## Para qué sirve
 
 Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que se lea bien a 4 m"* a una propuesta técnica verificable: modelo de cabinet o proyector, número de equipos, resolución, peso, consumo, líneas de señal y eléctricas, electrónica y mediaserver, esquema de conexión, lista de material y PDF.

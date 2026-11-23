@@ -26,7 +26,7 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.77';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.78';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -541,7 +541,7 @@ function abre(que) {
       <p style="margin:0"><b>Sin conexión.</b> El botón de descarga del pie instala SCREENS en el aparato y guarda una copia para usarlo sin red.</p>
       <p style="margin:0" class="nota">Cálculo automático que puede contener errores: revísalo antes de presupuestar o instalar.</p></div></div>`;
     VENT = { que };
-    if (movilV()) { const hc = $('#hueco-comun'), ic = $('#info-comun'); if (hc && ic) [...hc.children].filter((x) => !x.classList.contains('admin-esq')).forEach((x) => ic.appendChild(x)); }   /* v10.77 · en móvil vertical, instalar y avisar de un fallo van aquí */
+    if (movilV()) { const hc = $('#hueco-comun'), ic = $('#info-comun'); if (hc && ic) [...hc.children].filter((x) => !x.classList.contains('admin-esq')).forEach((x) => ic.appendChild(x)); }   /* v10.78 · en móvil vertical, instalar y avisar de un fallo van aquí */
   } else if (que === 'proyecto') {
     v.innerHTML = `<div class="vent ajustes" role="dialog" aria-modal="true" aria-label="Datos del proyecto"><div class="vent-cab">${IC.proyecto.replace('<svg', '<svg style="width:1.2em;height:1.2em"')} Datos del proyecto<span class="sep"></span>${bt('x', 'Cerrar', 'data-cierra')}</div><div class="vent-cu">
       <div class="rot">Proyecto y cliente</div>
@@ -591,7 +591,7 @@ function monta() {
     <footer class="franja f-f1"><div data-blk="F1L" id="pie-l"></div><div data-blk="F1C" id="pie-c" class="f-cred"><span class="cred-txt">SCREENS ${esc(VERSION.split('SCREENS ')[1])} 2026 forma parte del proyecto AVHUB ideado por el fundador de <a href="https://mediaservi.com/" target="_blank" rel="noopener">mediaservi.com</a> · </span><a href="https://screens.mediaservi.com/#aviso" target="_blank" rel="noopener">Aviso legal</a></div><div data-blk="F1R" class="f1r" id="hueco-comun"></div><a class="admin-esq${esInterno() ? ' on' : ''}" href="${esc(urlAccesoInterno())}" title="${esInterno() ? 'Acceso interno activo: ves el stock real' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></a></footer>
   </div><div class="velo" id="velo"></div><div class="tostada" id="tostada" role="status" aria-live="polite"></div>`;
   /* el pie común de AVHUB (credito.js): mismo texto que el resto de apps, editable desde el panel, y con el aviso legal en su ventana */
-  if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.77 · en móvil vertical la versión va al pie */ /* v10.77 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
+  if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.78 · en móvil vertical la versión va al pie */ /* v10.78 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
     if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
     const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };

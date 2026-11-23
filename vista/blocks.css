@@ -626,6 +626,7 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
   .f-f1 > [data-blk="F1R"] > :not(.admin-esq) { display: none !important; }
   .f-f1 .admin-esq { width: 18px !important; height: 18px !important; margin: 0 !important; }
   .info-comun { display: inline-flex; gap: 8px; align-items: center; --avf: 40px; --avi: 38px; }
+  .fila:has(> .info-comun) { flex-wrap: wrap !important; row-gap: 8px; }   /* v10.78 · que no se corte «Manual completo» */
 }
 @media (max-width: 389px) and (orientation: portrait) {
   .f-h1 { gap: 4px !important; padding: 6px !important; }

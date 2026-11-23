@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.76';
+const VERSION = 'v10.77';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -864,7 +864,7 @@ function ponVista(v) {
 }
 function sincroniza() {
   document.querySelectorAll('[data-ss-swc]').forEach((c) => { c.checked = vista === 'pro'; });
-  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.76 · burbuja del móvil */
+  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.77 · burbuja del móvil */
   document.querySelectorAll('.ss-sw [data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   document.querySelectorAll('.ss-sw').forEach((s) => { s.title = t('sw'); s.setAttribute('aria-label', t('sw')); });
 }

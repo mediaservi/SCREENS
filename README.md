@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.79** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.80** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.79)
+## Cambios de la versión actual (v10.80)
+- **Stock interno nunca a la vista del público ni en el PDF** (revisión pedida por Josep, 23-11-2026): la ficha del cabinet en Resultados (UNA, VARIAS y SIMPLE) ya no lleva el semáforo de unidades ni el aviso de lote de fabricación; solo queda «en stock» o «bajo pedido», que es público. El stock real (mayor batch, total, lo que necesita el proyecto + 1 de reserva y la próxima llegada) sale solo con la llave del admin y en su sitio: bloque CABINET en UNA y bloque MATERIAL en VARIAS. Nunca se imprime.
+- **Candado del pie**: en VARIAS y PROYECCIÓN ya no queda tapado por el botón de fallos, se ve verde cuando el acceso interno está activo y, al tocarlo así, se cierra (borra la llave y la caché del catálogo con stock). Igual en UNA.
+- La caché del catálogo se borra también cuando el servidor da la llave por caducada.
+
+## Cambios de la v10.79
 - La ficha de stock interno (solo admin) tiene botón de cerrar (✕) arriba a la derecha.
 
 ## Cambios de la v10.78

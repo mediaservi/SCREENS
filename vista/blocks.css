@@ -638,3 +638,4 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
   .f-h1 > [data-blk="H1C"] .av img { height: 22px !important; }
 }
 @media (max-width: 359px) and (orientation: portrait) { .f-h1 .h1r [data-nuevo] { display: none !important; } }   /* el isotipo ya empieza un cálculo nuevo */
+@media print { .stk-int, .stk-btn, .stk-pop { display: none !important; } }   /* v10.80 · el stock interno nunca sale impreso */

@@ -74,6 +74,7 @@ function llave() {
   try { const m = /[#&]llave=([\w.-]+)/.exec(location.hash); if (m) { localStorage.setItem(LLAVE_K, m[1]); history.replaceState(null, '', location.href.split('#')[0]); } return localStorage.getItem(LLAVE_K) || ''; } catch (e) { return ''; }
 }
 export const esInterno = () => { try { return !!localStorage.getItem(LLAVE_K); } catch (e) { return false; } };
+export const salirInterno = () => { try { localStorage.removeItem(LLAVE_K); localStorage.removeItem(CLAVE); } catch (e) {} location.reload(); };   /* v10.80 · cerrar el acceso interno */
 export const urlAccesoInterno = () => ADMIN_URL + '?accion=llave&vuelta=' + encodeURIComponent(location.href.split('#')[0]);
 async function leerMaestro() {
   try {
@@ -81,7 +82,7 @@ async function leerMaestro() {
     const r = await fetch(ADMIN_URL + '?accion=catalogo' + (k ? '&llave=' + encodeURIComponent(k) : ''), { cache: 'no-store' });
     if (!r.ok) return null;
     const j = await r.json();
-    if (k && j && j.interno === false) try { localStorage.removeItem(LLAVE_K); } catch (e) {}   // llave caducada o no válida
+    if (k && j && j.interno === false) try { localStorage.removeItem(LLAVE_K); localStorage.removeItem(CLAVE); } catch (e) {}   // llave caducada o no válida
     // v7.8 · fotos de los equipos que busca el motor cada noche (frontal, trasera y otras vistas)
     if (j && j.e && globalThis.SC_FICHA && globalThis.SC_FICHA.recibirFotos) globalThis.SC_FICHA.recibirFotos(j.e);
     if (!j || !j.d) return null;

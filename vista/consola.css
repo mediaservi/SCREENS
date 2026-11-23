@@ -411,3 +411,17 @@ html.piel[data-tema="claro"] .nl-beta { color: #7a4f00; border-color: #a86c00; }
 html.piel :is(#app, #bk-velo) .tar { container-type: inline-size; }
 html.piel :is(#app, #bk-velo) .tar .t { white-space: normal; line-height: 1.15; }
 html.piel :is(#app, #bk-velo) .tar .v { font-size: min(48px, 11cqw); }
+
+/* v10.80 · stock interno del admin en el bloque MATERIAL (solo con la llave; nunca en resultados ni en el PDF) */
+.stk-adm { margin-top: 8px; padding: 8px 10px; border: 1px dashed rgba(181, 102, 255, .55); border-radius: 8px; font-size: 12px; line-height: 1.35; }
+.stk-adm h5 { margin: 0 0 4px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #b566ff; }
+.stk-adm .f { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+.stk-adm .f span { opacity: .75; } .stk-adm .f b { font-weight: 700; text-align: right; }
+.stk-adm em { font-style: normal; } .stk-adm .v, .stk-adm .n3 { color: #3fdc5b; } .stk-adm .n2 { color: #ffb000; } .stk-adm .r, .stk-adm .n1 { color: #ff4b3e; }
+:root[data-tema="claro"] .stk-adm .v, :root[data-tema="claro"] .stk-adm .n3 { color: #17842f; } :root[data-tema="claro"] .stk-adm .n2 { color: #9a5c00; } :root[data-tema="claro"] .stk-adm .r, :root[data-tema="claro"] .stk-adm .n1 { color: #c42318; }
+@media print { .stk-adm { display: none !important; } }
+/* v10.80 · el candado del pie: visible, separado del botón de fallos y verde con el acceso interno activo */
+html.piel #pie-r { gap: 10px; align-items: center; }
+html.piel #pie-r .admin-btn { width: 18px; height: 18px; margin: 0 0 0 4px; align-self: center; opacity: .7; }
+html.piel #pie-r .admin-btn .ic { width: 18px; height: 18px; }
+html.piel #pie-r .admin-btn.on, html.piel .f-f1 .pie .admin-btn.on { opacity: 1; color: #3fdc5b; }

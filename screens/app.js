@@ -1,5 +1,6 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
-import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch } from './catalogo.js';
+import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
+document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.80 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -23,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.79';
+const VERSION = 'v10.80';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -402,9 +403,19 @@ const MOTOR = globalThis.SC_MOTOR;
 const trMotor = (txt) => { let r = String(txt || ''); (MOTOR[idioma()] || []).forEach(([a, b]) => { r = r.replace(a, b); }); return r; };
 // v10.70 · cabinets de todo el proyecto (todas las superficies): van del mismo batch
 const totalCab = (c) => ((c && c.filas) || []).reduce((s, f) => s + ((f.r && f.r.cab) || 0), 0);
+/* v10.80 · STOCK INTERNO (solo admin, con la llave del candado): en el bloque MATERIAL, nunca en resultados, fichas ni PDF */
+function stockAdmin(m, nCab) {
+  if (!esInterno()) return '';
+  const n = (v) => { const x = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(x) ? x : null; };
+  const b = n(m.batchDisp), tot = n(m.stockUds), u = b != null ? Math.max(0, b) : tot, nec = nCab ? nCab + 1 : 0, cabe = cabeEnBatch(m, nCab), nv = nivelStock(m);
+  const f = (k, v) => `<div class="f"><span>${k}</span><b>${v}</b></div>`;
+  return `<div class="stk-adm"><h5>Stock interno · solo tú lo ves</h5>`
+    + (u == null ? f('Stock', 'sin dato en el CRM') : f(b != null ? 'Mayor batch disponible' : 'Stock disponible', `<em class="n${nv || 1}">${u} uds</em>`) + (b != null && tot != null && tot > u ? f('Total almacén SPM', tot + ' uds') : ''))
+    + (nec ? f('Proyecto + 1 de reserva', nec + ' uds' + (cabe == null ? '' : ` · <em class="${cabe ? 'v' : 'r'}">${cabe ? 'cabe en un batch' : 'faltan ' + (nec - (u || 0)) + ' en un mismo batch'}</em>`)) : '')
+    + f('Próxima llegada', m.llegada ? String(m.llegada).replace(/[<>&]/g, '') : '—') + '</div>';
+}
 function fichaCab(m, nCab) {
-  const cabe = cabeEnBatch(m, nCab);
-  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), nivel: nivelStock(m), avisos: cabe === false ? [t('avBatch')] : [],
+  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), avisos: [],   /* v10.80 · la ficha es pública y sale en el PDF: nada de stock interno aquí */
     specs: [[t('kPitch'), m.pitch + ' mm'], [t('kCab'), `${m.cabAncho}×${m.cabAlto}${m.thick ? '×' + m.thick : ''} mm`], [t('kPx'), `${m.cabPixAncho}×${m.cabPixAlto}`], [t('kNits'), m.nits ? m.nits + ' nits' : ''], [t('kHz'), m.hz ? m.hz + ' Hz' : ''],
       [t('kKg'), m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], [t('kW'), m.wMax ? fmt(m.wMax, 0) + ' W' : ''], [t('kCard'), m.card || ''], [t('kTech'), m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: t('fichaFab') });
@@ -514,6 +525,7 @@ function partesLed(c) {
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;
   mat += campo(t('modelo'), `<select class="sel" data-sel="led.crm"><option value="">${t('auto')}${c.modelo && !l.crm ? ' · [' + c.modelo.pitch + 'p] ' + c.modelo.crm : ''}</option>${opts}</select>`);
   mat += `<p class="ayuda">${t('autoAyudaLed', { d: fmt(c.dist, 1) })}</p>`;
+  if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.80 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
   const aj = `<div class="fila c2">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
   const m = c.modelo;
   return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
@@ -1273,7 +1285,7 @@ function pintarCabecera() {
   $('#btn-idioma').title = t('idioma');
   [['#btn-inicio', 'nuevo'], ['#btn-pdf', 'pdf'], ['#btn-info', 'info']].forEach(([id, k]) => { const b = $(id); b.title = t(k); b.setAttribute('aria-label', t(k)); });
   $('.marca').title = t('nuevo');
-  $('#pie').innerHTML = (window.AVCREDITO ? window.AVCREDITO.html('SCREENS', VERSION, idioma()) : `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn" href="${ADMIN_URL}" target="_blank" rel="noopener" title="${t('admin')}" aria-label="${t('admin')}"><i class="ic ic-admin" aria-hidden="true"></i></a>`;
+  $('#pie').innerHTML = (window.AVCREDITO ? window.AVCREDITO.html('SCREENS', VERSION, idioma()) : `SCREENS ${VERSION} ${new Date().getFullYear()} ${t('pie')} <i class="ic ic-footer" aria-hidden="true"></i> by <a href="https://mediaservi.com" target="_blank" rel="noopener">mediaservi.com</a>`) + `<a class="admin-btn${esInterno() ? ' on' : ''}" href="${urlAccesoInterno()}"${esInterno() ? ' data-salir-interno' : ''} title="${esInterno() ? 'Acceso interno activo (ves el stock real) · toca para cerrarlo' : 'Acceso interno (solo con el Gmail del propietario)'}" aria-label="Acceso interno"><i class="ic ic-admin" aria-hidden="true"></i></a>`;   /* v10.80 · como en UNA: el candado da la llave del stock interno, se ve verde si está activa y al tocarlo se cierra */
 }
 fijarIdioma(idiomaInicial(), false);
 pintarCabecera();

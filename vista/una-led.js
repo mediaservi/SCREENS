@@ -4,10 +4,11 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno } from '../screens/catalogo.js';
 /* v10.73 · en la misma fila que la familia, sin añadir líneas (no obliga a desplazarse) · v10.72 · solo con la llave interna (candado del pie): el stock real en el bloque CABINET — mayor batch disponible, total en SPM, próxima llegada y si la pantalla + 1 de reserva cabe en un mismo batch */
 function stockInterno(m, nCab) { if (!esInterno()) return ''; const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; }, b = num(m.batchDisp), tot = num(m.stockUds), u = b != null ? Math.max(0, b) : tot;
-  if (u == null) return '<span class="stk-int sin" title="Este modelo no tiene dato de stock: su código no coincide con ninguno del CRM">Sin dato en el CRM</span>';
-  const cabe = cabeEnBatch(m, nCab), nv = nivelStock(m), col = nv === 3 ? 'v' : nv === 2 ? 'a' : 'r', partes = [`<b class="${col}">${b != null ? 'Batch ' : 'Stock '}${u}</b>`]; if (b != null && tot != null) partes.push('SPM ' + tot);
-  if (cabe != null) partes.push(`<b class="${cabe ? 'v' : 'r'}">${nCab}+1 ${cabe ? '✓' : '✗'}</b>`); if (m.llegada) partes.push('llegan ' + esc(String(m.llegada)));
-  return `<span class="stk-int" title="Stock interno (solo tú lo ves): mayor batch disponible ${u} uds${tot != null ? ', total en SPM ' + tot : ''}${cabe == null ? '' : '. La pantalla (' + nCab + ') + 1 de reserva ' + (cabe ? 'cabe' : 'NO cabe') + ' en un mismo batch'}${m.llegada ? '. Próxima llegada: ' + esc(String(m.llegada)) : ''}. Un proyecto no mezcla batches.">${partes.join(' · ')}</span>`; }
+  if (u == null) return '<span class="stk-int sin" title="Este modelo no tiene dato de stock en el CRM">Sin dato CRM</span>';
+  const cabe = cabeEnBatch(m, nCab), nv = nivelStock(m), col = nv === 3 ? 'v' : nv === 2 ? 'a' : 'r', fila = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
+  /* v10.74 · en la fila solo lo esencial (unidades del batch y si cabe); el resto en una ficha que se abre con la «i» (también en móvil y tele) */
+  const det = fila(b != null ? 'Mayor batch disponible' : 'Stock', u + ' uds') + (b != null && tot != null ? fila('Total almacén SPM', tot + ' uds') : '') + (cabe == null ? '' : fila('Pantalla + 1 reserva', `${nCab + 1} uds · <em class="${cabe ? 'v' : 'r'}">${cabe ? 'cabe en un batch' : 'NO cabe en un batch'}</em>`)) + fila('Próxima llegada', m.llegada ? esc(String(m.llegada)) : '—');
+  return `<span class="stk-int"><b class="${col}">${u}</b>${cabe == null ? '' : ` <b class="${cabe ? 'v' : 'r'}">${cabe ? '✓' : '✗'}</b>`}<button type="button" class="stk-i" popovertarget="stk-pop" aria-label="Detalle del stock" title="Detalle del stock">i</button></span><div id="stk-pop" class="stk-pop" popover><h4>Stock interno · ${esc(m.crm)}</h4>${det}<p>Un proyecto no mezcla batches. Solo tú ves estos datos.</p></div>`; }
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
@@ -18,7 +19,7 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.73';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.74';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });

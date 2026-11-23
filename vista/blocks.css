@@ -572,7 +572,16 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 .admin-esq.on { opacity: 1; color: #3fdc5b; }
 :root[data-tema="claro"] .admin-esq.on { color: #17842f; }
 
-/* v10.73 · stock interno en el bloque CABINET (solo con la llave del candado): en la fila de la familia, una sola línea */
-.stk-int { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: calc(var(--u) * 13); line-height: 1.25; color: var(--tenue); font-variant-numeric: tabular-nums; }
-.stk-int b { font-weight: 700; } .stk-int .v { color: #3fdc5b; } .stk-int .a { color: #ffb000; } .stk-int .r { color: #ff4b3e; }
-:root[data-tema="claro"] .stk-int .v { color: #17842f; } :root[data-tema="claro"] .stk-int .a { color: #9a5c00; } :root[data-tema="claro"] .stk-int .r { color: #c22a1f; }
+/* v10.74 · stock interno en el bloque CABINET (solo con la llave del candado): cifra del batch + ✓/✗ y una «i» que abre el detalle */
+.stk-int { flex: none; display: inline-flex; align-items: center; gap: calc(var(--u) * 5); white-space: nowrap; font-size: calc(var(--u) * 14); line-height: 1; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.stk-int b { font-weight: 700; } .stk-int .v, .stk-pop .v { color: #3fdc5b; } .stk-int .a { color: #ffb000; } .stk-int .r, .stk-pop .r { color: #ff4b3e; }
+:root[data-tema="claro"] .stk-int .v, :root[data-tema="claro"] .stk-pop .v { color: #17842f; } :root[data-tema="claro"] .stk-int .a { color: #9a5c00; } :root[data-tema="claro"] .stk-int .r, :root[data-tema="claro"] .stk-pop .r { color: #c22a1f; }
+.stk-i { flex: none; width: max(18px, calc(var(--u) * 20)); height: max(18px, calc(var(--u) * 20)); padding: 0; border-radius: 50%; border: 1.5px solid currentColor; background: transparent; color: var(--tenue); font: italic 700 max(11px, calc(var(--u) * 12))/1 Georgia, serif; cursor: pointer; }
+.stk-i:hover, .stk-i:focus-visible { color: var(--marca); }
+.stk-pop { margin: auto; padding: 16px 18px 12px; min-width: min(340px, 90vw); max-width: 92vw; border: 1px solid #555; border-radius: 12px; background: #23262a; color: #e8e8e8; font: 14px/1.4 system-ui, sans-serif; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.stk-pop::backdrop { background: rgba(0,0,0,.35); }
+.stk-pop h4 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #aaa; }
+.stk-pop div { display: flex; justify-content: space-between; gap: 18px; padding: 5px 0; border-bottom: 1px dotted #444; }
+.stk-pop div b { font-variant-numeric: tabular-nums; text-align: right; } .stk-pop em { font-style: normal; font-weight: 700; }
+.stk-pop p { margin: 10px 0 0; font-size: 12px; color: #999; }
+:root[data-tema="claro"] .stk-pop { background: #f3f3f1; color: #222; border-color: #bbb; } :root[data-tema="claro"] .stk-pop div { border-color: #ccc; }

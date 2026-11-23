@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.69';
+const VERSION = 'v10.70';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -583,7 +583,7 @@ function resLed() {
   const r = R.r, m = R.m, dw = Math.round((E.w - r.ancho) * 100), dh = Math.round((E.h - r.alto) * 100), aj = [];
   if (dw > 0) aj.push(t('ajMenosW')(dw)); else if (dw < 0) aj.push(t('ajMasW')(-dw));
   if (dh > 0) aj.push(t('ajMenosH')(dh)); else if (dh < 0) aj.push(t('ajMasH')(-dh));
-  const st = window.SC_FICHA && window.SC_FICHA.stockIc ? window.SC_FICHA.stockIc(B().enStock(m)) : '';
+  const st = window.SC_FICHA && window.SC_FICHA.stockIc ? window.SC_FICHA.stockIc(B().enStock(m), B().nivelStock ? B().nivelStock(m) : null) : '';
   const l1 = esc(t('lLed')) + ' <b>' + esc(m.crm) + '</b>' + st, l2 = esc(nb(`${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px`));
   AV = [];
   if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });

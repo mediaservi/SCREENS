@@ -89,7 +89,13 @@ export async function cargarCatalogo(alActualizar) {
   if (vivo) { await guardar(vivo); alActualizar(normalizar(vivo), 'vivo'); }
   else if (!cache || !cache.length) alActualizar([], 'error');
 }
-export const enStock = (m) => String(m.disp || m.stock || '').toUpperCase() === 'STOCK' || String(m.stock || '').toUpperCase() === 'SI';
+/* v10.70 · stock por batch del CRM (panel AVHUB ADMIN v12.14): un proyecto nunca mezcla batches, así que manda lo disponible del batch más grande.
+   Mínimo de un proyecto: 5×5 cabinets + 1 de backup del mismo batch (26). Sin dato del CRM, la regla de siempre (disp/stock). */
+const numSt = (v) => (v === '' || v == null || isNaN(parseFloat(v)) ? null : parseFloat(v));
+export const dispBatch = (m) => { const b = numSt(m.batchDisp); return b != null ? Math.max(0, b) : numSt(m.stockUds); };
+export const nivelStock = (m) => { const u = dispBatch(m); return u == null ? null : u >= 100 ? 3 : u >= 30 ? 2 : 1; };
+export const cabeEnBatch = (m, n) => { const u = dispBatch(m); return u == null || !n ? null : n + 1 <= u; };
+export const enStock = (m) => { const u = dispBatch(m); if (u != null) return u >= 26; return String(m.disp || m.stock || '').toUpperCase() === 'STOCK' || String(m.stock || '').toUpperCase() === 'SI'; };
 // Prioridad a igual pitch (misma regla que led.html): 1º stock, 2º prioridad manual, 3º familia preferente (v10.1)
 export function ordenar(lista) {
   const fam = (m) => String(m.family || '').toLowerCase().replace(/[^a-z0-9]/g, '');

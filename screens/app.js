@@ -1,5 +1,5 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
-import { cargarCatalogo, cargarEquipos, ordenar, enStock } from './catalogo.js';
+import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch } from './catalogo.js';
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -17,13 +17,13 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.69';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=10.70';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.69';
+const VERSION = 'v10.70';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -400,8 +400,11 @@ const campo = (lab, html) => { const id = 'cp' + (++CID), h = /<(input|select|te
 // los textos del motor común de electrónica están en castellano: aquí se pasan a inglés o catalán (reglas en comun/motor-i18n.js, compartidas con la portada)
 const MOTOR = globalThis.SC_MOTOR;
 const trMotor = (txt) => { let r = String(txt || ''); (MOTOR[idioma()] || []).forEach(([a, b]) => { r = r.replace(a, b); }); return r; };
-function fichaCab(m) {
-  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m),
+// v10.70 · cabinets de todo el proyecto (todas las superficies): van del mismo batch
+const totalCab = (c) => ((c && c.filas) || []).reduce((s, f) => s + ((f.r && f.r.cab) || 0), 0);
+function fichaCab(m, nCab) {
+  const cabe = cabeEnBatch(m, nCab);
+  return fichaHTML({ cat: t('fCab'), icono: 'led', marca: m.family || '', modelo: m.crm, foto: m.urlFoto, fotoTrasera: m.urlFotoTrasera || m.urlTrasera || m.urlFoto2, vistas: m.fotos, acento: '#b566ff', stock: enStock(m), nivel: nivelStock(m), avisos: cabe === false ? [t('avBatch')] : [],
     specs: [[t('kPitch'), m.pitch + ' mm'], [t('kCab'), `${m.cabAncho}×${m.cabAlto}${m.thick ? '×' + m.thick : ''} mm`], [t('kPx'), `${m.cabPixAncho}×${m.cabPixAlto}`], [t('kNits'), m.nits ? m.nits + ' nits' : ''], [t('kHz'), m.hz ? m.hz + ' Hz' : ''],
       [t('kKg'), m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], [t('kW'), m.wMax ? fmt(m.wMax, 0) + ' W' : ''], [t('kCard'), m.card || ''], [t('kTech'), m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: t('fichaFab') });
@@ -513,7 +516,7 @@ function partesLed(c) {
   mat += `<p class="ayuda">${t('autoAyudaLed', { d: fmt(c.dist, 1) })}</p>`;
   const aj = `<div class="fila c2">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
   const m = c.modelo;
-  return { mat, aj, fichas: m ? fichaCab(m) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
+  return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
     eleg: m ? { nom: m.crm, dat: [m.pitch + ' mm', `${m.cabAncho}×${m.cabAlto} mm`, m.nits ? m.nits + ' nits' : ''].filter(Boolean).join(' · ') } : null };
 }
 function partesProy(c) {
@@ -1173,7 +1176,7 @@ function imprimir() {
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   h += `<div class="im-res">${vistaResultados(c)}</div>`;
-  const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo)] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
+  const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   // pie en el margen inferior de cada hoja; si el navegador no dibuja esos márgenes (Safari, Firefox), va al final del documento.
   // Las cajas vacías de arriba y de abajo a la izquierda evitan que el navegador añada su fecha, título y dirección a la hoja

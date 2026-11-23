@@ -115,14 +115,15 @@
     si: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
     no: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="4" width="15" height="11" rx="2"/><path d="M1.5 8h15M4.5 11.5h4"/><circle cx="17.5" cy="16.5" r="5.5" fill="currentColor" stroke="none"/><path d="M17.5 13.6v3l2 1.2" stroke="#1a1206" stroke-width="1.8"/></svg>'
   };
-  const stockIc = (si) => (si === true || si === false ? `<span class="sc-stock ${si ? 'si' : 'no'}">${IC_STOCK[si ? 'si' : 'no']}</span>` : '');
+  /* v10.70 · junto al icono, 3 rayas tipo semáforo según lo disponible en el batch mayor (1 roja, 2 ámbar, 3 verdes); sin números */
+  const stockIc = (si, nivel) => (si === true || si === false ? `<span class="sc-stock ${si ? 'si' : 'no'}">${IC_STOCK[si ? 'si' : 'no']}</span>` + (nivel >= 1 && nivel <= 3 ? `<span class="sc-sem n${nivel}" aria-hidden="true"><i></i><i></i><i></i></span>` : '') : '');
   function fichaHTML(d) {
     const ic = DIBUJO[d.icono] || DIBUJO.elec;
     // v7.8 · foto real del frontal (la de la ficha o la que ha encontrado el motor); al pulsarla, la trasera, otras vistas y el frontal en grande
     const fe = fotosEquipo(d.claveFoto || d.modelo, d.foto, d.fotoTrasera, d.vistas), foto = fe.frontal || fe.trasera || fe.vistas[0] || '';
     const fotos = fotosDe(fe.frontal, fe.trasera, fe.vistas), nombre = [d.marca, d.modelo].filter(Boolean).join(' ');
     const visor = fotos.length ? ` data-visor="${esc(JSON.stringify({ t: nombre, f: fotos }))}" role="button" tabindex="0" aria-label="${esc(txv().ver + ' ' + nombre)}" title="${esc(txv().ver + ' ' + nombre)}"` : '';
-    const st = stockIc(d.stock);   // v10.50 · el stock solo con su icono: nunca en texto
+    const st = stockIc(d.stock, d.nivel);   // v10.50 · el stock solo con su icono: nunca en texto
     let h = `<article class="ficha${d.sel ? ' fi-sel' : ''}" style="--fi-ac:${esc(d.acento || '#00ff04')}">`;
     h += `<div class="fi-cab"><span class="fi-cat">${esc(d.cat || '')}</span>${st}</div>`;
     h += `<div class="fi-cuerpo"><div class="fi-foto${fotos.length ? ' fi-zoom' : ''}"${visor}>${ic}${foto ? `<img src="${esc(foto)}" alt="${esc(d.modelo)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>`;

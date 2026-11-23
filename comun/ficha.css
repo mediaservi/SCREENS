@@ -85,3 +85,10 @@ html.vf-abierto, html.vf-abierto body { overflow: hidden !important; }
   .fi-modelo, .fi-ref, .fi-specs dd { color: #111 !important; } .fi-marca, .fi-specs dt, .fi-desc, .fi-nota { color: #555 !important; }
   .fi-cat { color: #4a0a8c !important; } .fi-enlace { display: none !important; } .fi-aviso { color: #8a5a00 !important; }
 }
+/* v10.70 · semáforo de stock por batch: 3 rayas junto al icono */
+.sc-sem { flex: none; display: inline-flex; align-items: flex-end; gap: 2px; height: 1.7em; margin-left: .35em; vertical-align: middle; padding-bottom: .2em; box-sizing: border-box; }
+.sc-sem i { display: block; width: .32em; border-radius: 1px; background: color-mix(in srgb, currentColor 22%, transparent); }
+.sc-sem i:nth-child(1) { height: 40%; } .sc-sem i:nth-child(2) { height: 65%; } .sc-sem i:nth-child(3) { height: 90%; }
+.sc-sem.n1 i:nth-child(-n+1) { background: #ff4b3e; } .sc-sem.n2 i:nth-child(-n+2) { background: #ffb000; } .sc-sem.n3 i { background: #3fdc5b; }
+:root[data-tema="claro"] .sc-sem.n3 i { background: #17842f; } :root[data-tema="claro"] .sc-sem.n2 i:nth-child(-n+2) { background: #b86e00; }
+.fi-cab .sc-sem { font-size: 11px; }

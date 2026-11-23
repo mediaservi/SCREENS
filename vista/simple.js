@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.75';
+const VERSION = 'v10.76';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -338,7 +338,7 @@ function raizNueva() {
   raiz.addEventListener('click', clic); raiz.addEventListener('keydown', tecla); raiz.addEventListener('input', entrada);
   return raiz;
 }
-const sw = () => { const pro = vista === 'pro'; return `<div class="ss-sw" role="group" aria-label="${esc(t('sw'))}" title="${esc(t('sw'))}" data-crudo><button type="button" class="ss-sw-e${pro ? '' : ' on'}" data-ss-sw="simple" aria-pressed="${!pro}">SIMPLE</button><label class="ss-sw-t"><input type="checkbox" data-ss-swc aria-label="PRO"${pro ? ' checked' : ''}><span class="ss-sw-p"><span class="ss-sw-b"></span></span></label><button type="button" class="ss-sw-e${pro ? ' on' : ''}" data-ss-sw="pro" aria-pressed="${pro}">PRO</button></div>`; };
+const sw = () => { const pro = vista === 'pro'; return `<button type="button" class="ss-bur${pro ? ' pro' : ''}" data-ss-sw="${pro ? 'simple' : 'pro'}" aria-label="${esc(t('sw'))}" title="${esc(t('sw'))}"><i></i>${pro ? 'PRO' : 'SIMPLE'}</button><div class="ss-sw" role="group" aria-label="${esc(t('sw'))}" title="${esc(t('sw'))}" data-crudo><button type="button" class="ss-sw-e${pro ? '' : ' on'}" data-ss-sw="simple" aria-pressed="${!pro}">SIMPLE</button><label class="ss-sw-t"><input type="checkbox" data-ss-swc aria-label="PRO"${pro ? ' checked' : ''}><span class="ss-sw-p"><span class="ss-sw-b"></span></span></label><button type="button" class="ss-sw-e${pro ? ' on' : ''}" data-ss-sw="pro" aria-pressed="${pro}">PRO</button></div>`; };
 function monta() {
   montado = LG();
   cuerpo.innerHTML = '<section class="ss-blk ss-resumen" id="ss-resumen" aria-live="polite"></section><section class="ss-blk ss-sim" id="ss-sim"></section><section class="ss-blk ss-res" id="ss-res" aria-live="polite"></section>';
@@ -864,7 +864,8 @@ function ponVista(v) {
 }
 function sincroniza() {
   document.querySelectorAll('[data-ss-swc]').forEach((c) => { c.checked = vista === 'pro'; });
-  document.querySelectorAll('[data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.76 · burbuja del móvil */
+  document.querySelectorAll('.ss-sw [data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   document.querySelectorAll('.ss-sw').forEach((s) => { s.title = t('sw'); s.setAttribute('aria-label', t('sw')); });
 }
 document.addEventListener('change', (e) => { const c = e.target.closest && e.target.closest('[data-ss-swc]'); if (c) ponVista(c.checked ? 'pro' : 'simple'); });

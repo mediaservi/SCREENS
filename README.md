@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.75** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.76** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.75)
+## Cambios de la versión actual (v10.76)
+- **Móvil vertical más limpio** (pedido por Josep, 23-11-2026), en la portada (una pantalla LED):
+  - **Cabecera en una sola fila**: el isotipo de SCREENS (sin el texto) con la versión en pequeño a su derecha, una burbuja SIMPLE / PRO que cambia de modo al tocarla, los iconos (información, PDF, nuevo cálculo, idioma y tema) y el logo de AVHUB, que lleva a todas las apps. Fuera los logos de las otras apps. En pantallas de menos de 360 px se quita el icono de nuevo cálculo (el isotipo hace lo mismo).
+  - **Pie en una sola fila**: el triángulo de aviso (al tocarlo enseña el texto, que también sale en el PDF), «Aviso legal» y el candado. Los botones de instalar y de avisar de un fallo pasan a la ventana de información.
+  - La primera vez se entra en SIMPLE; después, el modo que el usuario dejó elegido.
+
+## Cambios de la v10.75
 - **Ficha de stock en el icono** (pedido por Josep, 23-11-2026): fuera la «i». Con la llave interna, tocar el icono de stock / bajo pedido del bloque CABINET abre la ficha: mayor batch, total en SPM, lo repartido en otros batches, lo que pide la pantalla + 1 de reserva (y cuántos faltan), la próxima llegada y la fecha del dato. Debajo, hasta 4 alternativas del mismo entorno con stock suficiente en un solo batch para esa medida (las de pitch más parecido primero), que se eligen con un toque. El público sigue viendo solo el icono.
 
 ## Cambios de la v10.74

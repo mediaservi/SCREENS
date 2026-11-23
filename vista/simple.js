@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.82';
+const VERSION = 'v10.83';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -39,7 +39,7 @@ ponApila();
 const T = {
   es: {
     sw: 'Modo SIMPLE o PRO',
-    rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
+    rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', necesitas: 'LO QUE NECESITAS', nCabs: 'Cabinets', nProc: 'Procesador LED', nMedia: 'Mediaserver', nRed: 'Cableado de datos', nRedV: (a) => a + ' líneas Ethernet + ' + a + ' de backup', nLuz: 'Electricidad', nLuzV: (k, n) => k + ' kW · ' + n + ' líneas de 16 A', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
     pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER TODO EN PRO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
     calculando: 'Calculando…', cargando: 'Cargando el catálogo…', sinCat: 'No se ha podido leer el catálogo. Revisa la conexión.', reintentar: 'REINTENTAR', vacio: 'No hay pantallas para estos datos: cambia dónde va o el tamaño.',
     sinMotor: 'No se ha podido cargar el cálculo. Vuelve a cargar la página.', recargar: 'VOLVER A CARGAR',
@@ -99,7 +99,7 @@ const T = {
   },
   en: {
     sw: 'SIMPLE or PRO mode',
-    rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
+    rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', necesitas: 'WHAT YOU NEED', nCabs: 'Cabinets', nProc: 'LED processor', nMedia: 'Media server', nRed: 'Data cabling', nRedV: (a) => a + ' Ethernet lines + ' + a + ' backup', nLuz: 'Power', nLuzV: (k, n) => k + ' kW · ' + n + ' 16 A circuits', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
     pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE EVERYTHING IN PRO', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
     calculando: 'Calculating…', cargando: 'Loading the catalogue…', sinCat: 'The catalogue could not be read. Check your connection.', reintentar: 'RETRY', vacio: 'No screens for these details: change where it goes or the size.',
     sinMotor: 'The calculation could not be loaded. Reload the page.', recargar: 'RELOAD',
@@ -157,7 +157,7 @@ const T = {
   },
   ca: {
     sw: 'Mode SIMPLE o PRO',
-    rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
+    rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', necesitas: 'EL QUE NECESSITES', nCabs: 'Cabinets', nProc: 'Processador LED', nMedia: 'Mediaserver', nRed: 'Cablejat de dades', nRedV: (a) => a + ' línies Ethernet + ' + a + ' de backup', nLuz: 'Electricitat', nLuzV: (k, n) => k + ' kW · ' + n + ' línies de 16 A', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
     pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE-HO TOT EN PRO', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
     calculando: 'Calculant…', cargando: 'Carregant el catàleg…', sinCat: 'No s’ha pogut llegir el catàleg. Revisa la connexió.', reintentar: 'TORNA-HO A PROVAR', vacio: 'No hi ha pantalles per a aquestes dades: canvia on va o la mida.',
     sinMotor: 'No s’ha pogut carregar el càlcul. Torna a carregar la pàgina.', recargar: 'TORNA A CARREGAR',
@@ -266,7 +266,8 @@ const P = {
   dist: '<path d="M2 12h20M5 8l-3 4 3 4M19 8l3 4-3 4"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   alerta: '<path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.4v.2"/>',
-  ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+  ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  red: '<rect x="4" y="9" width="16" height="10" rx="1"/><path d="M8 9V6h8v3M9 13v2M12 13v2M15 13v2"/>'
 };
 const ic = (k, c) => `<svg class="ss-ic${c ? ' ' + c : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || ''}</svg>`;
 
@@ -388,7 +389,13 @@ function pintaResumen() {
   const n = ajustesPro();
   el.innerHTML = cab('lista', t('pides')) + `<div class="ss-filas">${filas().map((f) => `<button type="button" class="ss-fila" data-ss-q="${f[0]}" aria-label="${esc(t('cambiar') + ': ' + f[2])}">${ic(f[1])}<span class="ss-fk ss-fit">${esc(f[2])}</span><b class="ss-fv ss-fit">${esc(f[3])}</b>${ic('lapiz', 'ss-lapiz')}</button>`).join('')}</div>` +
     (n ? `<div class="ss-ajpro" title="${esc(t('ajProT'))}"><span class="ss-fit">${ic('pro')}${esc(t('ajPro')(n))}</span><button type="button" class="ss-mini" data-ss="restablece">${esc(t('restablecer'))}</button></div>` : '') +
-    `<button type="button" class="ss-ancho" data-ss="asis">${ic('varita')}<span class="ss-fit">${esc(t('repetir'))}</span></button>`;
+    necesitasLed() + `<button type="button" class="ss-ancho" data-ss="asis">${ic('varita')}<span class="ss-fit">${esc(t('repetir'))}</span></button>`;
+}
+/* v10.83 · VARIAS LED en SIMPLE: debajo de lo que pides, lo que necesitas (el equipo principal), sin huecos vacíos y sin tecnicismos */
+function necesitasLed() {
+  if (!esLedC()) return ''; const c = C().c; if (!c || !c.modelo || !c.tot) return ''; const T2 = c.tot, x = c.elec || {}, lin = Math.max(1, Math.ceil((T2.amp || 0) / 16));
+  const f = [['led', t('nCabs'), fmt(T2.cab, 0) + ' × ' + c.modelo.crm], x.proc ? ['chip', t('nProc'), x.proc.marca + ' ' + x.proc.modelo] : null, x.media ? ['media', t('nMedia'), x.media.marca + ' ' + x.media.modelo] : null, ['red', t('nRed'), t('nRedV')(fmt(T2.lineas, 0))], T2.kw > 0 ? ['rayo', t('nLuz'), t('nLuzV')(fmt(T2.kw, 1), lin)] : null].filter(Boolean);
+  return `<div class="ss-nec"><div class="ss-nec-t">${esc(t('necesitas'))}</div>${f.map((r) => `<div class="ss-nec-f">${ic(r[0])}<span class="ss-fk">${esc(r[1])}</span><b class="ss-fv">${esc(r[2])}</b></div>`).join('')}</div>`;
 }
 
 /* simulación: la de PRO de la portada, limpia (sin los cuadros de datos ni el rótulo de abajo), o un corte lateral propio para la proyección */
@@ -588,7 +595,7 @@ function resLed() {
   AV = [];
   if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });
   if (R.alt) AV.push({ n: 'A', txt: R.alt, crudo: false });   /* v10.69 · alternativa de alquiler en stock */
-  /* v10.82 · el aviso de batch es stock interno: fuera de los avisos públicos (sale en pantalla y en el PDF); el admin lo ve en PRO, bloque CABINET */
+  /* v10.83 · el aviso de batch es stock interno: fuera de los avisos públicos (sale en pantalla y en el PDF); el admin lo ve en PRO, bloque CABINET */
   if (R.origen === 'cercano') AV.push({ n: 'A', txt: t('lCerca')(fm(E.pitch), fm(R.pitch)) });
   if (R.origen === 'sinres') AV.push({ n: 'A', txt: t('lSinRes')(E.resMin) });
   if (!R.proc) AV.push({ n: 'A', txt: t('lSinProc') });
@@ -864,7 +871,7 @@ function ponVista(v) {
 }
 function sincroniza() {
   document.querySelectorAll('[data-ss-swc]').forEach((c) => { c.checked = vista === 'pro'; });
-  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.82 · burbuja del móvil */
+  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.83 · burbuja del móvil */
   document.querySelectorAll('.ss-sw [data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   document.querySelectorAll('.ss-sw').forEach((s) => { s.title = t('sw'); s.setAttribute('aria-label', t('sw')); });
 }

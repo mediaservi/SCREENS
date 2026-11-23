@@ -291,3 +291,21 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
 .ss-resumen span { white-space: nowrap; }
 .ss-resumen b { color: #c6e04a; font-weight: 700; }
 :root[data-tema="claro"] .ss-resumen b { color: #4f6b00; }
+
+/* v10.83 · VARIAS LED · lo que necesitas (debajo de lo que pides) */
+.ss-nec { flex: none; width: 100%; box-sizing: border-box; margin: 10px 0 8px; padding: 10px 12px; border: 1px solid var(--ss-linea, #3a3d44); border-radius: 10px; display: grid; gap: 7px; }
+.ss-nec-t { font: 800 11px/1 Inter, system-ui, sans-serif; letter-spacing: .1em; color: var(--ss-tenue, #9aa0aa); }
+.ss-nec-f { display: grid; grid-template-columns: 22px minmax(0, 8.5em) minmax(0, 1fr); align-items: center; gap: 8px; }
+.ss-nec-f .ss-ic { width: 20px; height: 20px; color: var(--ss-acento, #d4ff00); }
+.ss-nec-f .ss-fk { font: 600 12px/1.2 Inter, system-ui, sans-serif; color: var(--ss-tenue, #9aa0aa); }
+.ss-nec-f .ss-fv { font: 700 13.5px/1.25 Inter, system-ui, sans-serif; color: var(--ss-txt, #eeeef1); overflow-wrap: anywhere; }
+.ss-blk.ss-resumen { flex-wrap: nowrap; }   /* v10.83 · lo que necesitas va debajo, nunca en otra columna */
+.ss-resumen:has(.ss-nec) .ss-filas { flex: 0 0 auto; overflow: visible; }
+.ss-resumen:has(.ss-nec) .ss-fila { flex: none !important; min-height: calc(var(--s) * 37); }
+.ss-nec { flex: 1 1 auto !important; min-height: 0; overflow-y: auto; align-content: start; }
+.ss-nec-f .ss-ic { grid-column: 1; grid-row: 1; }
+.ss-nec-f .ss-fk { grid-column: 2; grid-row: 1; white-space: normal; }
+.ss-nec-f .ss-fv { grid-column: 3; grid-row: 1; }
+.ss-nec-f .ss-fk { text-transform: none !important; letter-spacing: 0 !important; font: 600 12.5px/1.2 Inter, system-ui, sans-serif !important; overflow: visible; }
+.ss-nec-f { grid-template-columns: 22px minmax(0, 9em) minmax(0, 1fr); }
+.ss-cd small { font-size: max(10.5px, calc(var(--s) * 12.5)); } html.ss-apila .ss-cd small { font-size: max(10.5px, calc(var(--s) * 11)); }   /* v10.83 · la etiqueta de cada cifra, nunca diminuta */

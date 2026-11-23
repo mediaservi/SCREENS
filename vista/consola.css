@@ -427,7 +427,7 @@ html.piel #pie-r .admin-btn .ic { width: 18px; height: 18px; }
 html.piel #pie-r .admin-btn.on, html.piel .f-f1 .pie .admin-btn.on { opacity: 1; color: #3fdc5b; }
 
 /* v10.81 · PROYECCIÓN en escritorio: fila de abajo = sumario técnico (2) · vistas técnicas (3) · observaciones y avisos (1) */
-.res-tot > .bk-sum, .res-tot > .bk-obs, .res-tot > .bk-vts { display: none; }
+.res-tot > .bk-sum, .res-tot > .bk-obs, .res-tot > .bk-vts, .res-tot > .bk-esq { display: none; }
 html.bk #bk-tot .res-tot:has(> .bk-sum) > .tar { display: none; }
 html.bk #bk-tot .res-tot > :is(.bk-sum, .bk-obs, .bk-vts) { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-radius: 18px; box-shadow: var(--relieve); background: var(--panel, var(--campo)); }
 html.bk #bk-tot .res-tot > .bk-sum { grid-column: span 2; }
@@ -447,7 +447,7 @@ html.bk #bk-tot .bk-obs li::before { content: ''; position: absolute; left: 0; t
 html.bk #bk-tot .bk-obs li.mal::before { background: #ff4d5e; }
 html.bk #bk-tot .bk-obs .av-fila { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 html.bk #bk-tot .bk-obs .ok { font: 600 14px/1.35 Inter, system-ui, sans-serif; color: #3fdc5b; }
-html.bk body:not(.con-led) #res > ul.veredicto { display: none; }
+html.bk #res > ul.veredicto { display: none; }   /* va en «Observaciones y avisos» */
 /* las tres vistas, una al lado de otra, a toda la altura de la fila */
 html.bk #bk-tot .bk-vts > .vt { display: flex; flex-direction: column; height: 100%; min-height: 0; margin: 0; padding: 0; }
 html.bk #bk-tot .bk-vts .vt-cab { flex: none; min-height: 40px; margin: 0; padding: 4px 10px 4px 14px; background: var(--banda); display: flex; align-items: center; gap: 8px; font: 900 13px/1.1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
@@ -548,3 +548,47 @@ html.bk #bk-tot .bk-vts .vt-fig figcaption { display: flex; align-items: center;
 .bk-vent.vt-gr { display: flex; flex-direction: column; }
 .bk-vent.vt-gr > .bk-vent-cab { flex: none; }
 .vt-gr-cu .vt-fig, .vt-gr-cu .vt-rejilla, .vt-gr-cu .vt-lienzo { width: 100%; }
+
+/* v10.83 · LED: esquema de las pantallas (verde) en la fila de abajo */
+html.bk #bk-tot .res-tot > .bk-esq { display: flex; flex-direction: column; grid-column: span 3; min-width: 0; min-height: 0; overflow: hidden; border-radius: 18px; box-shadow: var(--relieve); background: var(--panel, var(--campo)); }
+html.bk #bk-tot .bk-esq > .t { display: flex; align-items: baseline; gap: 6px; min-height: 40px; padding: 10px 14px 6px; background: var(--banda); font: 900 13px/1.1 Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--txt); flex: none; white-space: nowrap; overflow: hidden; }
+html.bk #bk-tot .bk-esq > .t small { font: 500 11.5px Inter, system-ui, sans-serif; letter-spacing: 0; text-transform: none; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; }
+html.bk #bk-tot .esq-rej { flex: 1 1 auto; min-height: 0; display: grid; gap: 10px; padding: 10px 12px; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); }
+html.bk #bk-tot .esq-rej.n1 { --n: 1; } html.bk #bk-tot .esq-rej.n2 { --n: 2; } html.bk #bk-tot .esq-rej.n3 { --n: 3; } html.bk #bk-tot .esq-rej.n4 { --n: 4; }
+html.bk #bk-tot .esq-p { margin: 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 4px; background: var(--campo); border: 1px solid var(--linea); border-radius: 10px; padding: 6px 8px; }
+html.bk #bk-tot .esq-p figcaption { flex: none; display: flex; justify-content: space-between; gap: 6px; font: 700 12.5px/1.2 Inter, system-ui, sans-serif; color: var(--txt); white-space: nowrap; overflow: hidden; }
+html.bk #bk-tot .esq-p figcaption span { font: 400 12.5px 'Share Tech Mono', ui-monospace, monospace; color: var(--tenue); }
+html.bk #bk-tot .esq-p svg { flex: 1 1 auto; min-height: 0; width: 100%; height: 100%; }
+html.bk #bk-tot .esq-d { flex: none; font: 400 12px/1.25 'Share Tech Mono', ui-monospace, monospace; color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.bk #bk-tot .bk-sum .tenue { color: #ffb000; font-weight: 500; font-size: 13px; }
+/* el sumario en dos columnas (etiqueta encima, dato debajo): cabe sin desplazarse */
+html.bk #bk-tot .bk-sum dl { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; row-gap: 0; padding: 6px 14px 8px; }
+html.bk #bk-tot .bk-sum .f { display: block; padding: 5px 0 6px; }
+html.bk #bk-tot .bk-sum dt { font-size: 10.5px; line-height: 1.2; margin-bottom: 1px; }
+html.bk #bk-tot .bk-sum dd { font-size: 14px; line-height: 1.25; }
+/* v10.83 · la fila de abajo, algo más baja (sus tres zonas ya no dejan huecos) y más sitio arriba para los mandos */
+html.bk .trabajo.z3, html.bk .trabajo:not(.z3) { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .78fr); }
+html.bk #bk-tot .bk-sum dl { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+html.bk #bk-tot .bk-sum dd { white-space: normal; overflow-wrap: anywhere; }
+html.bk #bk-tot .bk-sum dd small { font-size: 12px; }
+/* v10.83 · nada de letra diminuta en la consola: los resúmenes de bloque pasan a dos líneas antes que encogerse, y las etiquetas de las fichas suben de tamaño */
+html.piel .blq.pleg .blq-res { white-space: normal !important; text-align: right; line-height: 1.25; font-size: 13px; }
+html.piel .fi-specs dt { font-size: 10.5px; }
+html.piel .fi-specs dd { font-size: 13px; }
+html.piel .mod-tit .blq-nom { white-space: normal !important; line-height: 1.1; }
+/* en las columnas estrechas, los botones de opción sin icono y con menos espaciado: el texto cabe sin encogerse */
+html.piel .blq-cuerpo { container-type: inline-size; }
+@container (max-width: 300px) {
+  html.piel .blq-cuerpo .tog > svg, html.piel .blq-cuerpo .tog > .ic, html.piel .blq-cuerpo .tog > i { display: none !important; }
+  html.piel .blq-cuerpo .tog { letter-spacing: .01em !important; padding-left: 4px !important; padding-right: 4px !important; gap: 0 !important; }
+}
+/* v10.83 · VARIAS LED · pantallas: una fila por pantalla (P1 · ancho × alto) */
+.tam-led { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 6px; row-gap: 6px; margin: 2px 0 4px; }
+.tam-led .tam-c { font: 800 11px/1.2 Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.tam-led .tam-n { font: 800 13px/1 Inter, system-ui, sans-serif; color: var(--verde-txt, #d4ff00); min-width: 1.6em; }
+.tam-led .tam-x { color: var(--tenue); font-weight: 700; }
+.tam-led .tam-in { display: block; min-width: 0; margin: 0; }
+.tam-led .tam-in .num { width: 100%; }
+/* una etiqueta larga pasa a dos líneas antes que encogerse; las casillas de la misma fila quedan alineadas abajo */
+html.piel .blq-cuerpo .fila > .campo { display: flex; flex-direction: column; justify-content: flex-end; }
+html.piel .blq-cuerpo .campo > label { white-space: normal !important; line-height: 1.15; }

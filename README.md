@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.82** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.83** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -70,7 +70,14 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.82)
+## Cambios de la versión actual (v10.83)
+- **VARIAS LED en escritorio, fila de abajo como la de PROYECCIÓN** (pedido por Josep, 23-11-2026): **sumario técnico** (cabinet, superficies, cabinets, lienzo, peso, consumo, líneas, procesador y mediaserver), **esquema de las pantallas** a escala con su retícula de cabinets y las líneas de datos por colores (reparto orientativo) y **observaciones y avisos** (veredicto, falta de peso en el catálogo, cabinets quitados).
+- **Letra más grande en portátiles**: por debajo de 1920 × 1080 la consola se maqueta a 1600 × 900 (antes se encogía todo a 1920 × 1080).
+- **Nada diminuto ni desbordado**: el sumario en columnas (etiqueta encima y dato debajo); los títulos y etiquetas largas pasan a dos líneas antes que encogerse; en columnas estrechas, los botones de opción sin icono; las etiquetas de las fichas más grandes; la fila de abajo algo más baja para dar sitio a los mandos.
+- **Pantallas LED separadas**: una fila por pantalla (P1 · ancho × alto) con las cabeceras una sola vez.
+- **SIMPLE (VARIAS LED)**: debajo de «Lo que pides», **«Lo que necesitas»** (cabinets, procesador, mediaserver, cableado de datos y electricidad) en lugar del hueco vacío; las etiquetas de las cifras nunca bajan de 10,5 px.
+
+## Cambios de la v10.82
 - **Vistas técnicas en grande (PROYECCIÓN)**: en la barra de la simulación, tres botones nuevos (Lateral, Frontal, Cenital) y, en cada vista pequeña de la fila de abajo, un ojo. Abren una ventana paginada con una página por pantalla y vista (Pantalla 1 · lateral, frontal, cenital; Pantalla 2 …) que ocupa todo el espacio para arrastrar bien el proyector, con «volver a la posición propuesta», deshacer y rehacer (también Ctrl+Z / Ctrl+Mayús+Z) y flechas para pasar de página.
 
 ## Cambios de la v10.81

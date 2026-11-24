@@ -592,3 +592,47 @@ html.piel .blq-cuerpo { container-type: inline-size; }
 /* una etiqueta larga pasa a dos líneas antes que encogerse; las casillas de la misma fila quedan alineadas abajo */
 html.piel .blq-cuerpo .fila > .campo { display: flex; flex-direction: column; justify-content: flex-end; }
 html.piel .blq-cuerpo .campo > label { white-space: normal !important; line-height: 1.15; }
+
+/* v10.85 · revisión de espacio en escritorio (pedida por Josep, 24-11-2026): sin huecos dentro de los bloques, vistas técnicas grandes y sin desplazamientos evitables */
+/* columnas de mandos: el sitio que sobra se reparte entre los bloques en vez de inflar uno (antes, TAMAÑO quedaba con un hueco vacío) */
+html.bk .zona { gap: 8px; justify-content: space-between; }
+html.bk .zona:not(:has(> .blq.act)) > .blq:not(.pleg) { flex: none; }
+html.bk .zona:not(:has(> .blq.act)) > .zona-pie { margin-top: 0; }
+/* fila de abajo en 12 columnas: sumario 4 · vistas técnicas 5 · observaciones 3 (las observaciones ganan ancho y ya no se desplazan) */
+html.bk #bk-tot .res-tot:has(> .bk-sum) { grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+html.bk #bk-tot .res-tot:has(> .bk-sum) > .bk-sum { grid-column: span 4; }
+html.bk #bk-tot .res-tot:has(> .bk-sum) > :is(.bk-vts, .bk-esq) { grid-column: span 5; }
+html.bk #bk-tot .res-tot:has(> .bk-sum) > .bk-obs { grid-column: span 3; }
+/* vistas técnicas: el desplazamiento vertical sube a la cabecera (donde había un hueco) y cada vista ocupa todo su recuadro, con el nombre y el ojo encima */
+html.bk #bk-tot .bk-vts > .vt { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+html.bk #bk-tot .bk-vts .vt-cab { grid-column: 1; grid-row: 1; padding-right: 14px; }
+html.bk #bk-tot .bk-vts .vt-shift { grid-column: 2; grid-row: 1; flex-wrap: nowrap; align-self: stretch; min-width: 0; margin: 0; padding: 0 10px 0 4px; gap: 8px; background: var(--banda); }
+html.bk #bk-tot .bk-vts .vt-shift label { white-space: nowrap; font-size: 10.5px; }
+html.bk #bk-tot .bk-vts .vt-shift input[type="range"] { flex: 1 1 60px; min-width: 50px; }
+html.bk #bk-tot .bk-vts .vt-shift b { font-size: 12px; }
+html.bk #bk-tot .bk-vts .vt-shift .sec-btn { height: 28px; padding: 0 10px; font-size: 11px; flex: none; }
+html.bk #bk-tot .bk-vts .vt-shift .vt-h { display: none; }
+html.bk #bk-tot .bk-vts .vt-rejilla { grid-column: 1 / -1; grid-row: 2; padding: 6px; gap: 6px; }
+html.bk #bk-tot .bk-vts .vt-fig { position: relative; padding: 0; overflow: hidden; }
+html.bk #bk-tot .bk-vts .vt-fig figcaption { position: absolute; z-index: 1; top: 4px; left: 8px; right: 4px; pointer-events: none; }
+html.bk #bk-tot .bk-vts .vt-fig .vt-ojo { pointer-events: auto; width: 24px; height: 24px; }
+html.bk #bk-tot .bk-vts .vt-lienzo { flex: 1 1 auto; height: 100%; padding: 2px 4px; }
+/* sumario técnico: más compacto para que quepa entero sin barra */
+html.bk #bk-tot .bk-sum dl { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 14px; padding: 4px 14px 6px; overflow: hidden; }
+html.bk #bk-tot .bk-sum .f { padding: 3px 0 4px; }
+html.bk #bk-tot .bk-sum dt { font-size: 10px; margin: 0; }
+html.bk #bk-tot .bk-sum dd { font-size: 13.5px; line-height: 1.2; }
+html.bk #bk-tot .bk-sum dd small { font-size: 11.5px; }
+/* observaciones: letra algo menor y menos separación */
+html.bk #bk-tot .bk-obs > .obs-cu { gap: 6px; padding: 6px 12px; }
+html.bk #bk-tot .bk-obs ul { gap: 5px; font-size: 13px; line-height: 1.3; }
+html.bk #bk-tot .bk-obs .ok { font-size: 13px; }
+/* TAMAÑO Y DISTANCIAS en escritorio: compacto para que quepa sin desplazarse (las ayudas pasan a la etiqueta emergente) y la fila de abajo algo más baja */
+html.bk .trabajo.z3, html.bk .trabajo:not(.z3) { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .7fr); }
+html.bk .blq[data-blq="a2"] .blq-cuerpo .ayuda { display: none; }
+html.bk .blq[data-blq="a2"] .blq-cuerpo { row-gap: 6px; }
+html.bk .blq[data-blq="a2"] .blq-cuerpo .fila { gap: 8px; margin: 0; }
+html.bk .blq[data-blq="a2"] .num input { font-size: 17px; padding-top: 1px; padding-bottom: 1px; }
+html.bk .blq[data-blq="a2"] .campo > label { margin-bottom: 2px; }
+html.bk .blq[data-blq="a2"] .blq-cuerpo > .etq { margin: 2px 0 0; }
+html.bk .blq[data-blq="a2"] .blq-cuerpo .sec-btn { min-height: 0; height: 30px; }

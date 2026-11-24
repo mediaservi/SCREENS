@@ -381,7 +381,7 @@ html.piel .f-f1 .pie .admin-btn:hover, html.piel .f-f1 .pie .admin-btn:focus-vis
 html.piel #pie-r .admin-btn { position: static; flex: none; align-self: flex-end; margin: 0 0 6px; width: 14px; height: 14px; display: inline-flex; line-height: 0; opacity: .55; color: var(--tenue); }
 html.piel #pie-r .admin-btn .ic { width: 14px; height: 14px; vertical-align: top; }
 html.piel #pie-r .admin-btn:hover, html.piel #pie-r .admin-btn:focus-visible { opacity: 1; color: var(--marca); }
-/* ===== v10.48 · revisión de uso: BETA en su pastilla, semáforo de la imagen, cifras del móvil enteras, tema claro legible, botones al dedo ===== */
+/* ===== v10.48 · mejoras de uso: BETA en su pastilla, semáforo de la imagen, cifras del móvil enteras, tema claro legible, botones al dedo ===== */
 html.piel .con-nl { position: relative; }
 html.piel .nl-beta { flex: none; align-self: center; padding: 3px 7px; border: 1px solid color-mix(in srgb, var(--ambar) 70%, transparent); border-radius: 6px; font: 700 11px/1 'Share Tech Mono', ui-monospace, monospace; letter-spacing: .12em; color: var(--ambar); background: color-mix(in srgb, var(--ambar) 12%, transparent); cursor: help; }
 html.piel .nl-beta[hidden] { display: none; }
@@ -593,7 +593,7 @@ html.piel .blq-cuerpo { container-type: inline-size; }
 html.piel .blq-cuerpo .fila > .campo { display: flex; flex-direction: column; justify-content: flex-end; }
 html.piel .blq-cuerpo .campo > label { white-space: normal !important; line-height: 1.15; }
 
-/* v10.85 · revisión de espacio en escritorio (pedida por Josep, 24-11-2026): sin huecos dentro de los bloques, vistas técnicas grandes y sin desplazamientos evitables */
+/* v10.85 · espacio en escritorio (pedido por Josep, 24-11-2026): sin huecos dentro de los bloques, vistas técnicas grandes y sin desplazamientos evitables */
 /* columnas de mandos: el sitio que sobra se reparte entre los bloques en vez de inflar uno (antes, TAMAÑO quedaba con un hueco vacío) */
 html.bk .zona { gap: 8px; justify-content: space-between; }
 html.bk .zona:not(:has(> .blq.act)) > .blq:not(.pleg) { flex: none; }
@@ -666,7 +666,7 @@ html.bk .blq[data-blq="a5"] .rango-et { display: none; }
 html.bk .blq[data-blq="a2"] .blq-cuerpo > .campo:first-child > label { display: none; }   /* «Tipo de proyección»: los tres botones ya lo dicen */
 html.bk .blq[data-blq="a3"] .blq-cuerpo > .etq:first-child { display: none; }
 
-/* ═════ v10.89 · interfaz común (revisión de usabilidad, 24-11-2026): una columna de datos con 4 pasos numerados, la simulación al centro
+/* ═════ v10.89 · interfaz común (24-11-2026): una columna de datos con 4 pasos numerados, la simulación al centro
    con las vistas técnicas (o el esquema LED) debajo, y el RESULTADO a la derecha con veredicto, cifras y pestañas. Sin fila inferior de sumario ni avisos ═════ */
 #panelB:empty { display: none !important; }
 html.bk .trabajo.z3 { grid-template-columns: minmax(0, 25fr) minmax(0, 45fr) minmax(0, 30fr); grid-template-rows: minmax(0, 1fr) minmax(0, .46fr); grid-template-areas: "za s1a s1b" "za tot s1b"; }

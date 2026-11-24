@@ -539,7 +539,7 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 .admin-esq svg { width: 100%; height: 100%; display: block; }
 .admin-esq:hover, .admin-esq:focus-visible { opacity: 1; color: var(--marca); }
 :root[data-tema="claro"] .admin-esq:hover, :root[data-tema="claro"] .admin-esq:focus-visible { color: #3d4a00; }
-/* ===== v10.48 · revisión de uso: DESHACER en el aviso, grupos de modo separados, botones al dedo ===== */
+/* ===== v10.48 · mejoras de uso: DESHACER en el aviso, grupos de modo separados, botones al dedo ===== */
 .tostada.con-bt { pointer-events: auto; display: flex; align-items: center; gap: calc(var(--u) * 14); }
 .tostada.con-bt .calcular { height: auto; min-height: 34px; padding: 6px 14px; font-size: max(12px, calc(var(--u) * 15)); flex: none; }
 [data-blk="HM1"] { gap: calc(var(--u) * 16) !important; }

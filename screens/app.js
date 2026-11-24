@@ -24,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.90';
+const VERSION = 'v10.91';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -452,10 +452,10 @@ function fichaCab(m, nCab) {
       [t('kKg'), m.cabKg ? fmt(m.cabKg, 1) + ' kg' : ''], [t('kW'), m.wMax ? fmt(m.wMax, 0) + ' W' : ''], [t('kCard'), m.card || ''], [t('kTech'), m.tech || '']],
     enlace: m.crm ? 'https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm) : '', enlaceTxt: t('fichaFab') });
 }
-// Epson: manual y especificaciones en setupnavi (referencia absoluta) y enlace de verificación del fabricante
+// Epson: manual y especificaciones en setupnavi y enlace de verificación del fabricante
 const epsonManual = (q) => `https://support.epson.net/setupnavi/?MKN=${encodeURIComponent(q.modelo)}&PINF=support&LG2=${({ es: 'ES', en: 'EN', ca: 'CA' })[idioma()] || 'ES'}&OSC=MI`;
 const EPSON_CALC = 'https://support.epson-europe.com/TDS/#/page/advanceMode';
-const VIVITEK_SIM = 'https://www.vivitekcorp.com/simulator/';   // v10.57 · herramienta oficial de Vivitek, para verificar
+const VIVITEK_SIM = 'https://www.vivitekcorp.com/simulator/';   // v10.57 · enlace de verificación del fabricante
 const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';
 // relación de proyección de una combinación cuerpo + óptica («0,35:1» o «1,57–2,56:1»)
 const trTxt = (q) => (q.trMin === q.trMax ? fmt(q.trMin, 2) : fmt(q.trMin, 2) + '–' + fmt(q.trMax, 2)) + ':1';
@@ -534,7 +534,7 @@ function partesEspacio() {
   const rEnt = sala ? `${t('elev')} ${fmt(e.elev)} m` : `${t('elev')} ${fmt(s.elev)} m · ${fmt(s.dist, 1)} m`;
   return { tipo, tam, ent, rTipo, rTam, rEnt, sala };
 }
-// v10.88 · TAMAÑO DE IMAGEN como en el datos del fabricante: proporción (libre, la del proyector o una fija) y la medida por diagonal, ancho o alto,
+// v10.88 · TAMAÑO DE IMAGEN: proporción (libre, la del proyector o una fija) y la medida por diagonal, ancho o alto,
 // con su casilla y su deslizador; el ancho y el alto salen de ahí
 const FORMATOS = [['libre', 0], ['nativo', 0], ['16:9', 16 / 9], ['16:10', 1.6], ['4:3', 4 / 3], ['21:9', 2.37], ['1:1', 1]];
 const RANGO_MED = { diag: [30, 1000, 1, '″'], ancho: [0.5, 25, 0.01, 'm'], alto: [0.3, 15, 0.01, 'm'] };
@@ -564,7 +564,7 @@ function bloqueFormato() {
   h += `<div class="rango"><input type="range" data-rango="esp.sueltas.medVal" min="${a}" max="${b}" step="${paso}" value="${Math.min(b, Math.max(a, v))}" aria-label="${t('med_' + mp)}"><div class="rango-et"><span>${fmt(a, mp === 'diag' ? 0 : 1)} ${uni}</span><span>${t('med_' + mp)}</span><span>${fmt(b, 0)} ${uni}</span></div></div>`;
   return h + `<p class="ayuda">${fmt(s.ancho, 2)} × ${fmt(s.alto, 2)} m · ${fmt(Math.hypot(s.ancho, s.alto) / 0.0254, 0)}″</p>`;
 }
-// v10.88 · columna A de PROYECCIÓN en el orden del datos del fabricante: tipo · sala y proyector (sala, montaje, altura) · tamaño de imagen ·
+// v10.88 · columna A de PROYECCIÓN en orden: tipo · sala y proyector (sala, montaje, altura) · tamaño de imagen ·
 // posición de la imagen · distancia de proyección · avanzado (luz ambiente y ganancia, público, obstáculos y fuera de especificación)
 function partesProyA(c, q) {
   const e = E.esp, s = e.sueltas, sala = e.tipo === 'sala' && E.cantidad === 'varias', una = E.cantidad !== 'varias', tp = tipoProy(), base = partesEspacio(), p = E.proy;
@@ -619,7 +619,7 @@ function partesLed(c) {
 function partesProy(c) {
   const p = E.proy, sel = c.proyector, haySuelo = c.filas.some(f => f.s.tipo === 'suelo'), paredes = c.filas.filter(f => f.s.tipo !== 'suelo');
   const mAct = marcasActivas();
-  let mat = '', aj = '', luz = '', fic = '', oos = '';   // v10.88 · la distancia y el montaje pasan a la columna A, como en el datos del fabricante
+  let mat = '', aj = '', luz = '', fic = '', oos = '';   // v10.88 · la distancia y el montaje pasan a la columna A
   // 2) proyector (cuerpo) y después su óptica, solo entre las compatibles (guía de ópticas de Epson)
   // v10.54 · marcas con las que se calcula: botones que se encienden y se apagan (siempre queda una)
   // v10.57 · sin rótulo encima (los nombres de marca se explican solos): con el proyector y la óptica elegidos, el bloque no cabía en un portátil
@@ -664,7 +664,7 @@ function partesProy(c) {
   return { mat, aj, luz, oos, fichas: fic, rMat: sel ? (p.cuerpo ? '' : 'AUTO · ') + sel.nombre : t('auto'), rAj: [t('or_' + (p.orient || 'auto')), conBlend ? p.solape + ' %' : t('unaImg')].filter(Boolean).join(' · '), rDist: dist, rLuz: `${fmt(p.lux, 0)} lx · ×${fmt(p.ganancia, 1)}`,
     eleg: sel ? { nom: sel.nombre, dat: [fmtPx(sel.lumens) + ' lm', 'TR ' + trTxt(sel), sel.resX + '×' + sel.resY].join(' · ') } : null };
 }
-// v8.4 · datos principales de proyección, en el orden del datos del fabricante y del de Vivitek: el tipo arriba del todo y, tras la
+// v8.4 · datos principales de proyección, en orden: el tipo arriba del todo y, tras la
 // superficie, la posición del proyector (primero la distancia y después el montaje con su altura), cada una con su candado
 function bloqueTipo() {
   const tp = tipoProy();
@@ -875,7 +875,7 @@ function vistaResultados(c) {
     </div>`;
     /* v10.89 · arriba, el veredicto en una línea y las pestañas; el veredicto completo va en AVISOS (y entero en el PDF) */
     h += veredictoCorto(c) + pestanas(c) + vistaVeredicto(c);
-    h += vistaSimulacion(c);   // v10.88 · resultado como el del datos del fabricante (una pantalla)
+    h += vistaSimulacion(c);   // v10.88 · resultado de la simulación numerado (una pantalla)
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(f.pos ? f.pos.dist : q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
     </tbody></table></div>`;
@@ -892,7 +892,7 @@ function vistaResultados(c) {
 // v10.48 · el semáforo de la imagen: los mismos umbrales (15:1 y 7:1) con una frase que se entiende y lo que hay que hacer
 const semaforo = (v) => { v = Math.round(v * 10) / 10; return v >= 15 ? 'semV' : v >= 7 ? 'semA' : 'semR'; };   // v10.63 · con el valor que se lee (6,96 se lee 7)
 function nivelContraste(v) { return v >= 80 ? t('cVideo') : v >= 50 ? t('cAnalitica') : v >= 15 ? t('cBasica') : v >= 7 ? t('cPasiva') : t('cInsuf'); }
-// v10.88 · RESULTADO DE LA SIMULACIÓN en el formato del datos del fabricante (una pantalla): posición del proyector numerada,
+// v10.88 · RESULTADO DE LA SIMULACIÓN (una pantalla): posición del proyector numerada,
 // ajuste del proyector (desplazamiento de lente) y brillo y contraste
 function vistaSimulacion(c) {
   const fs = c.filas.filter(f => f.pos && f.s.tipo !== 'suelo'); if (fs.length !== 1) return '';
@@ -910,7 +910,7 @@ function vistaSimulacion(c) {
     <div><div class="etq">${t('resAj')}</div><ul class="sim-l"><li>${t('rsShV')}: <span class="mono">${fmt(o.shiftV, 0)} %</span></li><li>${t('rsShH')}: <span class="mono">0 %</span></li></ul>
     <div class="etq">${t('resBr')}</div><ul class="sim-l"><li>${t('rsNits')}: <span class="mono">${fmt(q.nits, 1)} nits</span></li><li>${t('rsLux')}: <span class="mono">${fmt(q.lux, 1)} lx</span></li><li>${t('rsCon')}: <span class="mono">${fmt(q.contraste, 1)}:1</span> <b class="sem ${sem}">${t(sem)}</b></li></ul></div></div></section>`;
 }
-// posición del proyector y brillo por superficie:
+// posición del proyector y brillo por superficie
 function vistaPosicion(c) {
   const fs = c.filas.filter(f => f.pos); if (!fs.length) return '';
   const ok = (v) => (v >= 15 ? 'ok' : v >= 7 ? '' : 'mal');
@@ -1110,7 +1110,7 @@ function zonas(c) {
   const led = E.tecnologia === 'led', e = partesEspacio(), q = led ? partesLed(c) : partesProy(c), x = c.elec || {};
   const rElec = led ? (x.proc ? x.proc.marca + ' ' + x.proc.modelo : '') : x.blend ? x.blend.marca + ' ' + x.blend.modelo : x.media ? x.media.marca + ' ' + x.media.modelo : (E.elec.proyEq === 'ninguno' ? t('mNinguno') : '');
   const pa = led ? null : partesProyA(c, q);
-  // v10.89 · una sola columna de datos con 4 pasos numerados, iguales en todas las modalidades (revisión de interfaz, 24-11-2026):
+  // v10.89 · una sola columna de datos con 4 pasos numerados, iguales en todas las modalidades (24-11-2026):
   // ① sala · ② pantalla · ③ equipo / distancia · ④ avanzado. Sin CALCULAR ni RESTABLECER al pie (están en la cabecera) ni el pie «Elegido»
   const pn = (n, k) => `<i class="pn">${n}</i>${t(k)}`, junta = (...a) => a.filter(Boolean).join(' · ');
   const A = led

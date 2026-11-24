@@ -3,6 +3,7 @@
 // figura humana a escala, cotas y vistas predefinidas. Se renderiza solo cuando algo cambia.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { crearDron } from './simula.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
@@ -243,6 +244,7 @@ export class Escena {
     const anchoPano = ordenPano.reduce((a, f) => a + (f.r ? f.r.ancho : f.s.ancho), 0) || 1;
     let acum = 0; const tramo = {};
     ordenPano.forEach(f => { const w = f.r ? f.r.ancho : f.s.ancho; tramo[f.s.id] = { u0: acum / anchoPano, u1: (acum + w) / anchoPano }; acum += w; });
+    { const fr = tramo.frontal || tramo[(ordenPano[Math.floor((ordenPano.length - 1) / 2)] || { s: {} }).s.id]; this._simU = fr ? (fr.u0 + fr.u1) / 2 : 0.5; }   // v10.91 · el templo del vuelo, delante
     const altoMax = Math.max(...m.superficies.map(f => (f.r ? f.r.alto : f.s.alto)), 1);
     let luces = 0;
     m.superficies.forEach((f, idx) => {
@@ -428,60 +430,13 @@ export class Escena {
     const t = md.tipo === 'video' ? new THREE.VideoTexture(md.el) : new THREE.Texture(md.el);
     t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; this._medio = { el: md.el, t }; return t;
   }
-  // v10.88 · SIMULAR: vuelo de dron en 3D (pedido por Josep): de lejos, sobre la jungla, hacia unas pirámides aztecas, las rodea y aterriza en lo alto
-  // de la mayor. Es una escena aparte que se dibuja en una textura panorámica de 4:1 y se reparte por las superficies como el contenido propio.
+  // v10.91 · SIMULAR: vuelo de dron en bucle cerrado (48 s) dibujado en 360°: la vuelta completa casa en la esquina de una sala de 4 paredes.
+  // El templo queda en la pared frontal (o en el centro del recorrido si no hay pared frontal).
   _simula() {
-    if (this._sim) return this._sim.rt.texture;
-    const rt = new THREE.WebGLRenderTarget(2048, 512, { samples: 2 });
-    const sc = new THREE.Scene(); sc.background = new THREE.Color(0xa9cbe8); sc.fog = new THREE.Fog(0xc4dbee, 260, 1100);
-    const cam = new THREE.PerspectiveCamera(30, 4, 0.5, 1200);
-    sc.add(new THREE.HemisphereLight(0xe4f1ff, 0x30501c, 1.15)); const sol = new THREE.DirectionalLight(0xfff0d2, 2.3); sol.position.set(140, 180, 90); sc.add(sol);
-    const azar = (() => { let a = 7; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; })();
-    const piras = [[0, 0, 62, 9], [-118, 46, 40, 7], [104, -64, 34, 6], [-60, -120, 24, 5], [150, 70, 22, 5]];
-    const plaza = (x, z) => Math.min(...piras.map(([px, pz, sz]) => Math.hypot(x - px, z - pz) - sz * 0.75));
-    const alto = (x, z) => { const d = plaza(x, z), base = 3.2 * Math.sin(x * 0.018) * Math.cos(z * 0.021) + 2.2 * Math.sin((x + z) * 0.041) + 7 * Math.max(0, Math.sin(x * 0.004 + 1.3)) * Math.max(0, Math.hypot(x, z) - 380) / 200;
-      return d < 18 ? base * Math.max(0, d / 18) * 0.3 : base; };
-    // terreno con colores de jungla y la explanada de piedra alrededor de las pirámides
-    const tg = new THREE.PlaneGeometry(1800, 1800, 150, 150); tg.rotateX(-Math.PI / 2);
-    const P = tg.attributes.position, col = []; const cJ = new THREE.Color(), cP = new THREE.Color(0xb9a98a);
-    for (let k = 0; k < P.count; k++) { const x = P.getX(k), z = P.getZ(k); P.setY(k, alto(x, z)); const d = plaza(x, z);
-      cJ.setHSL(0.27 + azar() * 0.05, 0.55, 0.16 + azar() * 0.08); if (d < 14) cJ.lerp(cP, Math.min(1, (14 - d) / 10)); col.push(cJ.r, cJ.g, cJ.b); }
-    tg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); tg.computeVertexNormals();
-    sc.add(new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ vertexColors: true })));
-    // río que serpentea
-    const rio = new THREE.Shape(); rio.moveTo(-900, 260); for (let x = -900; x <= 900; x += 60) rio.lineTo(x, 230 + Math.sin(x * 0.006) * 90); for (let x = 900; x >= -900; x -= 60) rio.lineTo(x, 262 + Math.sin(x * 0.006) * 90);
-    const rg = new THREE.ShapeGeometry(rio); rg.rotateX(Math.PI / 2); const rm = new THREE.Mesh(rg, new THREE.MeshLambertMaterial({ color: 0x3f7f9a })); rm.position.y = 0.6; sc.add(rm);
-    // pirámides escalonadas con su escalinata y el templo arriba
-    const mP = new THREE.MeshLambertMaterial({ color: 0xa8957a }), mP2 = new THREE.MeshLambertMaterial({ color: 0x8c7a62 }), mT = new THREE.MeshLambertMaterial({ color: 0x6e5a45 });
-    piras.forEach(([x, z, sz, nv]) => { const g = new THREE.Group(), hN = sz * 0.07; let y = 0;
-      for (let i = 0; i < nv; i++) { const l = sz * (1 - i / nv * 0.72); const b = new THREE.Mesh(new THREE.BoxGeometry(l, hN, l), i % 2 ? mP2 : mP); b.position.y = y + hN / 2; g.add(b); y += hN; }
-      const esc = new THREE.Mesh(new THREE.BoxGeometry(sz * 0.16, hN * nv * 1.08, sz * 0.5), mP2); esc.position.set(0, hN * nv * 0.5, sz * 0.32); esc.rotation.x = -Math.atan2(sz * 0.36, hN * nv); g.add(esc);
-      const tl = sz * 0.2, tem = new THREE.Mesh(new THREE.BoxGeometry(tl, hN * 1.6, tl * 0.8), mT); tem.position.y = y + hN * 0.8; g.add(tem);
-      const te = new THREE.Mesh(new THREE.BoxGeometry(tl * 1.15, hN * 0.35, tl * 0.95), mP2); te.position.y = y + hN * 1.75; g.add(te);
-      g.position.set(x, alto(x, z), z); g.rotation.y = Math.atan2(-x, -z) * 0.15; sc.add(g); });
-    // jungla: copas de árbol con su tono
-    const n = 2600, ar = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: 0xffffff }), n), M = new THREE.Matrix4(), c3 = new THREE.Color();
-    let k = 0; while (k < n) { const x = (azar() - 0.5) * 1500, z = (azar() - 0.5) * 1500; if (plaza(x, z) < 16 || Math.abs(z - (246 + Math.sin(x * 0.006) * 90)) < 22) continue;
-      const r = 4 + azar() * 6; M.compose(new THREE.Vector3(x, alto(x, z) + r * 0.7, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(azar(), azar() * 6, azar())), new THREE.Vector3(r, r * (0.7 + azar() * 0.5), r));
-      ar.setMatrixAt(k, M); ar.setColorAt(k, c3.setHSL(0.25 + azar() * 0.08, 0.5 + azar() * 0.2, 0.13 + azar() * 0.12)); k++; }
-    sc.add(ar);
-    // nubes bajas
-    const mN = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false });
-    for (let i = 0; i < 26; i++) { const nb = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mN); nb.scale.set(30 + azar() * 40, 8 + azar() * 6, 20 + azar() * 30); nb.position.set((azar() - 0.5) * 1300, 95 + azar() * 50, (azar() - 0.5) * 1300); sc.add(nb); }
-    // ruta del dron: llega desde lejos, baja, rodea la pirámide mayor y aterriza en su templo
-    const cima = 62 * 0.07 * 9 + 6;
-    const ruta = new THREE.CatmullRomCurve3([[-520, 170, 460], [-330, 130, 300], [-170, 95, 170], [-20, 78, 160], [120, 66, 60], [110, 56, -80], [0, 50, -128], [-90, 46, -40], [-40, cima + 14, 30], [0, cima + 6, 22], [0, cima + 2.5, 9]].map(v => new THREE.Vector3(...v)));
-    this._sim = { rt, sc, cam, ruta, cima, t0: performance.now(), dur: 26 };
-    this._pintaSimula(); return rt.texture;
+    if (!this._sim) { this._sim = crearDron(this.renderer); this._sim.t0 = performance.now(); }
+    this._sim.frente(this._simU != null ? this._simU : 0.5); this._pintaSimula(); return this._sim.rt.texture;
   }
-  _pintaSimula() {
-    const S = this._sim; if (!S) return;
-    const t = ((performance.now() - S.t0) / 1000) % S.dur, k = t / S.dur, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-    const p = S.ruta.getPointAt(Math.min(0.9999, e)), adelante = S.ruta.getPointAt(Math.min(0.9999, e + 0.03)), cima = new THREE.Vector3(0, S.cima - 4, 0);
-    const mira = adelante.clone().add(new THREE.Vector3(0, -45 * (1 - Math.min(1, k / 0.5)), 0)).lerp(cima, Math.min(1, Math.max(0, (k - 0.35) / 0.4)));   // al principio mira hacia la jungla, no al cielo
-    S.cam.position.copy(p); S.cam.lookAt(mira); S.cam.rotateZ(Math.sin(t * 0.7) * 0.03 * (1 - k));   // leve balanceo del dron, que se calma al aterrizar
-    const r = this.renderer, prev = r.getRenderTarget(); r.setRenderTarget(S.rt); r.render(S.sc, S.cam); r.setRenderTarget(prev);
-  }
+  _pintaSimula() { const S = this._sim; if (S) S.pinta((performance.now() - S.t0) / 1000); }
   _bucle() {
     if (!this._animando || !this._vivos.length) { this._animando = false; return; }
     if (!document.hidden) {

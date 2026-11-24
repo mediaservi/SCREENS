@@ -23,7 +23,7 @@ EPSON,EB-PQ2220B,PQ2000,,20000,16:9,4K (3840 x 2160),4K,1000,1100,
 EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 // Ópticas de Epson por serie de cuerpo: [relación de proyección mínima, máxima, desplazamiento vertical %, horizontal %, solo hacia arriba]
 // (guía maestra de Epson 08/2026). max20kXQ: con el EB-XQ2030B la luminosidad queda en 20.000 lm; max12k: tope de 12.000 lm.
-// v10.89 · revisión frente al datos del fabricante: cada combinación cuerpo + óptica tiene sus lúmenes (lm: fracción de los
+// v10.89 · datos del fabricante (24-11-2026): cada combinación cuerpo + óptica tiene sus lúmenes (lm: fracción de los
 // del cuerpo por serie; lmMax: tope; lmXQ: lúmenes del EB-XQ2030B con esa óptica), su imagen mínima (min, en pulgadas; por defecto 50″ en
 // PU1000 y 60″ en el resto) y, las ultracortas plegadas, la separación fija entre la imagen y el proyector (sep, m) y lo que va de la lente
 // a la cara del cuerpo más cercana a la pantalla (desfase, m). Las plegadas no desplazan la imagen: va pegada al proyector.
@@ -87,7 +87,7 @@ function leer() {
   });
   return out;
 }
-// v10.89 · VIVITEK con los datos de la herramienta oficial del fabricante oficial:
+// v10.89 · VIVITEK con los datos del fabricante (24-11-2026):
 // - cada cuerpo con sus ópticas compatibles (fuera D88-UST01B, D88-UWZ01 y D88-WZ01; entran D89-LZ01, D98-69103 y las
 //   K1U/K1K de las series 5000);
 // - por óptica y chip: relación de proyección, distancia de foco en especificación y foco mecánico (m), imagen mínima y máxima (″),

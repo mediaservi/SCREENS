@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.90** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.91** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -75,13 +75,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.90) · para probar en beta
+## Cambios de la versión actual (v10.91) · para probar en beta
+- **SIMULAR en 360°**: un vuelo de dron de 48 s en bucle cerrado alrededor de un gran templo modernista de torres agujas (piedra perforada, remates de colores, cruz y estrella en las torres mayores), sobre una ciudad de manzanas con chaflán y patio, con calles arboladas, plazas, estanque, cordillera al fondo y mar. Se dibuja con una cámara cúbica y se convierte en un panorama cilíndrico de 360°: la vuelta completa casa en las esquinas de una sala de 4 paredes (y sirve para salas esféricas). El templo queda delante, en la pared frontal. Todo es geometría generada en la app: no hay que descargar ningún vídeo.
+
+## Cambios de la v10.90 · para probar en beta
 - **Una pantalla LED (portada): cada bloque con datos lleva su RESTABLECER** (entorno y uso, dimensiones, cabinet, cabinets, resolución, electrónica, mediaserver y señal), como manda la regla del proyecto; el RESTABLECER de la ventana Ajustes, que no hacía nada, ya funciona.
 - **Varias LED en sala**: ya no sale al entrar el aviso «No hay LED protegido…» (en una sala se prefiere protegido por defecto); solo avisa si se ha pedido a mano.
 - **Móvil**: las cifras del resultado en dos columnas (tres en horizontal) y bajas, para que el veredicto y las pestañas se vean en la primera pantalla.
 
 ## Cambios de la v10.89 · para probar en beta
-Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revisión de usabilidad y prueba con cuatro perfiles de usuario (integrador, comercial de alquiler, organizador de eventos y arquitecto o museo), 24-11-2026.
 - **Interfaz común en todas las modalidades de la consola** (una y varias pantallas, LED y proyección):
   - **Una sola columna de datos con 4 pasos numerados**, cada uno con su RESTABLECER: en proyección ① Sala y proyector (con el proyector y la óptica), ② Pantalla, ③ Distancia de proyección y ④ Avanzado (ajuste del equipo, luz, público, obstáculos, fuera de especificación y electrónica); en LED ① Sala y uso, ② Tamaño y distancias, ③ Equipo y ④ Electrónica de control. Al entrar, el paso ① está siempre abierto.
   - **Fuera los duplicados**: un solo CALCULAR (el de la cabecera), sin el pie «Elegido» ni el sumario técnico aparte; la etiqueta BETA ya no está junto a la petición.
@@ -106,15 +108,15 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
 - **SIMULAR, ahora un vuelo de dron en 3D** (pedido por Josep, 24-11-2026): llega de lejos sobre la jungla, baja hacia unas pirámides aztecas escalonadas con su escalinata y su templo, las rodea y aterriza en lo alto de la mayor; río, nubes bajas, niebla y un leve balanceo del dron. Es una escena aparte que se dibuja en una textura panorámica y recorre todas las paredes sin cortes.
 - **INDICADORES · ON / OFF**: el botón dice su estado.
 - **Campos con su nombre completo** (para no confundir la pantalla con la sala): alto del techo de la sala, ancho, fondo y alto de la sala, montaje y altura del proyector, proporción de la pantalla, diagonal, ancho y alto de la pantalla, suelo a la base de la pantalla, distancia de la pantalla a la óptica, distancia del público a la pantalla, uso y luz de la sala, ganancia de la pantalla. El bloque IMAGEN pasa a llamarse PANTALLA y «medir por» son tres botones (diagonal, ancho, alto).
-- **Resultado de la simulación** con la numeración de Epson del (1) al (8), con el (4) «pantalla al centro de la óptica».
+- **Resultado de la simulación** numerado del (1) al (8), con el (4) «pantalla al centro de la óptica».
 
 ## Cambios de la v10.87 · borrador para validar
-- **PROYECCIÓN en PRO con el esquema del datos del fabricante** (pedido por Josep, 24-11-2026): la columna A lleva los datos de entrada en su orden y la B el equipo.
+- **PROYECCIÓN en PRO con los datos de entrada en orden** (pedido por Josep, 24-11-2026): la columna A lleva los datos de entrada en su orden y la B el equipo.
   - **Sala y proyector**: tipo (mapping, pared o sala inmersiva), alto del techo o medidas de la sala, montaje (auto, colgado o sobremesa) y altura del proyector con su candado.
   - **Imagen**: proporción (libre, la del proyector, 16:9, 16:10, 4:3, 21:9 o 1:1) y la medida por diagonal, ancho o alto, con casilla y deslizador; el ancho y el alto salen de ahí. Debajo, del suelo a la base de la imagen.
   - **Distancia**: de la imagen a la óptica, con candado y el deslizador del rango del zoom.
   - **Avanzado** (en la columna B, junto al equipo): luz ambiente (uso, lux y ganancia), distancia del público, puertas y obstáculos y fuera de especificación.
-- **Resultado de la simulación** en Resultados, como el de Epson: posición del proyector numerada (suelo al pie del proyector, base de la imagen al pie, distancia de proyección, techo a la parte alta, suelo a la base, tamaño y diagonal), ajuste del proyector (desplazamiento de lente vertical y horizontal) y brillo y contraste (nits, lux y contraste real).
+- **Resultado de la simulación** en Resultados: posición del proyector numerada (suelo al pie del proyector, base de la imagen al pie, distancia de proyección, techo a la parte alta, suelo a la base, tamaño y diagonal), ajuste del proyector (desplazamiento de lente vertical y horizontal) y brillo y contraste (nits, lux y contraste real).
 - Lo elegido, al pie de la columna B, en dos líneas.
 
 ## Cambios de la v10.86
@@ -125,7 +127,7 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
   - Las seis vistas caben en una fila.
 
 ## Cambios de la v10.85
-- **Revisión de espacio en escritorio** (pedida por Josep, 24-11-2026), para que no queden huecos vacíos ni barras evitables:
+- **Mejor aprovechamiento del espacio en escritorio** (pedido por Josep, 24-11-2026), para que no queden huecos vacíos ni barras evitables:
   - **TAMAÑO Y DISTANCIAS**: TAMAÑO y ENTORNO pasan a ser un solo bloque (medidas, elevación, distancia del público, alto del techo y puertas y obstáculos), compacto para que quepa sin desplazarse; la ayuda del techo sale al pasar por encima.
   - **Columnas de mandos**: el sitio que sobra se reparte entre los bloques en vez de dejar un hueco dentro de uno; MATERIAL ya no se desplaza.
   - **Vistas técnicas más grandes**: el desplazamiento vertical sube a la cabecera, donde había un hueco, y cada vista (lateral, frontal y cenital) ocupa todo su recuadro con el nombre y el ojo encima.
@@ -153,7 +155,7 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
 - Los títulos de bloque largos se vuelven a ajustar cuando cambia su ancho (ya no queda tapado «Electrónica de control»).
 
 ## Cambios de la v10.80
-- **Stock interno nunca a la vista del público ni en el PDF** (revisión pedida por Josep, 23-11-2026): la ficha del cabinet en Resultados (UNA, VARIAS y SIMPLE) ya no lleva el semáforo de unidades ni el aviso de lote de fabricación; solo queda «en stock» o «bajo pedido», que es público. El stock real (mayor batch, total, lo que necesita el proyecto + 1 de reserva y la próxima llegada) sale solo con la llave del admin y en su sitio: bloque CABINET en UNA y bloque MATERIAL en VARIAS. Nunca se imprime.
+- **Stock interno nunca a la vista del público ni en el PDF** (pedido por Josep, 23-11-2026): la ficha del cabinet en Resultados (UNA, VARIAS y SIMPLE) ya no lleva el semáforo de unidades ni el aviso de lote de fabricación; solo queda «en stock» o «bajo pedido», que es público. El stock real (mayor batch, total, lo que necesita el proyecto + 1 de reserva y la próxima llegada) sale solo con la llave del admin y en su sitio: bloque CABINET en UNA y bloque MATERIAL en VARIAS. Nunca se imprime.
 - **Candado del pie**: en VARIAS y PROYECCIÓN ya no queda tapado por el botón de fallos, se ve verde cuando el acceso interno está activo y, al tocarlo así, se cierra (borra la llave y la caché del catálogo con stock). Igual en UNA.
 - La caché del catálogo se borra también cuando el servidor da la llave por caducada.
 
@@ -222,7 +224,7 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
 ### v10.62
 - **Un solo veredicto en SIMPLE y en PRO**: SIMPLE usa las mismas reglas y avisos de cálculo que PRO (en rojo lo que no vale, en ámbar lo que conviene revisar).
 - **Solape**: por encima del 65 % no es recomendable y se propone, si existe, un proyector más potente que lo haga con una sola imagen (siempre de la misma marca y con un contraste de al menos 7:1). Un poco de imagen sobrante, que se enmascara, vale.
-- **Luz**: empieza en 140 lx y ganancia 1, con los usos Sala de reuniones 140, Aula 210, Sala de eventos 140, Salón 70 y Sala de cine 14, o a mano. 0 lx es 0 (contraste infinito).
+- **Luz de la sala**: empieza en 140 lx y ganancia 1, con los usos Sala de reuniones 140, Aula 210, Sala de eventos 140, Salón 70 y Sala de cine 14, o a mano. 0 lx es 0 (contraste infinito).
 - **Una sola marca por proyecto**, también el proyector del suelo.
 - **Mapping sin límite de techo**: empieza con una fachada de 6 m de alto y el proyector a 6 m.
 - **Varias LED**: hasta 4 pantallas a la vez, cada una con su medida y todas del mismo cabinet.
@@ -285,7 +287,7 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
 - **Datos de cada combinación:** la relación de proyección según el chip del cuerpo, la imagen máxima de cada óptica, el desplazamiento de la óptica (con su tope cuando la óptica lo limita) y el tamaño del chasis, de la guía de ópticas y de las fichas del fabricante. Vivitek no publica imagen «fuera de especificación»: con sus proyectores ese modo no amplía nada, y la app lo dice.
 - **Marcas a la vista:** con dos marcas en el catálogo aparecen los botones EPSON y VIVITEK en MATERIAL (PRO) y la línea «Marcas» en LO QUE PIDES (SIMPLE). La lista de proyectores va agrupada por marca.
 - **En automático sigue mandando Epson** (desde la v10.58, la siguiente marca solo sale si con la anterior no hay una instalación limpia). Vivitek se calcula apagando Epson o eligiendo uno de sus proyectores.
-- **Ficha del proyector:** los de Vivitek llevan el enlace a la herramienta oficial del fabricante para verificar.
+- **Ficha del proyector:** los de Vivitek llevan el enlace a la herramienta del fabricante.
 - **SIMPLE, sin nada cortado con más líneas y más ópticas:**
   - LO QUE PIDES admite hasta nueve líneas (proyección colgada, con óptica y marcas) más el aviso de ajustes de PRO sin desplazar la lista: las líneas se estrechan lo justo; con sitio de sobra siguen igual.
   - La ventana «¿Qué óptica lleva el proyector?» pasa a lista compacta de tres columnas cuando hay más de 12 ópticas. Antes, con las 16 de Epson, la ventana ya se desplazaba un poco en pantallas de 720 de alto y en la tableta.
@@ -350,7 +352,7 @@ Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revis
 
 ### v10.51
 
-Correcciones de la revisión en el móvil en vertical (412 × 839, 390 × 844 y 360 × 740):
+Correcciones en el móvil en vertical (412 × 839, 390 × 844 y 360 × 740):
 
 - **Consola · vista previa del PDF:** en el móvil la cabecera va en una fila de iconos y las hojas a todo el ancho; al abrirse ya no se desplaza (antes las hojas quedaban fuera de la vista y la previa parecía vacía).
 - **Portada PRO · SEÑAL y ELÉCTRICO:** las filas COSIDO y MANGUERA se reducen enteras si no caben en el dibujo (también en «Ver en grande»); ya no se cortan por los lados.
@@ -398,7 +400,7 @@ Correcciones de la revisión en el móvil en vertical (412 × 839, 390 × 844 y 
 
 ### v10.48
 
-Mejoras de uso salidas de una revisión externa de la app (beta):
+Mejoras de uso (beta):
 
 - **Distancia de visionado por defecto:** sin distancia, la portada elige el pitch para verse bien a 3 m en interior y a 8 m en exterior, y lo dice («A 3 m»). La distancia de visionado pasa al bloque Dimensiones, con el valor por defecto a la vista.
 - **«Sala» ya no es siempre sala inmersiva:** «sala de reuniones», «de conferencias», «de formación», «salón» o «sala de estar» se entienden como una pantalla. Pedir un proyector en la portada lleva directamente a Proyección con la petición ya calculada.
@@ -546,7 +548,7 @@ Mejoras de uso salidas de una revisión externa de la app (beta):
 
 ## Cambios de la v10.24
 
-Revisión de la lista de material y del esquema de conexión de la portada frente a la consola clásica: se recupera todo lo que faltaba.
+La lista de material y el esquema de conexión de la portada recuperan todo lo que tenía la consola clásica.
 
 - **Lista de material**, fila a fila como en la clásica: cabinets (con enlace a la ficha), **fuentes de vídeo del cliente**, **cable HDMI PureLink FlexInstall** con su referencia según la distancia (FI-H100 pasivo hasta 3 m, FI-H150 AOC de 5 a 20 m; de 3 m si no se sabe; «consultar con Charmex» a más de 20 m; sin cable HDMI si la señal es DisplayPort o SDI), mediaserver (dos si hay backup y no lo trae de serie), electrónica con todas sus piezas (las de la H Series, sangradas debajo del equipo), latiguillos de fibra y Cat6 con el backup, distribución eléctrica, **PC de control** y la variante tropicalizada en entorno marino. Cada fila lleva una **viñeta del color de su tipo de cable**, igual que el esquema.
 - **Esquema de conexión** como el de la clásica: **colores por tipo de cable** (vídeo azul, Ethernet verde, fibra naranja, alimentación rojo, control violeta), **backup en línea discontinua**, PC de control con su conexión USB / Ethernet, conversor de fibra, distribución eléctrica a la electrónica y a los cabinets, aviso de entorno marino y **leyenda**. En la pantalla y en el PDF.
@@ -833,7 +835,7 @@ El cálculo de una pantalla LED no cambia en esta versión.
 
 ## Cambios de la versión v8.3
 
-- **Vistas técnicas de proyección**, como las del datos del fabricante, en los resultados de mapping, pared, varias pantallas y sala inmersiva.
+- **Vistas técnicas de proyección** en los resultados de mapping, pared, varias pantallas y sala inmersiva.
   - **Lateral:**
     - la pared con la imagen;
     - el proyector a su distancia y altura (con la torre o la base si va apoyado);
@@ -857,7 +859,7 @@ El cálculo de una pantalla LED no cambia en esta versión.
 
 ## Cambios de la versión v8.2
 
-El módulo de proyección se ordena como el datos del fabricante y AUTO decide según el tipo de proyecto.
+El módulo de proyección se ordena por pasos y AUTO decide según el tipo de proyecto.
 
 - **Tipo de proyección:** mapping, pared o sala inmersiva. AUTO decide según el tipo.
   - **Mapping** (fachada o edificio):
@@ -880,7 +882,7 @@ El módulo de proyección se ordena como el datos del fabricante y AUTO decide s
   - escribir un valor cierra el candado.
 - **Deslizador de la distancia** dentro del rango del zoom de la óptica para esa imagen.
 - **Uso del espacio** para la luz de la sala: mapping de noche, sala oscura o cine, auditorio, sala de reuniones, aula u oficina, feria o exposición (valores típicos en lx).
-- **Modo fuera de especificación** (avanzado) para imágenes algo más grandes que las garantizadas, como en el datos del fabricante y en SCREENBOX:
+- **Modo fuera de especificación** (avanzado) para imágenes algo más grandes que las garantizadas:
   - avisa de lo que el fabricante no garantiza;
   - calcula hasta dónde llega cada proyector: en los Epson de alta luminosidad, de 1000" a 1100";
   - avisa si la instalación pasa del máximo garantizado y da una recomendación de uso.

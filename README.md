@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.96** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.97** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.96)
+## Cambios de la versión actual (v10.97)
+- **Proyección en AUTO: el brillo justo, no el máximo** (aviso de Josep, 24-11-2026: para una sala inmersiva de 8 × 6 m a oscuras proponía proyectores de 20.000 y 30.000 lm). AUTO buscaba siempre el máximo brillo (hasta 250 nits). Ahora busca el que hace falta para un **contraste de 15:1 con la luz del sitio** (como poco 45 nits y como mucho 250) y, entre los que llegan, **el de menos lúmenes**. Esa misma sala pasa de 170.400 lm a 60.000 lm, con proyectores de 6.000 lm. Con mucha luz (140 lx o más) el resultado no cambia: ahí sigue haciendo falta todo el brillo.
+- Si entre las primeras combinaciones ninguna queda limpia (chasis que chocan o proyectores dentro de otro haz), AUTO mira más combinaciones antes de proponer una, en paredes y en suelo.
+
+## Cambios de la v10.96
 - **Sala inmersiva en AUTO: un candado antiguo ya no estropea el cálculo** (fallo grave avisado por Josep, 24-11-2026). Si quedaba fijada una distancia de proyección de otra sala o de otro modo (por ejemplo 6 m) y la sala nueva tenía 6 m de fondo, AUTO la respetaba y proponía un tiro que no cabe («El tiro no cabe en la sala»). Lo mismo con una altura de proyector fijada por encima del techo. Ahora, en una sala, la distancia fijada que no cabe hasta la pared de enfrente y la altura por encima del techo **se sueltan solas**, se calcula en automático con la óptica que sí cabe y un aviso lo dice. En español, inglés y catalán.
 
 ## Cambios de la v10.95

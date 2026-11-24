@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.96';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.97';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.96';
+const VERSION = 'v10.97';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -197,9 +197,9 @@ function calcular(forzarMulti) {
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
   // y solo las mejores pasan por la colocación completa con sombras y choques
   const rapido = (q) => { let k = pref(q) * 1000; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
-    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - Math.min(r.nits, 250) * 0.5; }); return k; };
+    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; }); return k + q.lumens / 1000 * 1.5; };
   const supS = sups.find(s => s.tipo === 'suelo');
-  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - Math.min(r.nits, 250) * 0.5; };
+  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - valeBrillo(r.nits) * 0.5 + q.lumens / 1000 * 1.5; };
   const mejores = (lista, k = 10, fc = rapido) => lista.length <= k ? lista : lista.map(q => ({ q, c: fc(q) })).sort((a, b) => a.c - b.c).slice(0, k).map(x => x.q);
   const mejorDe = (lista, fn) => lista.map(q => ({ q, r: fn(q) })).sort((x, y) => x.r.coste - y.r.coste)[0];
   // v10.54 · solo las marcas activadas (todas, si no se ha quitado ninguna)
@@ -218,9 +218,15 @@ function calcular(forzarMulti) {
   if (!hayPared && haySuelo) { proyector = fijo || (fijoS && mAct.includes(fijoS.marca) ? fijoS : null) || mejorDe(mejores(lista, 8, rapidoS), q => montar(q, q)).q; prSuelo = proyector; }
   else {
     if (fijo) { proyector = fijo; }
-    else { const m = mejorDe(mejores(lista), q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : q)); proyector = m.q; }
+    else { const fn = q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : q), orden = lista.length <= 10 ? lista : lista.map(q => ({ q, c: rapido(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
+      let m = mejorDe(orden.slice(0, 10), fn);
+      /* v10.97 · si entre los diez primeros ninguno queda limpio (chasis que chocan o proyectores dentro de otro haz), se miran los treinta siguientes */
+      if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length)) { const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
+      proyector = m.q; }
     if (fijoS && fijoS.marca === proyector.marca) prSuelo = fijoS;
-    else if (haySuelo) prSuelo = mejorDe(mejores(CAT.filter(q => q.marca === proyector.marca), 8, rapidoS), q => montar(proyector, q)).q;
+    else if (haySuelo) { const LS = CAT.filter(q => q.marca === proyector.marca), fnS = q => montar(proyector, q), ordS = LS.length <= 8 ? LS : LS.map(q => ({ q, c: rapidoS(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
+      let m = mejorDe(ordS.slice(0, 8), fnS); if (ordS.length > 8 && (m.r.S.conflictos.length || m.r.S.choques.length)) { const m2 = mejorDe(ordS.slice(8, 36), fnS); if (m2 && m2.r.coste < m.r.coste) m = m2; }   // v10.97 · igual que en las paredes
+      prSuelo = m.q; }
     else prSuelo = proyector;
   }
   inst = montar(proyector, prSuelo);
@@ -293,6 +299,11 @@ function calcular(forzarMulti) {
   }
   c.elec = electronica(c); c.veredicto = veredicto(c); return c;
 }
+/* v10.97 · BRILLO JUSTO (aviso de Josep, 24-11-2026: AUTO proponía proyectores de 20.000 y 30.000 lm para una sala a oscuras). AUTO ya no busca el
+   máximo brillo: busca el que hace falta para un contraste de 15:1 con la luz del sitio (como poco 45 nits, como mucho 250) y, entre los que llegan,
+   el de menos lúmenes. Llegar al objetivo vale lo mismo que antes valía llegar a 250 nits; pasarse no suma y los lúmenes de más restan un poco */
+const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.min(250, Math.max(45, 14 * lx / Math.PI)); };
+const valeBrillo = (nits) => { const o = nitsObjetivo(); return Math.min(nits, o) * 250 / o; };
 const SUELTO = { dist: 0, altura: 0 };   // v10.96 · candados soltados por no caber en la sala (hasta que se vuelva a fijar uno)
 // coste de una instalación de proyección: primero que quepa, luego que no haya sombras de equipos ni choques, luego menos proyectores y más brillo
 function costeInstalacion(filas, S) {
@@ -301,7 +312,7 @@ function costeInstalacion(filas, S) {
   const zona = S.zona && S.zona.ok ? S.zona.ancho * S.zona.fondo : 0;
   // v10.63 · también cuenta que no cubra (antes ganaba la que no cubría por llevar menos equipos) y el solape excesivo
   const noCubre = filas.filter(f => f.p.noCubre).length, solape = filas.filter(f => f.s.tipo !== 'suelo' && f.p.solapeRel > SOLAPE_MAX + 1e-6).length;
-  return fuera * 1e7 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - Math.min(nits, 250) - zona * 2;
+  return fuera * 1e7 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 - zona * 2;
 }
 // v10.63 · UN SOLO VEREDICTO: lo calcula el motor con todo lo que avisa PRO y lo pintan igual PRO (arriba de RESULTADOS y en el PDF) y SIMPLE
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.

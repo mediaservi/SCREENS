@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.11';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.12';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -28,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.11';
+const VERSION = 'v11.12';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -233,7 +233,7 @@ function calcular(forzarMulti) {
     else { const fn = q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : q), orden = lista.length <= 10 ? lista : lista.map(q => ({ q, c: rapido(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
       let m = mejorDe(orden.slice(0, 10), fn);
       /* v10.97 · si entre los diez primeros ninguno queda limpio (chasis que chocan o proyectores dentro de otro haz), se miran los treinta siguientes */
-      let vistos = 10; if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length || m.r.filas.some(f => f.p.parcial > 0.01))) { vistos = 40; const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
+      let vistos = 10; if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length || m.r.filas.some(f => f.s.tipo !== 'suelo' && (f.p.parcial > 0.01 || f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica || Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6)))) {   /* v11.12 · también si lo mejor de los diez primeros no cubre bien */ vistos = 40; const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
       /* v11.7 · en sala inmersiva se prueban siempre los priorizados (EB-L695SE) y las ultracortas de óptica fija (EB-815E, EB-805F), que el cálculo rápido deja atrás por número de equipos */
       if (esp.tipo === 'sala') { const ex = lista.filter(q => (PRIO_SALA.includes(q.modelo) || (q.ust && !q.optica)) && !orden.slice(0, vistos).includes(q)); if (ex.length) { const m3 = mejorDe(ex, q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : haySuelo && m.q.marca === q.marca ? m.q : q));   // con suelo, de momento el del mejor (luego se elige el suyo)
          if (m3 && m3.r.coste < m.r.coste) m = m3; } }

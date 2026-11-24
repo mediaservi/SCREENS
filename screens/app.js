@@ -2,11 +2,13 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.6';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.7';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
+/* v11.7 · proyectores que se priorizan en salas inmersivas (decidido por Josep, 24-11-2026: el EB-L695SE vale para casi todo y es el más vendido) */
+const PRIO_SALA = ['EB-L695SE'];
 const MARCAS_PROY = [...new Set(PROYECTORES.map(q => q.marca))].sort((a, b) => prioMarca(a) - prioMarca(b));
 const marcasActivas = () => { const a = (E.proy.marcas || []).filter(m => MARCAS_PROY.includes(m)); return a.length ? a : MARCAS_PROY; };
 // enciende o apaga una marca (siempre queda una); si el proyector elegido a mano era de la que se apaga, vuelve a automático
@@ -26,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.6';
+const VERSION = 'v11.7';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -166,7 +168,7 @@ function calcular(forzarMulti) {
   const enRango = (v) => Math.min(dMax > 0 ? dMax : Infinity, Math.max(dMin, v)), corta = (r) => dMin > 0 && r.tiro < dMin - 0.005;
   const sup1 = sups.find(s => s.tipo !== 'suelo');
   const tiroPared = tipoP === 'pared' && !fijaDist ? enRango(Math.max(1, dist)) : tipoP === 'mapping' && hayRango && sup1 ? enRango(TR_MAPPING * sup1.ancho) : 0;
-  const optPared = { ...opc, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
+  const optPared = { ...opc, banda: esp.tipo === 'sala' ? 1.9 : 0, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
   // v10.54 · sin saber desde dónde mira la gente (o en mapping con un margen de instalación), el proyector va en el punto medio de lo que permite
   // su óptica, dentro del margen si lo hay; sabiendo la distancia del público, se sigue acercando a ella
   const pubNS = tipoP === 'pared' && !fijaDist && !!E.proy.pubNS, alMedio = pubNS || (tipoP === 'mapping' && hayRango && !fijaDist);
@@ -197,7 +199,10 @@ function calcular(forzarMulti) {
     /* v11.0 · proyectores de pared que quedarían bajo el suelo o por encima del techo (pasaba con las ultracortas plegadas y salía en verde): cuentan
        como instalación que no se puede montar, para que AUTO busque otra y, si no la hay, el veredicto lo diga en rojo */
     { const tope = esp.tipo === 'sala' ? esp.alto : (Number(esp.sueltas.techo) > 0 ? Number(esp.sueltas.techo) : Infinity); S.fueraSala = (S.haces || []).filter(h => !h.suelo && h.lente && (h.lente.y < 0.03 || h.lente.y > tope + 0.03)).length; }
-    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 };
+    /* v11.7 · en sala inmersiva, el más vendido (EB-L695SE) va primero cuando da un contraste de 10:1 en todas las paredes: gana aunque lleve hasta dos equipos más */
+    const lxS = Number(E.proy.lux), lxs = isFinite(lxS) && lxS >= 0 ? lxS : 15;
+    const prio = esp.tipo === 'sala' && PRIO_SALA.includes(pP.modelo) && filas.every(f => f.s.tipo === 'suelo' || lxs <= 0 || (f.p.lux + lxs) / lxs >= 10) ? -400 : 0;
+    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 + prio };
   };
   // AUTO: la instalación limpia (sin chasis que choquen ni proyectores dentro de otros haces) con menos equipos y más brillo.
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
@@ -227,7 +232,10 @@ function calcular(forzarMulti) {
     else { const fn = q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : q), orden = lista.length <= 10 ? lista : lista.map(q => ({ q, c: rapido(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
       let m = mejorDe(orden.slice(0, 10), fn);
       /* v10.97 · si entre los diez primeros ninguno queda limpio (chasis que chocan o proyectores dentro de otro haz), se miran los treinta siguientes */
-      if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length)) { const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
+      let vistos = 10; if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length || m.r.filas.some(f => f.p.parcial > 0.01))) { vistos = 40; const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
+      /* v11.7 · en sala inmersiva se prueban siempre los priorizados (EB-L695SE) y las ultracortas de óptica fija (EB-815E, EB-805F), que el cálculo rápido deja atrás por número de equipos */
+      if (esp.tipo === 'sala') { const ex = lista.filter(q => (PRIO_SALA.includes(q.modelo) || (q.ust && !q.optica)) && !orden.slice(0, vistos).includes(q)); if (ex.length) { const m3 = mejorDe(ex, q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : haySuelo && m.q.marca === q.marca ? m.q : q));   // con suelo, de momento el del mejor (luego se elige el suyo)
+         if (m3 && m3.r.coste < m.r.coste) m = m3; } }
       proyector = m.q; }
     if (fijoS && fijoS.marca === proyector.marca) prSuelo = fijoS;
     else if (haySuelo) { const LS = CAT.filter(q => q.marca === proyector.marca), fnS = q => montar(proyector, q), ordS = LS.length <= 8 ? LS : LS.map(q => ({ q, c: rapidoS(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
@@ -340,7 +348,7 @@ function costeInstalacion(filas, S) {
   const zona = S.zona && S.zona.ok ? S.zona.ancho * S.zona.fondo : 0;
   // v10.63 · también cuenta que no cubra (antes ganaba la que no cubría por llevar menos equipos) y el solape excesivo
   const noCubre = filas.filter(f => f.p.noCubre).length, solape = filas.filter(f => f.s.tipo !== 'suelo' && f.p.solapeRel > SOLAPE_MAX + 1e-6).length;
-  return fuera * 1e7 + (S.fueraSala || 0) * 2e6 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 * pesoLm(nits) - zona * 2;
+  return fuera * 1e7 + (S.fueraSala || 0) * 2e6 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + filas.filter(f => f.p.parcial > 0.01).length * 6000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 * pesoLm(nits) - zona * 2;
 }
 // v10.63 · UN SOLO VEREDICTO: lo calcula el motor con todo lo que avisa PRO y lo pintan igual PRO (arriba de RESULTADOS y en el PDF) y SIMPLE
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.
@@ -379,6 +387,7 @@ function veredicto(c) {
     pw.filter(f => f.p.solapeRel > SOLAPE_RECO + 1e-6 && f.p.solapeRel <= SOLAPE_MAX + 1e-6).forEach(f => A('solapeMedio', t('vSolapeMedio', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre, r: fmt(SOLAPE_RECO * 100, 0) })));
     pw.filter(f => Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6).forEach(f => A('recorte', t('vRecorte', { p: fmt(Math.max(f.p.recorte, f.p.recorteX) * 100, 0), n: f.nombre })));
     if (pw.some(f => f.p.fueraZoom && !f.p.noCubre)) A('zoom', t('fueraZoom'));
+    pw.filter(f => f.p.parcial > 0.01).forEach(f => A('parcial', t('vParcial', { s: f.nombre, a: fmt(f.p.imgH, 2), h: fmt(f.s.alto, 2) })));   /* v11.7 */
     if (nlNoUsado.length) A('nl', t('vNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }));
     { const L = pw.filter(pasaShift); if (L.length) R('shift', t('vShift', { s: nom(L) })); }   // v10.89 · la lente no llega: en rojo (la imagen no se puede poner ahí)
     { const L = pw.filter(f => f.p.fueraMec); if (L.length) R('foco', t('vFocoMec', { s: nom(L) })); else { const L2 = pw.filter(f => f.p.fueraFoco); if (L2.length) A('foco', t('vFoco', { s: nom(L2) })); } }
@@ -387,7 +396,7 @@ function veredicto(c) {
     if (c.tipoP === 'pared' && !E.proy.pubNS) (S.franjas || []).filter(f => f.prof > c.dist).forEach(f => A('publico', t('segPublico', { d: fmt(c.dist, 1), n: f.nombre })));
     if (c.multiAuto) A('multiAuto', t('vMultiAuto', { n: c.tot.n }));
     else if (c.multi && pw.some(f => f.p.n > 1)) A('multi', t('vMulti', { n: c.tot.n }));
-    if (E.proy.oos) A('oos', t('vOos'));
+    if (E.proy.oos || pw.some(f => f.p.fueraSpec)) A('oos', t('vOos'));   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
     if (c.autoPropone) A('auto', t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre }));
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));

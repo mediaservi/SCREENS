@@ -242,24 +242,29 @@ const anchoMin = (p) => (p.minDiagPulg > 0 ? p.minDiagPulg * 0.0254 * p.ar / Mat
 // tiroObjetivo, la distancia preferida en metros (pared: el proyector a la altura del público). Si el zoom no llega, el extremo más cercano
 // v10.66 · una: una pantalla = un proyector (regla de Josep, 18-11-2026). Con «una», la rejilla es siempre 1 × 1: si esa imagen no llega,
 // no cubre o pasa del máximo, sale así, con su aviso, en vez de repartirla en varios equipos. El blending solo se calcula si se pide.
-export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false } = {}) {
+export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false, banda = 0 } = {}) {
   const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
   const puedeV = !p.plegada && !(p.ust && (p.shiftSube || !p.optica)) && !p.offset;   // v10.89 · las plegadas y las de lente en el borde (offset), solo en horizontal
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
-  let mejor = null;
+  let mejor = null, mejorF = null;
   for (const o of ors) {
     const a = o === 'v' ? 1 / p.ar : p.ar;   // ancho / alto de la imagen sobre la superficie
     for (let rows = 1; rows <= (una ? 1 : 8); rows++) for (let cols = 1; cols <= (una ? 1 : 12); cols++) {
       if (cols * rows > 40) continue;
       const kc = 1 + (cols - 1) * (1 - sMin), kr = 1 + (rows - 1) * (1 - sMin);
-      const ihNec = Math.max(H / kr, W / (a * kc));   // la imagen más pequeña que cubre con el solape mínimo
+      /* v11.7 · sala inmersiva con proyectores de óptica fija (EB-815E, EB-805F…): además de cubrir la pared entera, se mira una sola fila que cubre todo
+         el ancho y una franja de al menos «banda» metros de alto (así se montan las salas pequeñas; queda una franja sin imagen arriba y abajo) */
+      for (const franja of (banda > 0 && !p.optica && rows === 1 && !(dist > 0) ? [0, 1] : [0])) {
+      const ihW = W / (a * kc);
+      if (franja && !(ihW >= Math.min(banda, H) - 1e-6)) continue;   // una fila que cubre el ancho (si pasa del alto, lo que sobra se enmascara)
+      const ihNec = franja ? ihW : Math.max(H / kr, ihW);   // la imagen más pequeña que cubre con el solape mínimo
       let nw = o === 'v' ? ihNec : ihNec * a, tiro, fueraZoom = false, noCubre = false;
       if (dist > 0) {
         const nwLejos = dist / p.trMin, nwCerca = dist / p.trMax;   // a esa distancia, el zoom da imágenes entre nwCerca y nwLejos
         if (nw > nwLejos * 1.0001) { noCubre = true; nw = nwLejos; } else if (nw < nwCerca) nw = nwCerca;
         tiro = dist;
       } else tiro = (tiroObjetivo > 0 ? Math.min(Math.max(tiroObjetivo / nw, p.trMin), p.trMax) : trObjetivo > 0 ? Math.min(Math.max(trObjetivo, p.trMin), p.trMax) : p.trMin) * nw;
-      const limite = nw > nwMax * 1.0001, chica = nwMin > 0 && nw < nwMin * 0.9999;   // v10.58 · imagen más pequeña que la mínima de la óptica
+      const fSpec = !!franja && nw > nwMax * 1.0001, limite = nw > (franja ? anchoMax(p, true) : nwMax) * 1.0001, chica = nwMin > 0 && nw < nwMin * 0.9999;   // v10.58 · imagen más pequeña que la mínima de la óptica
       const ih = o === 'v' ? nw : nw / a, iw = ih * a;
       const ox = cols > 1 ? (cols * iw - W) / (cols - 1) : 0, oy = rows > 1 ? (rows * ih - H) / (rows - 1) : 0;
       const oxR = cols > 1 ? ox / iw : 0, oyR = rows > 1 ? oy / ih : 0;
@@ -278,22 +283,28 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
       const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (fueraMec ? 4e6 : fueraFoco && !oos ? 1.5e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
-        + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0);
-      if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec };
+        + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0) + (franja ? 3000 : 0) + (fSpec ? 1500 : 0);
+      const cand = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec, parcial: franja ? Math.max(0, H - ih) : 0, fSpec, fr: !!franja };
+      if (franja) { if (!mejorF || coste < mejorF.coste) mejorF = cand; } else if (!mejor || coste < mejor.coste) mejor = cand;
+      }
     }
   }
-  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, kb, fueraFoco, fueraMec } = mejor, vert = o === 'v';
+  /* la franja solo sustituye a una rejilla de varias filas (lo que en salas pequeñas hace chocar los cuerpos) y si monta con menos equipos */
+  if (mejorF && mejor && mejor.rows > 1 && !mejorF.fuera && !mejorF.limite && !mejorF.chica && mejorF.cols * mejorF.rows < mejor.cols * mejor.rows) mejor = mejorF;
+  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, kb, fueraFoco, fueraMec, parcial, fSpec, fr } = mejor, vert = o === 'v';
   const nwF = vert ? ih : iw, tMin = p.trMin * nwF, tMaxZ = p.trMax * nwF;
   const pxW = vert ? p.resY : p.resX, pxH = vert ? p.resX : p.resY;
   const centros = cols === 1 ? [0] : Array.from({ length: cols }, (_, i) => -W / 2 + iw / 2 + i * (iw - ox));
   // base de cada fila desde el pie de la superficie (una sola fila: centrada, lo que sobresale va por igual arriba y abajo)
-  const filas = rows === 1 ? [-(ih - H) / 2] : Array.from({ length: rows }, (_, r) => r * (ih - oy));
+  /* v11.7 · en la franja de una ultracorta (va en el suelo, por debajo de la imagen) la imagen arranca a 0,3 m del suelo: lo que pase del techo se enmascara */
+  const base1 = fr && p.ust ? Math.max(-(ih - H) / 2, 0.3) : -(ih - H) / 2, recY1 = rows === 1 ? Math.max(recY, (base1 + ih - H) / ih) : recY;
+  const filas = rows === 1 ? [base1] : Array.from({ length: rows }, (_, r) => r * (ih - oy));
   const resW = cols === 1 ? Math.round(pxW * Math.min(1, W / iw)) : cols * pxW - (cols - 1) * Math.round(pxW * oxR);
   const resH = rows === 1 ? Math.round(pxH * Math.min(1, H / ih)) : rows * pxH - (rows - 1) * Math.round(pxH * oyR);
   const tiroMax = dist > 0 ? tiro : Math.max(tiro, Math.min(tMaxZ, alcance != null ? alcance : Infinity));
   return { n: cols * rows, cols, rows, vert, imgW: iw, imgH: ih, solape: ox, solapeY: oy, solapeRel: Math.max(oxR, oyR), solapeRelX: oxR, solapeRelY: oyR, solapePx: Math.round(pxW * oxR),
-    tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, chica, recorte: recY, recorteX: recX,
-    centros, filas, anchoTot: cols === 1 ? iw : cols * iw - (cols - 1) * ox, altoTot: rows === 1 ? ih : rows * ih - (rows - 1) * oy, resW, resH, lux, nits: lux / Math.PI, rendBrillo: kb, fueraFoco, fueraMec };
+    tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, chica, recorte: recY1, recorteX: recX,
+    centros, filas, anchoTot: cols === 1 ? iw : cols * iw - (cols - 1) * ox, altoTot: rows === 1 ? ih : rows * ih - (rows - 1) * oy, resW, resH, lux, nits: lux / Math.PI, rendBrillo: kb, fueraFoco, fueraMec, parcial: parcial || 0, fueraSpec: !!fSpec };
 }
 
 // Suelo: rejilla de proyectores cenitales (desde el techo) con blending en los dos ejes

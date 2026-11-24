@@ -6,7 +6,7 @@ const CSV = `marca,modelo,optica,throwratio,lumens,aspectratio,resolucion,4K,scr
 EPSON,EB-815E,fija,0.16:1,5000,16:9,Full HD (1920 x 1080),4K Enhancement,160,248,https://charmex.net/images/epson-ust_2476_19_20250325104608.png
 EPSON,EB-805F,fija,0.27 - 0.37:1,5000,16:9,Full HD (1920 x 1080),NO,130,250,https://charmex.net/images/epson-ust_2476_5_20210408172254.png
 EPSON,EB-L695SE,fija,0.515 - 0.725:1,6000,16:10,WUXGA (1920 x 1200),4K Enhancement,500,600,https://charmex.net/images/epson-media-st_3156_16_20250513123910.png
-EPSON,EB-L795SE,fija,0.79 - 1.36:1,6000,16:10,WUXGA (1920 x 1200),4K Enhancement,400,500,https://charmex.net/images/epson-media-st_3156_15_20250513123855.png
+EPSON,EB-L795SE,fija,0.79 - 1.36:1,7000,16:10,WUXGA (1920 x 1200),4K Enhancement,400,500,https://charmex.net/images/epson-media-st_3156_15_20250513123855.png
 EPSON,EB-L695SU,fija,0.79 - 1.36:1,6200,16:10,WUXGA (1920 x 1200),NO,400,500,https://charmex.net/images/epson-media-st_3156_14_20250513123843.png
 EPSON,EB-PU1006W,PU1000,,6000,16:10,WUXGA (1920 x 1200),4K Enhancement,1000,1100,
 EPSON,EB-PU1007B,PU1000,,7000,16:10,WUXGA (1920 x 1200),4K Enhancement,1000,1100,

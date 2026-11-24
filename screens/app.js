@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.0';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.1';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.0';
+const VERSION = 'v11.1';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1108,7 +1108,7 @@ function calcularPeticion() {
   // v10.48 · una petición nueva (con medidas, tecnología o cantidad) parte de cero: lo que no dice vuelve a su valor por defecto (antes heredaba la anterior)
   if (r.vistos.some(x => x.k === 'medida' || x.k === 'central') || r.tecnologia || r.cantidad) { const d = DEF(); E.esp = d.esp; E.led = Object.assign(d.led, {}); E.proy = d.proy; if (r.cantidad) E.cantidad = r.cantidad; }
   Object.assign(E.esp, c.esp); Object.assign(E.esp.sueltas, c.sueltas); if (c.paredes) Object.assign(E.esp.paredes, c.paredes);
-  if (r.cantidad === 'una' && !c.esp.tipo) E.esp.tipo = 'sueltas';
+  if (E.cantidad === 'una' && !c.esp.tipo) E.esp.tipo = 'sueltas';   /* v11.1 · también cuando la petición no dice «pantalla»: en UNA no hay sala inmersiva (se quedaba con los 15 lx de la sala) */
   // v8.0 · una petición de proyección parte de la posición AUTO, salvo lo que diga (distancia, orientación, montaje)
   if (r.tecnologia === 'proy') Object.assign(E.proy, { dist: 0, orient: 'auto', montaje: 'auto', altura: 0, tipo: 'pared' });
   E.proy.lmMin = 0; E.proy.tipoOpt = '';   /* v10.99 · cada petición empieza sin los lúmenes mínimos ni el tipo de óptica de la anterior */

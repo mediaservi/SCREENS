@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.0** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.1** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,16 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.0)
+## Cambios de la versión actual (v11.1)
+Petición escrita de proyección («escribe lo que necesitas»):
+- **Peticiones sin la palabra «pantalla»** («proyección de 6 × 3,4 a 8 m…»): se calculaban con la luz de una sala inmersiva a oscuras (15 lx) y daban por buenos proyectores cortos de luz. Ahora se calculan como una pantalla, con su luz normal.
+- **Resolución de vídeo en un pliego** («WUXGA (1920 x 1200)», «resolución 3840 x 2160»): ya no se toma por la medida de la pantalla.
+- **«Salón de actos»** ya no se lee como el salón de casa.
+- **En inglés, «for a 4 m wide screen»** ya no fija la distancia de proyección en 4 m.
+- **En catalán, «des de 25 m»** se lee como distancia, igual que «desde» y «from».
+- **Medidas sueltas:** «300 cm de ancho», «3000 mm de ancho», «5 metros de base» y «pantalla de 4 metros» se entienden como el ancho de la pantalla.
+
+## Cambios de la v11.0
 - **Proyectores bajo el suelo o por encima del techo:** con las ultracortas plegadas, AUTO podía colocar el proyector fuera de la sala y dar el resultado por bueno. Ahora esa colocación cuenta como que no se puede montar: AUTO busca otra óptica y, si no la hay, el veredicto sale en rojo y lo explica.
 - **EPSON EB-L695SE:** relación de tiro 0,515–0,725:1 (antes 0,50–0,70, con la que el proyector quedaba unos centímetros más cerca de lo posible y la imagen no llegaba a cubrir).
 

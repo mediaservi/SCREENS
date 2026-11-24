@@ -8,6 +8,10 @@ export function interpretar(texto, tecCtx) {
   let t = ' ' + String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ';
   /* v10.95 · «8 × 8 cabinets» y «3840 × 2160 píxeles» no son medidas en metros: se apartan antes de leer las medidas */
   t = t.replace(/\d{1,3}\s*(?:x|×|\*|por|by|per)\s*\d{1,3}\s*(?:cabinets?|cabs?|modulos?|moduls?|modules?|paneles|panels|plafons|tiles|losetas)(?![a-z])/g, ' ').replace(/\d{3,5}\s*(?:x|×|\*|por|by|per)\s*\d{3,5}\s*(?:px|pix|pixeles|pixels?|puntos|punts)(?![a-z])/g, ' ');
+  /* v11.1 · una resolución de vídeo («WUXGA (1920 x 1200)», «resolución 3840 x 2160») no es la medida de la pantalla */
+  t = t.replace(/((?:resolucion|resolution|resolucio|wuxga|wxga|sxga|\bxga|full ?hd|\bfhd|\b4k|\buhd|nativa|native)[^\d.]{0,30})\d{3,5}\s*(?:x|×|\*|por|by|per)\s*\d{3,5}(?!\s*(?:mm|cm|m\b)|\.\d)/g, '$1 ');
+  /* v11.1 · «300 cm de ancho», «3000 mm de base»: a metros */
+  t = t.replace(/(\d+(?:\.\d+)?)\s*(mm|cm)(?=\s*(?:de (?:ancho|alto|altura|base|amplada|ample|alcada|alt)\b|d'(?:ample|alt)|wide|high|tall))/g, (todo, a, u) => +(parseFloat(a) / (u === 'mm' ? 1000 : 100)).toFixed(4) + ' m');
   /* v10.95 · medidas en milímetros o centímetros («4800 × 2700 mm», «480 x 270 cm», o sin unidad a partir de 1000): se pasan a metros, que es en lo que se leen */
   t = t.replace(/(\d+(?:\.\d+)?)\s*(mm|cm)?\s*(x|×|\*|por|by|per)\s*(\d+(?:\.\d+)?)(?:\s*(mm|cm)?\s*(x|×|\*|por|by|per)\s*(\d+(?:\.\d+)?))?\s*(mm|cm)?(?![a-z0-9.])/g, (todo, a, u1, x1, b, u2, x2, c3, u3) => {
     const nums = [a, b, c3].filter((q) => q != null).map(parseFloat); let u = u3 || u2 || u1; if (!u && Math.max(...nums) >= 1000) u = 'mm'; if (!u) return todo;
@@ -21,7 +25,7 @@ export function interpretar(texto, tecCtx) {
   // sala inmersiva o pantallas
   let nPant = t.match(/\b(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|two|three|four|five|six|seven|eight|quatre|cinc|sis|set|vuit)\s+(?:led\s+)?(pantallas|pantalles|screens|lienzos)\b/);   // «3 pantallas», «3 LED screens»
   // v10.48 · «sala» sola ya no es una sala inmersiva: «sala de reuniones», «meeting room», «salón de casa» solo dan la luz de ese sitio
-  const salaComun = /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio|espera|estar)|sala d.estar|meeting room|conference room|board ?room|living room|\bsalon\b|\bsalo\b/;
+  const salaComun = /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio|espera|estar)|sala d.estar|meeting room|conference room|board ?room|living room|\bsalon\b(?! de actos)|\bsalo\b(?! d.actes)/;
   if (/inmersiv|immersiv|\bcubo\b|\bcube\b|paredes|parets|walls/.test(t) || (/\bsala\b|\broom\b/.test(t) && !salaComun.test(t) && /\d+(?:\.\d+)?\s*(?:m|mts|metros|metres)?\s*(?:x|×|\*|por|per|by)\s*\d+(?:\.\d+)?\s*(?:m|mts|metros|metres)?\s*(?:x|×|\*|por|per|by)\s*\d/.test(t))) { cantidad = 'varias'; c.esp.tipo = 'sala'; vistos.push({ k: 'sala' }); }
   else if (!nPant && /\bcentral\b|\bprincipal\b/.test(t) && /\blaterales\b|\blaterals\b|\bsides?\b/.test(t) && /(\d+(?:[.,]\d+)?)\s*(?:m|mts|metros)?\s*(?:x|×|\*|por|by)[^]*?(\d+(?:[.,]\d+)?)\s*(?:m|mts|metros)?\s*(?:x|×|\*|por|by)/.test(t)) { nPant = [0, '3']; cantidad = 'varias'; c.esp.tipo = 'sueltas'; c.sueltas.n = 3; vistos.push({ k: 'pant', n: 3 }); }   // v10.89 · «una central y dos laterales» son 3 pantallas aunque no diga «pantallas»
   else if (nPant && n(nPant[1]) > 1) { cantidad = 'varias'; c.esp.tipo = 'sueltas'; c.sueltas.n = Math.min(8, n(nPant[1])); vistos.push({ k: 'pant', n: c.sueltas.n }); }
@@ -44,8 +48,8 @@ export function interpretar(texto, tecCtx) {
     if (salaMed) { const a = n(salaMed[1]), b = n(salaMed[2]), h = salaMed[3] != null ? n(salaMed[3]) : NaN; c.sueltas.salaAncho = a; c.sueltas.salaFondo = b; if (!isNaN(h)) c.sueltas.techo = h; vistos.push({ k: 'salaMed', v: isNaN(h) ? [a, b] : [a, b, h] }); }
   }
   if (!m && tecP === 'proy') {   // «A m de ancho» sola
-    const w1 = t.match(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)\s*de (?:ancho|amplada|ample)|(\d+(?:\.\d+)?)\s*(?:m|metres|meters)\s*wide/);
-    if (w1) { const a = n(w1[1] || w1[2]); c.sueltas.ancho = a; c.sueltas.alto = Math.round(a / (16 / 9) * 1000) / 1000; c.sueltas.formato = '16:9'; c.sueltas.medPor = 'ancho'; c.sueltas.medVal = a; vistos.push({ k: 'medida', v: [a, c.sueltas.alto] }); }
+    const w1 = t.match(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)\s*de (?:ancho|amplada|ample|base)|(\d+(?:\.\d+)?)\s*(?:m|metres|meters)\s*wide|(?:pantalla|pantallla|screen|lienzo|imagen|imatge|image)\s*(?:de |of )?(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres|meters)\b(?!\s*(?:de alto|de altura|d'alt|d'alcada|high|tall))/);
+    if (w1) { const a = n(w1[1] || w1[2] || w1[3]); c.sueltas.ancho = a; c.sueltas.alto = Math.round(a / (16 / 9) * 1000) / 1000; c.sueltas.formato = '16:9'; c.sueltas.medPor = 'ancho'; c.sueltas.medVal = a; vistos.push({ k: 'medida', v: [a, c.sueltas.alto] }); }
   }
   // v10.89 · pulgadas: la diagonal de la pantalla (16:9 si no se dice otra cosa)
   const pul = t.match(/(\d+(?:\.\d+)?)\s*(?:″|"|''|pulgadas|pulgada|inches|inch|polzades|polzada)/);
@@ -98,7 +102,7 @@ export function interpretar(texto, tecCtx) {
   if (!lx && /a oscuras|oscura|dark room|fosca|a les fosques|\bcine\b|cinema|theatre room|home theat/.test(t)) { c.proy.lux = 14; vistos.push({ k: 'lux', v: 14 }); }
   else if (!lx && /\baula\b|classroom|class room/.test(t)) { c.proy.lux = 210; vistos.push({ k: 'lux', v: 210 }); }
   else if (!lx && /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio)|meeting room|conference room|board ?room|oficina|office/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }   // v10.48 · la luz del sitio
-  else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b|\bsalo\b|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 70; vistos.push({ k: 'lux', v: 70 }); }
+  else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b(?! de actos)|\bsalo\b(?! d.actes)|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 70; vistos.push({ k: 'lux', v: 70 }); }
   if (!lx && c.proy.lux == null && /salon de (?:bodas|banquetes|celebraciones|eventos)|banquet|boda|wedding|casament/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }
   const g = t.match(/(?:ganancia|gain|guany)\s*(?:de\s*)?(\d+(?:\.\d+)?)/); if (g) { c.proy.ganancia = n(g[1]); vistos.push({ k: 'ganancia', v: c.proy.ganancia }); }
   const te = t.replace(/(?:colgad[oa]s?|penjats?|hung)\s*(?:del|from the|of the)?\s*(?:techo|sostre|ceiling)\s*(?:a|at)?\s*(?=\d)/g, 'colgado a ').match(/techo\s*(?:de|a)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:m|metros)?\s*de techo|ceiling\s*(?:of\s*)?(\d+(?:\.\d+)?)|sostre\s*(?:de\s*|a\s*)?(\d+(?:\.\d+)?)/);
@@ -113,7 +117,7 @@ export function interpretar(texto, tecCtx) {
   else if (/(?:proyector|projector)[^.]{0,40}\ben horizontal|\bin landscape\b/.test(t)) { c.proy.orient = 'horizontal'; vistos.push({ k: 'horizontal' }); }
   // v10.66 · una pantalla = un proyector, salvo que se pida multiproyección (blending)
   if (/multiproyecc|multiprojecc|multi-?projection|blending|edge ?blend|varios proyectores|diversos projectors|several projectors/.test(t)) { c.proy.multi = true; if (!tecnologia) tecnologia = 'proy'; vistos.push({ k: 'multi' }); }
-  const dP0 = t.match(/(?:proyector(?:es)?|projector(?:s)?|projectors|torres?|towers?)([^.\d]{0,40}?)(?:\ba|\bat|desde|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b(?!\s*(?:de alto|de altura|high|d'alcada))/);
+  const dP0 = t.match(/(?:proyector(?:es)?|projector(?:s)?|projectors|torres?|towers?)([^.\d]{0,40}?)(?:\ba|\bat|desde|des de|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b(?!\s*(?:de alto|de altura|high|d'alcada|wide|de ancho|de base|d'ample|d'amplada|x\b|×|por\b|by\b))/);
   const dP = (dP0 && !/colgad|truss|penjat|hung|hanging|altura|height|alcada|\btorre|\btower|\bde\s*$|techo|sostre|ceiling|publico|public|audiencia/.test(dP0[1]) ? [dP0[0], dP0[2]] : null) || t.match(/(?:\ba|\bat)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\s*(?:de|from|of)\s*(?:la |el |the )?(?:fachada|pared|pantalla|superficie|edificio|facade|wall|screen|facana|paret|edifici)/);
   if (dP) { c.proy.dist = n(dP[1]); vistos.push({ k: 'distProy', v: c.proy.dist }); }
   // v8.4 · en un mapping, «a 40 m (de distancia)» sin hablar del público es la distancia de los proyectores a la fachada
@@ -122,7 +126,7 @@ export function interpretar(texto, tecCtx) {
     const iv = vistos.findIndex(x => x.k === 'publico'); if (iv >= 0) vistos.splice(iv, 1); vistos.push({ k: 'distProy', v: c.proy.dist });
   }
   else if (c.proy.tipo === 'mapping' && c.sueltas.dist == null) {   // «fachada de 12 x 20 a 40 m»
-    const am = t.match(/(?:\ba|\bat|desde|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b(?!\s*(?:de alto|de ancho|high|wide|d'alt|d'ample))/);
+    const am = t.match(/(?:\ba|\bat|desde|des de|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b(?!\s*(?:de alto|de ancho|high|wide|d'alt|d'ample))/);
     if (am) { c.proy.dist = n(am[1]); vistos.push({ k: 'distProy', v: c.proy.dist }); }
   }
   // v10.89 · lúmenes mínimos del proyector y tipo de óptica pedidos

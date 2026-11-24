@@ -24,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.88';
+const VERSION = 'v10.89';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -348,6 +348,26 @@ function veredicto(c) {
   return { nivel: M.some(m => m.n === 'R') ? 'R' : M.length ? 'A' : 'V', motivos: M };
 }
 // la lista del veredicto en PRO: arriba de RESULTADOS (y en el PDF), con los botones para corregir donde los hay
+// v10.89 · RESULTADO con una sola estructura: veredicto en una línea · cifras · pestañas RESUMEN / TABLAS / EQUIPO / AVISOS
+function veredictoCorto(c) {
+  const V = c.veredicto, M = V ? V.motivos : [];
+  if (!M.length) return `<p class="vered-c ok"><i></i>${t('vOk')}</p>`;
+  const m = M[0], txt = String(m.txt).replace(/<[^>]+>/g, '');
+  return `<button type="button" class="vered-c ${m.n === 'R' ? 'mal' : 'amb'}" data-accion="pest" data-v="av"><i></i><span>${txt}</span>${M.length > 1 ? `<b>+${M.length - 1}</b>` : ''}</button>`;
+}
+const PESTAS = ['res', 'tab', 'eq', 'av'];
+function pestanas(c) {
+  const n = c.veredicto ? c.veredicto.motivos.length : 0, v = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
+  return `<div class="res-pest" role="tablist">${PESTAS.map(k => `<button type="button" class="tog${k === v ? ' on' : ''}" role="tab" aria-selected="${k === v}" data-accion="pest" data-v="${k}">${t('pest_' + k)}${k === 'av' && n ? ` <b class="pn-av">${n}</b>` : ''}</button>`).join('')}</div>`;
+}
+// cada parte del resultado, a su pestaña (las que no llevan ninguna se ven siempre)
+function marcaPestanas(r) {
+  if (!r) return;
+  [...r.children].forEach(x => { if (x.dataset.pz) return; const cl = x.classList;
+    if (cl.contains('res-tot') || cl.contains('vered-c') || cl.contains('res-pest')) return;
+    x.dataset.pz = cl.contains('veredicto') ? 'av' : cl.contains('res-sim') || cl.contains('tabla-caja') ? 'res' : x.id === 'det-equipo' || cl.contains('mat') || x.querySelector('.fichas') ? 'eq' : 'tab'; });
+  r.dataset.pest = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
+}
 function vistaVeredicto(c) {
   const V = c.veredicto; if (!V || !V.motivos.length) return '';
   const li = V.motivos.map(m => {
@@ -835,9 +855,9 @@ function vistaResultados(c) {
       ${tarjeta(t('consumo'), T.kw > 0 ? fmt(T.kw, 1) : '—', T.kw > 0 ? 'kW' : '', T.amp > 0 ? `${fmt(T.amp, 1)} A · 230 V` : '', '#ff4d5e')}
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', `+ ${fmtPx(T.lineas)} backup · 8 bit 60 Hz`, '#00ff04')}
       ${tarjeta(t('salidas'), fmtPx(T.salidas4k), '', 'mediaserver', '#ffb000')}
-      ${bkSumarioLed(c, T, m)}${bkEsquemaLed(c)}${bkAvisosLed(c, T)}
+      ${bkSumarioLed(c, T, m)}
     </div>`;
-    h += vistaVeredicto(c);
+    h += veredictoCorto(c) + pestanas(c) + vistaVeredicto(c) + bkEsquemaLed(c);
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
@@ -851,10 +871,10 @@ function vistaResultados(c) {
       ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b> ` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', `TR ${fmt(Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio)), 2)}:1`, '#00ff04')}
       ${tarjeta(t('lumenes'), fmtPx(T.lumenes), 'lm', c.grupos.map(g => `${fmtPx(g.n)} × ${fmtPx(g.q.lumens)}`).join(' + ') + ' lm', '#ff4d5e')}
-      ${bkSumario(c, T, p, tiros)}${bkAvisos(c, T)}
+      ${bkSumario(c, T, p, tiros)}
     </div>`;
-    /* v10.63 · el veredicto único (el mismo que SIMPLE), arriba, antes de la tabla: también va al PDF */
-    h += vistaVeredicto(c);
+    /* v10.89 · arriba, el veredicto en una línea y las pestañas; el veredicto completo va en AVISOS (y entero en el PDF) */
+    h += veredictoCorto(c) + pestanas(c) + vistaVeredicto(c);
     h += vistaSimulacion(c);   // v10.88 · resultado como el del datos del fabricante (una pantalla)
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(f.pos ? f.pos.dist : q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
@@ -877,11 +897,14 @@ function nivelContraste(v) { return v >= 80 ? t('cVideo') : v >= 50 ? t('cAnalit
 function vistaSimulacion(c) {
   const fs = c.filas.filter(f => f.pos && f.s.tipo !== 'suelo'); if (fs.length !== 1) return '';
   const f = fs[0], o = f.pos, q = f.p, m = (v) => fmt(v, 3) + ' m', colg = !o.apoyo, li = (n, k, v) => `<li><b>(${n})</b> ${t(k)}: <span class="mono">${v}</span></li>`;
-  let l = li(1, colg ? 'rs1c' : 'rs1', m(o.altura)) + li(2, 'rs2', m(Math.abs(o.altura - o.y0))) + li(3, 'rs3', m(o.dist));
-  // (4) como en Epson: de la superficie proyectada (pared o pantalla) al centro exacto de la óptica, esté como esté colocado el proyector
+  // v10.89 · numeración seguida; la distancia de proyección y la de la pantalla al centro de la óptica, en una sola línea cuando coinciden
   const lc = (c.sombras && c.sombras.haces || []).find(h => h.sup === f.s.id), d4 = lc && lc.nrm ? Math.abs((lc.lente.x - f.s.x) * lc.nrm.x + (lc.lente.z - f.s.z) * lc.nrm.z) : o.dist;
-  const q0 = f.proyector || c.proyector; l += (q0 && q0.plegada && q0.desfase ? li(4, 'rsFrente', m(Math.max(0, o.dist - q0.desfase))) : li(4, 'rs8', m(d4))) +   // ultracortas: hasta la cara del cuerpo más cercana
-    li(5, 'rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—') + li(6, 'rs5', m(o.y0)) + li(7, 'rs6', `${fmt(q.imgW, 3)} × ${fmt(q.imgH, 3)} m`) + li(8, 'rs7', fmt(o.diag, 2) + ' ″');
+  const q0 = f.proyector || c.proyector, it = [[colg ? 'rs1c' : 'rs1', m(o.altura)], ['rs2', m(Math.abs(o.altura - o.y0))]];
+  if (Math.abs(d4 - o.dist) > 0.01) it.push(['rs3', m(o.dist)]);
+  it.push(q0 && q0.plegada && q0.desfase ? ['rsFrente', m(Math.max(0, o.dist - q0.desfase))] : ['rs8', m(d4)]);   // ultracortas: hasta la cara del cuerpo
+  if (q0 && q0.plegada && q0.desfase) it.push(['rs8', m(d4)]);
+  it.push(['rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—'], ['rs5', m(o.y0)], ['rs6', `${fmt(q.imgW, 3)} × ${fmt(q.imgH, 3)} m`], ['rs7', fmt(o.diag, 0) + ' ″']);
+  const l = it.map((x, i) => li(i + 1, x[0], x[1])).join('');
   const sem = semaforo(q.contraste);
   return `<section class="res-sec res-sim"><div class="res-tit">${ICO.proy}${t('resSim')}</div><div class="sim-col"><div><div class="etq">${t('resPos')}</div><ul class="sim-l">${l}</ul></div>
     <div><div class="etq">${t('resAj')}</div><ul class="sim-l"><li>${t('rsShV')}: <span class="mono">${fmt(o.shiftV, 0)} %</span></li><li>${t('rsShH')}: <span class="mono">0 %</span></li></ul>
@@ -1087,17 +1110,21 @@ function zonas(c) {
   const led = E.tecnologia === 'led', e = partesEspacio(), q = led ? partesLed(c) : partesProy(c), x = c.elec || {};
   const rElec = led ? (x.proc ? x.proc.marca + ' ' + x.proc.modelo : '') : x.blend ? x.blend.marca + ' ' + x.blend.modelo : x.media ? x.media.marca + ' ' + x.media.modelo : (E.elec.proyEq === 'ninguno' ? t('mNinguno') : '');
   const pa = led ? null : partesProyA(c, q);
-  const A = `<div class="zona-cab"><b>A</b>${t('zonaA')}</div>` + (led ? blq('a1', t('bTipo'), e.rTipo, e.tipo, 'reset-a1') + blq('a2', t('bTamDist'), e.rTam + ' · ' + e.rEnt, e.tam + e.ent, 'reset-a2')
-    : blq('a2', t('bSalaProy'), [pa.rTipo, pa.rSala].filter(Boolean).join(' · '), pa.tipo + pa.salaP, 'reset-a2') + blq('a5', t('bImagen'), [pa.rTam, pa.rPos].filter(Boolean).join(' · '), pa.tam + pa.pos, 'reset-a5') + blq('a7', t('bDistProy'), pa.rDist, pa.dist, 'reset-a7')) +   /* tres bloques de datos (el «Avanzado» va en la columna B): caben en un portátil con uno abierto */   /* v10.88 · TAMAÑO y ENTORNO en un solo bloque: TAMAÑO Y DISTANCIAS (pedido por Josep, 24-11-2026) */
-    `<div class="zona-pie"><button type="button" class="pri" data-accion="calc-ir">${t('nlCalc')}</button><button type="button" class="sec-btn reset" data-accion="reset-a">${t('restablecer')}</button></div>`;
-  const B = `<div class="zona-cab"><b>B</b>${t('zonaB')}</div>` + blq('b1', t('bMat'), q.rMat, q.mat, 'reset-b1') + blq('b2', t('bAj'), q.rAj, q.aj, 'reset-b2') + (pa ? blq('a3', t('bAvanz'), pa.rAvz, pa.avz, 'reset-a3') : '') + blq('b3', led ? t('elecMod') : t('elecProy'), rElec, modElec(c), 'reset-elec') +
-    `<div class="zona-pie eleg"><div class="eleg-txt"><small>${t('elegido')}</small><b>${q.eleg ? q.eleg.nom : '—'}</b><span>${q.eleg ? q.eleg.dat : ''}</span></div><button type="button" class="sec-btn" data-accion="ficha-ir"${q.eleg ? '' : ' disabled'}>${t('fichaB')}</button></div>`;
+  // v10.89 · una sola columna de datos con 4 pasos numerados, iguales en todas las modalidades (revisión de interfaz, 24-11-2026):
+  // ① sala · ② pantalla · ③ equipo / distancia · ④ avanzado. Sin CALCULAR ni RESTABLECER al pie (están en la cabecera) ni el pie «Elegido»
+  const pn = (n, k) => `<i class="pn">${n}</i>${t(k)}`, junta = (...a) => a.filter(Boolean).join(' · ');
+  const A = led
+    ? blq('a1', pn(1, 'bSalaUso'), e.rTipo, e.tipo, 'reset-a1') + blq('a2', pn(2, 'bTamDist'), junta(e.rTam, e.rEnt), e.tam + e.ent, 'reset-a2')
+      + blq('b1', pn(3, 'bEquipo'), junta(q.rMat, q.rAj), q.mat + q.aj, 'reset-b1+b2') + blq('b3', pn(4, 'elecMod'), rElec, modElec(c), 'reset-elec')
+    : blq('a2', pn(1, 'bSalaProy'), junta(pa.rTipo, pa.rSala, q.rMat), pa.tipo + pa.salaP + q.mat, 'reset-a2+b1') + blq('a5', pn(2, 'bImagen'), junta(pa.rTam, pa.rPos), pa.tam + pa.pos, 'reset-a5')
+      + blq('a7', pn(3, 'bDistProy'), pa.rDist, pa.dist, 'reset-a7') + blq('a3', pn(4, 'bAvanz'), junta(q.rAj, pa.rAvz, rElec), q.aj + pa.avz + modElec(c), 'reset-a3+b2+elec');
+  const B = '';
   const equipo = q.fichas ? `<div class="res-sec" id="det-equipo"><div class="res-tit">${led ? ICO.led : ICO.proy}${t('equipoSel')}</div>${q.fichas}</div>` : '';
   return { A, B, equipo };
 }
 // Las columnas no se desplazan nunca: si la altura no da para todos los bloques, quedan abiertos los últimos que se han tocado y el resto
 // se pliega enseñando su resumen. Si ni uno solo cabe (muchos obstáculos en un portátil), ese bloque se desplaza por dentro de su marco.
-const reciente = { a: ['a5', 'a7', 'a2', 'a1', 'a3'], b: ['b1', 'b2', 'b3'] };
+const reciente = { a: ['a2', 'a5', 'a7', 'a1', 'b1', 'a3', 'b3'], b: [] };   // v10.89 · el paso ① siempre abierto al entrar; el ④ (avanzado) es el primero en plegarse
 const tocar = (z, id) => { if (!reciente[z] || !id) return; reciente[z] = [id].concat(reciente[z].filter(k => k !== id)); };
 const TRES = () => matchMedia('(min-width: 1024px)').matches;
 function plegar() {
@@ -1156,6 +1183,7 @@ function actualizar(sinEscena) {
   $('#res').innerHTML = vistaResultados(calculo) + z.equipo + modSuperficies(calculo);
   plegar();
   ['A', 'B'].forEach(k => { if (!sc[k]) return; const m = $(`#panel${k} .blq.act[data-blq="${sc[k][0]}"] .blq-cuerpo`); if (m) m.scrollTop = sc[k][1]; });
+  marcaPestanas($('#res'));
   activarVistas($('#res'), calculo, fijarVt);
   barraEscena(); bandaOos();
   try { dispatchEvent(new Event('sc-calculo')); } catch (e) {}   /* v10.88 · la ventana grande de las vistas técnicas se vuelve a pintar */
@@ -1259,8 +1287,11 @@ document.addEventListener('click', (ev) => {
   // v8.5 · bloques de las zonas: abrir uno plegado, ir a las cifras o a la ficha y restablecer cada bloque por separado
   if (a === 'blq') { const zn = b.closest('.zona'); if (zn) { tocar(zn.dataset.zona, b.dataset.id); plegar(); } return; }
   if (a === 'calc-ir') { irA('.res-tot'); return; }
+  if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; } return; }
   if (a === 'ficha-ir') { irA('#det-equipo'); return; }
-  if (/^reset-(a|a\d|b\d)$/.test(a)) { const d = DEF(), k = a.slice(6), cp = (o, src, ks) => ks.forEach(x => { o[x] = src[x]; }), led = E.tecnologia === 'led';
+  if (/^reset-(a|a\d|b\d)(\+(a\d|b\d|elec))*$/.test(a)) { const d = DEF(), cp = (o, src, ks) => ks.forEach(x => { o[x] = src[x]; }), led = E.tecnologia === 'led';
+    for (const k of a.slice(6).split('+')) {   // v10.89 · un paso puede juntar varios bloques: se restablecen todos
+    if (k === 'elec') { E.elec = d.elec; continue; }
     if (k === 'a' || k === 'a1') { E.esp.tipo = d.esp.tipo; if (led) { cp(E.led, d.led, ['clase', 'tipo', 'transp', 'gold', 'protegido', 'sol', 'nitsMin']); E.led.crm = ''; } }
     if (!led && (k === 'a' || k === 'a2')) { cp(E.proy, d.proy, ['montaje', 'altura']); cp(E.esp.sueltas, d.esp.sueltas, ['techo']); }   // v10.88 · PROYECCIÓN: sala y proyector
     if (!led && (k === 'a' || k === 'a5')) { cp(E.esp.sueltas, d.esp.sueltas, ['n', 'disp', 'ancho', 'alto', 'sep', 'angulo', 'central', 'cAncho', 'cAlto']); ['formato', 'medPor', 'medVal', '_wh', 'tams'].forEach(x => delete E.esp.sueltas[x]); }
@@ -1270,8 +1301,9 @@ document.addEventListener('click', (ev) => {
     if ((k === 'a' || k === 'a2') && (led || E.esp.tipo === 'sala')) { cp(E.esp, d.esp, ['ancho', 'fondo', 'alto']); E.esp.paredes = d.esp.paredes; cp(E.esp.sueltas, d.esp.sueltas, ['n', 'disp', 'ancho', 'alto', 'sep', 'angulo', 'central', 'cAncho', 'cAlto']); delete E.esp.sueltas.tams; }
     if ((k === 'a' || k === 'a3') && !led) cp(E.proy, d.proy, ['lux', 'luzUso', 'ganancia']);
     if (led && (k === 'a' || k === 'a2' || k === 'a4')) { cp(E.esp, d.esp, ['elev', 'altoCubierto']); cp(E.esp.sueltas, d.esp.sueltas, ['elev', 'dist', 'techo']); E.esp.obst = []; }
-    if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos']); }
+    if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos', 'lmMin', 'tipoOpt']); }
     if (k === 'b2') { if (led) E.led.ajuste = d.led.ajuste; else cp(E.proy, d.proy, ['solape', 'multi', 'orient']); }
+    }
     ajuste.esp = ''; ajuste.obst = ''; actualizar(); return; }
   if (a === 'nits') { const L = [0].concat(nitsLista()), v = +E.led.nitsMin || 0, i = L.indexOf(v) < 0 ? 0 : L.indexOf(v), j = Math.max(0, Math.min(L.length - 1, i + Number(b.dataset.d))); E.led.nitsMin = L[j]; E.led.crm = ''; actualizar(); return; }
   if (a === 'reset-elec') { E.elec = DEF().elec; actualizar(); return; }

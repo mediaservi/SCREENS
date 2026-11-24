@@ -39,14 +39,14 @@
 
   /* las seis cifras: en escritorio, a su fila de bloques; en el móvil, de vuelta a los resultados */
   function coloca() { var t = $('.trabajo'), r = $('#res'); if (!t || !r) return;
-    var tot = r.querySelector(':scope > .res-tot') || $('#bk-tot > .res-tot');
+    var tot = r.querySelector(':scope > .res-tot');
     if (tot) { var k = tec(); [].forEach.call(tot.querySelectorAll('.tar'), function (x, i) { var ti = x.querySelector('.t'); if (ti && !ti.querySelector('.blk-ic')) ti.insertAdjacentHTML('afterbegin', '<i class="blk-ic" aria-hidden="true">' + ((ICT[k] || ICT.led)[i] || '') + '</i>'); }); }
-    /* v10.81 · PROYECCIÓN en escritorio: las vistas técnicas bajan a la fila de abajo (entre el sumario y los avisos); en móvil vuelven a los resultados */
-    var vtd = document.querySelector('.bk-vts > .vt');
-    if (!de.classList.contains('bk')) { if (vtd) { var tc = r.querySelector(':scope > .tabla-caja'); if (tc) tc.after(vtd); else r.appendChild(vtd); } var v = $('#bk-tot > .res-tot'); if (v && !r.querySelector(':scope > .res-tot')) r.prepend(v); return; }
-    if (tot && tec() === 'proy') { var vt = r.querySelector(':scope > .vt'), sl = tot.querySelector(':scope > .bk-vts'); if (!sl) { sl = document.createElement('div'); sl.className = 'bk-vts'; var ob = tot.querySelector(':scope > .bk-obs'); tot.insertBefore(sl, ob); } if (vt) { sl.textContent = ''; sl.appendChild(vt); } }
-    tot = r.querySelector(':scope > .res-tot'); if (!tot) return;
-    var c = document.getElementById('bk-tot'); if (!c || c.parentNode !== t) { if (c) c.remove(); c = document.createElement('div'); c.id = 'bk-tot'; t.appendChild(c); } c.textContent = ''; c.appendChild(tot); }
+    /* v10.89 · en escritorio, debajo de la simulación: las vistas técnicas (proyección) o el esquema de pantallas (LED). Las cifras se quedan en el RESULTADO */
+    var c = document.getElementById('bk-tot'), pieza = r.querySelector(':scope > .vt, :scope > .bk-esq') || (c && c.querySelector('.vt, .bk-esq'));
+    if (!de.classList.contains('bk')) { if (c) { var p0 = c.querySelector('.vt, .bk-esq'); if (p0) { var tc = r.querySelector(':scope > .tabla-caja'); if (tc) tc.after(p0); else r.appendChild(p0); } c.remove(); } return; }
+    if (!c || c.parentNode !== t) { if (c) c.remove(); c = document.createElement('div'); c.id = 'bk-tot'; t.appendChild(c); }
+    if (pieza && !c.contains(pieza)) { c.textContent = ''; if (pieza.classList.contains('vt')) { var w = document.createElement('div'); w.className = 'bk-vts'; w.appendChild(pieza); c.appendChild(w); } else c.appendChild(pieza); } else if (!pieza) c.textContent = '';
+    c.hidden = !c.firstChild; t.classList.toggle('sin-tot', !c.firstChild); }
 
   /* marcos de la simulación (S1A) y de los resultados (S1B), con su cabecera como en la portada */
   function marcos() { var v = $('.trabajo .vista'), es = $('#escena'), r = $('#res'); if (!v || !es || !r) return; var l = L();
@@ -91,7 +91,7 @@
       var ad = document.querySelector('#pie .admin-btn'); if (ad) { [].forEach.call(pr.querySelectorAll('.admin-btn'), function (z) { z.remove(); }); pr.appendChild(ad); } else if (pr.lastElementChild && !pr.lastElementChild.classList.contains('admin-btn')) { var q = pr.querySelector('.admin-btn'); if (q) pr.appendChild(q); } } }
 
   /* si en una columna sobra sitio y hay un bloque plegado, se abre el primero y se desplaza por dentro: nada de huecos vacíos con bloques cerrados */
-  function rellena() { if (!de.classList.contains('bk')) return; ['#panelA', '#panelB'].forEach(function (s) { var z = $(s); if (!z || z.querySelector(':scope > .blq.act')) return; var p = z.querySelector(':scope > .blq.pleg'); if (!p) return;
+  function rellena() { if (!de.classList.contains('bk')) return; ['#panelA'].forEach(function (s) { var z = $(s); if (!z || z.querySelector(':scope > .blq.act')) return; var p = z.querySelector(':scope > .blq.pleg'); if (!p) return;
     z.classList.add('mide'); var a = z.querySelector(':scope > .blq'), b = z.lastElementChild, libre = z.clientHeight - (b.offsetTop + b.offsetHeight - a.offsetTop); z.classList.remove('mide'); if (libre < 130) return;
     p.classList.remove('pleg'); p.classList.add('act'); var c = p.querySelector('.blq-cab'); if (c) c.setAttribute('aria-expanded', 'true'); }); }
   function primera() { try { var q = JSON.parse(localStorage.getItem('screens_blocks_modo') || 'null'); if (!q) return; localStorage.removeItem('screens_blocks_modo'); ['tecnologia:' + q.t, 'cantidad:' + q.c].forEach(function (s) { var k = s.split(':'), b = $('#consola [data-set="' + k[0] + '"][data-v="' + k[1] + '"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); } catch (x) {} }

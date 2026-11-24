@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.88** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.89** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -75,7 +75,29 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.88) · borrador para validar
+## Cambios de la versión actual (v10.89) · para probar en beta
+Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revisión de usabilidad y prueba con cuatro perfiles de usuario (integrador, comercial de alquiler, organizador de eventos y arquitecto o museo), 24-11-2026.
+- **Interfaz común en todas las modalidades de la consola** (una y varias pantallas, LED y proyección):
+  - **Una sola columna de datos con 4 pasos numerados**, cada uno con su RESTABLECER: en proyección ① Sala y proyector (con el proyector y la óptica), ② Pantalla, ③ Distancia de proyección y ④ Avanzado (ajuste del equipo, luz, público, obstáculos, fuera de especificación y electrónica); en LED ① Sala y uso, ② Tamaño y distancias, ③ Equipo y ④ Electrónica de control. Al entrar, el paso ① está siempre abierto.
+  - **Fuera los duplicados**: un solo CALCULAR (el de la cabecera), sin el pie «Elegido» ni el sumario técnico aparte; la etiqueta BETA ya no está junto a la petición.
+  - **RESULTADO a la derecha**: las cifras clave, el veredicto en una línea con su semáforo (pulsándolo se ven todos) y pestañas **RESUMEN · TABLAS · EQUIPO · AVISOS**. Debajo de la simulación quedan las vistas técnicas (proyección) o el esquema de pantallas (LED).
+  - **Móvil**: después de la petición sale primero el resultado, luego la simulación y al final los pasos.
+- **Resultado de la simulación** numerado seguido: si la distancia de proyección y la de la pantalla al centro de la óptica coinciden, va en una sola línea; en las ultracortas, además, «pantalla al frente del proyector»; diagonal en pulgadas enteras y rótulos más claros.
+- **Cálculo de proyección corregido con los datos oficiales**:
+  - Ópticas Epson y Vivitek rehechas (lúmenes por serie y óptica, imagen mínima, desplazamiento asimétrico y con offset en Vivitek, ELPLM08 nueva). El brillo baja según la distancia en las ópticas que pierden luz.
+  - **Desplazamiento de la lente** comparado con el rango real de la óptica según vaya colgada o sobremesa; si no llega, el aviso sale en rojo y dice cómo arreglarlo.
+  - **Foco**: avisos de «no se puede enfocar a esa distancia» y de «en el límite mecánico (fuera de especificación)».
+  - Un cuerpo con una óptica que no le va: se queda el cuerpo y la óptica vuelve a AUTO (antes cambiaba de proyector sin avisar).
+  - **Luz por defecto según el tipo**: sala inmersiva a oscuras 15 lx y mapping de noche 5 lx (nuevos en «Uso de la sala»); pared, 140 lx.
+- **La petición escrita o dictada entiende más**:
+  - «Sala de A × B» es la sala (limita dónde va el proyector), no la pantalla; «N pulgadas», «A m de ancho por B de alto», lúmenes mínimos y tipo de óptica (ultracorta o periscópica, corta, larga).
+  - La distancia del público va pegada a la palabra («público a 8 m») y «colgado / truss a N m» es solo la altura del proyector.
+  - «Una central y dos laterales» son 3 pantallas aunque no diga «pantallas», y «verticales» solo gira las que lo llevan.
+  - El techo nunca queda por debajo del montaje pedido; en pabellón, exterior o fachada no hay techo.
+  - **Lo que no entiende lo dice** («No he usado: “25 m”») y el veredicto avisa de que parte de la petición no se ha aplicado. Exterior, alquiler y backup salen en el idioma de la interfaz.
+- **SIMPLE más llano**: sin las filas de óptica y marcas salvo que se hayan cambiado; «Sin decir · te propongo el más habitual» y «sin límite de distancia».
+
+## Cambios de la v10.88 · borrador para validar
 - **SIMULAR, ahora un vuelo de dron en 3D** (pedido por Josep, 24-11-2026): llega de lejos sobre la jungla, baja hacia unas pirámides aztecas escalonadas con su escalinata y su templo, las rodea y aterriza en lo alto de la mayor; río, nubes bajas, niebla y un leve balanceo del dron. Es una escena aparte que se dibuja en una textura panorámica y recorre todas las paredes sin cortes.
 - **INDICADORES · ON / OFF**: el botón dice su estado.
 - **Campos con su nombre completo** (para no confundir la pantalla con la sala): alto del techo de la sala, ancho, fondo y alto de la sala, montaje y altura del proyector, proporción de la pantalla, diagonal, ancho y alto de la pantalla, suelo a la base de la pantalla, distancia de la pantalla a la óptica, distancia del público a la pantalla, uso y luz de la sala, ganancia de la pantalla. El bloque IMAGEN pasa a llamarse PANTALLA y «medir por» son tres botones (diagonal, ancho, alto).

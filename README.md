@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.86** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.87** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -75,7 +75,16 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.86)
+## Cambios de la versión actual (v10.87) · borrador para validar
+- **PROYECCIÓN en PRO con el esquema del datos del fabricante** (pedido por Josep, 24-11-2026): la columna A lleva los datos de entrada en su orden y la B el equipo.
+  - **Sala y proyector**: tipo (mapping, pared o sala inmersiva), alto del techo o medidas de la sala, montaje (auto, colgado o sobremesa) y altura del proyector con su candado.
+  - **Imagen**: proporción (libre, la del proyector, 16:9, 16:10, 4:3, 21:9 o 1:1) y la medida por diagonal, ancho o alto, con casilla y deslizador; el ancho y el alto salen de ahí. Debajo, del suelo a la base de la imagen.
+  - **Distancia**: de la imagen a la óptica, con candado y el deslizador del rango del zoom.
+  - **Avanzado** (en la columna B, junto al equipo): luz ambiente (uso, lux y ganancia), distancia del público, puertas y obstáculos y fuera de especificación.
+- **Resultado de la simulación** en Resultados, como el de Epson: posición del proyector numerada (suelo al pie del proyector, base de la imagen al pie, distancia de proyección, techo a la parte alta, suelo a la base, tamaño y diagonal), ajuste del proyector (desplazamiento de lente vertical y horizontal) y brillo y contraste (nits, lux y contraste real).
+- Lo elegido, al pie de la columna B, en dos líneas.
+
+## Cambios de la v10.86
 - **Botones de la simulación, reducidos y ordenados** (pedido por Josep, 24-11-2026):
   - **Seis vistas en la caja**: EXTERIOR, DENTRO, PLANTA, LATERAL, FRONTAL y CENITAL se ven siempre en la propia simulación 3D, sin abrir ventana (las vistas técnicas en grande siguen en el ojo de cada vista de la fila de abajo). Lateral, de perfil; frontal, desde el público y algo por encima; cenital, desde arriba encuadrando solo la proyección.
   - **Contenido**: CARTA, **SIMULAR** y PROPIO. SIMULAR sustituye a PANORÁMICA y ASCENSOR: un paisaje inmersivo generado en la app y en movimiento (cielo que cambia de color, aurora, estrellas, sol, tres cordilleras en paralaje y un lago con reflejos), continuo en todas las paredes. APAGADO desaparece.

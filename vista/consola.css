@@ -639,3 +639,22 @@ html.bk .blq[data-blq="a2"] .blq-cuerpo .sec-btn { min-height: 0; height: 30px; 
 /* v10.85 · barra de la simulación: las seis vistas caben en una fila */
 html.piel .esc-barra .tog { padding: 3px 7px; letter-spacing: .03em; }
 html.piel .esc-barra > div { gap: 5px; }
+/* v10.87 · resultado de la simulación */
+.res-sim .sim-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 18px; }
+.res-sim .sim-l { list-style: none; margin: 2px 0 8px; padding: 0; display: grid; gap: 3px; font: 500 13px/1.35 Inter, system-ui, sans-serif; color: var(--txt); }
+.res-sim .sim-l b { color: var(--tenue); font-weight: 700; margin-right: 2px; }
+.res-sim .sim-l .mono { font-family: 'Share Tech Mono', ui-monospace, monospace; font-size: 14px; color: var(--marca, #d4ff00); }
+.res-sim .etq { margin-top: 2px; }
+/* v10.87 · PROYECCIÓN: bloques de datos compactos */
+html.bk .blq:is([data-blq="a5"], [data-blq="a7"], [data-blq="a3"]) .blq-cuerpo { row-gap: 6px; }
+html.bk .blq:is([data-blq="a5"], [data-blq="a7"], [data-blq="a3"]) .num input { font-size: 17px; padding-top: 1px; padding-bottom: 1px; }
+html.bk .blq[data-blq="a5"] .blq-cuerpo > .ayuda { display: none; }
+html.bk .blq:is([data-blq="a5"], [data-blq="a7"]) .rango { margin: 0; }
+html.bk .blq:is([data-blq="a5"], [data-blq="a7"]) .rango-et { font-size: 10.5px; }
+/* lo elegido, al pie de la columna B, en dos líneas: deja sitio a los bloques */
+html.bk .zona-pie.eleg { padding-top: 8px; padding-bottom: 8px; }
+html.bk .eleg-txt small { display: none; }
+html.bk .eleg-txt :is(b, span) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+html.bk .eleg-txt b { font-size: 14px; }
+html.bk .eleg-txt span { font-size: 12px; }
+html.bk .blq[data-blq="b1"] .blq-cuerpo { row-gap: 6px; }

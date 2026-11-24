@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.99';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.0';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.99';
+const VERSION = 'v11.0';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -194,6 +194,9 @@ function calcular(forzarMulti) {
       : { s, p: calcularPared(s, pP, { alcance: alcanceDe(s), ...optDe(pP, extra) }), proyector: pP, nombre: nombreSup(s) });
     let cerca = 0; filas.forEach(f => { if (f.s.tipo !== 'suelo' && corta(f.p)) { f.p.fuera = true; cerca++; } });   // más cerca de lo que se puede poner: no cabe
     const S = analizarSombras(filas, esp, altoEsc, coloc); S.obst = obstaculosEnHaces(obs, S.haces);
+    /* v11.0 · proyectores de pared que quedarían bajo el suelo o por encima del techo (pasaba con las ultracortas plegadas y salía en verde): cuentan
+       como instalación que no se puede montar, para que AUTO busque otra y, si no la hay, el veredicto lo diga en rojo */
+    { const tope = esp.tipo === 'sala' ? esp.alto : (Number(esp.sueltas.techo) > 0 ? Number(esp.sueltas.techo) : Infinity); S.fueraSala = (S.haces || []).filter(h => !h.suelo && h.lente && (h.lente.y < 0.03 || h.lente.y > tope + 0.03)).length; }
     return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 };
   };
   // AUTO: la instalación limpia (sin chasis que choquen ni proyectores dentro de otros haces) con menos equipos y más brillo.
@@ -317,7 +320,7 @@ function costeInstalacion(filas, S) {
   const zona = S.zona && S.zona.ok ? S.zona.ancho * S.zona.fondo : 0;
   // v10.63 · también cuenta que no cubra (antes ganaba la que no cubría por llevar menos equipos) y el solape excesivo
   const noCubre = filas.filter(f => f.p.noCubre).length, solape = filas.filter(f => f.s.tipo !== 'suelo' && f.p.solapeRel > SOLAPE_MAX + 1e-6).length;
-  return fuera * 1e7 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 - zona * 2;
+  return fuera * 1e7 + (S.fueraSala || 0) * 2e6 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 - zona * 2;
 }
 // v10.63 · UN SOLO VEREDICTO: lo calcula el motor con todo lo que avisa PRO y lo pintan igual PRO (arriba de RESULTADOS y en el PDF) y SIMPLE
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.
@@ -341,6 +344,7 @@ function veredicto(c) {
     else if (c.multiPosible) A('multiPosible', t('vMultiPosible', { n: c.multiPosible.n }));
     if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) }));
     { const lm = Number(E.proy.lmMin) || 0, to = E.proy.tipoOpt || ''; if (lm || to) A('filtro', t('vFiltro', { s: [lm ? '≥ ' + fmtPx(lm) + ' lm' : '', to ? t('opt_' + to).toLowerCase() : ''].filter(Boolean).join(' · ') })); }   /* v10.99 · se ve lo que limita la elección */
+    if (S.fueraSala) R('fueraSala', t('vFueraSala', { n: S.fueraSala }));
     if (pw.some(f => f.p.noCubre)) R('noCubre', t('noCubre'));
     { const L = pw.filter(f => f.p.fuera); if (L.length) R('fuera', t('fuera') + ': ' + nom(L) + '.'); }
     { const L = pw.filter(f => f.p.chica); if (L.length) R('chica', t('chica') + ': ' + nom(L) + '.'); }

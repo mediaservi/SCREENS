@@ -20,7 +20,7 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
-import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=10.97';   /* v10.94 · planos técnicos de señal y de alimentación */
+import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=10.98';   /* v10.94 · planos técnicos de señal y de alimentación */
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
@@ -28,7 +28,7 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.97';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.98';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */

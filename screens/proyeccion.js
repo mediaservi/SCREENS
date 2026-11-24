@@ -365,7 +365,9 @@ export function colocarPared(s, p, prod, { alto, sala, techo: techoS, montaje = 
       const yC0 = s.elev + p.filas[0] + p.imgH / 2, base = altura > 0 ? altura : (conShift ? Math.max(0.8, yC0 + rA[0] * p.imgH - altoCh / 2) : 0.8);
       yProy = base + altoCh / 2 + r * paso; apoyo = true;
     }
-    else if (montaje === 'colgado') yProy = (altura > 0 ? altura - 0.05 - altoCh / 2 : (hayTecho ? techo : yTop + 0.15 + altoCh / 2)) - (p.rows - 1 - r) * paso;
+    else if (montaje === 'colgado') { yProy = (altura > 0 ? altura - 0.05 - altoCh / 2 : (hayTecho ? techo : yTop + 0.15 + altoCh / 2)) - (p.rows - 1 - r) * paso;
+      /* v10.98 · colgado sin altura fijada: baja con su soporte hasta donde llega el desplazamiento de la lente, igual que hace AUTO (antes iba pegado al techo y salía rojo) */
+      if (!(altura > 0) && conShift) yProy = Math.min(hayTecho ? techo : Infinity, Math.max(yC + rC[0] * p.imgH, Math.min(yC + rC[1] * p.imgH, yProy))); }
     else if (hayTecho) { yProy = yHung - (p.rows - 1 - r) * paso; if (conShift) yProy = Math.min(techo, Math.max(yC + rC[0] * p.imgH, Math.min(yC + rC[1] * p.imgH, yProy))); }
     else if (conShift) { yProy = Math.max(suelo, yC + rA[0] * p.imgH); apoyo = true; }
     else yProy = yHung - (p.rows - 1 - r) * paso;
@@ -443,6 +445,7 @@ export function resolverChoques(haces, alto) {
       const lado = M.x * 2 + HOLGURA.h, lim = (h.ancho || 0) * 0.25;
       for (let k = 1; k * lado <= lim + 1e-6; k++) dxs.push(k * lado, -k * lado);
     }
+    const yC = (h.y0 + h.y1) / 2, imgH = h.y1 - h.y0, rl = !h.suelo && h.prod && !h.prod.plegada && h.prod.shiftV && imgH > 0 ? rangoLente(h.prod, !!h.vert, !!h.apoyo) : null;
     const cand = [];
     dzs.forEach(dz => dys.forEach(dy => dxs.forEach(dx => { if (dz || dy || dx) cand.push({ dz, dy, dx, c: dz + Math.abs(dy) * 1.5 + Math.abs(dx) * 1.2 }); })));
     cand.sort((a, b) => a.c - b.c);
@@ -451,6 +454,7 @@ export function resolverChoques(haces, alto) {
     let ok = null, sinChoque = null;
     for (const c of cand) {
       const y = base.y + c.dy; if (y > techo + 1e-6 || y < suelo - 1e-6) continue;
+      if (rl && c.dy && (y < yC + rl[0] * imgH - 1e-3 || y > yC + rl[1] * imgH + 1e-3)) continue;   /* v10.98 · al separar proyectores no se sale del desplazamiento que da la lente */
       poner(c); const pr = problemas(h, puestos, true);
       if (!pr.n) { ok = c; break; }
       if (!sinChoque && inicial.choque && !chocan(h, puestos.find(o => chocan(h, o)) || h)) sinChoque = c;

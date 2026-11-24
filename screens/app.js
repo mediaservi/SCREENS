@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.97';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.98';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.97';
+const VERSION = 'v10.98';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -107,7 +107,8 @@ const USOS_LUZ = [['reunion', 140], ['aula', 210], ['evento', 140], ['salon', 70
 const LUZ_TIPO = { sala: ['oscura', 15], mapping: ['calle', 5], pared: ['reunion', 140] };
 function luzDeTipo(v) { const p = E.proy, def = Object.values(LUZ_TIPO).some(u => u[0] === p.luzUso && u[1] === Number(p.lux)); if (def && LUZ_TIPO[v]) { p.luzUso = LUZ_TIPO[v][0]; p.lux = LUZ_TIPO[v][1]; } }
 // v10.63 · el mapping arranca con una fachada de 6 m de alto y el proyector a 6 m (sin techo): se pone al pasar a mapping desde otro tipo
-function alMapping() { const s = E.esp.sueltas; s.alto = 6; s.ancho = Math.round(6 * 16 / 9 * 100) / 100; Object.assign(E.proy, { dist: 6, distMin: 0, distMax: 0 }); }
+let ANTES_MAP = null;   /* v10.98 · lo que había antes de pasar a mapping, para devolverlo al salir */
+function alMapping() { const s = E.esp.sueltas; ANTES_MAP = { ancho: s.ancho, alto: s.alto, dist: Number(E.proy.dist) || 0, distMin: E.proy.distMin, distMax: E.proy.distMax }; s.alto = 6; s.ancho = Math.round(6 * 16 / 9 * 100) / 100; Object.assign(E.proy, { dist: 6, distMin: 0, distMax: 0 }); }
 // v10.63 · medidas de cada pantalla LED (ancho, alto): las guardadas y, para las que falten, la medida común
 const LED_MAX = 4;
 function tamsLed(q) { const n = Math.max(1, Math.min(LED_MAX, q.n | 0)), g = Array.isArray(q.tams) ? q.tams : []; return Array.from({ length: n }, (_, i) => { const x = g[i] || []; return [Number(x[0]) > 0 ? Number(x[0]) : q.ancho, Number(x[1]) > 0 ? Number(x[1]) : q.alto]; }); }
@@ -175,14 +176,14 @@ function calcular(forzarMulti) {
   // y mejor no ultracorta; en sala, la que quepa
   const desvTR = (q, r) => (r < q.trMin ? Math.log(q.trMin / r) : r > q.trMax ? Math.log(r / q.trMax) : 0);
   const pared1 = sups.find(s => s.tipo !== 'suelo'), trPared = pared1 ? (alMedio && hayRango ? (dMax > 0 ? (dMin + dMax) / 2 : dMin) : tiroPared) / pared1.ancho : 0;
-  const pref0 = (q) => (tipoP === 'mapping' ? (hayRango ? (trPared ? desvTR(q, trPared) * 0.3 : 0) : !fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0) - q.lumens / 20000
+  const pref0 = (q) => (tipoP === 'mapping' ? (hayRango ? (trPared ? desvTR(q, trPared) * 0.3 : 0) : !fijaDist ? ((q.ust || q.trMax < 1) ? 80 : 0) + desvTR(q, TR_MAPPING) * 0.3 : 0)   /* v10.98 · en mapping ya no se prefiere el más luminoso porque sí: el brillo lo decide el objetivo, como en los demás tipos */
     : tipoP === 'pared' ? (q.ust ? 0.5 : 0) + (trPared ? desvTR(q, trPared) * 0.3 : 0) : 0);
   // v10.58 · la prioridad de marca manda en automático (EPSON > VIVITEK > CHRISTIE): 5.000 puntos por escalón, más que cualquier diferencia de
   // número de equipos o de brillo y menos que una instalación que no cabe o con sombras. Así, la siguiente marca solo sale si con la anterior
   // no hay una instalación limpia; para calcular con otra, se apagan las demás o se elige el proyector.
   const pref = (q) => pref0(q) + prioMarca(q.marca) * 50;
   const coloc = { montaje: E.proy.montaje || 'auto', altura: Math.max(0, Number(E.proy.altura) || 0) };
-  const altoEsc = esp.tipo === 'sala' ? esp.alto : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;
+  const altoEsc = esp.tipo === 'sala' ? esp.alto : Number(esp.sueltas.techo) > 0 ? Math.max(Number(esp.sueltas.techo), ...sups.map(s => s.elev + s.alto)) : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;   /* v10.98 · con techo dicho, los proyectores no pueden subir por encima de él al separarlos */
   const obs = obstaculosDe(esp), haySuelo = sups.some(s => s.tipo === 'suelo');
   // un mismo modelo para todas las paredes; el suelo puede llevar el mismo u otro
   const montar = (pP, pS, extra) => {
@@ -302,7 +303,9 @@ function calcular(forzarMulti) {
 /* v10.97 · BRILLO JUSTO (aviso de Josep, 24-11-2026: AUTO proponía proyectores de 20.000 y 30.000 lm para una sala a oscuras). AUTO ya no busca el
    máximo brillo: busca el que hace falta para un contraste de 15:1 con la luz del sitio (como poco 45 nits, como mucho 250) y, entre los que llegan,
    el de menos lúmenes. Llegar al objetivo vale lo mismo que antes valía llegar a 250 nits; pasarse no suma y los lúmenes de más restan un poco */
-const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.min(250, Math.max(45, 14 * lx / Math.PI)); };
+/* v10.98 · en mapping (fachadas, que no son una pantalla blanca) el mínimo es de 80 nits. El objetivo del 15:1 tiene tope de 250 nits, pero AUTO ya no se queda en rojo
+   si un equipo mayor lo evita: con mucha luz sube hasta el contraste mínimo de 7:1 (pendiente de decidir con Josep si debe subir hasta el 15:1) */
+const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.max(Math.min(250, Math.max(tipoProy() === 'mapping' ? 80 : 45, 14 * lx / Math.PI)), 6 * lx / Math.PI); };
 const valeBrillo = (nits) => { const o = nitsObjetivo(); return Math.min(nits, o) * 250 / o; };
 const SUELTO = { dist: 0, altura: 0 };   // v10.96 · candados soltados por no caber en la sala (hasta que se vuelva a fijar uno)
 // coste de una instalación de proyección: primero que quepa, luego que no haya sombras de equipos ni choques, luego menos proyectores y más brillo
@@ -1341,6 +1344,12 @@ document.addEventListener('click', (ev) => {
     if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; }
     else { E.proy.tipo = v; E.esp.tipo = 'sueltas'; }
     if (v === 'mapping' && antes !== 'mapping') alMapping();
+    /* v10.98 · al salir de mapping no se hereda su fachada de 10,67 × 6 m ni su proyector fijado a 6 m (de ahí salía el candado de 6 m en la sala
+       inmersiva): vuelve la pantalla de antes y la distancia en automático, salvo que se hayan cambiado a mano en mapping */
+    if (antes === 'mapping' && v !== 'mapping') { const s = E.esp.sueltas, d0 = DEF().esp.sueltas, intacta = Math.abs(s.alto - 6) < 0.02 && Math.abs(s.ancho - 6 * 16 / 9) < 0.02;
+      if (intacta) { s.ancho = ANTES_MAP ? ANTES_MAP.ancho : d0.ancho; s.alto = ANTES_MAP ? ANTES_MAP.alto : d0.alto; }
+      if (Number(E.proy.dist) === 6 || v === 'sala') Object.assign(E.proy, { dist: ANTES_MAP && v !== 'sala' ? ANTES_MAP.dist : 0, distMin: ANTES_MAP ? ANTES_MAP.distMin : 0, distMax: ANTES_MAP ? ANTES_MAP.distMax : 0 });
+      ANTES_MAP = null; }
     luzDeTipo(v); actualizar(); return; }
   // candados: al cerrarlo se fija el valor que estaba calculando AUTO; al abrirlo vuelve a AUTO
   if (a === 'lock-dist' || a === 'lock-alt') {

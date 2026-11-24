@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.97** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.98** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.97)
+## Cambios de la versión actual (v10.98)
+Proyección en AUTO, cinco correcciones:
+- **Al salir de MAPPING no se hereda nada.** Pasar por mapping dejaba la pantalla en 10,67 × 6 m y la distancia de proyección fijada a 6 m, y eso se arrastraba a PARED y a la sala inmersiva (de ahí salía el «tiro que no cabe»). Ahora vuelve la pantalla que había y la distancia en automático.
+- **Con mucha luz AUTO ya no se queda en rojo si un equipo mayor lo evita.** Sube de cuerpo hasta llegar al contraste mínimo de 7:1 (antes paraba en 250 nits y el propio aviso pedía más lúmenes).
+- **Mapping: el brillo que hace falta, no siempre el más potente.** Ya no sale el de 30.000 lm para una imagen de 3 m; el mínimo en fachada es de 80 nits.
+- **COLGADO** sin altura fijada baja con su soporte hasta donde llega el desplazamiento de la lente, como AUTO (antes iba pegado al techo y salía rojo).
+- **Varias pantallas en arco:** al separar los proyectores para que no se toquen, ya no suben por encima del techo indicado ni se salen del desplazamiento de la lente.
+
+## Cambios de la v10.97
 - **Proyección en AUTO: el brillo justo, no el máximo** (aviso de Josep, 24-11-2026: para una sala inmersiva de 8 × 6 m a oscuras proponía proyectores de 20.000 y 30.000 lm). AUTO buscaba siempre el máximo brillo (hasta 250 nits). Ahora busca el que hace falta para un **contraste de 15:1 con la luz del sitio** (como poco 45 nits y como mucho 250) y, entre los que llegan, **el de menos lúmenes**. Esa misma sala pasa de 170.400 lm a 60.000 lm, con proyectores de 6.000 lm. Con mucha luz (140 lx o más) el resultado no cambia: ahí sigue haciendo falta todo el brillo.
 - Si entre las primeras combinaciones ninguna queda limpia (chasis que chocan o proyectores dentro de otro haz), AUTO mira más combinaciones antes de proponer una, en paredes y en suelo.
 

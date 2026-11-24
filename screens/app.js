@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.9';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.10';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -28,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.9';
+const VERSION = 'v11.10';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1122,7 +1122,7 @@ function rotulo(x) {
     case 'vertical': return t('or_vertical'); case 'horizontal': return t('or_horizontal'); case 'multi': return t('multiImg'); case 'tipo': return t('tp_' + x.v);
     case 'distProy': return t('distOpticaK') + ' ' + fmt(x.v, 1) + ' m'; case 'montaje': return t('mo_' + x.v) + (x.h ? ' ' + fmt(x.h, 1) + ' m' : '');
     case 'fibra': return t('fibra'); case 'central': return t('central') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m';
-    case 'salaMed': return t('salaRec') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pulgadas': return fmt(x.v, 0) + '″'; case 'lumenes': return '≥ ' + fmt(x.v, 0) + ' lm'; case 'optica': return t('opt_' + x.v); case 'ledTipo': return t('ped_' + x.v);
+    case 'rango': return t('margenK') + ' ' + x.v.map(v => fmt(v, 1)).join('–') + ' m'; case 'salaMed': return t('salaRec') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pulgadas': return fmt(x.v, 0) + '″'; case 'lumenes': return '≥ ' + fmt(x.v, 0) + ' lm'; case 'optica': return t('opt_' + x.v); case 'ledTipo': return t('ped_' + x.v);
     case 'laterales': return t('laterales') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pitch': return 'P' + fmt(x.v, 2) + (x.ok ? ' · ' + x.ok : ''); case 'texto': return x.v; default: return x.v;
   }
 }

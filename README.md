@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.9** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.10** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.9)
+## Cambios de la versión actual (v11.10)
+Petición escrita de proyección:
+- **Medida pegada a «pabellón», «sala», «nave»…:** si es la única medida, es la de la imagen («proyectar en el pabellón de 16 × 9 m»). Con dos medidas, la del sitio sigue siendo la sala y la otra la imagen.
+- **Margen de instalación:** «proyectores en torre de 4 m a 25 m», «entre 8 y 30 m», «between 10 and 20 m» se leen como distancias posibles de los proyectores (AUTO elige dentro de ese margen).
+
+## Cambios de la v11.9
 - **Altura del proyector fijada a mano:** manda también con el montaje en AUTO. Por encima del centro de la imagen, el proyector va colgado a esa altura; por debajo, apoyado en ella. Antes, en AUTO, se ignoraba y el proyector se colocaba en el techo o a 0,8 m. La distancia y la medida de la pantalla dichas a mano ya mandaban; AUTO elige el proyector y la óptica que van con ellas.
 
 ## Cambios de la v11.8

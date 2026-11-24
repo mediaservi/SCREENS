@@ -43,8 +43,9 @@ export function interpretar(texto, tecCtx) {
   const deSala = (x) => /\b(?:sala|room|salon|salo|espacio|espai|pabellon|pavello|nave|museo|museu)\b[^\d]*$/.test(x.antes) && !/pantalla|imagen|imatge|image|screen|pared|paret|wall|lienzo/.test(x.antes.replace(/^.*\b(?:sala|room|salon|salo|espacio|espai|pabellon|pavello|nave|museo|museu)\b/, ''));
   let m = todas[0] || null, salaMed = null;
   if (tecP === 'proy' && c.esp.tipo !== 'sala' && todas.length) {
-    const p = todas.find(x => !deSala(x)); salaMed = todas.find(x => deSala(x)) || null;
-    m = p || null;
+    const p = todas.find(x => !deSala(x)); salaMed = p ? (todas.find(x => deSala(x)) || null) : null;   /* v11.10 · si la única medida va con «pabellón», «sala»… es la de la imagen (decidido por Josep, 24-11-2026) */
+    if (!p && todas.length) { m = todas[0]; }
+    if (p) m = p;
     if (salaMed) { const a = n(salaMed[1]), b = n(salaMed[2]), h = salaMed[3] != null ? n(salaMed[3]) : NaN; c.sueltas.salaAncho = a; c.sueltas.salaFondo = b; if (!isNaN(h)) c.sueltas.techo = h; vistos.push({ k: 'salaMed', v: isNaN(h) ? [a, b] : [a, b, h] }); }
   }
   if (!m && tecP === 'proy') {   // «A m de ancho» sola
@@ -145,7 +146,10 @@ export function interpretar(texto, tecCtx) {
   if (/ultracort|ultra ?corta|ultra[- ]?short|\bust\b|periscop/.test(t)) { c.proy.tipoOpt = 'ust'; vistos.push({ k: 'optica', v: 'ust' }); }
   else if (/(?:optica|lente|lens|objectiu)[^.]{0,20}(?:corta|short|gran angular|wide)|gran angular|short throw|tiro corto/.test(t)) { c.proy.tipoOpt = 'corta'; vistos.push({ k: 'optica', v: 'corta' }); }
   else if (/(?:optica|lente|lens|objectiu)[^.]{0,20}(?:larga|long|tele)|long throw|tiro largo|teleobjetivo/.test(t)) { c.proy.tipoOpt = 'larga'; vistos.push({ k: 'optica', v: 'larga' }); }
-  const torre = t.match(/(?:torre|tower|torres|towers)\s*(?:de|of)?\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)?/);
+  /* v11.10 · margen de instalación: «proyectores en torre de 4 m a 25 m», «entre 4 y 25 m», «between 4 and 25 m», «entre 4 i 25 m» */
+  const rng = tecP === 'proy' && t.match(/(?:proyector(?:es)?|projectors?|projectors|torres?|towers?)[^.\d]{0,40}?(?:entre|de|between|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres|meters)?\s*(?:a|y|i|and|to|hasta|fins a)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres|meters)\b(?!\s*(?:de alto|de altura|high|d'alt|x\b|×))/);
+  if (rng && n(rng[2]) > n(rng[1])) { c.proy.distMin = n(rng[1]); c.proy.distMax = n(rng[2]); delete c.proy.dist; const iv = vistos.findIndex(x => x.k === 'distProy'); if (iv >= 0) vistos.splice(iv, 1); vistos.push({ k: 'rango', v: [c.proy.distMin, c.proy.distMax] }); }
+  const torre = !rng && t.match(/(?:torre|tower|torres|towers)\s*(?:de|of)?\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)?/);
   const colg = t.match(/(?:colgad[oa]s?|truss|penjats?|hung|hanging)[^.,;\d]{0,25}?(?:a|at|de)?\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b/);
   if (torre) { c.proy.montaje = 'apoyado'; c.proy.altura = n(torre[1]); vistos.push({ k: 'montaje', v: 'apoyado', h: c.proy.altura }); }
   else if (/sobremesa|sobre (?:una )?mesa|en el suelo|on a table|on the floor|sobretaula|a terra/.test(t) && /proyect|project/.test(t)) { c.proy.montaje = 'apoyado'; c.proy.altura = /suelo|floor|terra/.test(t) ? 0.3 : 0.8; vistos.push({ k: 'montaje', v: 'apoyado', h: c.proy.altura }); }

@@ -23,25 +23,32 @@ EPSON,EB-PQ2220B,PQ2000,,20000,16:9,4K (3840 x 2160),4K,1000,1100,
 EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 // Ópticas de Epson por serie de cuerpo: [relación de proyección mínima, máxima, desplazamiento vertical %, horizontal %, solo hacia arriba]
 // (guía maestra de Epson 08/2026). max20kXQ: con el EB-XQ2030B la luminosidad queda en 20.000 lm; max12k: tope de 12.000 lm.
+// v10.89 · revisión frente al datos del fabricante: cada combinación cuerpo + óptica tiene sus lúmenes (lm: fracción de los
+// del cuerpo por serie; lmMax: tope; lmXQ: lúmenes del EB-XQ2030B con esa óptica), su imagen mínima (min, en pulgadas; por defecto 50″ en
+// PU1000 y 60″ en el resto) y, las ultracortas plegadas, la separación fija entre la imagen y el proyector (sep, m) y lo que va de la lente
+// a la cara del cuerpo más cercana a la pantalla (desfase, m). Las plegadas no desplazan la imagen: va pegada al proyector.
 export const OPTICAS = [
-  { ref: 'ELPLX01S', tipo: 'ust', s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
-  { ref: 'ELPLX02S', tipo: 'ust', max20kXQ: true, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
-  { ref: 'ELPLX04H', tipo: 'ust', s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
-  { ref: 'ELPLU06H', tipo: 'corta', s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
-  { ref: 'ELPLU03S', tipo: 'corta', max20kXQ: true, s: { PU1000: [0.65, 0.78, 67, 30], PU2000: [0.48, 0.57, 24, 10], PQ2000: [0.46, 0.56, 25, 8], XQ2030: [0.46, 0.56, 25, 8] } },
-  { ref: 'ELPLU07H', tipo: 'corta', s: { PU1000: [0.64, 0.87, 67, 30], PU2000: [0.47, 0.64, 60, 18], PQ2000: [0.46, 0.62, 64, 16], XQ2030: [0.46, 0.62, 64, 16] } },
-  { ref: 'ELPLU04', tipo: 'corta', max20kXQ: true, s: { PU1000: [0.87, 1.05, 67, 30], PU2000: [0.64, 0.77, 60, 18], PQ2000: [0.62, 0.75, 64, 16], XQ2030: [0.62, 0.75, 64, 16] } },
-  { ref: 'ELPLU04H', tipo: 'corta', s: { PU1000: [0.86, 1.22, 67, 30], PU2000: [0.64, 0.90, 60, 18], PQ2000: [0.62, 0.87, 64, 16], XQ2030: [0.62, 0.87, 64, 16] } },
-  { ref: 'ELPLW05', tipo: 'angular', max12k: true, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 25, 8] } },
-  { ref: 'ELPLW08H', tipo: 'angular', s: { PU1000: [1.18, 1.66, 67, 30], PU2000: [0.86, 1.21, 60, 18], PQ2000: [0.83, 1.17, 64, 16], XQ2030: [0.83, 1.17, 64, 16] } },
-  { ref: 'ELPLW06H', tipo: 'angular', s: { PU1000: [1.62, 2.22, 67, 30], PU2000: [1.19, 1.62, 60, 18], PQ2000: [1.15, 1.57, 64, 16], XQ2030: [1.15, 1.57, 64, 16] } },
-  { ref: 'ELPLM08', tipo: 'estandar', s: { PU1000: [1.44, 2.32, 67, 30] } },
-  { ref: 'ELPLM15H', tipo: 'estandar', s: { PU1000: [2.16, 3.48, 67, 30], PU2000: [1.57, 2.56, 60, 18], PQ2000: [1.52, 2.47, 64, 16], XQ2030: [1.52, 2.47, 64, 16] } },
-  { ref: 'ELPLM10H', tipo: 'media', s: { PU1000: [3.32, 5.06, 67, 30], PU2000: [2.42, 3.71, 60, 18], PQ2000: [2.34, 3.59, 64, 16], XQ2030: [2.34, 3.59, 64, 16] } },
-  { ref: 'ELPLM11H', tipo: 'media', s: { PU1000: [4.85, 7.38, 67, 30], PU2000: [3.54, 5.41, 60, 18], PQ2000: [3.42, 5.23, 64, 16], XQ2030: [3.42, 5.23, 64, 16] } },
-  { ref: 'ELPLL08', tipo: 'larga', s: { PU1000: [7.21, 10.11, 67, 30], PU2000: [5.27, 7.41, 60, 18], PQ2000: [5.09, 7.16, 64, 16], XQ2030: [5.09, 7.16, 64, 16] } },
-  { ref: 'ELPLL11H', tipo: 'larga', s: { PU1000: [9.90, 15.52, 67, 30], PU2000: [7.23, 11.38, 60, 18], PQ2000: [6.99, 11.00, 64, 16], XQ2030: [6.99, 11.00, 64, 16] } }
+  { ref: 'ELPLX01S', tipo: 'ust', plegada: 1, sep: { PU1000: 0.259 }, desfase: { PU1000: 0.332 }, lm: { PU1000: 0.855 }, min: 100, s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
+  { ref: 'ELPLX02S', tipo: 'ust', plegada: 1, sep: { PU2000: 0.2, PQ2000: 0.228, XQ2030: 0.228 }, desfase: { PU2000: 0.21, PQ2000: 0.225, XQ2030: 0.225 }, lm: { PU2000: 0.845, PQ2000: 0.845 }, lmXQ: 20000, min: 100, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
+  { ref: 'ELPLX04H', tipo: 'corta', lmXQ: 24900, minS: { XQ2030: 80 }, s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
+  { ref: 'ELPLU06H', tipo: 'corta', lmXQ: 25200, minS: { XQ2030: 80 }, s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
+  { ref: 'ELPLU03S', tipo: 'corta', lm: { PU1000: 0.855, PU2000: 0.87, PQ2000: 0.855 }, lmXQ: 20000, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [0.65, 0.78, 67, 30], PU2000: [0.48, 0.57, 24, 10], PQ2000: [0.46, 0.56, 18, 6], XQ2030: [0.46, 0.56, 25, 8] } },
+  { ref: 'ELPLU07H', tipo: 'corta', lmXQ: 26700, minS: { XQ2030: 80 }, s: { PU1000: [0.64, 0.87, 67, 30], PU2000: [0.47, 0.64, 60, 18], PQ2000: [0.46, 0.62, 64, 16], XQ2030: [0.46, 0.62, 64, 16] } },
+  { ref: 'ELPLU04', tipo: 'corta', lm: { PU1000: 0.905, PU2000: 0.95, PQ2000: 0.945 }, lmXQ: 20000, s: { PU1000: [0.87, 1.05, 67, 30], PU2000: [0.64, 0.77, 60, 18], PQ2000: [0.62, 0.75, 64, 16], XQ2030: [0.62, 0.75, 64, 16] } },
+  { ref: 'ELPLU04H', tipo: 'corta', lmXQ: 27800, minS: { XQ2030: 80 }, s: { PU1000: [0.86, 1.22, 67, 30], PU2000: [0.64, 0.90, 60, 18], PQ2000: [0.62, 0.87, 64, 16], XQ2030: [0.62, 0.87, 64, 16] } },
+  { ref: 'ELPLW05', tipo: 'angular', lm: { PU1000: 0.87 }, lmMax: { PU2000: 11700, PQ2000: 12000 }, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 18, 6] } },
+  { ref: 'ELPLW08H', tipo: 'angular', lm: { PU1000: 0.855, PU2000: 0.955, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [1.18, 1.66, 67, 30], PU2000: [0.86, 1.21, 60, 18], PQ2000: [0.83, 1.17, 64, 16], XQ2030: [0.83, 1.17, 64, 16] } },
+  { ref: 'ELPLW06H', tipo: 'angular', lm: { PU1000: 0.945, PU2000: 0.955, PQ2000: 0.955 }, lmXQ: 28700, s: { PU1000: [1.62, 2.22, 67, 30], PU2000: [1.19, 1.62, 60, 18], PQ2000: [1.15, 1.57, 64, 16], XQ2030: [1.15, 1.57, 64, 16] } },
+  { ref: 'ELPLM08', tipo: 'estandar', lmMax: { PU2000: 10000, PQ2000: 10000 }, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [1.44, 2.32, 67, 30], PU2000: [1.06, 1.69, 24, 10], PQ2000: [1.02, 1.64, 18, 6] } },
+  { ref: 'ELPLM15H', tipo: 'estandar', lm: { PU1000: 0.985 }, lmXQ: 30000, s: { PU1000: [2.16, 3.48, 67, 30], PU2000: [1.57, 2.56, 60, 18], PQ2000: [1.52, 2.47, 64, 16], XQ2030: [1.52, 2.47, 64, 16] } },
+  { ref: 'ELPLM10H', tipo: 'media', lm: { PU1000: 0.975, PU2000: 0.99, PQ2000: 0.985 }, lmXQ: 29700, s: { PU1000: [3.32, 5.06, 67, 30], PU2000: [2.42, 3.71, 60, 18], PQ2000: [2.34, 3.59, 64, 16], XQ2030: [2.34, 3.59, 64, 16] } },
+  { ref: 'ELPLM11H', tipo: 'media', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [4.85, 7.38, 67, 30], PU2000: [3.54, 5.41, 60, 18], PQ2000: [3.42, 5.23, 64, 16], XQ2030: [3.42, 5.23, 64, 16] } },
+  { ref: 'ELPLL08', tipo: 'larga', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [7.21, 10.11, 67, 30], PU2000: [5.27, 7.41, 60, 18], PQ2000: [5.09, 7.16, 64, 16], XQ2030: [5.09, 7.16, 64, 16] } },
+  { ref: 'ELPLL11H', tipo: 'larga', lmXQ: 29900, minS: { XQ2030: 70 }, s: { PU1000: [9.90, 15.52, 67, 30], PU2000: [7.23, 11.38, 60, 18], PQ2000: [6.99, 11.00, 64, 16], XQ2030: [6.99, 11.00, 64, 16] } }
 ];
+// ópticas fijas: desplazamiento (V, H en %), imagen mínima (″) y, las ultracortas, separación imagen–proyector y desfase lente–cuerpo
+const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
+  'EB-L695SE': { sh: [50, 20], min: 80 }, 'EB-L795SE': { sh: [50, 20], min: 60 }, 'EB-L695SU': { sh: [50, 20], min: 60 } };
 
 export const SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
 // v10.69 · dos tramos (decidido por Josep, 21-11-2026): hasta el 45 % el solape es «recomendable»; del 45 al 65 %, «posible, con aviso»
@@ -65,67 +72,71 @@ function leer() {
     const px = (c[6].match(/(\d{3,5})\s*x\s*(\d{3,5})/) || []).slice(1).map(Number);
     const base = { marca: c[0], modelo: c[1], serie: c[2] === 'fija' ? '' : c[2], ar: aw / ah, arTxt: c[5], resX: px[0] || 1920, resY: px[1] || 1080, resTxt: c[6],
       k4: /4K/i.test(c[7]), k4nativo: c[7] === '4K', maxDiagPulg: Number(c[8]), maxDiagPulgOOS: Number(c[9]), imagen: c[10] || '', chasis: CHASIS[c[1]] || [0.55, 0.45, 0.2] };
-    const combo = (optica, tr, lumens, sh) => ({ ...base, id: c[1] + (optica ? '|' + optica : ''), optica, nombre: c[1] + (optica ? ' + ' + optica : ''),
-      trMin: Math.min(...tr), trMax: Math.max(...tr), lumens, ust: Math.min(...tr) < 0.4, shiftV: sh[0] || 0, shiftH: sh[1] || 0, shiftSube: !!sh[2] });
-    if (c[2] === 'fija') { out.push(combo('', c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v)), Number(c[4]), [])); return; }
+    const combo = (optica, tr, lumens, sh, x) => ({ ...base, id: c[1] + (optica ? '|' + optica : ''), optica, nombre: c[1] + (optica ? ' + ' + optica : ''),
+      trMin: Math.min(...tr), trMax: Math.max(...tr), lumens, ust: Math.min(...tr) < 0.4, shiftV: sh[0] || 0, shiftVcontra: sh[0] || 0, shiftH: sh[1] || 0, shiftSube: !!sh[2], ...(x || {}) });
+    if (c[2] === 'fija') { const F = FIJA_EPSON[c[1]] || {}, tr = c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+      out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
     OPTICAS.forEach((o) => {
       const d = o.s[c[2]]; if (!d) return;
-      let lm = Number(c[4]); if (o.max12k) lm = Math.min(lm, 12000); if (o.max20kXQ && c[2] === 'XQ2030') lm = Math.min(lm, 20000);
-      out.push(combo(o.ref, [d[0], d[1]], lm, [d[2], d[3], d[4]]));
+      const sr = c[2], cuerpoLm = Number(c[4]);
+      let lm = sr === 'XQ2030' && o.lmXQ ? Math.min(cuerpoLm, o.lmXQ) : Math.round(cuerpoLm * ((o.lm && o.lm[sr]) || 1));
+      if (o.lmMax && o.lmMax[sr]) lm = Math.min(lm, o.lmMax[sr]);
+      const min = (o.minS && o.minS[sr]) || o.min || (sr === 'PU1000' ? 50 : 60);
+      out.push(combo(o.ref, [d[0], d[1]], lm, [d[2], d[3], d[4]], { minDiagPulg: min, ust: !!o.plegada, plegada: !!o.plegada, ...(o.plegada ? { sepUST: () => (o.sep[sr] || 0.22), desfase: o.desfase[sr] || 0.22 } : {}) }));
     });
   });
   return out;
 }
-// v10.57 · VIVITEK láser de gran formato: cada cuerpo con sus ópticas compatibles.
-// - Relación de proyección de cada óptica según el chip del cuerpo (0,67", 0,8" o 0,96"), imagen máxima de cada óptica y qué óptica va con
-//   qué cuerpo: guía de ópticas de Vivitek («Projectors & Lenses · Large Venue projector lens range»). Las D86 dan la misma relación en todos.
-// - Lúmenes, resolución, desplazamiento de la óptica (en % del alto y del ancho de la imagen) y chasis: ficha de cada modelo. Del DU7x99Z se
-//   toma el desplazamiento más prudente de los publicados (tabla del manual MKII: 45 % / 12 %). En chip de 0,8", las ópticas D88 lo limitan
-//   (±45 %; la D88-UWZ01, ±35 %). Las ultracortas van con desplazamiento en un solo sentido.
-// - No hay dato de imagen «fuera de especificación»: la máxima es la de la óptica.
-// - DU5051Z, DU5053Z y DK5153Z llevan su óptica de serie (1,15–1,9:1); sus ópticas cortas opcionales no tienen ficha publicada.
+// v10.89 · VIVITEK con los datos de la herramienta oficial del fabricante oficial:
+// - cada cuerpo con sus ópticas compatibles (fuera D88-UST01B, D88-UWZ01 y D88-WZ01; entran D89-LZ01, D98-69103 y las
+//   K1U/K1K de las series 5000);
+// - por óptica y chip: relación de proyección, distancia de foco en especificación y foco mecánico (m), imagen mínima y máxima (″),
+//   desplazamiento vertical asimétrico (hacia el lado normal / al contrario, %) y horizontal (±%), rendimiento de brillo en gran angular y tele
+//   (%) y «offset» (las series 5000 llevan la lente en el borde de la imagen: 100 %). Sin dato de la óptica, el del cuerpo.
+// - Las ultracortas D89-UST01 y D98-UST01 son de ángulo recto: se colocan con su desplazamiento, como las demás.
 const VIVITEK = [
-  { serie: 'DU7000Z', chip: 67, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [45, 12], chasis: [0.470, 0.517, 0.202], m: [['DU7099Z', 8000], ['DU7199Z', 9000], ['DU7299Z', 10000]] },
-  { serie: 'DU8000Z', chip: 80, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [60, 20], chasis: [0.500, 0.591, 0.216], m: [['DU8053Z', 14000], ['DU8055Z', 16000], ['DU8057Z', 24000]] },
-  { serie: 'DK8000Z', chip: 80, res: '4K UHD+ (3840 x 2400)', ar: '16:10', k4: true, sh: [60, 20], chasis: [0.500, 0.591, 0.216], m: [['DK8150Z', 12000], ['DK8155Z', 15000]] },
-  { serie: 'DU9057Z', chip: 96, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [50, 15], chasis: [0.677, 0.599, 0.270], m: [['DU9057Z', 27000]] },
-  { serie: 'DU9059Z', chip: 96, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [50, 15], chasis: [0.677, 0.599, 0.270], m: [['DU9059Z', 30000]] },
-  { serie: 'DU5000Z', fija: [1.15, 1.9], img: 322, res: 'WUXGA (1920 x 1200)', ar: '16:10', sh: [15, 2], chasis: [0.496, 0.380, 0.160], m: [['DU5051Z', 6300], ['DU5053Z', 7700]] },
-  { serie: 'DK5000Z', fija: [1.15, 1.9], img: 322, res: '4K UHD (3840 x 2160)', ar: '16:9', k4: true, sh: [15, 2], chasis: [0.496, 0.380, 0.160], m: [['DK5153Z', 6200]] }
+  { serie: 'DU7000Z', g: '67', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [70, 50], H: 15, chasis: [0.470, 0.517, 0.202], m: [['DU7099Z', 8000], ['DU7199Z', 9000], ['DU7299Z', 10000]] },
+  { serie: 'DU8000Z', g: '8', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [60, 60], H: 20, chasis: [0.500, 0.591, 0.216], m: [['DU8053Z', 14000], ['DU8055Z', 16000], ['DU8057Z', 24000]] },
+  { serie: 'DK8000Z', g: '8', res: '4K UHD+ (3840 x 2400)', ar: '16:10', k4: true, V: [60, 60], H: 20, chasis: [0.500, 0.591, 0.216], m: [['DK8150Z', 12000], ['DK8155Z', 15000]] },
+  { serie: 'DU9057Z', g: '9', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [50, 30], H: 15, chasis: [0.677, 0.599, 0.270], m: [['DU9057Z', 27000]] },
+  { serie: 'DU9059Z', g: '9', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [50, 30], H: 15, chasis: [0.677, 0.599, 0.270], m: [['DU9059Z', 30000]], pref: 'D99A-' },
+  { serie: 'DU5000Z', g: '5U', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [15, 5], H: 2, offset: 0.5, chasis: [0.496, 0.380, 0.160], m: [['DU5051Z', 6300], ['DU5053Z', 7700]] },
+  { serie: 'DK5000Z', g: '5K', res: '4K UHD (3840 x 2160)', ar: '16:9', k4: true, V: [22, 2], H: 2, offset: 0.5, chasis: [0.496, 0.380, 0.160], m: [['DK5153Z', 6200]] }
 ];
-const V78 = ['DU7000Z', 'DU8000Z', 'DK8000Z'];
-// ref, imagen máxima en pulgadas, relación mínima y máxima por chip, series con las que va y, si lo hay, tope de desplazamiento en 0,8"
-export const OPTICAS_VIVITEK = [
-  { ref: 'D89-UST01', tipo: 'ust', img: 400, tr: { 67: [0.368, 0.39], 80: [0.31, 0.33] }, s: V78, sube: 1 },
-  { ref: 'D88-UST01B', tipo: 'ust', img: 350, tr: { 67: [0.38, 0.38] }, s: ['DU7000Z'], sube: 1 },
-  { ref: 'D86-04705', tipo: 'corta', img: 300, tr: { 67: [0.47, 0.50] }, s: ['DU7000Z'] },
-  { ref: 'D89-UWZ01', tipo: 'corta', img: 400, tr: { 67: [0.65, 0.89], 80: [0.55, 0.75] }, s: V78 },
-  { ref: 'D88-UWZ01', tipo: 'corta', img: 500, tr: { 67: [0.75, 0.93], 80: [0.63, 0.78] }, s: V78, lim80: 35 },
-  { ref: 'D86-0711', tipo: 'corta', img: 500, tr: { 67: [0.77, 1.1], 80: [0.77, 1.1] }, s: ['DU7000Z', 'DU8000Z'] },
-  { ref: 'D89-UWZ02', tipo: 'angular', img: 500, tr: { 67: [0.88, 1.28], 80: [0.74, 1.08] }, s: V78 },
-  { ref: 'D86-1113', tipo: 'angular', img: 500, tr: { 67: [1.1, 1.3] }, s: ['DU7000Z'] },
-  { ref: 'D89-WZ01', tipo: 'angular', img: 600, tr: { 67: [1.25, 1.68], 80: [1.05, 1.41] }, s: V78 },
-  { ref: 'D88-WZ01', tipo: 'angular', img: 500, tr: { 67: [1.25, 1.79], 80: [1.05, 1.5] }, s: V78, lim80: 45 },
-  { ref: 'D86-1216', tipo: 'angular', img: 500, tr: { 67: [1.25, 1.6], 80: [1.25, 1.6] }, s: V78 },
-  { ref: 'D86-1519', tipo: 'estandar', img: 500, tr: { 67: [1.54, 1.93], 80: [1.54, 1.93] }, s: V78 },
-  { ref: 'D89-ST01', tipo: 'estandar', img: 600, tr: { 67: [1.67, 2.51], 80: [1.4, 2.11] }, s: V78 },
-  { ref: 'D86-1929', tipo: 'media', img: 500, tr: { 67: [1.93, 2.9] }, s: ['DU7000Z'] },
-  { ref: 'D89-SMLZ01', tipo: 'media', img: 600, tr: { 67: [2.5, 4.7], 80: [2.1, 4.0] }, s: V78 },
-  { ref: 'D88-LOZ101', tipo: 'larga', img: 500, tr: { 67: [3.58, 5.38], 80: [3.0, 4.52] }, s: V78, lim80: 45 },
-  { ref: 'D88-LOZ201', tipo: 'larga', img: 500, tr: { 67: [5.31, 8.26], 80: [4.46, 6.94] }, s: V78, lim80: 45 },
-  { ref: 'D98-UST01', tipo: 'ust', img: 600, tr: { 96: [0.38, 0.38] }, s: ['DU9057Z', 'DU9059Z'], sube: 1 },
-  ...[['0912', 0.9, 1.2, 'corta'], ['1215', 1.25, 1.56, 'angular'], ['1520', 1.5, 2.0, 'estandar'], ['2040', 2.0, 4.0, 'media'], ['4070', 4.0, 7.0, 'larga']].flatMap(([n, a, b, tipo]) => [
-    { ref: 'D99-' + n, tipo, img: 500, tr: { 96: [a, b] }, s: ['DU9057Z'] }, { ref: 'D99A-' + n, tipo, img: 500, tr: { 96: [a, b] }, s: ['DU9059Z'] }])
-];
+// [tipo, trMin, trMax, foco [min, max], foco mecánico [min, max] | 0, imagen [min, max] | 0, V [hacia, contra] | 0, H | 0, brillo [ancho, tele] | 0]
+const LENTES_VIVITEK = {
+  67: { 'D89-UST01': ['ust', 0.368, 0.39, [0.53, 2.25], [0.45, 3.58], [60, 400], [60, 45], 2.5, 0], 'D86-04705': ['corta', 0.47, 0.5, [0.81, 3.16], [0.81, 3.16], [0, 300], 0, 0, 0],
+    'D89-UWZ01': ['corta', 0.65, 0.89, [0.81, 4.92], [0.82, 7.83], [60, 400], [60, 45], 12, 0], 'D86-0711': ['corta', 0.77, 1.1, [1, 4.98], [1, 12], [0, 500], 0, 0, 0],
+    'D89-UWZ02': ['angular', 0.88, 1.28, [0.92, 9.74], [0.89, 14.51], [50, 500], [60, 45], 12, 0], 'D86-1113': ['angular', 1.1, 1.3, [1, 9], [1, 14.26], [0, 500], 0, 0, 0],
+    'D89-WZ01': ['angular', 1.25, 1.68, [1.3, 15.77], [1.26, 22.54], [50, 600], [65, 45], 12, [97.2, 97.2]], 'D86-1216': ['angular', 1.26, 1.6, [1.35, 8.08], [1.35, 17.5], [0, 500], 0, 0, 0],
+    'D86-1519': ['estandar', 1.54, 1.93, [2, 10], [2, 21.2], [0, 500], 0, 0, 0], 'D89-ST01': ['estandar', 1.67, 2.51, [1.78, 23.2], [1.75, 33.16], [50, 600], [65, 45], 12, 0],
+    'D86-1929': ['media', 1.93, 2.9, [2, 20], [2, 31.8], [0, 500], 0, 0, 0], 'D89-SMLZ01': ['media', 2.5, 4.7, [2.7, 45.12], [2.66, 64.51], [50, 600], [65, 45], 12, [97.3, 97.3]],
+    'D88-LOZ101': ['larga', 3.58, 5.38, [3.8, 35.35], [3.02, 59.01], [0, 500], 0, 0, 0], 'D88-LOZ201': ['larga', 5.31, 8.26, [5.59, 54.8], [4.42, 91.5], [0, 500], 0, 0, 0] },
+  8: { 'D89-UST01': ['ust', 0.31, 0.33, [0.53, 2.25], [0.38, 3.01], [60, 400], [50, 50], 20, [78.7, 76]], 'D89-UWZ01': ['corta', 0.55, 0.75, [0.81, 4.92], [0.69, 6.58], [60, 400], [50, 50], 20, [94.2, 87.4]],
+    'D89-UWZ02': ['angular', 0.74, 1.08, [0.92, 9.74], [0.75, 12.19], [50, 500], [50, 50], 20, [89.4, 83.2]], 'D89-WZ01': ['angular', 1.05, 1.41, [1.3, 15.77], [1.06, 18.94], [50, 600], [60, 60], 20, [98.6, 92.3]],
+    'D89-ST01': ['estandar', 1.4, 2.11, [1.78, 23.2], [1.47, 27.86], [50, 600], [60, 60], 20, [100.6, 90.4]], 'D89-SMLZ01': ['media', 2.1, 4.0, [2.7, 45.12], [2.24, 54.19], [50, 600], [60, 60], 20, [99.3, 89.4]],
+    'D88-LOZ101': ['larga', 3.0, 4.52, [2.53, 47.2], 0, [40, 500], [45, 45], 10, [88.5, 88.5]], 'D88-LOZ201': ['larga', 4.46, 6.94, [3.71, 76.7], 0, [40, 500], [45, 45], 10, [89.6, 89.6]],
+    'D89-LZ01': ['larga', 3.91, 7.07, [5.11, 75.51], 0, [50, 600], [60, 60], 20, 0] },
+  9: { 'D98-UST01': ['ust', 0.38, 0.38, [1.6, 5], 0, [200, 600], [50, 50], 2.5, 0], 'D99-0912': ['corta', 0.9, 1.2, [1.53, 8.04], [0.92, 13.46], [50, 500], [45, 45], 15, 0],
+    'D99-1215': ['angular', 1.2, 1.56, [1.5, 10.43], [0.95, 14.47], [40, 500], [50, 50], 15, 0], 'D99-1520': ['estandar', 1.5, 2.0, [1.9, 13.1], [1.24, 21.8], [40, 500], 0, 0, 0],
+    'D99-2040': ['media', 2.0, 4.0, [3.48, 25.1], [1.82, 41.8], [40, 500], 0, 0, 0], 'D99-4070': ['larga', 4.0, 7.0, [6.92, 44.8], [4.38, 74.5], [50, 500], 0, 0, 0],
+    'D98-69103': ['larga', 6.9, 10.3, [12, 80], 0, [54, 360], [50, 50], 15, 0] },
+  '5U': { '': ['estandar', 1.15, 1.9, [1.482, 6.292], [0.91, 20.46], [60, 250], [15, 5], 2, 0], 'K1U-0505': ['corta', 0.5, 0.5, [0.972, 1.757], [0.76, 3.26], [90, 160], [9, 5], 2, 0], 'K1U-0812': ['corta', 0.8, 1.2, [1.372, 5.5255], [1.04, 10.35], [80, 300], [15, 5], 2, 0] },
+  '5K': { '': ['estandar', 1.15, 1.9, [1.515, 6.429], [1.02, 21.03], [60, 250], [22, 2], 2, 0], 'K1K-0505': ['corta', 0.5, 0.5, [0.9798, 1.803], [0.78, 3.34], [90, 160], [21, 2], 2, 0], 'K1K-0812': ['corta', 0.8, 1.2, [1.411, 5.402], [1.06, 10.64], [80, 300], [22, 2], 2, 0] }
+};
+// las ópticas de Vivitek por chip, para las pantallas de catálogo (la referencia de la DU9059Z lleva «D99A-»)
+export const OPTICAS_VIVITEK = Object.entries(LENTES_VIVITEK).flatMap(([g, L]) => Object.entries(L).filter(([r]) => r).map(([ref, d]) => ({ ref, tipo: d[0], g, img: d[5] ? d[5][1] : 500 })));
 function leerVivitek() {
   const out = [];
   VIVITEK.forEach((g) => g.m.forEach(([modelo, lumens]) => {
     const [aw, ah] = g.ar.split(':').map(Number), px = g.res.match(/(\d{3,5})\s*x\s*(\d{3,5})/).slice(1).map(Number);
     const base = { marca: 'VIVITEK', modelo, serie: g.serie, ar: aw / ah, arTxt: g.ar, resX: px[0], resY: px[1], resTxt: g.res, k4: !!g.k4, k4nativo: !!g.k4, imagen: '', chasis: g.chasis, lumens };
-    const combo = (optica, tr, img, shV, sube) => ({ ...base, id: modelo + (optica ? '|' + optica : ''), optica, nombre: modelo + (optica ? ' + ' + optica : ''), trMin: tr[0], trMax: tr[1], ust: tr[0] < 0.4,
-      maxDiagPulg: img, maxDiagPulgOOS: img, shiftV: shV, shiftH: g.sh[1], shiftSube: !!sube });
-    if (g.fija) { out.push(combo('', g.fija, g.img, g.sh[0], false)); return; }
-    OPTICAS_VIVITEK.forEach((o) => { const tr = o.tr[g.chip]; if (!tr || !o.s.includes(g.serie)) return; out.push(combo(o.ref, tr, o.img, g.chip === 80 && o.lim80 ? Math.min(g.sh[0], o.lim80) : g.sh[0], o.sube)); });
+    Object.entries(LENTES_VIVITEK[g.g]).forEach(([ref, d]) => {
+      const [tipo, a, b, foco, focoMec, img, V, H, bri] = d, v = V || g.V, optica = ref ? (g.pref ? ref.replace('D99-', g.pref) : ref) : '';
+      out.push({ ...base, id: modelo + (optica ? '|' + optica : ''), optica, nombre: modelo + (optica ? ' + ' + optica : ''), trMin: a, trMax: b, ust: false, tipoOptica: tipo,
+        minDiagPulg: img ? img[0] : 0, maxDiagPulg: img ? img[1] : 500, maxDiagPulgOOS: img ? img[1] : 500, foco, focoMec: focoMec || null,
+        shiftV: v[0], shiftVcontra: v[1], shiftH: H || g.H, shiftSube: false, offset: g.offset || 0, bri: bri ? [bri[0] / 100, bri[1] / 100] : null });
+    });
   }));
   return out;
 }
@@ -231,7 +242,7 @@ const anchoMin = (p) => (p.minDiagPulg > 0 ? p.minDiagPulg * 0.0254 * p.ar / Mat
 // no cubre o pasa del máximo, sale así, con su aviso, en vez de repartirla en varios equipos. El blending solo se calcula si se pide.
 export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false } = {}) {
   const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
-  const puedeV = !(p.ust && (p.shiftSube || !p.optica));
+  const puedeV = !p.plegada && !(p.ust && (p.shiftSube || !p.optica)) && !p.offset;   // v10.89 · las plegadas y las de lente en el borde (offset), solo en horizontal
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
   let mejor = null;
   for (const o of ors) {
@@ -255,17 +266,21 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       // rejillas de proyectores casi uno encima de otro (2×2 al 92 %, 1×8 al 114 %) cuando uno solo, con algo de recorte, ya cubre
       const exS = Math.max(0, oxR - SOLAPE_MAX) + Math.max(0, oyR - SOLAPE_MAX), exR = Math.max(0, recX - RECORTE_MAX) + Math.max(0, recY - RECORTE_MAX);
       const fuera = alcance != null && tiro > alcance + 1e-9;
-      const lux = p.lumens / (iw * ih);
+      // v10.89 · rendimiento de brillo de la óptica según el zoom (Vivitek) y foco en especificación / mecánico
+      const rz = tiro / nw, zw = p.trMax > p.trMin ? Math.min(1, Math.max(0, (p.trMax - rz) / (p.trMax - p.trMin))) : 1;
+      const kb = p.bri ? p.bri[1] + zw * (p.bri[0] - p.bri[1]) : 1;
+      const fueraFoco = !!p.foco && (tiro < p.foco[0] - 1e-6 || tiro > p.foco[1] + 1e-6), fueraMec = !!p.focoMec && (tiro < p.focoMec[0] - 1e-6 || tiro > p.focoMec[1] + 1e-6);
+      const lux = p.lumens * kb / (iw * ih);
       // v10.66 · un solape por encima del máximo de blending pesa ya más que no cubrir: con una óptica fija a una distancia fija salían cuatro
       // proyectores casi uno encima de otro (2×2 al 92 %) en vez de decir que desde ahí no se llega
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
-      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
+      const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (fueraMec ? 4e6 : fueraFoco && !oos ? 1.5e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
         + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0);
-      if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste };
+      if (!mejor || coste < mejor.coste) mejor = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec };
     }
   }
-  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre } = mejor, vert = o === 'v';
+  const { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, kb, fueraFoco, fueraMec } = mejor, vert = o === 'v';
   const nwF = vert ? ih : iw, tMin = p.trMin * nwF, tMaxZ = p.trMax * nwF;
   const pxW = vert ? p.resY : p.resX, pxH = vert ? p.resX : p.resY;
   const centros = cols === 1 ? [0] : Array.from({ length: cols }, (_, i) => -W / 2 + iw / 2 + i * (iw - ox));
@@ -276,7 +291,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   const tiroMax = dist > 0 ? tiro : Math.max(tiro, Math.min(tMaxZ, alcance != null ? alcance : Infinity));
   return { n: cols * rows, cols, rows, vert, imgW: iw, imgH: ih, solape: ox, solapeY: oy, solapeRel: Math.max(oxR, oyR), solapeRelX: oxR, solapeRelY: oyR, solapePx: Math.round(pxW * oxR),
     tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, chica, recorte: recY, recorteX: recX,
-    centros, filas, anchoTot: cols === 1 ? iw : cols * iw - (cols - 1) * ox, altoTot: rows === 1 ? ih : rows * ih - (rows - 1) * oy, resW, resH, lux, nits: lux / Math.PI };
+    centros, filas, anchoTot: cols === 1 ? iw : cols * iw - (cols - 1) * ox, altoTot: rows === 1 ? ih : rows * ih - (rows - 1) * oy, resW, resH, lux, nits: lux / Math.PI, rendBrillo: kb, fueraFoco, fueraMec };
 }
 
 // Suelo: rejilla de proyectores cenitales (desde el techo) con blending en los dos ejes
@@ -321,32 +336,43 @@ const aMundo = (s, x, y, z) => ({ x: s.x + x * Math.cos(s.rot) + z * Math.sin(s.
 //   y si la óptica no da el desplazamiento necesario, más abajo hasta donde llega;
 // - sin techo (fachada, exterior): en una base o torre a la altura más baja que permite el desplazamiento de la óptica.
 // En vertical el chasis gira 90° y el desplazamiento vertical de la superficie es el horizontal de la óptica.
+// v10.89 · la lente se coloca dentro del desplazamiento real de la óptica, que puede ser asimétrico (Vivitek: más hacia el lado normal) y llevar
+// «offset» (series 5000 de Vivitek: la lente en el borde de la imagen). Lado normal: colgado, la lente por encima del centro de la imagen; sobremesa,
+// por debajo. Las ultracortas plegadas y las de óptica fija ultracorta no desplazan: la imagen va a una separación fija del proyector.
+export const rangoLente = (prod, vert, apoyo) => {
+  const hacia = ((vert ? prod.shiftH : prod.shiftV) || 0) / 100, contra = ((vert ? prod.shiftH : (prod.shiftVcontra != null ? prod.shiftVcontra : prod.shiftV)) || 0) / 100, off = vert ? 0 : (prod.offset || 0);
+  return apoyo ? [-(off + hacia), -(off - contra)] : [off - contra, off + hacia];
+};
 export function colocarPared(s, p, prod, { alto, sala, techo: techoS, montaje = 'auto', altura = 0 }) {
   const altoPared = sala ? alto : s.elev + s.alto + 0.2;
   const altoCh = p.vert ? prod.chasis[0] : prod.chasis[2], paso = altoCh + HOLGURA.v;
   const yTop = s.elev + p.filas[p.rows - 1] + p.imgH;   // borde superior de la imagen conjunta
   const hayTecho = sala || (techoS > 0 && techoS >= yTop);
   const techo = sala ? alto - 0.05 - altoCh / 2 : (hayTecho ? techoS - 0.05 - altoCh / 2 : Infinity);
-  const lim = prod.ust ? 0 : (p.vert ? prod.shiftH : prod.shiftV) / 100 || 0;   // desplazamiento que da la óptica (fracción de la imagen)
+  const conShift = !prod.plegada && ((p.vert ? prod.shiftH : prod.shiftV) > 0);
+  const rC = rangoLente(prod, p.vert, false), rA = rangoLente(prod, p.vert, true);
   const suelo = 0.8 + altoCh / 2;                                                  // sobremesa
-  const yHung = Math.min(techo, prod.ust ? yTop + 0.22 : Math.max(yTop + 0.15, (sala ? alto : altoPared + 0.6) - 0.45));
+  const sep = prod.plegada && prod.sepUST ? prod.sepUST(Math.hypot(p.imgW, p.imgH) / 0.0254) : 0;
+  const yHung = Math.min(techo, Math.max(yTop + 0.15, (sala ? alto : altoPared + 0.6) - 0.45));
   const zL = Math.max(0.15, p.tiro), zMax = Math.max(zL, p.tiroMax || zL), out = [];
   for (let r = 0; r < p.rows; r++) {
     const y0 = s.elev + p.filas[r], y1 = y0 + p.imgH, yC = (y0 + y1) / 2;
     let yProy, apoyo = false;
-    if (montaje === 'apoyado') {
-      const yC0 = s.elev + p.filas[0] + p.imgH / 2, base = altura > 0 ? altura : (lim ? Math.max(0.8, yC0 - lim * p.imgH - altoCh / 2) : 0.8);
+    if (prod.plegada) {   // la imagen manda: colgado, el anclaje queda «sep» por encima de la imagen; sobremesa, el pie «sep» por debajo
+      const colg = montaje === 'colgado' || (montaje === 'auto' && hayTecho && y1 + sep + altoCh + 0.05 <= (sala ? alto : techoS) + 1e-6);
+      if (colg) yProy = y1 + sep - 0.05 - altoCh / 2; else { yProy = y0 - sep + altoCh / 2; apoyo = true; }
+    } else if (montaje === 'apoyado') {
+      const yC0 = s.elev + p.filas[0] + p.imgH / 2, base = altura > 0 ? altura : (conShift ? Math.max(0.8, yC0 + rA[0] * p.imgH - altoCh / 2) : 0.8);
       yProy = base + altoCh / 2 + r * paso; apoyo = true;
     }
     else if (montaje === 'colgado') yProy = (altura > 0 ? altura - 0.05 - altoCh / 2 : (hayTecho ? techo : yTop + 0.15 + altoCh / 2)) - (p.rows - 1 - r) * paso;
-    else if (prod.ust) yProy = Math.min(techo, y1 + 0.22);                         // UST: justo sobre su imagen
-    else if (hayTecho) { yProy = yHung - (p.rows - 1 - r) * paso; if (lim) yProy = Math.min(techo, Math.max(yC - lim * p.imgH, Math.min(yC + lim * p.imgH, yProy))); }
-    else if (lim) { yProy = Math.max(suelo, yC - lim * p.imgH); apoyo = true; }
+    else if (hayTecho) { yProy = yHung - (p.rows - 1 - r) * paso; if (conShift) yProy = Math.min(techo, Math.max(yC + rC[0] * p.imgH, Math.min(yC + rC[1] * p.imgH, yProy))); }
+    else if (conShift) { yProy = Math.max(suelo, yC + rA[0] * p.imgH); apoyo = true; }
     else yProy = yHung - (p.rows - 1 - r) * paso;
     p.centros.forEach(cx => out.push({
       lente: aMundo(s, cx, yProy, zL), rot: s.rot, prod, vert: !!p.vert, apoyo, ancho: p.imgW, zMax, nrm: { x: Math.sin(s.rot), z: Math.cos(s.rot) },
       esquinas: [[cx - p.imgW / 2, y1], [cx + p.imgW / 2, y1], [cx + p.imgW / 2, y0], [cx - p.imgW / 2, y0]].map(([a, b]) => aMundo(s, a, b, 0.01)),
-      yProy, y0, y1, zL, filaR: r
+      yProy, y0, y1, zL, filaR: r, sep
     }));
   }
   return out;

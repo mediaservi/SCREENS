@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
-import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces } from './proyeccion.js';
+import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
 const MARCAS_PROY = [...new Set(PROYECTORES.map(q => q.marca))].sort((a, b) => prioMarca(a) - prioMarca(b));
@@ -196,7 +196,8 @@ function calcular(forzarMulti) {
   // v10.54 · solo las marcas activadas (todas, si no se ha quitado ninguna)
   const mAct = marcasActivas(), CAT = mAct.length === MARCAS_PROY.length ? PROYECTORES : PROYECTORES.filter(q => mAct.includes(q.marca));
   const cand = CAT.filter(q => (!E.proy.cuerpo || q.modelo === E.proy.cuerpo) && (!E.proy.optica || q.optica === E.proy.optica));
-  const lista = cand.length ? cand : CAT;
+  let lista = cand.length ? cand : CAT;
+  if (!cand.length && E.proy.cuerpo && E.proy.optica) { const soloC = CAT.filter(q => q.modelo === E.proy.cuerpo); if (soloC.length) { lista = soloC; E.proy.optica = ''; } }   // v10.89 · una óptica que no va con ese cuerpo: se queda el cuerpo, la óptica vuelve a AUTO
   const fijo = lista.length === 1 ? lista[0] : null, fijoS = E.proy.idSuelo && PROYECTORES.find(p => p.id === E.proy.idSuelo);
   let proyector, prSuelo, inst, auto = null;
   // v10.63 · una sola marca por proyecto: el proyector del suelo es de la misma marca que el de las paredes (uno elegido a mano de otra marca
@@ -293,8 +294,9 @@ function costeInstalacion(filas, S) {
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.
 const nombreQ = (q) => (q ? (q.marca ? q.marca + ' ' : '') + q.nombre : '');
 // desplazamiento de la lente que pide la colocación frente al que da la óptica (en vertical, el de la sala es el horizontal de la óptica)
-const limShift = (f) => { const q = f.proyector; return !q || q.ust || !q.shiftV ? 0 : f.p.vert ? q.shiftH : q.shiftV; };
-const pasaShift = (f) => !!f.pos && !!limShift(f) && Math.abs(f.pos.shiftV) > limShift(f) + 0.5;
+const limShift = (f) => { const q = f.proyector; return !q || q.plegada || !q.shiftV ? 0 : f.p.vert ? q.shiftH : q.shiftV; };
+// v10.89 · el desplazamiento se compara con el rango real de la óptica (asimétrico y con offset en Vivitek), según vaya colgado o sobremesa
+const pasaShift = (f) => { if (!f.pos || !limShift(f)) return false; const r = rangoLente(f.proyector, f.p.vert, f.pos.apoyo).map(v => v * 100); return f.pos.shiftV < r[0] - 0.5 || f.pos.shiftV > r[1] + 0.5; };
 function veredicto(c) {
   const M = [], R = (k, txt, x) => M.push({ n: 'R', k, txt, ...(x || {}) }), A = (k, txt, x) => M.push({ n: 'A', k, txt, ...(x || {}) });
   if (E.tecnologia === 'led') {
@@ -320,7 +322,8 @@ function veredicto(c) {
     pw.filter(f => f.p.solapeRel > SOLAPE_RECO + 1e-6 && f.p.solapeRel <= SOLAPE_MAX + 1e-6).forEach(f => A('solapeMedio', t('vSolapeMedio', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre, r: fmt(SOLAPE_RECO * 100, 0) })));
     pw.filter(f => Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6).forEach(f => A('recorte', t('vRecorte', { p: fmt(Math.max(f.p.recorte, f.p.recorteX) * 100, 0), n: f.nombre })));
     if (pw.some(f => f.p.fueraZoom && !f.p.noCubre)) A('zoom', t('fueraZoom'));
-    { const L = pw.filter(pasaShift); if (L.length) A('shift', t('vShift', { s: nom(L) })); }
+    { const L = pw.filter(pasaShift); if (L.length) R('shift', t('vShift', { s: nom(L) })); }   // v10.89 · la lente no llega: en rojo (la imagen no se puede poner ahí)
+    { const L = pw.filter(f => f.p.fueraMec); if (L.length) R('foco', t('vFocoMec', { s: nom(L) })); else { const L2 = pw.filter(f => f.p.fueraFoco); if (L2.length) A('foco', t('vFoco', { s: nom(L2) })); } }
     pw.filter(f => f.pos && f.pos.techo > 0 && f.pos.y1 > f.pos.techo + 0.005).forEach(f => A('techo', t('vTecho', { n: f.nombre, d: fmt(f.pos.y1 - f.pos.techo, 2) })));
     pw.filter(f => f.pos && f.pos.y0 < -0.005).forEach(f => A('suelo', t('vSuelo', { n: f.nombre, d: fmt(-f.pos.y0, 2) })));
     if (c.tipoP === 'pared' && !E.proy.pubNS) (S.franjas || []).filter(f => f.prof > c.dist).forEach(f => A('publico', t('segPublico', { d: fmt(c.dist, 1), n: f.nombre })));
@@ -868,7 +871,8 @@ function vistaSimulacion(c) {
   let l = li(1, colg ? 'rs1c' : 'rs1', m(o.altura)) + li(2, 'rs2', m(Math.abs(o.altura - o.y0))) + li(3, 'rs3', m(o.dist));
   // (4) como en Epson: de la superficie proyectada (pared o pantalla) al centro exacto de la óptica, esté como esté colocado el proyector
   const lc = (c.sombras && c.sombras.haces || []).find(h => h.sup === f.s.id), d4 = lc && lc.nrm ? Math.abs((lc.lente.x - f.s.x) * lc.nrm.x + (lc.lente.z - f.s.z) * lc.nrm.z) : o.dist;
-  l += li(4, 'rs8', m(d4)) + li(5, 'rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—') + li(6, 'rs5', m(o.y0)) + li(7, 'rs6', `${fmt(q.imgW, 3)} × ${fmt(q.imgH, 3)} m`) + li(8, 'rs7', fmt(o.diag, 2) + ' ″');
+  const q0 = f.proyector || c.proyector; l += (q0 && q0.plegada && q0.desfase ? li(4, 'rsFrente', m(Math.max(0, o.dist - q0.desfase))) : li(4, 'rs8', m(d4))) +   // ultracortas: hasta la cara del cuerpo más cercana
+    li(5, 'rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—') + li(6, 'rs5', m(o.y0)) + li(7, 'rs6', `${fmt(q.imgW, 3)} × ${fmt(q.imgH, 3)} m`) + li(8, 'rs7', fmt(o.diag, 2) + ' ″');
   const sem = semaforo(q.contraste);
   return `<section class="res-sec res-sim"><div class="res-tit">${ICO.proy}${t('resSim')}</div><div class="sim-col"><div><div class="etq">${t('resPos')}</div><ul class="sim-l">${l}</ul></div>
     <div><div class="etq">${t('resAj')}</div><ul class="sim-l"><li>${t('rsShV')}: <span class="mono">${fmt(o.shiftV, 0)} %</span></li><li>${t('rsShH')}: <span class="mono">0 %</span></li></ul>

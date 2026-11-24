@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.83** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.84** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -41,7 +41,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 
 **Varias pantallas, sala inmersiva y proyección (consola)**
 - **Mandos** en las dos primeras columnas: tipo, tamaño, luz y superficie, entorno (puertas y obstáculos), material, ajuste del equipo y electrónica o mediaserver; cada bloque con su RESTABLECER. Si no caben, los que no se usan se pliegan con su resumen.
-- **Simulación a escala en 3D** (three.js): exterior, dentro y planta; carta de ajuste, panorámica, ascensor, contenido propio; rótulos y safety zone; se puede ver en grande.
+- **Simulación a escala en 3D** (three.js): exterior, dentro y planta; carta de ajuste, panorámica, ascensor, contenido propio; rótulos y safety zone; se puede ver en grande. Cada proyector se dibuja con **el cuerpo de su familia** (`screens/cuerpos.js`), a su medida real y en gris medio, y el haz sale de su óptica.
 - **Resultados:** tabla por superficie, vistas técnicas de proyección (lateral, frontal y cenital, con el proyector arrastrable), posición, sombras, electrónica y equipo elegido; y las **seis cifras clave** en su fila.
 - **PDF** con la captura 3D, los resultados, la electrónica y los equipos.
 - **Proyectores:** Epson, Vivitek y Christie, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, tamaño de imagen y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK > CHRISTIE: la siguiente marca solo sale si con la anterior no hay una instalación limpia.
@@ -75,7 +75,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.83)
+## Cambios de la versión actual (v10.84)
+- **Proyectores con su cuerpo real en la simulación** (pedido por Josep, 24-11-2026): el bloque blanco igual para todos se cambia por un cuerpo 3D por familia, hecho sobre la foto oficial de cada equipo y revisado uno a uno por Josep: EB-815E (ultracorta, la luz sale por el cristal de arriba), EB-805F (periscopio con la lente esférica), L695SE / L795SE / L695SU, PU1000 / PQ2000, PU2200 / PQ2200, XQ2030B (con los huecos de apilado del mismo diámetro que sus patas), Vivitek DU7000Z, DU8000Z / DK8000Z, DU9057Z / DU9059Z y DU5000Z / DK5000Z. Los Christie llevan un cuerpo genérico.
+- **Óptica ultracorta plegada de Epson** (ELPLX01S / ELPLX02S): el cuerpo PU / PQ / XQ lleva la columna que sube por delante y el cabezal con la esfera de la lente, que proyecta hacia atrás por encima del equipo; funciona sobre mesa o colgado.
+- **A su medida y en gris medio**: cada cuerpo sale con el ancho, fondo y alto de su ficha y en un gris neutro que representa igual a los modelos blancos y negros; las rejillas, huecos y marcos van en gris oscuro y las lentes con su cristal. El haz de luz sale del punto real de la óptica de cada familia, y la marca del color del haz va encima del cuerpo.
+
+## Cambios de la v10.83
 - **VARIAS LED en escritorio, fila de abajo como la de PROYECCIÓN** (pedido por Josep, 23-11-2026): **sumario técnico** (cabinet, superficies, cabinets, lienzo, peso, consumo, líneas, procesador y mediaserver), **esquema de las pantallas** a escala con su retícula de cabinets y las líneas de datos por colores (reparto orientativo) y **observaciones y avisos** (veredicto, falta de peso en el catálogo, cabinets quitados).
 - **Letra más grande en portátiles**: por debajo de 1920 × 1080 la consola se maqueta a 1600 × 900 (antes se encogía todo a 1920 × 1080).
 - **Nada diminuto ni desbordado**: el sumario en columnas (etiqueta encima y dato debajo); los títulos y etiquetas largas pasan a dos líneas antes que encogerse; en columnas estrechas, los botones de opción sin icono; las etiquetas de las fichas más grandes; la fila de abajo algo más baja para dar sitio a los mandos.

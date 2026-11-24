@@ -8,6 +8,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { HUMAN_PATH } from './figura.js';
 import { colocarPared } from './proyeccion.js';
+import { cuerpoProyector } from './cuerpos.js';
 
 const MONO = "'Share Tech Mono', ui-monospace, Menlo, monospace";
 const SANS = "'Inter', Arial, sans-serif";
@@ -479,17 +480,15 @@ export class Escena {
   }
   _proyector(G, lente, esquinas, i, prod, suelo, tapa, vert) {
     const col = new THREE.Color(COL_PROY[i % COL_PROY.length]);
-    const cuerpo = new THREE.Group();
-    // en rojo, el proyector que queda dentro del haz de otra superficie (hará sombra en esa imagen)
-    const caja = new THREE.Mesh(new THREE.BoxGeometry(prod.ust ? 0.46 : 0.5, 0.17, prod.ust ? 0.36 : 0.48), new THREE.MeshStandardMaterial(tapa ? { color: 0xff3344, roughness: 0.4, metalness: 0.1, emissive: 0x550008 } : { color: 0xe9e9ec, roughness: 0.45, metalness: 0.1 }));
-    caja.castShadow = true; cuerpo.add(caja);
-    const lenteM = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.08, 24), new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.3, metalness: 0.6 }));
-    lenteM.rotation.x = Math.PI / 2; lenteM.position.set(0, 0, 0.27); cuerpo.add(lenteM);
-    const led = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.012, 0.01), new THREE.MeshBasicMaterial({ color: col })); led.position.set(0.15, 0.03, 0.245); cuerpo.add(led);
+    // v10.84 · el cuerpo real de cada familia, a su medida y en gris medio, con la luz saliendo de su óptica (en rojo, el que queda dentro del haz de otra superficie)
+    const cuerpo = cuerpoProyector(THREE, prod, tapa); cuerpo.userData.proyector = prod.modelo;
+    const cj = new THREE.Box3().setFromObject(cuerpo);   // marca del color del haz encima del cuerpo, para saber qué haz es de cada uno
+    const led = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.006, 0.02), new THREE.MeshBasicMaterial({ color: col })); led.position.set((cj.min.x + cj.max.x) / 2, cj.max.y + 0.004, cj.min.z + 0.05); cuerpo.add(led);
     const centro = esquinas.reduce((a, v) => a.add(v), new THREE.Vector3()).multiplyScalar(0.25);
     cuerpo.position.copy(lente);
     if (suelo) cuerpo.lookAt(lente.x, -10, lente.z + 0.02); else cuerpo.lookAt(centro.x, lente.y, centro.z);
     if (vert) cuerpo.rotateZ(Math.PI / 2);   // v8.0 · en vertical (retrato), girado 90° sobre el eje de la óptica
+    if (!suelo && prod.ust && lente.y > centro.y) cuerpo.rotateZ(Math.PI);   // v10.84 · ultracorta colgada del techo: invertida, con el cristal o el periscopio hacia abajo
     G.add(cuerpo);
     if (tapa) this._etiqueta('⚠', lente.clone().add(new THREE.Vector3(0, 0.32, 0)), 0.22, { borde: '#ff4d5e', col: '#ffd500' });
     {

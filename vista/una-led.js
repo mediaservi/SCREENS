@@ -20,7 +20,7 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
-import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=10.94';   /* v10.94 · planos técnicos de señal y de alimentación */
+import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=10.95';   /* v10.94 · planos técnicos de señal y de alimentación */
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
@@ -28,7 +28,7 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.94';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.95';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -135,12 +135,31 @@ let FPROP = (() => { try { return localStorage.getItem(FPROP_K) || ''; } catch (
 if (E.fondo === 'propio' && !FPROP) E.fondo = DEF.fondo;
 
 /* ---------- petición escrita ---------- */
+/* v10.95 · lo que la petición da en cabinets o en píxeles y no en metros: se aplica al acabar el cálculo, con el cabinet ya elegido */
+let PEND = null;
 function interpreta(raw) {
-  const t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ', v = [];
+  let t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' '; const v = [];
+  /* v10.95 · el modelo por su nombre («UFIX-COB-1.2», «slim fix 2.6 50»): manda sobre todo lo demás; el más largo que coincida */
+  let mod = null; PEND = null;
+  CAT.slice().sort((x, y) => String(y.crm || '').length - String(x.crm || '').length).some((m) => { const tk = String(m.crm || '').toLowerCase().split(/[^a-z0-9.]+/).filter(Boolean); if (tk.join('').length < 4) return false;
+    const re = new RegExp('(^|[^a-z0-9])' + tk.map((x) => x.replace(/\./g, '\\.')).join('[\\s\\-_·]*') + '(?![a-z0-9])(?!\\.\\d)'), k = t.match(re); if (!k) return false; mod = m; t = t.replace(k[0], ' '); v.push(String(m.crm)); return true; });
+  /* v10.95 · «8 × 8 cabinets» son columnas y filas, y «3840 × 2160 píxeles» es la resolución: ninguna de las dos son metros */
+  let cabs = null, px = null;
+  { const X = '\\s*(?:x|×|\\*|por|by|per)\\s*', k = t.match(new RegExp('(\\d{1,3})' + X + '(\\d{1,3})\\s*(?:cabinets?|cabs?|modulos?|moduls?|modules?|paneles|panels|plafons|tiles|losetas)(?![a-z])')) || t.match(/(\d{1,3})\s*(?:columnas?|columnes|columns?|cols?)\s*(?:x|×|\*|por|by|per|y|i|and|,)?\s*(\d{1,3})\s*(?:filas?|files|rows?)(?![a-z])/);
+    if (k) { cabs = [+k[1], +k[2]]; t = t.replace(k[0], ' '); v.push(cabs[0] + ' × ' + cabs[1] + ' cabinets'); } }
+  /* v10.95 · pliegos: «dimensiones del cabinet: 600 × 337,5 mm» y «resolución por cabinet: 480 × 270 píxeles» describen el cabinet, no la pantalla */
+  let cabMm = null, cabPx = null, nitsPide = 0;
+  { const CB = '(?:cabinets?|modulos?|moduls?|modules?|panel(?:es)?|gabinetes?)\\s*(?::|=|de|of)?\\s*', XX = '\\s*(?:x|×|\\*|por|by|per)\\s*';
+    const a = t.match(new RegExp(CB + '(\\d{2,4})' + XX + '(\\d{2,4})\\s*(?:px|pix|pixeles|pixels?|puntos|punts)(?![a-z])')); if (a) { cabPx = [+a[1], +a[2]]; t = t.replace(a[0], ' '); }
+    const b = t.match(new RegExp(CB + '(\\d{2,4}(?:\\.\\d+)?)\\s*(?:mm)?' + XX + '(\\d{2,4}(?:\\.\\d+)?)\\s*mm(?![a-z])')); if (b) { cabMm = [parseFloat(b[1]), parseFloat(b[2])]; t = t.replace(b[0], ' '); }
+    const n = t.match(/(\d{1,2}\.\d{3}|\d{3,5})\s*(?:nits?|cd\/m2|cd\/m²)/); if (n) nitsPide = +n[1].replace('.', ''); }
+  { const X = '\\s*(?:x|×|\\*|por|by|per)\\s*';
+    const q = t.match(new RegExp('(\\d{3,5})' + X + '(\\d{3,5})\\s*(?:px|pix|pixeles|pixels?|puntos|punts)(?![a-z])')); if (q) { px = [+q[1], +q[2]]; t = t.replace(q[0], ' '); v.push(px[0] + ' × ' + px[1] + ' px'); } }
   const U = '(mm|cm|m|mts?|metros?|metres?|meters?)?', aM = (n, u) => { n = parseFloat(n); return u === 'mm' ? n / 1000 : u === 'cm' ? n / 100 : n; };
   /* v10.63 · también «4 metros de ancho por 2,5 de alto» */
-  const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'))
-    || t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:ancho|ample|amplada|wide|width)\\s*(?:x|×|\\*|por|by|per|y|i|and|,)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:alto|alt|altura|alcada|high|height)'));
+  /* v10.95 · manda la medida que dice cuál es el ancho y cuál el alto; si no la hay, el primer «a × b» */
+  const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:ancho|ample|amplada|wide|width)\\s*(?:x|×|\\*|por|by|per|y|i|and|,)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:alto|alt|altura|alcada|high|height)'))
+    || t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'));
   let resto = t;
   if (d) { let u = d[4] || d[2], u1 = d[2] || d[4];
     /* v10.63 · sin unidad: «3000 x 2000» son milímetros y «300 x 200», centímetros (nadie pide una pantalla de 300 m) */
@@ -149,7 +168,7 @@ function interpreta(raw) {
     /* v10.63 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
     E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
   /* v10.63 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
-  if (d) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
+  if (d || cabs || px || mod) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
   if (/escaparate|vitrina|shop ?window|storefront|aparador/.test(t)) { E.tipo = 'ESCAPARATE'; v.push('escaparate'); }
   else if (/exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa/.test(t)) { E.tipo = 'OUTDOOR'; v.push('exterior'); }
   else if (/interior|indoor|inside|\bsala\b|salon|oficina|office|\bstand\b|showroom/.test(t)) { E.tipo = 'INDOOR'; v.push('interior'); }
@@ -169,8 +188,25 @@ function interpreta(raw) {
   if (/(sin|sense|without|no) (backup|redundanc)/.test(t)) E.backup = false; else if (/backup|redundan/.test(t)) E.backup = true;
   if (/fibra|fiber|fibre/.test(t)) E.conexion = 'fibra';
   if (/(sin|sense|without|no) (mediaserver|media server|servidor)/.test(t)) E.marca = 'ninguno'; else if (/mediaserver|media server|servidor de|content server/.test(t)) E.marca = 'todos';
+  /* v10.95 · con el modelo nombrado, el entorno y el uso son los suyos y no se elige otro por pitch, brillo ni stock */
+  if (!mod && (cabMm || cabPx)) { const cerca = (x, y) => Math.abs(+x - +y) <= 1; let L = CAT.filter((m) => (!cabMm || (cerca(m.cabAncho, cabMm[0]) && cerca(m.cabAlto, cabMm[1]))) && (!cabPx || (+m.cabPixAncho === cabPx[0] && +m.cabPixAlto === cabPx[1])));
+    const afina = (f) => { const x = L.filter(f); if (x.length) L = x; }; if (E.pitch) afina((m) => Math.abs(m.pitch - E.pitch) < .06); if (/\bcob\b/.test(t)) afina((m) => /cob/i.test(String(m.tech || '') + ' ' + String(m.crm || ''))); afina((m) => m.tipo === E.tipo); afina((m) => m.class === E.clase);
+    if (L.length) { mod = L[0]; v.push(String(mod.crm)); } }
+  if (mod) { E.crm = mod.crm; E.tipo = mod.tipo; E.clase = mod.class; E.transp = esTransp(mod); E.pitch = 0; E.pitchOtros = []; E.sol = ''; E.nitsMin = 0; E.resMin = ''; if (E.gold && !/gold/i.test(String(mod.tech || ''))) E.gold = false; }
+  if (cabs || px || mod || nitsPide || cabMm || cabPx) PEND = { cabs, px, med: !!d || !(cabs || px), crm: mod ? mod.crm : '', nits: nitsPide, pitch: p ? parseFloat(p[1] || p[2] || p[3]) : 0, cabMm, cabPx };
   return v;
 }
+/* v10.95 · tras el cálculo: sin medidas en metros, la pantalla sale de los cabinets pedidos (o de los píxeles); con medidas, se comprueba que cuadran */
+function aplicaPend() { const P = PEND; PEND = null; if (!P || !R || !R.m || !R.r) return; const m = R.m;
+  if (!P.med) { if (P.cabs) { E.w = P.cabs[0] * m.cabAncho / 1000 + .0004; E.h = P.cabs[1] * m.cabAlto / 1000 + .0004; } else { E.w = Math.ceil(P.px[0] / m.cabPixAncho) * m.cabAncho / 1000 + .0004; E.h = Math.ceil(P.px[1] / m.cabPixAlto) * m.cabAlto / 1000 + .0004; } E.crm = m.crm; if (E.uni === 'm' && (m.cabAncho % 100 || m.cabAlto % 100)) E.uni = 'mm'; todo(); }
+  if (!R || !R.r) return; const r = R.r, av = [];
+  if (P.cabs && (r.cols !== P.cabs[0] || r.rows !== P.cabs[1])) av.push('salen ' + r.cols + ' × ' + r.rows + ' cabinets (pedías ' + P.cabs[0] + ' × ' + P.cabs[1] + ')');
+  if (P.px && (r.resW !== P.px[0] || r.resH !== P.px[1])) av.push('la resolución es ' + r.resW + ' × ' + r.resH + ' px (pedías ' + P.px[0] + ' × ' + P.px[1] + ')');
+  if (P.nits && +R.m.nits < P.nits) av.push('este cabinet da ' + R.m.nits + ' nits (pedías ' + P.nits + ')');
+  if (P.pitch && Math.abs(R.m.pitch - P.pitch) >= .06) av.push('el pitch es ' + fmt(R.m.pitch, 2) + ' mm (pedías ' + fmt(P.pitch, 2) + ')');
+  if (!P.crm && (P.cabMm || P.cabPx)) av.push('no hay en el catálogo un cabinet de ' + (P.cabMm ? P.cabMm.join(' × ') + ' mm' : P.cabPx.join(' × ') + ' px'));
+  if (P.crm && R.m.crm !== P.crm) av.push('el modelo ' + P.crm + ' no está disponible para lo pedido');
+  if (av.length) tostada('Ojo: ' + av.join('; ') + '.', 8000); }
 
 /* ---------- cálculo ---------- */
 /* brillo que hace falta según el sol (decisión pendiente de confirmar por Josep): a pleno sol, 5000 nits o más; con sol indirecto o sombra, de 2500 a 5000 */
@@ -633,7 +669,7 @@ function monta() {
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.88 · en móvil vertical la versión va al pie */ /* v10.88 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
     if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
-    const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
+    const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
   const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
   document.addEventListener('click', (e) => { const q = (s) => e.target.closest(s); let b; if (q('.rejilla button, .velo [data-set]')) USADO = true;

@@ -380,6 +380,15 @@ const REGLAS = [
   [/^Alquiler en stock: (.+)$/, (m, l) => ['Rental in stock: ', 'Lloguer en estoc: '][k(l)] + m[1]],
   [/^En stock, de alquiler: (.+) \(el fijo propuesto va bajo pedido; se puede dejar instalado\)\.$/, (m, l) => [`In stock, rental: ${m[1]} (the fixed cabinet proposed is made to order; it can be left installed).`, `En estoc, de lloguer: ${m[1]} (el fix proposat va sota comanda; es pot deixar instal·lat).`][k(l)]],
   [/^Ningún cabinet de este entorno llega a (\d+) nits: se muestran los que hay\.$/, (m, l) => [`No cabinet for this environment reaches ${m[1]} nits: showing what there is.`, `Cap cabinet d’aquest entorn arriba a ${m[1]} nits: es mostren els que hi ha.`][k(l)]],
+  /* v10.95 · avisos de la petición con modelo, cabinets, píxeles, brillo o pitch */
+  [/^Ojo: (.+)\.$/, (m, l) => { const i = k(l), R = [
+      [/salen (\d+ × \d+) cabinets \(pedías (\d+ × \d+)\)/, (x) => [`it comes to ${x[1]} cabinets (you asked for ${x[2]})`, `surten ${x[1]} cabinets (demanaves ${x[2]})`][i]],
+      [/la resolución es (\d+ × \d+) px \(pedías (\d+ × \d+)\)/, (x) => [`the resolution is ${x[1]} px (you asked for ${x[2]})`, `la resolució és ${x[1]} px (demanaves ${x[2]})`][i]],
+      [/este cabinet da (\d+) nits \(pedías (\d+)\)/, (x) => [`this cabinet gives ${x[1]} nits (you asked for ${x[2]})`, `aquest cabinet dona ${x[1]} nits (demanaves ${x[2]})`][i]],
+      [/el pitch es ([\d.,]+) mm \(pedías ([\d.,]+)\)/, (x) => [`the pitch is ${x[1]} mm (you asked for ${x[2]})`, `el pitch és ${x[1]} mm (demanaves ${x[2]})`][i]],
+      [/no hay en el catálogo un cabinet de (.+)$/, (x) => [`there is no ${x[1]} cabinet in the catalogue`, `no hi ha al catàleg cap cabinet de ${x[1]}`][i]],
+      [/el modelo (.+) no está disponible para lo pedido/, (x) => [`model ${x[1]} is not available for this request`, `el model ${x[1]} no està disponible per al que demanes`][i]]];
+    return [`Note: `, `Compte: `][i] + m[1].split('; ').map((p) => { for (const [re, f] of R) { const x = p.match(re); if (x) return f(x); } return p; }).join('; ') + '.'; }],
   [/^Con cabinets enteros queda en (.+) px\.$/, (m, l) => [`With whole cabinets it comes to ${m[1]} px.`, `Amb cabinets sencers queda en ${m[1]} px.`][k(l)]],
   [/^HOLO · (una fila de (\d+) mm|dos filas contrapuestas de (\d+) \+ (\d+) mm) · caja de drivers de (\d+) mm(.*)$/, (m, l) => 'HOLO · ' + (m[2] ? [`one row of ${m[2]} mm`, `una fila de ${m[2]} mm`][k(l)] : [`two opposed rows of ${m[3]} + ${m[4]} mm`, `dues files contraposades de ${m[3]} + ${m[4]} mm`][k(l)]) + [` · ${m[5]} mm driver box`, ` · caixa de drivers de ${m[5]} mm`][k(l)] + m[6]],
   [/^(.+) · stock$/, (m, l) => m[1] + [' · stock', ' · estoc'][k(l)]], [/^(.+) · recomendado$/, (m, l) => m[1] + [' · recommended', ' · recomanat'][k(l)]],

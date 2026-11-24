@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.94** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.95** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.94)
+## Cambios de la versión actual (v10.95)
+- **Petición escrita en UNA · LED: entiende el modelo, los cabinets y los píxeles** (fallo grave avisado por Josep, 24-11-2026). «UFIX-COB-1.2, 8 × 8 cabinets, 4800 × 2700 mm, 3840 × 2160 píxeles» daba otro modelo y una pantalla de 8 × 8 metros, porque «8 × 8 cabinets» se leía como metros y el nombre del modelo se ignoraba. Ahora:
+  - **El modelo por su nombre** (con guiones, espacios o coma decimal) manda sobre el pitch, el brillo y el stock, y pone su entorno y su uso.
+  - **«N × M cabinets»** (o columnas × filas) son columnas y filas; **«W × H píxeles»** es la resolución. Sin medida en metros, la pantalla sale de ahí.
+  - **Pliegos:** «Medida: 4,20 m de ancho × 2,37 m de alto» manda sobre cualquier otro «a × b» del texto; «Dimensiones del cabinet: 600 × 337,5 mm» y «Resolución por cabinet: 480 × 270 píxeles» describen el cabinet y sirven para encontrar el modelo del catálogo que coincide.
+  - **Avisos claros** si lo calculado no cuadra con lo pedido: cabinets, resolución, pitch, brillo en nits o un cabinet que no está en el catálogo. En español, inglés y catalán.
+  - En VARIAS, «N × M cabinets» y «W × H píxeles» ya no se toman por metros, y las medidas en milímetros o centímetros («4800 × 2700 mm») se leen bien (antes se tomaban por metros).
+
+## Cambios de la v10.94
 - **Direcciones de carpeta sin la barra final (24-11-2026):** con la app ya visitada o instalada, abrir una dirección como `/configuradores` daba «No se puede acceder a este sitio web» (ERR_FAILED), porque el service worker entregaba tal cual la respuesta redirigida por el servidor. Ahora devuelve una redirección limpia; caché renovada (`screens-offline-v95`).
 - **Planos técnicos de conexionado en SCREENS LED** (pedido por Josep, 24-11-2026), en el formato que usa el técnico para pasárselos al cliente y con los mismos cálculos de SCREENS:
   - **Plano de señal**: cada cabinet con «tarjeta-puerto-orden» y su X, Y, W, H en píxeles; una línea de color por puerto de datos con el sentido del cosido, **E** (entrada del puerto) y **S** (salida, fin de la cadena); con backup, la **redundancia R** de cada cadena, numerada después de los puertos principales (por ejemplo 5 puertos de señal y los otros 5 de redundancia). Cuadro «Información de la pantalla»: tamaño en píxeles, nombre, modelo, cabinets, píxeles por cabinet, procesador, puertos usados, máximo de cabinets por puerto, cosido y fecha.

@@ -5,7 +5,13 @@ const NUM = { un: 1, una: 1, uno: 1, one: 1, dos: 2, two: 2, tres: 3, three: 3, 
 const n = (v) => (v == null ? NaN : NUM[v] != null ? NUM[v] : parseFloat(String(v).replace(',', '.')));
 
 export function interpretar(texto, tecCtx) {
-  const t = ' ' + String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ';
+  let t = ' ' + String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ';
+  /* v10.95 · «8 × 8 cabinets» y «3840 × 2160 píxeles» no son medidas en metros: se apartan antes de leer las medidas */
+  t = t.replace(/\d{1,3}\s*(?:x|×|\*|por|by|per)\s*\d{1,3}\s*(?:cabinets?|cabs?|modulos?|moduls?|modules?|paneles|panels|plafons|tiles|losetas)(?![a-z])/g, ' ').replace(/\d{3,5}\s*(?:x|×|\*|por|by|per)\s*\d{3,5}\s*(?:px|pix|pixeles|pixels?|puntos|punts)(?![a-z])/g, ' ');
+  /* v10.95 · medidas en milímetros o centímetros («4800 × 2700 mm», «480 x 270 cm», o sin unidad a partir de 1000): se pasan a metros, que es en lo que se leen */
+  t = t.replace(/(\d+(?:\.\d+)?)\s*(mm|cm)?\s*(x|×|\*|por|by|per)\s*(\d+(?:\.\d+)?)(?:\s*(mm|cm)?\s*(x|×|\*|por|by|per)\s*(\d+(?:\.\d+)?))?\s*(mm|cm)?(?![a-z0-9.])/g, (todo, a, u1, x1, b, u2, x2, c3, u3) => {
+    const nums = [a, b, c3].filter((q) => q != null).map(parseFloat); let u = u3 || u2 || u1; if (!u && Math.max(...nums) >= 1000) u = 'mm'; if (!u) return todo;
+    const f = u === 'mm' ? 1000 : 100; return nums.map((q) => +(q / f).toFixed(4)).join(' x ') + ' m '; });
   const c = { esp: {}, sueltas: {}, paredes: null, led: {}, proy: {}, elec: {} }, vistos = [];
   let cantidad = null, tecnologia = null;
   // tecnología

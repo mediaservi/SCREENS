@@ -27,19 +27,21 @@ EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 // del cuerpo por serie; lmMax: tope; lmXQ: lúmenes del EB-XQ2030B con esa óptica), su imagen mínima (min, en pulgadas; por defecto 50″ en
 // PU1000 y 60″ en el resto) y, las ultracortas plegadas, la separación fija entre la imagen y el proyector (sep, m) y lo que va de la lente
 // a la cara del cuerpo más cercana a la pantalla (desfase, m). Las plegadas no desplazan la imagen: va pegada al proyector.
+/* v11.6 · ELPLU03S, ELPLW05 y ELPLM08 en PQ2000: desplazamiento ±25 / ±8 % (antes ±18 / ±6); ELPLU03S en PU2000 ±24 / ±8 % y mínimo de 80″ también
+   en PU1000; ELPLM08 en PQ2000 con tope de 9.600 lm. Leído en la herramienta de cálculo de Epson (24-11-2026) */
 export const OPTICAS = [
   { ref: 'ELPLX01S', tipo: 'ust', plegada: 1, sep: { PU1000: 0.259 }, desfase: { PU1000: 0.332 }, lm: { PU1000: 0.855 }, min: 100, s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
   { ref: 'ELPLX02S', tipo: 'ust', plegada: 1, sep: { PU2000: 0.2, PQ2000: 0.228, XQ2030: 0.228 }, desfase: { PU2000: 0.21, PQ2000: 0.225, XQ2030: 0.225 }, lm: { PU2000: 0.845, PQ2000: 0.845 }, lmXQ: 20000, min: 100, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
   { ref: 'ELPLX04H', tipo: 'corta', lmXQ: 24900, minS: { XQ2030: 80 }, s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
   { ref: 'ELPLU06H', tipo: 'corta', lmXQ: 25200, minS: { XQ2030: 80 }, s: { PU2000: [0.40, 0.51, 60, 18], PQ2000: [0.39, 0.49, 64, 16], XQ2030: [0.39, 0.49, 64, 16] } },
-  { ref: 'ELPLU03S', tipo: 'corta', lm: { PU1000: 0.855, PU2000: 0.87, PQ2000: 0.855 }, lmXQ: 20000, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [0.65, 0.78, 67, 30], PU2000: [0.48, 0.57, 24, 10], PQ2000: [0.46, 0.56, 18, 6], XQ2030: [0.46, 0.56, 25, 8] } },
+  { ref: 'ELPLU03S', tipo: 'corta', lm: { PU1000: 0.855, PU2000: 0.87, PQ2000: 0.855 }, lmXQ: 20000, minS: { PU1000: 80, PU2000: 80, PQ2000: 80 }, s: { PU1000: [0.65, 0.78, 67, 30], PU2000: [0.48, 0.57, 24, 8], PQ2000: [0.46, 0.56, 25, 8], XQ2030: [0.46, 0.56, 25, 8] } },
   { ref: 'ELPLU07H', tipo: 'corta', lmXQ: 26700, minS: { XQ2030: 80 }, s: { PU1000: [0.64, 0.87, 67, 30], PU2000: [0.47, 0.64, 60, 18], PQ2000: [0.46, 0.62, 64, 16], XQ2030: [0.46, 0.62, 64, 16] } },
   { ref: 'ELPLU04', tipo: 'corta', lm: { PU1000: 0.905, PU2000: 0.95, PQ2000: 0.945 }, lmXQ: 20000, s: { PU1000: [0.87, 1.05, 67, 30], PU2000: [0.64, 0.77, 60, 18], PQ2000: [0.62, 0.75, 64, 16], XQ2030: [0.62, 0.75, 64, 16] } },
   { ref: 'ELPLU04H', tipo: 'corta', lmXQ: 27800, minS: { XQ2030: 80 }, s: { PU1000: [0.86, 1.22, 67, 30], PU2000: [0.64, 0.90, 60, 18], PQ2000: [0.62, 0.87, 64, 16], XQ2030: [0.62, 0.87, 64, 16] } },
-  { ref: 'ELPLW05', tipo: 'angular', lm: { PU1000: 0.87 }, lmMax: { PU2000: 11700, PQ2000: 12000 }, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 18, 6] } },
+  { ref: 'ELPLW05', tipo: 'angular', lm: { PU1000: 0.87 }, lmMax: { PU2000: 11700, PQ2000: 12000 }, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 25, 8] } },
   { ref: 'ELPLW08H', tipo: 'angular', lm: { PU1000: 0.855, PU2000: 0.955, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [1.18, 1.66, 67, 30], PU2000: [0.86, 1.21, 60, 18], PQ2000: [0.83, 1.17, 64, 16], XQ2030: [0.83, 1.17, 64, 16] } },
   { ref: 'ELPLW06H', tipo: 'angular', lm: { PU1000: 0.945, PU2000: 0.955, PQ2000: 0.955 }, lmXQ: 28700, s: { PU1000: [1.62, 2.22, 67, 30], PU2000: [1.19, 1.62, 60, 18], PQ2000: [1.15, 1.57, 64, 16], XQ2030: [1.15, 1.57, 64, 16] } },
-  { ref: 'ELPLM08', tipo: 'estandar', lmMax: { PU2000: 10000, PQ2000: 10000 }, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [1.44, 2.32, 67, 30], PU2000: [1.06, 1.69, 24, 10], PQ2000: [1.02, 1.64, 18, 6] } },
+  { ref: 'ELPLM08', tipo: 'estandar', lmMax: { PU2000: 10000, PQ2000: 9600 }, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [1.44, 2.32, 67, 30], PU2000: [1.06, 1.69, 24, 10], PQ2000: [1.02, 1.64, 25, 8] } },
   { ref: 'ELPLM15H', tipo: 'estandar', lm: { PU1000: 0.985 }, lmXQ: 30000, s: { PU1000: [2.16, 3.48, 67, 30], PU2000: [1.57, 2.56, 60, 18], PQ2000: [1.52, 2.47, 64, 16], XQ2030: [1.52, 2.47, 64, 16] } },
   { ref: 'ELPLM10H', tipo: 'media', lm: { PU1000: 0.975, PU2000: 0.99, PQ2000: 0.985 }, lmXQ: 29700, s: { PU1000: [3.32, 5.06, 67, 30], PU2000: [2.42, 3.71, 60, 18], PQ2000: [2.34, 3.59, 64, 16], XQ2030: [2.34, 3.59, 64, 16] } },
   { ref: 'ELPLM11H', tipo: 'media', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [4.85, 7.38, 67, 30], PU2000: [3.54, 5.41, 60, 18], PQ2000: [3.42, 5.23, 64, 16], XQ2030: [3.42, 5.23, 64, 16] } },

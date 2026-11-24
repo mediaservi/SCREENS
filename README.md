@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.5** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.6** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.5)
+## Cambios de la versión actual (v11.6)
+Ópticas Epson, según la herramienta de cálculo del fabricante:
+- **ELPLU03S, ELPLW05 y ELPLM08 en la serie PQ2000:** desplazamiento de la lente ±25 % vertical y ±8 % horizontal (antes ±18 / ±6, con lo que se daban por imposibles montajes que caben).
+- **ELPLU03S:** ±8 % horizontal en la serie PU2000 e imagen mínima de 80″ también en la serie PU1000.
+- **ELPLM08 en PQ2000:** tope de 9.600 lm.
+
+## Cambios de la v11.5
 - **Brillo que busca AUTO con luz ambiente:** contraste de 10:1 (antes 7:1). Con la luz de una sala de reuniones (140 lx) propone proyectores con alrededor de un 60 % más de lúmenes; a oscuras y en sala inmersiva no cambia.
 - Si ningún equipo llega al brillo buscado, AUTO se queda con el que más se acerca (antes podía ganar uno más flojo por llevar menos lúmenes).
 - Central y laterales: cada medida se queda con el proyector que mejor le va a ella sola.

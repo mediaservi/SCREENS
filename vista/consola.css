@@ -658,3 +658,10 @@ html.bk .eleg-txt :is(b, span) { white-space: nowrap; overflow: hidden; text-ove
 html.bk .eleg-txt b { font-size: 14px; }
 html.bk .eleg-txt span { font-size: 12px; }
 html.bk .blq[data-blq="b1"] .blq-cuerpo { row-gap: 6px; }
+/* v10.88 · SALA Y PROYECTOR y PANTALLA compactos: sin ayudas en el bloque (van en la etiqueta emergente) */
+html.bk .blq[data-blq="a2"] .blq-cuerpo .ayuda { display: none; }
+html.bk .blq:is([data-blq="a2"], [data-blq="a5"]) .blq-cuerpo .tog { min-height: 30px; padding-top: 2px; padding-bottom: 2px; }
+html.bk .blq:is([data-blq="a2"], [data-blq="a5"], [data-blq="a7"], [data-blq="a3"]) .campo > label, html.bk .blq:is([data-blq="a2"], [data-blq="a7"]) .campo-cab .lab { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+html.bk .blq[data-blq="a5"] .rango-et { display: none; }
+html.bk .blq[data-blq="a2"] .blq-cuerpo > .campo:first-child > label { display: none; }   /* «Tipo de proyección»: los tres botones ya lo dicen */
+html.bk .blq[data-blq="a3"] .blq-cuerpo > .etq:first-child { display: none; }

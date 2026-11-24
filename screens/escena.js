@@ -407,18 +407,20 @@ export class Escena {
   _capaMedio(g, R, tramo, m, suelo) {
     const demo = m.contenido === 'simular', base = demo ? this._simula() : this._medioTex(m.medio);
     if (!base) return;
-    const t = base.clone(); t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true;
-    const aC = demo ? this._sim.c.width / this._sim.c.height : (m.medio.w / m.medio.h) || 1.78, aS = R.w / R.h;
+    const t = demo ? { repeat: new THREE.Vector2(1, 1), offset: new THREE.Vector2(0, 0) } : base.clone(); if (!demo) { t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; }
+    const aC = demo ? 4 : (m.medio.w / m.medio.h) || 1.78, aS = R.w / R.h;
     let modo = demo ? 'continuo' : (m.medio.modo || 'continuo'); if (modo === 'continuo' && !tramo) modo = 'rellenar';
     let w = R.w, h = R.h;
-    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.repeat.set(1, 1); t.offset.set(0, 0);
+    if (!demo) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; } t.repeat.set(1, 1); t.offset.set(0, 0);
     if (modo === 'continuo') { t.repeat.x = tramo.u1 - tramo.u0; t.offset.x = tramo.u0; }
     else if (modo === 'rellenar') { if (aC > aS) { t.repeat.x = aS / aC; t.offset.x = (1 - t.repeat.x) / 2; } else { t.repeat.y = aC / aS; t.offset.y = (1 - t.repeat.y) / 2; } }
     else if (modo === 'encajar') { if (aC > aS) h = w / aC; else w = h * aC; }
     else if (modo === 'repetir' || modo === 'espejo') { t.wrapS = modo === 'espejo' ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping; t.repeat.x = aS / aC; }
-    const pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, toneMapped: false }));
+    const geo = new THREE.PlaneGeometry(w, h);
+    if (demo) { const uv = geo.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, t.offset.x + uv.getX(k) * t.repeat.x, t.offset.y + uv.getY(k) * t.repeat.y); }   // el vuelo del dron: recorte en UV
+    const pl = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: demo ? base : t, toneMapped: false }));
     pl.position.set(R.x, R.y, R.z); g.add(pl);
-    if (demo || m.medio.tipo === 'video') this._vivos.push(t); void suelo;
+    if (demo || m.medio.tipo === 'video') this._vivos.push(demo ? { demo: true } : t); void suelo;
   }
   _medioTex(md) {
     if (!md || !md.el) return null;
@@ -426,42 +428,64 @@ export class Escena {
     const t = md.tipo === 'video' ? new THREE.VideoTexture(md.el) : new THREE.Texture(md.el);
     t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; this._medio = { el: md.el, t }; return t;
   }
-  // v10.85 · SIMULAR: paisaje inmersivo generado aquí, en movimiento y sin costuras a lo ancho (recorre todas las paredes):
-  // cielo que cambia de color, aurora, estrellas, sol, tres cordilleras en paralaje y un lago con reflejos
+  // v10.88 · SIMULAR: vuelo de dron en 3D (pedido por Josep): de lejos, sobre la jungla, hacia unas pirámides aztecas, las rodea y aterriza en lo alto
+  // de la mayor. Es una escena aparte que se dibuja en una textura panorámica de 4:1 y se reparte por las superficies como el contenido propio.
   _simula() {
-    if (!this._sim) { const c = document.createElement('canvas'); c.width = 2048; c.height = 512; this._sim = { c, x: c.getContext('2d'), t: new THREE.CanvasTexture(c), t0: performance.now(),
-      est: Array.from({ length: 140 }, (_, i) => [((i * 733) % 2048), ((i * 197) % 230), 0.4 + ((i * 37) % 10) / 10]) }; this._sim.t.colorSpace = THREE.SRGBColorSpace; }
-    this._pintaSimula(); return this._sim.t;
+    if (this._sim) return this._sim.rt.texture;
+    const rt = new THREE.WebGLRenderTarget(2048, 512, { samples: 2 });
+    const sc = new THREE.Scene(); sc.background = new THREE.Color(0xa9cbe8); sc.fog = new THREE.Fog(0xc4dbee, 260, 1100);
+    const cam = new THREE.PerspectiveCamera(30, 4, 0.5, 1200);
+    sc.add(new THREE.HemisphereLight(0xe4f1ff, 0x30501c, 1.15)); const sol = new THREE.DirectionalLight(0xfff0d2, 2.3); sol.position.set(140, 180, 90); sc.add(sol);
+    const azar = (() => { let a = 7; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; })();
+    const piras = [[0, 0, 62, 9], [-118, 46, 40, 7], [104, -64, 34, 6], [-60, -120, 24, 5], [150, 70, 22, 5]];
+    const plaza = (x, z) => Math.min(...piras.map(([px, pz, sz]) => Math.hypot(x - px, z - pz) - sz * 0.75));
+    const alto = (x, z) => { const d = plaza(x, z), base = 3.2 * Math.sin(x * 0.018) * Math.cos(z * 0.021) + 2.2 * Math.sin((x + z) * 0.041) + 7 * Math.max(0, Math.sin(x * 0.004 + 1.3)) * Math.max(0, Math.hypot(x, z) - 380) / 200;
+      return d < 18 ? base * Math.max(0, d / 18) * 0.3 : base; };
+    // terreno con colores de jungla y la explanada de piedra alrededor de las pirámides
+    const tg = new THREE.PlaneGeometry(1800, 1800, 150, 150); tg.rotateX(-Math.PI / 2);
+    const P = tg.attributes.position, col = []; const cJ = new THREE.Color(), cP = new THREE.Color(0xb9a98a);
+    for (let k = 0; k < P.count; k++) { const x = P.getX(k), z = P.getZ(k); P.setY(k, alto(x, z)); const d = plaza(x, z);
+      cJ.setHSL(0.27 + azar() * 0.05, 0.55, 0.16 + azar() * 0.08); if (d < 14) cJ.lerp(cP, Math.min(1, (14 - d) / 10)); col.push(cJ.r, cJ.g, cJ.b); }
+    tg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); tg.computeVertexNormals();
+    sc.add(new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ vertexColors: true })));
+    // río que serpentea
+    const rio = new THREE.Shape(); rio.moveTo(-900, 260); for (let x = -900; x <= 900; x += 60) rio.lineTo(x, 230 + Math.sin(x * 0.006) * 90); for (let x = 900; x >= -900; x -= 60) rio.lineTo(x, 262 + Math.sin(x * 0.006) * 90);
+    const rg = new THREE.ShapeGeometry(rio); rg.rotateX(Math.PI / 2); const rm = new THREE.Mesh(rg, new THREE.MeshLambertMaterial({ color: 0x3f7f9a })); rm.position.y = 0.6; sc.add(rm);
+    // pirámides escalonadas con su escalinata y el templo arriba
+    const mP = new THREE.MeshLambertMaterial({ color: 0xa8957a }), mP2 = new THREE.MeshLambertMaterial({ color: 0x8c7a62 }), mT = new THREE.MeshLambertMaterial({ color: 0x6e5a45 });
+    piras.forEach(([x, z, sz, nv]) => { const g = new THREE.Group(), hN = sz * 0.07; let y = 0;
+      for (let i = 0; i < nv; i++) { const l = sz * (1 - i / nv * 0.72); const b = new THREE.Mesh(new THREE.BoxGeometry(l, hN, l), i % 2 ? mP2 : mP); b.position.y = y + hN / 2; g.add(b); y += hN; }
+      const esc = new THREE.Mesh(new THREE.BoxGeometry(sz * 0.16, hN * nv * 1.08, sz * 0.5), mP2); esc.position.set(0, hN * nv * 0.5, sz * 0.32); esc.rotation.x = -Math.atan2(sz * 0.36, hN * nv); g.add(esc);
+      const tl = sz * 0.2, tem = new THREE.Mesh(new THREE.BoxGeometry(tl, hN * 1.6, tl * 0.8), mT); tem.position.y = y + hN * 0.8; g.add(tem);
+      const te = new THREE.Mesh(new THREE.BoxGeometry(tl * 1.15, hN * 0.35, tl * 0.95), mP2); te.position.y = y + hN * 1.75; g.add(te);
+      g.position.set(x, alto(x, z), z); g.rotation.y = Math.atan2(-x, -z) * 0.15; sc.add(g); });
+    // jungla: copas de árbol con su tono
+    const n = 2600, ar = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: 0xffffff }), n), M = new THREE.Matrix4(), c3 = new THREE.Color();
+    let k = 0; while (k < n) { const x = (azar() - 0.5) * 1500, z = (azar() - 0.5) * 1500; if (plaza(x, z) < 16 || Math.abs(z - (246 + Math.sin(x * 0.006) * 90)) < 22) continue;
+      const r = 4 + azar() * 6; M.compose(new THREE.Vector3(x, alto(x, z) + r * 0.7, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(azar(), azar() * 6, azar())), new THREE.Vector3(r, r * (0.7 + azar() * 0.5), r));
+      ar.setMatrixAt(k, M); ar.setColorAt(k, c3.setHSL(0.25 + azar() * 0.08, 0.5 + azar() * 0.2, 0.13 + azar() * 0.12)); k++; }
+    sc.add(ar);
+    // nubes bajas
+    const mN = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false });
+    for (let i = 0; i < 26; i++) { const nb = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mN); nb.scale.set(30 + azar() * 40, 8 + azar() * 6, 20 + azar() * 30); nb.position.set((azar() - 0.5) * 1300, 95 + azar() * 50, (azar() - 0.5) * 1300); sc.add(nb); }
+    // ruta del dron: llega desde lejos, baja, rodea la pirámide mayor y aterriza en su templo
+    const cima = 62 * 0.07 * 9 + 6;
+    const ruta = new THREE.CatmullRomCurve3([[-520, 170, 460], [-330, 130, 300], [-170, 95, 170], [-20, 78, 160], [120, 66, 60], [110, 56, -80], [0, 50, -128], [-90, 46, -40], [-40, cima + 14, 30], [0, cima + 6, 22], [0, cima + 2.5, 9]].map(v => new THREE.Vector3(...v)));
+    this._sim = { rt, sc, cam, ruta, cima, t0: performance.now(), dur: 26 };
+    this._pintaSimula(); return rt.texture;
   }
   _pintaSimula() {
-    const S = this._sim, x = S.x, W = S.c.width, H = S.c.height, s = (performance.now() - S.t0) / 1000, hz = H * 0.62, TAU = Math.PI * 2;
-    const ciclo = (Math.sin(s * 0.05) + 1) / 2, mez = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k)), rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
-    const cielo = x.createLinearGradient(0, 0, 0, hz);
-    cielo.addColorStop(0, rgb(mez([10, 8, 40], [24, 10, 60], ciclo))); cielo.addColorStop(0.55, rgb(mez([60, 30, 110], [150, 50, 120], ciclo))); cielo.addColorStop(1, rgb(mez([255, 120, 90], [255, 170, 80], ciclo)));
-    x.fillStyle = cielo; x.fillRect(0, 0, W, hz);
-    S.est.forEach(([ex, ey, b]) => { x.globalAlpha = (0.35 + 0.65 * Math.abs(Math.sin(s * b + ex))) * (1 - ciclo * 0.6); x.fillStyle = '#fff'; x.fillRect((ex + s * 4) % W, ey, 2, 2); }); x.globalAlpha = 1;
-    // aurora: cintas onduladas que se mueven
-    for (let k = 0; k < 3; k++) { x.beginPath(); for (let u = 0; u <= W; u += 16) { const y = 70 + k * 34 + Math.sin(u / W * TAU * (2 + k) + s * (0.4 + k * 0.15)) * 26 + Math.sin(u / W * TAU * 5 - s * 0.3) * 9; if (u) x.lineTo(u, y); else x.moveTo(u, y); }
-      x.strokeStyle = ['rgba(60,255,170,.28)', 'rgba(120,200,255,.22)', 'rgba(200,120,255,.18)'][k]; x.lineWidth = 26 - k * 6; x.stroke(); }
-    // sol que sale y se pone
-    const sy = hz - 40 - ciclo * 110, sx = W * 0.5 + Math.sin(s * 0.02) * W * 0.05, sol = x.createRadialGradient(sx, sy, 6, sx, sy, 120);
-    sol.addColorStop(0, 'rgba(255,240,200,1)'); sol.addColorStop(0.25, 'rgba(255,200,120,.85)'); sol.addColorStop(1, 'rgba(255,140,90,0)'); x.fillStyle = sol; x.fillRect(sx - 130, sy - 130, 260, 260);
-    // tres cordilleras: cada una se desplaza a su velocidad (paralaje) y es periódica en el ancho, sin costura
-    const sierra = (base, alt, f, vel, col, fase) => { const off = (s * vel) % W; x.beginPath(); x.moveTo(0, hz);
-      for (let u = 0; u <= W; u += 8) { const q = (u + off) / W * TAU; x.lineTo(u, base - alt * (0.55 + 0.25 * Math.sin(q * f + fase) + 0.12 * Math.sin(q * f * 3 + fase * 2) + 0.08 * Math.sin(q * f * 7))); }
-      x.lineTo(W, hz); x.closePath(); x.fillStyle = col; x.fill(); };
-    sierra(hz, 150, 3, 6, rgb(mez([70, 40, 110], [110, 50, 120], ciclo)), 0.3);
-    sierra(hz, 105, 4, 14, rgb(mez([40, 24, 70], [70, 30, 80], ciclo)), 1.7);
-    sierra(hz, 60, 6, 30, '#120b22', 4.1);
-    // lago: el cielo reflejado, con ondas
-    const lago = x.createLinearGradient(0, hz, 0, H); lago.addColorStop(0, rgb(mez([120, 60, 120], [200, 90, 110], ciclo))); lago.addColorStop(1, '#05040c'); x.fillStyle = lago; x.fillRect(0, hz, W, H - hz);
-    x.fillStyle = 'rgba(255,220,170,.5)'; for (let i = 0; i < 18; i++) { const y = hz + 6 + i * 10, w = 120 - i * 5 + Math.sin(s * 2 + i) * 14; x.globalAlpha = 0.6 - i * 0.03; x.fillRect(sx - w / 2 + Math.sin(s * 1.5 + i * 0.7) * 6, y, w, 3); } x.globalAlpha = 1;
-    x.strokeStyle = 'rgba(255,255,255,.07)'; x.lineWidth = 2; for (let y = hz + 12; y < H; y += 14) { x.beginPath(); for (let u = 0; u <= W; u += 32) { const yy = y + Math.sin(u / W * TAU * 12 + s * 1.2 + y) * 2; if (u) x.lineTo(u, yy); else x.moveTo(u, yy); } x.stroke(); }
+    const S = this._sim; if (!S) return;
+    const t = ((performance.now() - S.t0) / 1000) % S.dur, k = t / S.dur, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    const p = S.ruta.getPointAt(Math.min(0.9999, e)), adelante = S.ruta.getPointAt(Math.min(0.9999, e + 0.03)), cima = new THREE.Vector3(0, S.cima - 4, 0);
+    const mira = adelante.clone().add(new THREE.Vector3(0, -45 * (1 - Math.min(1, k / 0.5)), 0)).lerp(cima, Math.min(1, Math.max(0, (k - 0.35) / 0.4)));   // al principio mira hacia la jungla, no al cielo
+    S.cam.position.copy(p); S.cam.lookAt(mira); S.cam.rotateZ(Math.sin(t * 0.7) * 0.03 * (1 - k));   // leve balanceo del dron, que se calma al aterrizar
+    const r = this.renderer, prev = r.getRenderTarget(); r.setRenderTarget(S.rt); r.render(S.sc, S.cam); r.setRenderTarget(prev);
   }
   _bucle() {
     if (!this._animando || !this._vivos.length) { this._animando = false; return; }
     if (!document.hidden) {
-      if (this._sim && this.modelo && this.modelo.contenido === 'simular') { this._pintaSimula(); this._vivos.forEach(t => { t.needsUpdate = true; }); }
+      if (this._sim && this.modelo && this.modelo.contenido === 'simular') this._pintaSimula();
       else if (this._medio && this.modelo && this.modelo.medio && this.modelo.medio.tipo === 'img') { /* imagen fija: sin redibujar */ }
       this.render();
     }

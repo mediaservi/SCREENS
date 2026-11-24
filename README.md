@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.87** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.88** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -41,7 +41,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 
 **Varias pantallas, sala inmersiva y proyección (consola)**
 - **Mandos** en las dos primeras columnas: tipo, tamaño y distancias (medidas, elevación, distancia del público, techo, puertas y obstáculos), luz y superficie, material, ajuste del equipo y electrónica o mediaserver; cada bloque con su RESTABLECER. Si no caben, los que no se usan se pliegan con su resumen.
-- **Simulación a escala en 3D** (three.js): seis vistas en la propia caja (exterior, dentro, planta, lateral, frontal y cenital); contenido: carta de ajuste, **simular** (paisaje inmersivo animado) o propio; **indicadores** (rótulos, cotas, avisos, figuras y safety zone) que se encienden o apagan; se puede ver en grande. Cada proyector se dibuja con **el cuerpo de su familia** (`screens/cuerpos.js`), a su medida real y en gris medio, y el haz sale de su óptica.
+- **Simulación a escala en 3D** (three.js): seis vistas en la propia caja (exterior, dentro, planta, lateral, frontal y cenital); contenido: carta de ajuste, **simular** (vuelo de dron en 3D sobre pirámides aztecas en la jungla) o propio; **indicadores** (rótulos, cotas, avisos, figuras y safety zone) que se encienden o apagan; se puede ver en grande. Cada proyector se dibuja con **el cuerpo de su familia** (`screens/cuerpos.js`), a su medida real y en gris medio, y el haz sale de su óptica.
 - **Resultados:** tabla por superficie, vistas técnicas de proyección (lateral, frontal y cenital, con el proyector arrastrable), posición, sombras, electrónica y equipo elegido; y las **seis cifras clave** en su fila.
 - **PDF** con la captura 3D, los resultados, la electrónica y los equipos.
 - **Proyectores:** Epson, Vivitek y Christie, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, tamaño de imagen y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK > CHRISTIE: la siguiente marca solo sale si con la anterior no hay una instalación limpia.
@@ -75,7 +75,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.87) · borrador para validar
+## Cambios de la versión actual (v10.88) · borrador para validar
+- **SIMULAR, ahora un vuelo de dron en 3D** (pedido por Josep, 24-11-2026): llega de lejos sobre la jungla, baja hacia unas pirámides aztecas escalonadas con su escalinata y su templo, las rodea y aterriza en lo alto de la mayor; río, nubes bajas, niebla y un leve balanceo del dron. Es una escena aparte que se dibuja en una textura panorámica y recorre todas las paredes sin cortes.
+- **INDICADORES · ON / OFF**: el botón dice su estado.
+- **Campos con su nombre completo** (para no confundir la pantalla con la sala): alto del techo de la sala, ancho, fondo y alto de la sala, montaje y altura del proyector, proporción de la pantalla, diagonal, ancho y alto de la pantalla, suelo a la base de la pantalla, distancia de la pantalla a la óptica, distancia del público a la pantalla, uso y luz de la sala, ganancia de la pantalla. El bloque IMAGEN pasa a llamarse PANTALLA y «medir por» son tres botones (diagonal, ancho, alto).
+- **Resultado de la simulación** con la numeración de Epson del (1) al (8), con el (4) «pantalla al centro de la óptica».
+
+## Cambios de la v10.87 · borrador para validar
 - **PROYECCIÓN en PRO con el esquema del datos del fabricante** (pedido por Josep, 24-11-2026): la columna A lleva los datos de entrada en su orden y la B el equipo.
   - **Sala y proyector**: tipo (mapping, pared o sala inmersiva), alto del techo o medidas de la sala, montaje (auto, colgado o sobremesa) y altura del proyector con su candado.
   - **Imagen**: proporción (libre, la del proyector, 16:9, 16:10, 4:3, 21:9 o 1:1) y la medida por diagonal, ancho o alto, con casilla y deslizador; el ancho y el alto salen de ahí. Debajo, del suelo a la base de la imagen.

@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.3';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.4';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.3';
+const VERSION = 'v11.4';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -188,10 +188,10 @@ function calcular(forzarMulti) {
   const altoEsc = esp.tipo === 'sala' ? esp.alto : Number(esp.sueltas.techo) > 0 ? Math.max(Number(esp.sueltas.techo), ...sups.map(s => s.elev + s.alto)) : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;   /* v10.98 · con techo dicho, los proyectores no pueden subir por encima de él al separarlos */
   const obs = obstaculosDe(esp), haySuelo = sups.some(s => s.tipo === 'suelo');
   // un mismo modelo para todas las paredes; el suelo puede llevar el mismo u otro
-  const montar = (pP, pS, extra) => {
+  const montar = (pP, pS, extra, pC) => {   /* v11.4 · pC: proyector de la pantalla central cuando es de otra medida que las laterales */
     const filas = sups.map(s => s.tipo === 'suelo'
       ? { s, p: calcularSuelo(s, pS, { altoSala: esp.alto, ...opc, ...(extra || {}) }), proyector: pS, nombre: nombreSup(s) }
-      : { s, p: calcularPared(s, pP, { alcance: alcanceDe(s), ...optDe(pP, extra) }), proyector: pP, nombre: nombreSup(s) });
+      : ((q) => ({ s, p: calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q, extra) }), proyector: q, nombre: nombreSup(s) }))(s.central && pC ? pC : pP));
     let cerca = 0; filas.forEach(f => { if (f.s.tipo !== 'suelo' && corta(f.p)) { f.p.fuera = true; cerca++; } });   // más cerca de lo que se puede poner: no cabe
     const S = analizarSombras(filas, esp, altoEsc, coloc); S.obst = obstaculosEnHaces(obs, S.haces);
     /* v11.0 · proyectores de pared que quedarían bajo el suelo o por encima del techo (pasaba con las ultracortas plegadas y salía en verde): cuentan
@@ -235,7 +235,23 @@ function calcular(forzarMulti) {
       prSuelo = m.q; }
     else prSuelo = proyector;
   }
-  inst = montar(proyector, prSuelo);
+  /* v11.4 · pantallas de medidas distintas (una central y laterales): cada medida lleva el proyector justo para su tamaño, de la misma marca.
+     Antes las tres llevaban el que pedía la central y las laterales salían con muchos más lúmenes de los necesarios. Con el modelo elegido a mano, ese en todas */
+  let prCentral = null;
+  if (!fijo && esp.tipo === 'sueltas' && sups.some(s => s.central) && sups.some(s => s.tipo !== 'suelo' && !s.central)) {
+    const rapDe = (sub) => (q) => { let k = pref(q) * 1000; sub.forEach(s => { const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
+      k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; }); return k + q.lumens / 1000 * 1.5; };
+    const LM = lista.filter(q => q.marca === proyector.marca), top = (fc) => LM.map(q => ({ q, c: fc(q) })).sort((x, y) => x.c - y.c).slice(0, 10).map(x => x.q);
+    const pL = mejorDe(top(rapDe(sups.filter(s => s.tipo !== 'suelo' && !s.central))), q => montar(q, prSuelo, null, proyector)).q;
+    const pCn = mejorDe(top(rapDe(sups.filter(s => s.central))), q => montar(pL, prSuelo, null, q)).q;
+    const mal = (r) => [r.filas.filter(f => f.p.fuera).length + (r.S.fueraSala || 0), r.filas.filter(f => f.p.noCubre || f.p.limite || f.p.chica).length, r.S.conflictos.length + r.S.choques.length, r.filas.reduce((n, f) => n + f.p.n, 0)];
+    const rA = montar(proyector, prSuelo), mA = mal(rA);
+    /* se reparte si no empeora nada: ni lo que no cabe, ni lo que no cubre, ni choques, ni número de equipos, ni el brillo útil de ninguna pantalla */
+    const vale = (r) => { const m = mal(r); return m.every((v, i) => v <= mA[i]) && r.filas.every((f, i) => valeBrillo(f.p.nits) >= valeBrillo(rA.filas[i].p.nits) - 1); };
+    const op = [[pL, pCn], [pL, proyector]].find(([a, b]) => (a !== proyector || b !== proyector) && vale(montar(a, prSuelo, null, b)));
+    if (op) { const cen0 = proyector; proyector = op[0]; prCentral = op[1] !== op[0] ? op[1] : null; if (prSuelo === cen0 && !haySuelo) prSuelo = proyector; }
+  }
+  inst = montar(proyector, prSuelo, null, prCentral);
   // con un modelo elegido a mano que no deja una instalación limpia, se propone el de AUTO
   if (fijo && hayPared && (inst.S.conflictos.length || inst.S.choques.length)) { const m = mejorDe(mejores(CAT), q => montar(q, q)); if (m.q !== fijo && !m.r.S.conflictos.length && !m.r.S.choques.length) auto = m.q; }
   // v10.54 · con el proyector o la óptica elegidos a mano y sin salida (no da esa imagen desde ahí, no cabe o la imagen pasa de su máximo): se avisa,
@@ -293,7 +309,7 @@ function calcular(forzarMulti) {
       return z; };
     zonaN = tramos(false); zonaO = tramos(true); zona = E.proy.oos ? zonaO : zonaN;
   }
-  const c = { esp, dist, proyector, prSuelo, filas, tot, autoPropone: auto, consejo, unaImagen, grupos, lx, gan, tipoP, zona, zonaN, zonaO, una, multi: esp.tipo === 'sueltas' && !una };
+  const c = { esp, dist, proyector, prSuelo, prCentral, filas, tot, autoPropone: auto, consejo, unaImagen, grupos, lx, gan, tipoP, zona, zonaN, zonaO, una, multi: esp.tipo === 'sueltas' && !una };
   c.sombras = inst.S;
   // v10.66 · con una imagen no se llega (no cubre, no cabe, pasa del máximo o sobra más del recorte admitido): se mira el blending
   if (una && hayPared && filas.some(f => f.s.tipo !== 'suelo' && (f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica || Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MULTI + 1e-6))) {
@@ -688,6 +704,7 @@ function partesProy(c) {
   // 7) fichas de los equipos elegidos y ayudas
   if (sel) fic += fichaProy(sel, t('fProy'));
   if (haySuelo && c.prSuelo && c.prSuelo !== sel) fic += fichaProy(c.prSuelo, t('fProySuelo'));
+  if (c.prCentral && c.prCentral !== sel) fic += fichaProy(c.prCentral, t('fProyCentral'));   /* v11.4 */
   fic += `<p class="ayuda">${t('autoAyudaProy')}</p><p class="ayuda">${t('datosProy')}</p>`;
   const dist = paredes.some(f => f.pos) ? fmt(Math.max(...paredes.filter(f => f.pos).map(f => f.pos.dist)), 2) + ' m' : '';
   return { mat, aj, luz, oos, fichas: fic, rMat: sel ? (p.cuerpo ? '' : 'AUTO · ') + sel.nombre : t('auto'), rAj: [t('or_' + (p.orient || 'auto')), conBlend ? p.solape + ' %' : t('unaImg')].filter(Boolean).join(' · '), rDist: dist, rLuz: `${fmt(p.lux, 0)} lx · ×${fmt(p.ganancia, 1)}`,
@@ -1465,7 +1482,7 @@ function imprimir() {
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   h += `<div class="im-res">${vistaResultados(c)}</div>`;
-  const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
+  const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []).concat(c.prCentral && c.prCentral !== c.proyector ? [fichaProy(c.prCentral, t('fProyCentral'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   if (E.tecnologia === 'led' && c.modelo) h += planosPdf(c);   // v10.94 · planos técnicos de cada pantalla
   // pie en el margen inferior de cada hoja; si el navegador no dibuja esos márgenes (Safari, Firefox), va al final del documento.

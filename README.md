@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.3** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.4** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.3)
+## Cambios de la versión actual (v11.4)
+- **Pantalla central de otra medida que las laterales (proyección):** en automático, cada medida lleva el proyector justo para su tamaño, de la misma marca (antes las laterales llevaban el que pedía la central y salían con muchos más lúmenes de los necesarios). El reparto solo se aplica si no empeora nada: ni equipos, ni choques, ni brillo. Con el proyector elegido a mano, ese en todas. En EQUIPO y en el PDF sale también la ficha del proyector de la central.
+
+## Cambios de la v11.3
 - **EPSON EB-L795SE:** 7.000 lm (antes 6.000), como en la ficha de producto de Epson.
 
 ## Cambios de la v11.2

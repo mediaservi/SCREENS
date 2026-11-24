@@ -73,16 +73,36 @@ export function crearSimula() {
   const mar = new THREE.Mesh(new THREE.PlaneGeometry(6000, 2600), new THREE.MeshStandardMaterial({ color: 0x2f6f9c, roughness: 0.25, metalness: 0.3 })); mar.rotation.x = -Math.PI / 2; mar.position.set(1800, 0.4, 1800); mar.rotation.z = Math.PI / 4; sc.add(mar);
   // cordillera al noroeste, siempre fuera de la ciudad (las zonas llanas quedan bajo el asfalto)
   const mg = new THREE.PlaneGeometry(7000, 7000, 170, 170); mg.rotateX(-Math.PI / 2); const MP = mg.attributes.position;
-  for (let i = 0; i < MP.count; i++) { const x = MP.getX(i), z = MP.getZ(i), d = -(x + z) / Math.SQRT2 - 1250, lat = (x - z) / Math.SQRT2;
-    const y = d > 0 ? Math.min(1, d / 600) * (210 + 70 * Math.sin(lat * 0.0035) + 40 * Math.sin(lat * 0.011 + 2) + 15 * Math.sin(lat * 0.03)) : -2; MP.setY(i, y); }
+  const relieve = (x, z) => { const d = -(x + z) / Math.SQRT2 - 1250, lat = (x - z) / Math.SQRT2; return d > 0 ? Math.min(1, d / 600) * (210 + 70 * Math.sin(lat * 0.0035) + 40 * Math.sin(lat * 0.011 + 2) + 15 * Math.sin(lat * 0.03)) : -2; };
+  for (let i = 0; i < MP.count; i++) MP.setY(i, relieve(MP.getX(i), MP.getZ(i)));
   mg.computeVertexNormals(); const monte = new THREE.Mesh(mg, new THREE.MeshLambertMaterial({ color: 0x6d8a55 })); sc.add(monte);
+  // en la cumbre: el templo del monte (dorado de noche), la noria y el parque de atracciones, y a su izquierda la torre de comunicaciones
+  const enMonte = (d, lat) => { const x = (-d * Math.SQRT2 + lat * Math.SQRT2) / 2 * Math.SQRT2 / Math.SQRT2, z = (-d * Math.SQRT2 - lat * Math.SQRT2) / 2; return [(-d - 1250) * Math.SQRT2 / 2 + lat * Math.SQRT2 / 2, (-d - 1250) * Math.SQRT2 / 2 - lat * Math.SQRT2 / 2]; };
+  const cumbre = new THREE.Group(); { const [cx, cz] = enMonte(620, 60); cumbre.position.set(cx, relieve(cx, cz) - 4, cz); cumbre.rotation.y = Math.PI / 4; cumbre.scale.setScalar(2.2); sc.add(cumbre); }   // algo mayor que en la realidad para que se lea a 2 km
+  const mIg = new THREE.MeshStandardMaterial({ color: 0xcdbfa4, roughness: 0.8, emissive: 0xffb43c, emissiveIntensity: 0 });
+  const ig = (g, w, h, d, x, y, z) => { const b = new THREE.Mesh(g || new THREE.BoxGeometry(w, h, d), mIg); b.position.set(x, y, z); cumbre.add(b); return b; };
+  ig(null, 34, 26, 22, 0, 13, 0); ig(new THREE.CylinderGeometry(7, 8, 34, 16), 0, 0, 0, 0, 43, 0); ig(new THREE.ConeGeometry(7.5, 22, 16), 0, 0, 0, 0, 71, 0);
+  [[-14, -9], [14, -9], [-14, 9], [14, 9]].forEach(([x, z]) => { ig(new THREE.CylinderGeometry(2.4, 2.6, 30, 10), 0, 0, 0, x, 15, z); ig(new THREE.ConeGeometry(2.6, 10, 10), 0, 0, 0, x, 35, z); });
+  const estatua = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.2, 12, 10), new THREE.MeshStandardMaterial({ color: 0xd9b36a, metalness: 0.6, roughness: 0.35, emissive: 0xffd27a, emissiveIntensity: 0 })); estatua.position.y = 88; cumbre.add(estatua);
+  const noria = new THREE.Group(); noria.position.set(58, 26, 8); cumbre.add(noria);
+  const mNor = new THREE.MeshBasicMaterial({ color: 0xd8dde3, toneMapped: false }); noria.add(new THREE.Mesh(new THREE.TorusGeometry(20, 0.8, 8, 48), mNor));
+  for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.5, 40, 0.5), mNor); r.rotation.z = k * Math.PI / 12; noria.add(r); }
+  [[-8, -1], [8, -1]].forEach(([x]) => { const pa = new THREE.Mesh(new THREE.BoxGeometry(1, 30, 1), new THREE.MeshLambertMaterial({ color: 0x8a8f96 })); pa.position.set(58 + x * 0.5, 12, 8); pa.rotation.z = x > 0 ? 0.25 : -0.25; cumbre.add(pa); });
+  const atr = []; for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(new THREE.CylinderGeometry(3 + k % 3, 3 + k % 3, 4 + (k * 7) % 12, 12), new THREE.MeshLambertMaterial({ color: [0xd23a3a, 0x2f7ad8, 0xe8c23a, 0x39a85a, 0xd86a2a, 0x9a4ad0][k], emissive: 0xffffff, emissiveIntensity: 0 })); m.position.set(-40 + k * 13, 3, 22 + (k % 2) * 10); cumbre.add(m); atr.push(m); }
+  const pt = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 46, 6), new THREE.MeshLambertMaterial({ color: 0xb0b0b0 })); pt.position.set(30, 23, -18); cumbre.add(pt);
+  const torreCom = new THREE.Group(); { const [tx, tz] = enMonte(560, -520); torreCom.position.set(tx, relieve(tx, tz) - 3, tz); torreCom.scale.setScalar(1.6); sc.add(torreCom); }
+  const mT2 = new THREE.MeshLambertMaterial({ color: 0xd9dde2 }); const fus = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 3, 290, 10), mT2); fus.position.y = 145; torreCom.add(fus);
+  for (let k = 0; k < 6; k++) { const di = new THREE.Mesh(new THREE.CylinderGeometry(14 - k * 0.6, 14 - k * 0.6, 2.2, 3), mT2); di.position.y = 140 + k * 5.5; torreCom.add(di); }
+  const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1.2, 60, 6), mT2); ant.position.y = 320; torreCom.add(ant);
+  for (let k = 0; k < 3; k++) { const a = k * PI2 / 3, ca = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 175, 4), new THREE.MeshBasicMaterial({ color: 0x9aa0a6 })); ca.position.set(Math.cos(a) * 45, 70, Math.sin(a) * 45); ca.lookAt(0, 165 + torreCom.position.y, 0); ca.rotateX(Math.PI / 2); ca.position.set(Math.cos(a) * 45, 70, Math.sin(a) * 45); torreCom.add(ca); }
+  const mRoja = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false, fog: false }); const balizas = [150, 220, 290, 348].map(y => { const b = new THREE.Mesh(new THREE.SphereGeometry(3.2, 8, 6), mRoja); b.position.y = y; torreCom.add(b); return b; });
   // manzanas del ensanche: octógonos con chaflán y patio interior, con fachadas de ventanas y azoteas
   const L = 56.6, CH = 14, IN = 34, ICH = 9, PASO = 133.3;
   const oct = (h, c) => { const s = new THREE.Shape(); s.moveTo(-h + c, -h); s.lineTo(h - c, -h); s.lineTo(h, -h + c); s.lineTo(h, h - c); s.lineTo(h - c, h); s.lineTo(-h + c, h); s.lineTo(-h, h - c); s.lineTo(-h, -h + c); s.closePath(); return s; };
   const anillo = oct(L, CH); anillo.holes.push(oct(IN, ICH));
   const gM = new THREE.ExtrudeGeometry(anillo, { depth: 24, bevelEnabled: false }); gM.rotateX(-Math.PI / 2);
   const tF = texFachada(); tF.repeat.set(1 / 24, 1 / 24);
-  const tE = lienzo(256, 256, (g, w, h) => { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); const z = azarDe(5); for (let f = 0; f < 8; f++) for (let c = 0; c < 6; c++) { z(); if (z() < 0.55) { g.fillStyle = z() < 0.7 ? '#ffcf7a' : z() < 0.5 ? '#fff1c8' : '#9fd2ff'; g.fillRect(c * w / 6 + 8, f * h / 8 + 7, w / 6 - 16, h / 8 - 15); } } }); tE.repeat.set(1 / 24, 1 / 24);
+  const tE = lienzo(256, 256, (g, w, h) => { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); const z = azarDe(5); for (let f = 0; f < 8; f++) for (let c = 0; c < 6; c++) { z(); if (z() < 0.13) { g.fillStyle = z() < 0.7 ? '#ffcf7a' : z() < 0.5 ? '#fff1c8' : '#9fd2ff'; g.fillRect(c * w / 6 + 8, f * h / 8 + 7, w / 6 - 16, h / 8 - 15); } } }); tE.repeat.set(1 / 24, 1 / 24);
   const matM = [new THREE.MeshLambertMaterial({ color: 0xe9dfd0 }), new THREE.MeshLambertMaterial({ map: tF, color: 0xffffff, emissiveMap: tE, emissive: 0xffffff, emissiveIntensity: 0 })];
   const celdas = []; const R = 6;
   for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { if (Math.hypot(i, j) > R + 0.4) continue; celdas.push([i, j]); }
@@ -157,6 +177,50 @@ export function crearSimula() {
   const gHaz = new THREE.ConeGeometry(18, 1400, 24, 1, true); gHaz.translate(0, -700, 0); gHaz.rotateX(Math.PI);
   for (let k = 0; k < 6; k++) { const h = new THREE.Mesh(gHaz, mHaz); h.userData.k = k; haces.add(h); }
   const luzT = new THREE.PointLight(0xffc27a, 0, 330, 2); luzT.position.set(0, 160, 0); sc.add(luzT);
+  // ---- vida en la ciudad: coches, taxis (negros con puertas amarillas), personas, aviones, una patrulla y una ambulancia ----
+  const DURV = 64, LC = 2 * R * PASO;   // cada coche da vueltas enteras a su calle en el bucle de 64 s (cierra sin saltos)
+  const coches = []; const colsC = [0xf2f2f2, 0x1d1d1f, 0x8c9096, 0xb3262a, 0x24477a, 0xd8d8d0, 0x4a4f55, 0x2c5e3c];
+  for (let i = -R; i <= R + 1; i++) { const c = (i - 0.5) * PASO; for (let k = 0; k < 44; k++) { const eje = az() < 0.5 ? 'x' : 'z', sen = az() < 0.5 ? 1 : -1, taxi = az() < 0.3;
+    coches.push({ eje, sen, c: c + sen * (2.6 + (az() < 0.5 ? 0 : 3.6)), s0: az() * LC, v: (1 + Math.floor(az() * 2)) * LC / DURV, col: taxi ? 0x161616 : colsC[Math.floor(az() * colsC.length)], taxi }); } }
+  const gC = new THREE.BoxGeometry(2.6, 1.9, 6); gC.translate(0, 0.95, 0);   // algo más grandes que en la realidad para que se vean desde el dron
+  const CO = new THREE.InstancedMesh(gC, new THREE.MeshLambertMaterial({ color: 0xffffff }), coches.length); coches.forEach((q, k) => CO.setColorAt(k, c3.set(q.col))); sc.add(CO);
+  const taxis = coches.filter(q => q.taxi), gP = new THREE.BoxGeometry(2.7, 0.75, 3.2); gP.translate(0, 0.9, 0);
+  const TX = new THREE.InstancedMesh(gP, new THREE.MeshLambertMaterial({ color: 0xf5c400 }), taxis.length); sc.add(TX);   // puertas amarillas
+  const mFaro = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false }), mPil = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false });
+  const gL = new THREE.SphereGeometry(1.1, 6, 4), FAR = new THREE.InstancedMesh(gL, mFaro, coches.length), PIL = new THREE.InstancedMesh(gL, mPil, coches.length); sc.add(FAR, PIL);
+  const gente = []; for (let k = 0; k < 900; k++) { const i = Math.floor((az() - 0.5) * 2 * R), c = (i - 0.5) * PASO + (az() < 0.5 ? -8.5 : 8.5); gente.push({ eje: az() < 0.5 ? 'x' : 'z', c, s0: az() * LC, v: (az() < 0.5 ? 1 : -1) * LC / DURV / 16 * (1 + Math.floor(az() * 2)) }); }
+  const gG = new THREE.CylinderGeometry(0.5, 0.5, 2.6, 6); gG.translate(0, 1.3, 0);
+  const GE = new THREE.InstancedMesh(gG, new THREE.MeshLambertMaterial({ color: 0xffffff }), gente.length); gente.forEach((q, k) => GE.setColorAt(k, c3.setHSL(az(), 0.45, 0.35 + az() * 0.3))); sc.add(GE);
+  const posEn = (q, t) => { let s = ((q.s0 + q.v * t * (q.sen || 1)) % LC + LC) % LC - LC / 2; return q.eje === 'x' ? [s, q.c, q.sen || 1] : [q.c, s, q.sen || 1]; };
+  // patrulla de policía (aparcada con las luces en un cruce) y ambulancia circulando lejos
+  const cocheEsp = (col, x, z, ry) => { const g = new THREE.Group(); const b = new THREE.Mesh(gC, new THREE.MeshLambertMaterial({ color: col })); g.add(b); g.position.set(x, 0, z); g.rotation.y = ry; sc.add(g); return g; };
+  const poli = cocheEsp(0xf4f6f8, PASO * 2 - 1, PASO * 1.5 + 2.5, 0.3); const fr1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.3, 0.5), new THREE.MeshBasicMaterial({ color: 0x1f4fff, toneMapped: false })); fr1.position.y = 1.6; poli.add(fr1);
+  const lPol = new THREE.PointLight(0x2f5bff, 0, 60, 2); lPol.position.y = 3; poli.add(lPol); const raya = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.35, 4.5), new THREE.MeshLambertMaterial({ color: 0x1b3fa0 })); raya.position.y = 0.6; poli.add(raya);
+  const ambu = cocheEsp(0xfafafa, 0, 0, 0); ambu.scale.set(1.25, 1.6, 1.3); const fr2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 0.5), new THREE.MeshBasicMaterial({ color: 0x2f6bff, toneMapped: false })); fr2.position.y = 1.5; ambu.add(fr2);
+  const fr3 = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 4.5), new THREE.MeshLambertMaterial({ color: 0xffd400 })); fr3.position.y = 0.5; ambu.add(fr3);
+  const lAmb = new THREE.PointLight(0x3f6bff, 0, 50, 2); lAmb.position.y = 3; ambu.add(lAmb);
+  const qAmb = { eje: 'z', c: -PASO * 4.5 - 2.5, s0: 300, v: LC / DURV, sen: 1 };
+  // aviones a lo lejos con sus luces de navegación (roja a babor, verde a estribor, destello blanco)
+  const aviones = [[1900, 520, 0], [2300, 640, 2.1], [2600, 760, 4.2]].map(([r, h, f0], k) => { const g = new THREE.Group();
+    const cu = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 34, 8), new THREE.MeshLambertMaterial({ color: 0xe8ecf0 })); cu.rotation.x = Math.PI / 2; g.add(cu);
+    const al = new THREE.Mesh(new THREE.BoxGeometry(34, 0.6, 5), cu.material); g.add(al); const co = new THREE.Mesh(new THREE.BoxGeometry(11, 0.5, 3), cu.material); co.position.z = -15; g.add(co);
+    const lz = (c, x, z) => { const m = new THREE.Mesh(new THREE.SphereGeometry(2.2, 8, 6), new THREE.MeshBasicMaterial({ color: c, toneMapped: false, fog: false })); m.position.set(x, 0, z); g.add(m); return m; };
+    const rojo = lz(0xff2020, -17, 0), verde = lz(0x20ff40, 17, 0), bl = lz(0xffffff, 0, -17);
+    g.userData = { r, h, f0, k, bl }; sc.add(g); return g; });
+  [CO, TX, FAR, PIL, GE].forEach(m => { m.frustumCulled = false; });   // se mueven: sin recorte por la esfera inicial
+  function vida(t, n) {
+    const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), ys = new THREE.Vector3(0, 1, 0); let kt = 0;
+    coches.forEach((q, k) => { const [x, z, sn] = posEn(q, t), ry = q.eje === 'x' ? (sn > 0 ? Math.PI / 2 : -Math.PI / 2) : (sn > 0 ? 0 : Math.PI); Q.setFromAxisAngle(ys, ry);
+      M.compose(V.set(x, 0, z), Q, S1); CO.setMatrixAt(k, M); if (q.taxi) TX.setMatrixAt(kt++, M);
+      const dx = Math.sin(ry), dz = Math.cos(ry); M.compose(V.set(x + dx * 3.1, 1, z + dz * 3.1), Q, S1); FAR.setMatrixAt(k, M); M.compose(V.set(x - dx * 3.1, 1, z - dz * 3.1), Q, S1); PIL.setMatrixAt(k, M); });
+    [CO, TX, FAR, PIL].forEach(m => { m.instanceMatrix.needsUpdate = true; });
+    gente.forEach((q, k) => { const [x, z] = posEn(q, t); M.compose(V.set(x, 0, z), Q.identity(), S1); GE.setMatrixAt(k, M); }); GE.instanceMatrix.needsUpdate = true;
+    mFaro.color.setRGB(1.3 * n + 0.05, 1.25 * n + 0.05, 1.1 * n + 0.05); mPil.color.setRGB(1.4 * n + 0.1, 0.05, 0.05);
+    const dest = Math.floor(t * 6) % 2;   // destellos de policía y ambulancia
+    fr1.material.color.set(dest ? 0x1f4fff : 0xff2030); lPol.color.set(dest ? 0x2f5bff : 0xff3040); lPol.intensity = 900 * (0.3 + n);
+    const [ax, az2] = posEn(qAmb, t); ambu.position.set(ax, 0, az2); ambu.rotation.y = 0; fr2.material.color.set(Math.floor(t * 5) % 2 ? 0x2f6bff : 0xffffff); lAmb.intensity = 700 * (0.3 + n);
+    aviones.forEach((g) => { const u = g.userData, a = u.f0 + t / DURV * PI2 * (u.k % 2 ? -1 : 1); g.position.set(Math.cos(a) * u.r, u.h, Math.sin(a) * u.r); g.rotation.y = -a + (u.k % 2 ? 0 : Math.PI); u.bl.visible = Math.floor(t * 1.2 + u.k) % 2 === 0; });
+  }
   // la hora: 0 mediodía → hora dorada → anochecer → noche → amanecer → mediodía (el bucle cierra igual que empieza)
   const CL = (h) => new THREE.Color(h), mez = (a, b, t) => a.clone().lerp(b, t);
   const K = [   // [fase, cielo arriba, horizonte, sol, niebla, intensidad sol, hemisferio, noche]
@@ -184,6 +248,11 @@ export function crearSimula() {
     mHaz.opacity = 0.2 * Math.max(0, n - 0.3) / 0.7; haces.visible = n > 0.3;
     haces.children.forEach((h) => { const k = h.userData.k, b = t * 0.35 + k * PI2 / 6; h.rotation.set(0.32 + 0.12 * Math.sin(t * 0.5 + k), b, 0, 'YXZ'); });
     mHaz.color.setHSL((0.55 + 0.08 * Math.sin(t * 0.2)) % 1, 0.6, 0.75);
+    vida(t % DURV, n);
+    mIg.emissiveIntensity = 1.4 * n; estatua.material.emissiveIntensity = 1.6 * n;   // el templo del monte, dorado de noche
+    noria.rotation.z = (t % DURV) / DURV * PI2; mNor.color.setRGB(0.85 - 0.6 * n + 0.2 * n, 0.87 - 0.4 * n + 0.6 * n, 0.9 + 0.6 * n);
+    atr.forEach((m, k) => { m.material.emissiveIntensity = n * (0.5 + 0.5 * Math.sin(t * 3 + k)); });
+    const bz = Math.floor(t * 1.5) % 2 ? 1 : 0.25; mRoja.color.setRGB(1.3 * bz, 0.05, 0.05);
   }
   sc.userData.hora = hora;
   return sc;

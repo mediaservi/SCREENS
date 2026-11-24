@@ -40,7 +40,7 @@ const DEF = () => ({
     sueltas: { n: 3, disp: 'arco', ancho: 4, alto: 2.25, elev: 0.6, sep: 0.1, angulo: 25, dist: 5, techo: 3, central: false, cAncho: 6, cAlto: 3.4 },
     obst: [] },
   led: { clase: 'INSTALL', tipo: 'INDOOR', crm: '', ajuste: 'dentro', transp: false, gold: false, protegido: false, sol: '', nitsMin: 0 },
-  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, multi: false, lux: 140, luzUso: 'reunion', ganancia: 1, dist: 0, distMin: 0, distMax: 0, pubNS: false, marcas: [], orient: 'auto', montaje: 'auto', altura: 0, oos: false },
+  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, multi: false, lux: 140, luzUso: 'reunion', ganancia: 1, dist: 0, distMin: 0, distMax: 0, pubNS: false, marcas: [], orient: 'auto', montaje: 'auto', altura: 0, oos: false, lmMin: 0, tipoOpt: '' },
   elec: { backup: false, escalador: 'con', conexion: 'directo', sel: '', marca: 'todos', dante: false, selMedia: '', proyEq: 'media', selBlend: '' },
   vista: { contenido: 'carta', etiquetas: true, camara: 'exterior', zona: true, modo: 'continuo', tec: 'todas', vtSup: 0 }
 });
@@ -100,7 +100,10 @@ const TR_MAPPING = 2;
 // v10.63 · la luz es la que se elige y nunca cambia sola (antes cada tipo ponía la suya al cargar y una pared a 10 lx volvía a 140 al recargar).
 // Arranca con 140 lx y ganancia 1; escalones: Meeting room 140, Class room 210, Event hall 140,
 // Living 70 y Theatre room 14, o a mano. 0 lx es 0 (oscuridad total), no «sin dato».
-const USOS_LUZ = [['reunion', 140], ['aula', 210], ['evento', 140], ['salon', 70], ['teatro', 14]];
+const USOS_LUZ = [['reunion', 140], ['aula', 210], ['evento', 140], ['salon', 70], ['teatro', 14], ['oscura', 15], ['calle', 5]];
+// v10.89 · la luz por defecto va con el tipo: sala inmersiva a oscuras 15 lx, mapping de noche 5 lx, pared 140 lx (solo si no se ha tocado)
+const LUZ_TIPO = { sala: ['oscura', 15], mapping: ['calle', 5], pared: ['reunion', 140] };
+function luzDeTipo(v) { const p = E.proy, def = Object.values(LUZ_TIPO).some(u => u[0] === p.luzUso && u[1] === Number(p.lux)); if (def && LUZ_TIPO[v]) { p.luzUso = LUZ_TIPO[v][0]; p.lux = LUZ_TIPO[v][1]; } }
 // v10.63 · el mapping arranca con una fachada de 6 m de alto y el proyector a 6 m (sin techo): se pone al pasar a mapping desde otro tipo
 function alMapping() { const s = E.esp.sueltas; s.alto = 6; s.ancho = Math.round(6 * 16 / 9 * 100) / 100; Object.assign(E.proy, { dist: 6, distMin: 0, distMax: 0 }); }
 // v10.63 · medidas de cada pantalla LED (ancho, alto): las guardadas y, para las que falten, la medida común
@@ -195,7 +198,10 @@ function calcular(forzarMulti) {
   const mejorDe = (lista, fn) => lista.map(q => ({ q, r: fn(q) })).sort((x, y) => x.r.coste - y.r.coste)[0];
   // v10.54 · solo las marcas activadas (todas, si no se ha quitado ninguna)
   const mAct = marcasActivas(), CAT = mAct.length === MARCAS_PROY.length ? PROYECTORES : PROYECTORES.filter(q => mAct.includes(q.marca));
-  const cand = CAT.filter(q => (!E.proy.cuerpo || q.modelo === E.proy.cuerpo) && (!E.proy.optica || q.optica === E.proy.optica));
+  // v10.89 · lúmenes mínimos y tipo de óptica pedidos (petición o MATERIAL): solo si queda alguno que los cumpla
+  const lmMin = Number(E.proy.lmMin) || 0, tOpt = E.proy.tipoOpt || '';
+  const CATf = CAT.filter(q => (!lmMin || q.lumens >= lmMin * 0.97) && (!tOpt || tipoTiro(q) === tOpt));
+  const cand = (CATf.length ? CATf : CAT).filter(q => (!E.proy.cuerpo || q.modelo === E.proy.cuerpo) && (!E.proy.optica || q.optica === E.proy.optica));
   let lista = cand.length ? cand : CAT;
   if (!cand.length && E.proy.cuerpo && E.proy.optica) { const soloC = CAT.filter(q => q.modelo === E.proy.cuerpo); if (soloC.length) { lista = soloC; E.proy.optica = ''; } }   // v10.89 · una óptica que no va con ese cuerpo: se queda el cuerpo, la óptica vuelve a AUTO
   const fijo = lista.length === 1 ? lista[0] : null, fijoS = E.proy.idSuelo && PROYECTORES.find(p => p.id === E.proy.idSuelo);
@@ -294,6 +300,8 @@ function costeInstalacion(filas, S) {
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.
 const nombreQ = (q) => (q ? (q.marca ? q.marca + ' ' : '') + q.nombre : '');
 // desplazamiento de la lente que pide la colocación frente al que da la óptica (en vertical, el de la sala es el horizontal de la óptica)
+// v10.89 · clase de óptica por su relación de tiro: ultracorta, corta, estándar o larga
+export const tipoTiro = (q) => (q.ust || q.plegada || q.trMax < 0.42 ? 'ust' : q.trMax < 1 ? 'corta' : q.trMin >= 2.4 ? 'larga' : 'estandar');
 const limShift = (f) => { const q = f.proyector; return !q || q.plegada || !q.shiftV ? 0 : f.p.vert ? q.shiftH : q.shiftV; };
 // v10.89 · el desplazamiento se compara con el rango real de la óptica (asimétrico y con offset en Vivitek), según vaya colgado o sobremesa
 const pasaShift = (f) => { if (!f.pos || !limShift(f)) return false; const r = rangoLente(f.proyector, f.p.vert, f.pos.apoyo).map(v => v * 100); return f.pos.shiftV < r[0] - 0.5 || f.pos.shiftV > r[1] + 0.5; };
@@ -322,6 +330,7 @@ function veredicto(c) {
     pw.filter(f => f.p.solapeRel > SOLAPE_RECO + 1e-6 && f.p.solapeRel <= SOLAPE_MAX + 1e-6).forEach(f => A('solapeMedio', t('vSolapeMedio', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre, r: fmt(SOLAPE_RECO * 100, 0) })));
     pw.filter(f => Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6).forEach(f => A('recorte', t('vRecorte', { p: fmt(Math.max(f.p.recorte, f.p.recorteX) * 100, 0), n: f.nombre })));
     if (pw.some(f => f.p.fueraZoom && !f.p.noCubre)) A('zoom', t('fueraZoom'));
+    if (nlNoUsado.length) A('nl', t('vNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }));
     { const L = pw.filter(pasaShift); if (L.length) R('shift', t('vShift', { s: nom(L) })); }   // v10.89 · la lente no llega: en rojo (la imagen no se puede poner ahí)
     { const L = pw.filter(f => f.p.fueraMec); if (L.length) R('foco', t('vFocoMec', { s: nom(L) })); else { const L2 = pw.filter(f => f.p.fueraFoco); if (L2.length) A('foco', t('vFoco', { s: nom(L2) })); } }
     pw.filter(f => f.pos && f.pos.techo > 0 && f.pos.y1 > f.pos.techo + 0.005).forEach(f => A('techo', t('vTecho', { n: f.nombre, d: fmt(f.pos.y1 - f.pos.techo, 2) })));
@@ -1031,6 +1040,7 @@ function rotulo(x) {
     case 'vertical': return t('or_vertical'); case 'horizontal': return t('or_horizontal'); case 'multi': return t('multiImg'); case 'tipo': return t('tp_' + x.v);
     case 'distProy': return t('distOpticaK') + ' ' + fmt(x.v, 1) + ' m'; case 'montaje': return t('mo_' + x.v) + (x.h ? ' ' + fmt(x.h, 1) + ' m' : '');
     case 'fibra': return t('fibra'); case 'central': return t('central') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m';
+    case 'salaMed': return t('salaRec') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pulgadas': return fmt(x.v, 0) + '″'; case 'lumenes': return '≥ ' + fmt(x.v, 0) + ' lm'; case 'optica': return t('opt_' + x.v); case 'ledTipo': return t('ped_' + x.v);
     case 'laterales': return t('laterales') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pitch': return 'P' + fmt(x.v, 2) + (x.ok ? ' · ' + x.ok : ''); default: return x.v;
   }
 }
@@ -1039,7 +1049,7 @@ function calcularPeticion() {
   if (!txt) { estadoNl(t('nlVacio')); if (i) i.focus(); return; }
   if (escuchando) { try { escuchando.stop(); } catch (e) {} escuchando = null; }
   if (i && matchMedia('(pointer: coarse)').matches) i.blur(); // en el móvil se cierra el teclado para ver el resultado
-  const r = interpretar(txt), c = r.cambios;
+  const r = interpretar(txt, E.tecnologia), c = r.cambios;
   if (r.cantidad) E.cantidad = r.cantidad; if (r.tecnologia) E.tecnologia = r.tecnologia;
   // una pantalla LED: la petición la resuelve su propio cálculo, con el popup de datos del proyecto
   if (unaLed()) { actualizar(); aIframe({ tipo: 'screens-peticion', texto: txt }); estadoNl(t('nlLed')); return; }
@@ -1051,6 +1061,11 @@ function calcularPeticion() {
   if (r.tecnologia === 'proy') Object.assign(E.proy, { dist: 0, orient: 'auto', montaje: 'auto', altura: 0, tipo: 'pared' });
   Object.assign(E.led, c.led); Object.assign(E.proy, c.proy); Object.assign(E.elec, c.elec);
   if (c.proy.tipo === 'mapping' && !r.vistos.some(x => x.k === 'medida')) { const d = Number(E.proy.dist) || 0; alMapping(); if (r.vistos.some(x => x.k === 'distProy')) E.proy.dist = d; }   // v10.63
+  if (c.sueltas.salaFondo && !c.proy.dist) E.proy.distMax = Math.max(1, c.sueltas.salaFondo - 0.3);   // v10.89 · el proyector tiene que caber en la sala
+  delete E.esp.sueltas.salaAncho; delete E.esp.sueltas.salaFondo;
+  if ((E.tecnologia === 'proy') && c.proy.lux == null) luzDeTipo(E.esp.tipo === 'sala' ? 'sala' : E.proy.tipo === 'mapping' ? 'mapping' : 'pared');
+  // v10.89 · el techo no puede quedar por debajo del montaje pedido (evita avisos falsos de «pasa del techo»)
+  if (c.sueltas.techo == null && Number(E.proy.altura) > 0 && Number(E.esp.sueltas.techo) > 0 && E.esp.sueltas.techo < E.proy.altura + 0.3) E.esp.sueltas.techo = Math.round((E.proy.altura + 0.5) * 10) / 10;
   if (c.proy.lux != null) E.proy.luzUso = (USOS_LUZ.find(u => u[1] === Number(c.proy.lux)) || [''])[0];
   if (c.led.tipo || c.led.clase) E.led.crm = '';
   if (c.elec.backup || c.elec.conexion) E.elec.sel = '';
@@ -1060,8 +1075,11 @@ function calcularPeticion() {
     const v = r.vistos.find(x => x.k === 'pitch'); if (m) { E.led.crm = m.crm; if (v) v.ok = m.crm; }
   }
   actualizar();
-  estadoNl(r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.map(rotulo).join(' · ') : t('nlNada'));
+  nlNoUsado = r.noUsado || [];
+  estadoNl((r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : ''), nlNoUsado.length > 0);
+  if (nlNoUsado.length) actualizar();
 }
+let nlNoUsado = [];
 
 // v8.5 · bloque de una zona: cabecera con testigo, nombre, resumen (se lee cuando está plegado) y su RESTABLECER; debajo, el cuerpo
 const blq = (id, tit, res, cuerpo, reset) => `<section class="mod blq" data-blq="${id}"><div class="mod-tit"><button type="button" class="blq-cab" data-accion="blq" data-id="${id}" aria-expanded="true"><i class="blq-led"></i><span class="blq-nom">${tit}</span><span class="blq-res">${res || ''}</span></button>${reset ? `<button type="button" class="sec-btn reset" data-accion="${reset}">${t('restablecer')}</button>` : ''}</div><div class="blq-cuerpo">${cuerpo}</div></section>`;
@@ -1272,7 +1290,7 @@ document.addEventListener('click', (ev) => {
     if (v === 'sala') { E.cantidad = 'varias'; E.esp.tipo = 'sala'; }
     else { E.proy.tipo = v; E.esp.tipo = 'sueltas'; }
     if (v === 'mapping' && antes !== 'mapping') alMapping();
-    actualizar(); return; }
+    luzDeTipo(v); actualizar(); return; }
   // candados: al cerrarlo se fija el valor que estaba calculando AUTO; al abrirlo vuelve a AUTO
   if (a === 'lock-dist' || a === 'lock-alt') {
     const pw = calculo && calculo.filas ? calculo.filas.find(f => f.s.tipo !== 'suelo' && f.pos) : null, r2 = (v) => Math.round(v * 100) / 100;

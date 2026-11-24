@@ -369,6 +369,8 @@ export function colocarPared(s, p, prod, { alto, sala, techo: techoS, montaje = 
   const sep = prod.plegada && prod.sepUST ? prod.sepUST(Math.hypot(p.imgW, p.imgH) / 0.0254) : 0;
   const yHung = Math.min(techo, Math.max(yTop + 0.15, (sala ? alto : altoPared + 0.6) - 0.45));
   const zL = Math.max(0.15, p.tiro), zMax = Math.max(zL, p.tiroMax || zL), out = [];
+  /* v11.9 · una altura del proyector dicha a mano manda también en AUTO (antes solo se usaba eligiendo colgado o apoyado): por encima del centro de la imagen, colgado a esa altura; por debajo, apoyado en ella */
+  if (montaje === 'auto' && altura > 0 && !prod.plegada) montaje = altura >= s.elev + p.filas[0] + p.imgH / 2 ? 'colgado' : 'apoyado';
   for (let r = 0; r < p.rows; r++) {
     const y0 = s.elev + p.filas[r], y1 = y0 + p.imgH, yC = (y0 + y1) / 2;
     let yProy, apoyo = false;

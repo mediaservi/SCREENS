@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.12** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.13** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.12)
+## Cambios de la versión actual (v11.13)
+- **Los proyectores ya no se mueven más allá de lo que da su óptica:** al separar dos equipos que chocan o que se hacen sombra, SCREENS solo sube, baja o corre un proyector dentro del desplazamiento de lente que tiene; las ultracortas de óptica fija o plegada no se mueven, porque con ellas se movería la imagen. Una altura marcada a mano no se cambia.
+- **En una sala inmersiva ningún proyector va en el suelo:** los EB-815E, EB-805F y las ópticas ultracortas plegadas van colgados, en una sola fila y con la imagen por debajo; lo que no llega hasta el suelo se avisa como cobertura parcial.
+- **Separación entre proyectores de paredes distintas según el manual del fabricante:** 20 cm para el EB-815E; en los demás, 40 cm.
+
+## Cambios de la v11.12
 - **AUTO busca más allá cuando lo mejor no cubre bien:** si entre los diez primeros candidatos ninguno cubre la superficie (no llega, recorte excesivo, imagen fuera de tamaño o franja sin imagen), se prueban los treinta siguientes. Ejemplo: multiproyección pedida de 14 × 4 m a 16 m, de 1 proyector con un 49 % de recorte (rojo) a 2 × EB-XQ2030B + ELPLM15H (ámbar).
 
 ## Cambios de la v11.11

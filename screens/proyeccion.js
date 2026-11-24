@@ -49,7 +49,8 @@ export const OPTICAS = [
   { ref: 'ELPLL11H', tipo: 'larga', lmXQ: 29900, minS: { XQ2030: 70 }, s: { PU1000: [9.90, 15.52, 67, 30], PU2000: [7.23, 11.38, 60, 18], PQ2000: [6.99, 11.00, 64, 16], XQ2030: [6.99, 11.00, 64, 16] } }
 ];
 // ópticas fijas: desplazamiento (V, H en %), imagen mínima (″) y, las ultracortas, separación imagen–proyector y desfase lente–cuerpo
-const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
+// holgEsq: separación entre proyectores de paredes distintas según el manual (EB-815E: 20 cm libres en el lado de la ventilación)
+const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255, holgEsq: 0.20 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
   'EB-L695SE': { sh: [50, 20], min: 80 }, 'EB-L795SE': { sh: [50, 20], min: 60 }, 'EB-L695SU': { sh: [50, 20], min: 60 } };
 
 export const SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
@@ -77,7 +78,7 @@ function leer() {
     const combo = (optica, tr, lumens, sh, x) => ({ ...base, id: c[1] + (optica ? '|' + optica : ''), optica, nombre: c[1] + (optica ? ' + ' + optica : ''),
       trMin: Math.min(...tr), trMax: Math.max(...tr), lumens, ust: Math.min(...tr) < 0.4, shiftV: sh[0] || 0, shiftVcontra: sh[0] || 0, shiftH: sh[1] || 0, shiftSube: !!sh[2], ...(x || {}) });
     if (c[2] === 'fija') { const F = FIJA_EPSON[c[1]] || {}, tr = c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
-      out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
+      out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.holgEsq ? { holgEsq: F.holgEsq } : {}), ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
     OPTICAS.forEach((o) => {
       const d = o.s[c[2]]; if (!d) return;
       const sr = c[2], cuerpoLm = Number(c[4]);
@@ -247,18 +248,22 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
   const puedeV = !p.plegada && !(p.ust && (p.shiftSube || !p.optica)) && !p.offset;   // v10.89 · las plegadas y las de lente en el borde (offset), solo en horizontal
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
+  /* v11.13 · en una sala inmersiva los proyectores nunca van en el suelo (Josep, 24-11-2026): las ultracortas plegadas (EB-815E, EB-805F, ópticas X0xS)
+     van colgadas, una sola fila, con la imagen por debajo del proyector; lo que no llega abajo queda sin imagen (aviso de cobertura parcial) */
+  const salaPleg = banda > 0 && !!p.plegada, sepP = (d) => typeof p.sepUST === 'function' ? p.sepUST(d) : (p.sepUST || 0), altoChP = p.chasis ? p.chasis[2] : 0.2;
   let mejor = null, mejorF = null;
   for (const o of ors) {
     const a = o === 'v' ? 1 / p.ar : p.ar;   // ancho / alto de la imagen sobre la superficie
     for (let rows = 1; rows <= (una ? 1 : 8); rows++) for (let cols = 1; cols <= (una ? 1 : 12); cols++) {
-      if (cols * rows > 40) continue;
+      if (cols * rows > 40 || (salaPleg && rows > 1)) continue;
       const kc = 1 + (cols - 1) * (1 - sMin), kr = 1 + (rows - 1) * (1 - sMin);
       /* v11.7 · sala inmersiva con proyectores de óptica fija (EB-815E, EB-805F…): además de cubrir la pared entera, se mira una sola fila que cubre todo
          el ancho y una franja de al menos «banda» metros de alto (así se montan las salas pequeñas; queda una franja sin imagen arriba y abajo) */
       for (const franja of (banda > 0 && !p.optica && rows === 1 && !(dist > 0) ? [0, 1] : [0])) {
       const ihW = W / (a * kc);
       if (franja && !(ihW >= Math.min(banda, H) - 1e-6)) continue;   // una fila que cubre el ancho (si pasa del alto, lo que sobra se enmascara)
-      const ihNec = franja ? ihW : Math.max(H / kr, ihW);   // la imagen más pequeña que cubre con el solape mínimo
+      const Hu = salaPleg ? Math.max(0.3, H - (sepP(Math.hypot(H * a, H) / 0.0254) + altoChP + 0.05)) : H;   // alto aprovechable
+      const ihNec = franja ? ihW : Math.max(Hu / kr, ihW);   // la imagen más pequeña que cubre con el solape mínimo
       let nw = o === 'v' ? ihNec : ihNec * a, tiro, fueraZoom = false, noCubre = false;
       if (dist > 0) {
         const nwLejos = dist / p.trMin, nwCerca = dist / p.trMax;   // a esa distancia, el zoom da imágenes entre nwCerca y nwLejos
@@ -269,7 +274,8 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       const ih = o === 'v' ? nw : nw / a, iw = ih * a;
       const ox = cols > 1 ? (cols * iw - W) / (cols - 1) : 0, oy = rows > 1 ? (rows * ih - H) / (rows - 1) : 0;
       const oxR = cols > 1 ? ox / iw : 0, oyR = rows > 1 ? oy / ih : 0;
-      const recX = cols === 1 ? Math.max(0, iw - W) / iw : 0, recY = rows === 1 ? Math.max(0, ih - H) / ih : 0;
+      const disp = salaPleg ? Math.max(0.3, H - (sepP(Math.hypot(iw, ih) / 0.0254) + altoChP + 0.05)) : H;   // alto libre bajo el proyector colgado
+      const recX = cols === 1 ? Math.max(0, iw - W) / iw : 0, recY = rows === 1 ? Math.max(0, ih - disp) / ih : 0;
       // v10.62 · un solape por encima del máximo de blending pesa más que una sola imagen que sobresale (lo que sobra se enmascara): así no salen
       // rejillas de proyectores casi uno encima de otro (2×2 al 92 %, 1×8 al 114 %) cuando uno solo, con algo de recorte, ya cubre
       const exS = Math.max(0, oxR - SOLAPE_MAX) + Math.max(0, oyR - SOLAPE_MAX), exR = Math.max(0, recX - RECORTE_MAX) + Math.max(0, recY - RECORTE_MAX);
@@ -285,7 +291,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
       const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (fueraMec ? 4e6 : fueraFoco && !oos ? 1.5e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
         + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0) + (franja ? 3000 : 0) + (fSpec ? 1500 : 0) + (nitsMin > 0 && lux / Math.PI < nitsMin ? (1 - lux / Math.PI / nitsMin) * 20000 : 0);   /* v11.11 · blending para llegar al brillo: cada proyector de más compensa si acerca al objetivo */
-      const cand = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec, parcial: franja ? Math.max(0, H - ih) : 0, fSpec, fr: !!franja };
+      const cand = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec, parcial: franja || salaPleg ? Math.max(0, H - Math.min(ih, disp)) : 0, disp, fSpec, fr: !!franja };
       if (franja) { if (!mejorF || coste < mejorF.coste) mejorF = cand; } else if (!mejor || coste < mejor.coste) mejor = cand;
       }
     }
@@ -298,7 +304,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   const centros = cols === 1 ? [0] : Array.from({ length: cols }, (_, i) => -W / 2 + iw / 2 + i * (iw - ox));
   // base de cada fila desde el pie de la superficie (una sola fila: centrada, lo que sobresale va por igual arriba y abajo)
   /* v11.7 · en la franja de una ultracorta (va en el suelo, por debajo de la imagen) la imagen arranca a 0,3 m del suelo: lo que pase del techo se enmascara */
-  const base1 = fr && p.ust ? Math.max(-(ih - H) / 2, 0.3) : -(ih - H) / 2, recY1 = rows === 1 ? Math.max(recY, (base1 + ih - H) / ih) : recY;
+  const base1 = salaPleg ? mejor.disp - ih : fr && p.ust ? Math.max(-(ih - H) / 2, 0.3) : -(ih - H) / 2, recY1 = rows === 1 ? Math.max(recY, (base1 + ih - H) / ih, -base1 / ih) : recY;
   const filas = rows === 1 ? [base1] : Array.from({ length: rows }, (_, r) => r * (ih - oy));
   const resW = cols === 1 ? Math.round(pxW * Math.min(1, W / iw)) : cols * pxW - (cols - 1) * Math.round(pxW * oxR);
   const resH = rows === 1 ? Math.round(pxH * Math.min(1, H / ih)) : rows * pxH - (rows - 1) * Math.round(pxH * oyR);
@@ -375,7 +381,7 @@ export function colocarPared(s, p, prod, { alto, sala, techo: techoS, montaje = 
     const y0 = s.elev + p.filas[r], y1 = y0 + p.imgH, yC = (y0 + y1) / 2;
     let yProy, apoyo = false;
     if (prod.plegada) {   // la imagen manda: colgado, el anclaje queda «sep» por encima de la imagen; sobremesa, el pie «sep» por debajo
-      const colg = montaje === 'colgado' || (montaje === 'auto' && hayTecho && y1 + sep + altoCh + 0.05 <= (sala ? alto : techoS) + 1e-6);
+      const colg = montaje === 'colgado' || sala || (montaje === 'auto' && hayTecho && y1 + sep + altoCh + 0.05 <= (sala ? alto : techoS) + 1e-6);
       if (colg) yProy = y1 + sep - 0.05 - altoCh / 2; else { yProy = y0 - sep + altoCh / 2; apoyo = true; }
     } else if (montaje === 'apoyado') {
       const yC0 = s.elev + p.filas[0] + p.imgH / 2, base = altura > 0 ? altura : (conShift ? Math.max(0.8, yC0 + rA[0] * p.imgH - altoCh / 2) : 0.8);
@@ -390,7 +396,7 @@ export function colocarPared(s, p, prod, { alto, sala, techo: techoS, montaje = 
     p.centros.forEach(cx => out.push({
       lente: aMundo(s, cx, yProy, zL), rot: s.rot, prod, vert: !!p.vert, apoyo, ancho: p.imgW, zMax, nrm: { x: Math.sin(s.rot), z: Math.cos(s.rot) },
       esquinas: [[cx - p.imgW / 2, y1], [cx + p.imgW / 2, y1], [cx + p.imgW / 2, y0], [cx - p.imgW / 2, y0]].map(([a, b]) => aMundo(s, a, b, 0.01)),
-      yProy, y0, y1, zL, filaR: r, sep
+      yProy, y0, y1, zL, filaR: r, sep, imgH: p.imgH, fijaY: altura > 0
     }));
   }
   return out;
@@ -422,7 +428,9 @@ function medio(h) {
   return { x: (lat ? d : w) / 2, y: a / 2, z: (lat ? w : d) / 2 };
 }
 const chocan = (a, b) => { const A = medio(a), B = medio(b);
-  return Math.abs(a.lente.x - b.lente.x) < A.x + B.x + HOLGURA.h && Math.abs(a.lente.z - b.lente.z) < A.z + B.z + HOLGURA.h && Math.abs(a.lente.y - b.lente.y) < A.y + B.y + HOLGURA.v; };
+  /* v11.13 · entre paredes distintas, la separación del manual del fabricante si la da (Josep, 24-11-2026); si no, la general */
+  const hg = a.sup !== b.sup && a.prod && b.prod && a.prod.holgEsq && b.prod.holgEsq ? Math.max(a.prod.holgEsq, b.prod.holgEsq) : HOLGURA.h;
+  return Math.abs(a.lente.x - b.lente.x) < A.x + B.x + hg && Math.abs(a.lente.z - b.lente.z) < A.z + B.z + hg && Math.abs(a.lente.y - b.lente.y) < A.y + B.y + HOLGURA.v; };
 // puntos del chasis (caja con su tamaño real alrededor de la lente)
 const puntosCuerpo = (h) => { const M = medio(h), L = h.lente, out = [];
   for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) for (const c of [-1, 1]) out.push({ x: L.x + a * M.x, y: L.y + c * M.y, z: L.z + b * M.z });
@@ -457,11 +465,19 @@ export function resolverChoques(haces, alto) {
     const dzs = [0], dys = [0], dxs = [0];
     if (!h.suelo) {
       for (let z = 0.25; zL0 + z <= (h.zMax || zL0) + 1e-6 && dzs.length < 9; z += 0.25) dzs.push(z);
-      for (let k = 1; k <= 4; k++) dys.push(-k * paso, k * paso);
-      const lado = M.x * 2 + HOLGURA.h, lim = (h.ancho || 0) * 0.25;
+      // v11.13 · solo dentro de lo que da la óptica: subir o bajar la lente sin mover la imagen exige desplazamiento vertical,
+      // y correrla por la pared, horizontal (en vertical, al revés). Las plegadas y las de óptica fija ultracorta no se mueven.
+      // Una altura marcada a mano manda: no se cambia.
+      const pr0 = h.prod || {}, fija = !!pr0.plegada, hor = ((h.vert ? Math.min(pr0.shiftV || 0, pr0.shiftVcontra != null ? pr0.shiftVcontra : (pr0.shiftV || 0)) : pr0.shiftH) || 0) / 100;
+      if (!fija && !h.fijaY && h.imgH) for (let k = 1; k <= 4; k++) dys.push(-k * paso, k * paso);
+      const lado = M.x * 2 + HOLGURA.h, lim = fija ? 0 : Math.min((h.ancho || 0) * 0.25, hor * (h.ancho || 0));
       for (let k = 1; k * lado <= lim + 1e-6; k++) dxs.push(k * lado, -k * lado);
+      for (let x = 0.1; x < Math.min(lado, lim + 1e-6); x += 0.1) dxs.push(x, -x);   // pasos cortos: a veces basta con poco
+      if (lim > 0.05 && lim < lado) dxs.push(lim, -lim);
     }
-    const yC = (h.y0 + h.y1) / 2, imgH = h.y1 - h.y0, rl = !h.suelo && h.prod && !h.prod.plegada && h.prod.shiftV && imgH > 0 ? rangoLente(h.prod, !!h.vert, !!h.apoyo) : null;
+    // margen vertical de la lente respecto al centro de la imagen que permite la óptica
+    const rV = h.prod && h.imgH ? rangoLente(h.prod, h.vert, h.apoyo).map(f => (h.y0 + h.y1) / 2 + f * h.imgH) : null;
+    const fueraV = (y) => rV ? Math.max(0, rV[0] - y, y - rV[1]) : 0, fueraV0 = fueraV(base.y);
     const cand = [];
     dzs.forEach(dz => dys.forEach(dy => dxs.forEach(dx => { if (dz || dy || dx) cand.push({ dz, dy, dx, c: dz + Math.abs(dy) * 1.5 + Math.abs(dx) * 1.2 }); })));
     cand.sort((a, b) => a.c - b.c);
@@ -470,7 +486,7 @@ export function resolverChoques(haces, alto) {
     let ok = null, sinChoque = null;
     for (const c of cand) {
       const y = base.y + c.dy; if (y > techo + 1e-6 || y < suelo - 1e-6) continue;
-      if (rl && c.dy && (y < yC + rl[0] * imgH - 1e-3 || y > yC + rl[1] * imgH + 1e-3)) continue;   /* v10.98 · al separar proyectores no se sale del desplazamiento que da la lente */
+      if (c.dy && fueraV(y) > fueraV0 + 1e-6) continue;   // la óptica no llega: la imagen se movería
       poner(c); const pr = problemas(h, puestos, true);
       if (!pr.n) { ok = c; break; }
       if (!sinChoque && inicial.choque && !chocan(h, puestos.find(o => chocan(h, o)) || h)) sinChoque = c;

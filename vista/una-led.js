@@ -20,6 +20,7 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
 import { HUMAN_PATH } from '../screens/figura.js';
+import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=10.94';   /* v10.94 · planos técnicos de señal y de alimentación */
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
@@ -27,9 +28,10 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.93';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v10.94';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
 const fmt = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
 const SV = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
 const IC = {
@@ -93,7 +95,7 @@ const tog = (on, attrs, txt, ic) => `<button type="button" class="tog" aria-pres
 
 /* ---------- estado ---------- */
 const GUARDA = 'screens-blocks-1';
-const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0' };
+const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0', plano: 'reparto' };
 const E = Object.assign({}, DEF,
   (() => { try { return JSON.parse(localStorage.getItem(GUARDA) || '{}'); } catch (e) { return {}; } })());
 let USADO = false;   /* el resultado solo ocupa la casilla cuando ya se ha pedido o tocado algo: al abrir se ve la casilla vacía con su ejemplo */
@@ -269,7 +271,8 @@ function calcula() {
   const procs = ELEC.calcularElectronicas({ lines: r.lineas, totalPix: r.pix, porSup: null, resW: r.resW, resH: r.resH }, { backup: E.backup, escalador: E.escalador, conexion: E.conexion, entradas: Math.max(1, +E.entradas || 1), tipoEntrada: E.tipoEntrada === 'MIXTO' ? '' : E.tipoEntrada, resEntrada: E.resEntrada }, []);
   const medias = E.marca === 'ninguno' ? [] : ELEC.calcularMediaservers({ totalPix: Math.max(1, r.salidas4k) * ELEC.ELEC_PX_4K, resW: r.resW, resH: r.resH }, { marca: E.marca, dante: !!E.dante, entradas: Math.max(1, +E.entradas || 1) });
   const vert = cosido === 'vertical', puerto = (c, f) => dePuerto[c + '_' + f] || 0;
-  const ampCab = holo && r.amp ? r.amp / r.cab : Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cabLinea = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : r.cab;
+  const ampCab = holo && r.amp ? r.amp / r.cab : Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cascCat = Math.floor(numCat(m.cascada || m0.cascada)), cabLinea0 = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : r.cab, cabLinea = cascCat > 0 ? Math.min(cabLinea0, cascCat) : cabLinea0;
+  /* v10.94 · máximo de cabinets en cascada por circuito: el dato del catálogo si lo trae (cascada) y, si no, los que caben en una línea de 16 A */
   /* reparto eléctrico en líneas de 16 A con el mismo criterio de cosido que la señal: columnas o filas enteras por línea */
   const colsPL = Math.floor(cabLinea / r.rows), filasPL = Math.floor(cabLinea / r.cols), eV = colsPL >= 1 ? Math.ceil(r.cols / colsPL) : 0, eH = filasPL >= 1 ? Math.ceil(r.rows / filasPL) : 0;
   const cosE = E.cosido === 'vertical' && eV ? 'vertical' : E.cosido === 'horizontal' && eH ? 'horizontal' : eV && eH ? (eH < eV ? 'horizontal' : 'vertical') : eV ? 'vertical' : eH ? 'horizontal' : 'serpentina';
@@ -279,7 +282,7 @@ function calcula() {
   else for (let f = 0, n = 0; f < r.rows; f++) for (let q = 0; q < r.cols; q++, n++) rutasE[Math.floor(n / cabLinea)].push([f % 2 ? r.cols - 1 - q : q, f]);
   const deLinea = {}; rutasE.forEach((ru, i) => ru.forEach(([c, f]) => { deLinea[c + '_' + f] = i; }));
   const linea = (c, f) => deLinea[c + '_' + f] || 0;
-  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, alt, altCorto, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: r.resW >= 7680 && r.resH >= 4320 ? ['8K', 'ULTRA HD'] : r.resW >= 3840 && r.resH >= 2160 ? ['4K', 'ULTRA HD'] : r.resW >= 1920 && r.resH >= 1080 ? ['FHD', 'FULL HD'] : r.resW >= 1280 && r.resH >= 720 ? ['HD', 'HD READY'] : ['', ''], medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE,
+  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, alt, altCorto, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: r.resW >= 7680 && r.resH >= 4320 ? ['8K', 'ULTRA HD'] : r.resW >= 3840 && r.resH >= 2160 ? ['4K', 'ULTRA HD'] : r.resW >= 1920 && r.resH >= 1080 ? ['FHD', 'FULL HD'] : r.resW >= 1280 && r.resH >= 720 ? ['HD', 'HD READY'] : ['', ''], medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE, cabLinea, cascCat,
     diag: Math.hypot(r.ancho, r.alto), lineasTxt: lineasCosido(r.cols, r.rows, pixCab) };
 }
 
@@ -348,11 +351,11 @@ function svgSim(prop, anchoPx, o) {
    v10.26 · para el instalador: cada cable sale de su cabinet de entrada hasta el borde de la pantalla y de ahí, por la MANGUERA (el tubo o caño
    que reúne todos los cables), hasta el procesador o el cuadro. Con backup, cada puerto lleva un segundo cable (en discontinua) que entra por
    el ÚLTIMO cabinet de su cadena, así que la manguera tiene que llegar también a ese lado. */
-function svgRejilla(tipo) {
+function svgRejilla(tipo, pdf) {
   const { r } = R, sen = tipo === 'senal', bk = sen && !!E.backup, W = 1000, H = 620, n = sen ? r.lineas : R.nLin, de = sen ? R.puerto : R.linea, rutas = sen ? R.rutas : R.rutasE;
   /* salida de la manguera: una de las 4 esquinas o de los 4 centros de lateral (E.mang; por defecto, abajo en el centro). La caja va por fuera, junto a la salida */
   const MG = MANG.includes(E.mang) ? E.mang : 'bc', mV = MG[0], mH = MG[1], lado = mV === 'm' ? (mH === 'l' ? 'l' : 'r') : '';
-  const filasLey = Math.ceil(Math.min(n, 12) / 4), pyTop = 124 + (mV === 't' ? 74 : 0), bajo = 38 + (mV === 'b' ? 74 : 0) + filasLey * 44 + (n > 12 ? 18 : 0), anchoU = lado ? 690 : 840;
+  const filasLey = Math.ceil(Math.min(n, 12) / 4), pyTop = 124 + (mV === 't' ? 74 : 0), bajo = 38 + (pdf ? 0 : 36) /* v10.94 · hueco para el selector de plano */ + (mV === 'b' ? 74 : 0) + filasLey * 44 + (n > 12 ? 18 : 0), anchoU = lado ? 690 : 840;
   const k = Math.min(anchoU / r.ancho, (H - pyTop - bajo) / r.alto), pw = r.ancho * k, ph = r.alto * k, px = lado === 'l' ? 240 + (W - 240 - pw) / 2 : lado === 'r' ? (W - 240 - pw) / 2 : (W - pw) / 2, py = pyTop, cw = pw / r.cols, chh = ph / r.rows;
   const tf = Math.max(9, Math.min(22, Math.min(cw, chh) * .42)), cx = (c) => px + c * cw + cw / 2, cy = (f) => py + (r.rows - 1 - f) * chh + chh / 2, CAB = sen ? COL_SENAL.eth : COL_SENAL.power, tc = 'currentColor';
   let g = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color:var(--txt)" role="img" aria-label="${sen ? 'Reparto de cabinets por puerto de datos' : 'Reparto de cabinets por línea eléctrica'}">`;
@@ -413,8 +416,38 @@ function svgDistancia() {
   g += `<text x="${W / 2}" y="${H - 26}" text-anchor="middle" font-size="16" fill="${tc}" fill-opacity=".7" font-family="Inter, sans-serif">Regla práctica: 1 m por cada mm de pitch como mínimo; lo óptimo, desde el triple.</text>`;
   return g + '</svg>';
 }
-const VISTAS = [['senal', 'Señal', () => svgRejilla('senal'), () => 'Cableado de señal'],
-  ['elec', 'Eléctrico', () => svgRejilla('elec'), () => 'Cableado eléctrico'],
+/* v10.94 · planos técnicos, en el formato que usa el técnico para pasárselos al cliente: la geometría real de los cabinets y los recorridos que ya calcula SCREENS */
+function geoPlano() {
+  const { m, r } = R, ho = R.holo, cb = ho && ho.comb;
+  const colsMm = ho ? ho.anchos.slice() : Array(r.cols).fill(+m.cabAncho), rowsMm = ho ? (ho.bot ? [ho.top, ho.bot] : [ho.top]) : Array(r.rows).fill(+m.cabAlto);
+  const colsPx = ho ? ho.anchos.map((a) => (cb ? (a === +cb.mA.cabAncho ? +cb.mA.cabPixAncho : +cb.mE.cabPixAncho) : +m.cabPixAncho)) : Array(r.cols).fill(+m.cabPixAncho);
+  const rowsPx = ho ? (ho.bot ? [Math.round(r.resH * (ho.top / (ho.top + ho.bot))), r.resH - Math.round(r.resH * (ho.top / (ho.top + ho.bot)))] : [r.resH]) : Array(r.rows).fill(+m.cabPixAlto);
+  const acum = (a) => a.reduce((o, v, i) => (o.push(i ? o[i - 1] + a[i - 1] : 0), o), []);
+  return { colsMm, rowsMm, colsPx, rowsPx, colsX: acum(colsPx), rowsY: acum(rowsPx) };
+}
+const fechaPlano = () => { const d = new Date(), l = idioma() === 'en' ? 'en-GB' : 'es-ES'; return d.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString(l, { hour: '2-digit', minute: '2-digit' }); };
+/* tarjetas de salida del procesador: las de 20 RJ45 de la serie modular reparten los puertos; en el resto, una sola */
+const porTarjeta = () => { const p = R.proc; return p && (p.equipos || []).some((q) => /OUTC-20XRJ45/.test(q.ref)) ? 20 : 0; };
+/* proporción del hueco donde se ve el plano: la que se pide (vista en grande) o la del lienzo del bloque CABLEADO */
+const propPlano = (prop) => { if (prop) return prop; const c = document.querySelector('[data-blk="S1B"] .lienzo'); return c && c.clientHeight > 40 ? c.clientWidth / c.clientHeight : 1.6; };
+function planoSenal(pdf, prop) {
+  const { m, r } = R, p = R.proc, bk = !!E.backup, n = r.lineas;
+  const info = [['Tamaño de la pantalla', r.resW + ' × ' + r.resH + ' px'], ['Nombre', E.proy || tr('Pantalla 1')], ['Modelo', m.crm], ['Cabinets', r.cols + ' × ' + r.rows + ' = ' + r.cab]]
+    .concat(R.holo ? [] : [['Píxeles por cabinet', m.cabPixAncho + ' × ' + m.cabPixAlto]])
+    .concat([['Procesador', p ? p.modelo : '—'], ['Puertos de datos', bk ? n + ' + ' + n + ' R' : String(n)], ['Máx. por puerto', R.cabPuerto + ' cab · ' + fmt(PX_PUERTO / 1000) + 'k px'], ['Cosido', tr(R.cosido)], ['Fecha', fechaPlano()]]);
+  const notas = ['Cada cabinet: tarjeta-puerto-orden, posición X, Y y tamaño W, H en píxeles.', 'E: entrada del puerto · S: salida, fin de la cadena.'].concat(bk ? ['R: redundancia (backup), otro puerto que entra por el último cabinet de cada cadena.'] : []);
+  return svgPlanoSenal({ ...geoPlano(), H: pdf ? 540 : 620, top: pdf ? 8 : 56, bottom: pdf ? 8 : 40, prop: pdf ? 0 : propPlano(prop), rutas: R.rutas, cosido: R.cosido, backup: bk, porTarjeta: porTarjeta(), colores: COLS, info, notas, tr });
+}
+function planoElec(pdf, prop) {
+  const { m, r } = R, a = R.ampCab, wMed = numCat(m.wMed), vert = R.cosE === 'vertical';
+  const info = [['Circuitos', R.nLin + ' × 16 A · 230 V'], ['Máx. en cascada', R.cabLinea + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', a > 0 ? fmt(a, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '—']]
+    .concat(wMed > 0 ? [['Consumo medio', fmt(wMed * r.cab / 1000, 2) + ' kW']] : []).concat([['Corriente total', a > 0 ? fmt(r.cab * a, 1) + ' A' : '—'], ['Cosido', tr(R.cosE)]]);
+  const notas = ['Flecha roja: entrada de corriente de cada circuito; sus cabinets van en cascada.', vert ? 'El paso del cable entre verticales (discontinua) puede requerir prolongarlo para que llegue.' : 'El paso del cable entre filas (discontinua) puede requerir prolongarlo para que llegue.', 'Protección recomendada: diferenciales superinmunizados de curva C, uno por circuito.'].concat(a > 0 ? [] : ['Sin datos de consumo en el catálogo.']);
+  return svgPlanoElec({ ...geoPlano(), H: pdf ? 540 : 620, top: pdf ? 8 : 56, bottom: pdf ? 8 : 40, prop: pdf ? 0 : propPlano(prop), rutas: R.rutasE, cosido: R.cosE, colores: COLS, porCab: +m.wMax > 0 ? fmt(m.wMax) + ' W' : '', info, notas, tr });
+}
+const TEC = () => E.plano === 'tecnico';
+const VISTAS = [['senal', 'Señal', (prop) => (TEC() ? planoSenal(false, prop) : svgRejilla('senal')), () => (TEC() ? 'Plano de señal' : 'Cableado de señal')],
+  ['elec', 'Eléctrico', (prop) => (TEC() ? planoElec(false, prop) : svgRejilla('elec')), () => (TEC() ? 'Plano de alimentación' : 'Cableado eléctrico')],
   ['dist', 'Distancia', svgDistancia, () => 'Distancia de visionado'],
   ['esq', 'Esquema', () => svgEsquema(), () => 'Esquema de conexión']];
 
@@ -427,7 +460,9 @@ const mueveMang = (p, d) => { const Y = 'tmb', X = 'lcr'; let y = Y.indexOf(p[0]
   for (let i = 0; i < 2; i++) { y += dy; x += dx; if (y < 0 || y > 2 || x < 0 || x > 2) return ''; if (!(y === 1 && x === 1)) return Y[y] + X[x]; } return ''; };
 const FLE = { u: 'M12 19V5M5 12l7-7 7 7', d: 'M12 5v14M5 12l7 7 7-7', l: 'M19 12H5M12 5l-7 7 7 7', r: 'M5 12h14M12 5l7 7-7 7' }, FLEN = { u: 'arriba', d: 'abajo', l: 'a la izquierda', r: 'a la derecha' };
 const mangCtl = () => { const p = MANG.includes(E.mang) ? E.mang : 'bc'; return `<div class="mangas" role="group" aria-label="Salida de la manguera"><span>Manguera</span>${['l', 'u', 'd', 'r'].map((d) => { const a = mueveMang(p, d); return `<button type="button" class="fle" data-set="mang" data-v="${a}" title="Mover la salida de la manguera ${FLEN[d]}" aria-label="Mover la salida de la manguera ${FLEN[d]}"${a ? '' : ' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="${FLE[d]}"/></svg></button>`; }).join('')}<em>${MANGN[p]}</em>${p !== 'bc' ? '<button type="button" data-set="mang" data-v="bc" title="Volver a la salida por defecto (abajo, centro)">Por defecto</button>' : ''}</div>`; };
-const cosidoCtl = (v = 'senal') => `<div class="cosidos" role="group" aria-label="Cosido del cableado"><span>Cosido</span>${['auto', 'vertical', 'horizontal'].map((v) => `<button type="button" data-set="cosido" data-v="${v}" aria-pressed="${E.cosido === v}">${COSN[v]}</button>`).join('')}<em>${(() => { const c = v === 'elec' ? R.cosE : R.cosido, no = E.cosido !== 'auto' && E.cosido !== c; return (no ? 'No cabe así: ' : E.cosido === 'auto' ? '→ ' : '') + (no || E.cosido === 'auto' ? c : ''); })()}</em></div>` + mangCtl();
+const cosidoCtl = (v = 'senal') => `<div class="cosidos" role="group" aria-label="Cosido del cableado"><span>Cosido</span>${['auto', 'vertical', 'horizontal'].map((v) => `<button type="button" data-set="cosido" data-v="${v}" aria-pressed="${E.cosido === v}">${COSN[v]}</button>`).join('')}<em>${(() => { const c = v === 'elec' ? R.cosE : R.cosido, no = E.cosido !== 'auto' && E.cosido !== c; return (no ? 'No cabe así: ' : E.cosido === 'auto' ? '→ ' : '') + (no || E.cosido === 'auto' ? c : ''); })()}</em></div>` + (TEC() ? '' : mangCtl()) + planoCtl();
+/* v10.94 · cómo se dibuja el cableado: reparto para el instalador o plano técnico (el formato que el técnico pasa al cliente) */
+const planoCtl = () => `<div class="cosidos planos" role="group" aria-label="Tipo de plano"><span>Plano</span>${[['reparto', 'Reparto', 'Reparto por puertos y líneas con la manguera'], ['tecnico', 'Técnico', 'Plano técnico: tarjeta-puerto-orden, píxeles, entradas y salidas, circuitos en cascada']].map(([v, t, ti]) => `<button type="button" data-set="plano" data-v="${v}" title="${ti}" aria-pressed="${(E.plano === 'tecnico' ? 'tecnico' : 'reparto') === v}">${t}</button>`).join('')}</div>`;
 // v10.89 · cada bloque con datos lleva su RESTABLECER (regla del proyecto)
 const RBLK = { M1A: ['tipo', 'clase', 'transp', 'gold', 'protegido', 'sol', 'nitsMin', 'crm'], M2A: ['w', 'h', 'dist', 'uni', 'giro'], M1B: ['crm'], M2B: ['ajuste', 'giro'], M3A: ['pitch', 'pitchOtros', 'resMin'], M3B: ['procSel', 'escalador'], M3C: ['marca', 'mediaSel', 'dante'], M3E: ['backup', 'conexion'] };
 const AJ_RESET = ['backup', 'escalador', 'conexion', 'marca', 'ajuste', 'elev', 'procSel', 'mediaSel', 'dante'];
@@ -541,7 +576,7 @@ function abre(que) {
       <p style="margin:0"><b>Cómo se usa.</b> Escribe o dicta arriba la pantalla que necesitas («3 x 4 para exterior 3.9p a 8 m») y pulsa CALCULAR, o rellena los bloques de la izquierda: entorno y uso, dimensiones, cabinet y resolución. Todo se recalcula al momento.</p>
       <p style="margin:0"><b>Las dos pantallas.</b> A la izquierda, la simulación a escala: puedes cambiar la pared, simular contenido (fuentes de prueba, un enlace de YouTube o Vimeo, o una imagen o vídeo tuyos), copiar una captura y abrirla en grande con el ojo. A la derecha, el cableado de señal, el eléctrico, la distancia de visionado y el esquema de conexión.</p>
       <p style="margin:0"><b>Cada opción en su bloque.</b> Las unidades, los formatos y el ajuste a la medida están en Dimensiones; marino, alcance del público y nits mínimos en Entorno; el pitch, la distancia del público y la resolución mínima en Resolución; columnas y filas en Cabinets; el giro de 90° en Cabinet; la altura sobre el suelo en la simulación; el cosido en el cableado; backup y conexión en Señal; el escalador y el procesador en Electrónica; marca, Dante y modelo en Mediaserver. El icono de reinicio de arriba, o un toque en el logo de SCREENS, empieza un cálculo nuevo.</p>
-      <p style="margin:0"><b>Proyecto y PDF.</b> En «Datos del proyecto» se ponen el nombre, el cliente, las fuentes de vídeo y las observaciones. El botón PDF enseña antes una vista previa de las dos hojas (la pantalla con sus datos y, detrás, el esquema de conexión, el cableado y la lista de material), desde la que se puede ver a pantalla completa, imprimir o guardar. El ojo de cualquier bloque abre también la lista de material y los equipos.</p>
+      <p style="margin:0"><b>Proyecto y PDF.</b> En «Datos del proyecto» se ponen el nombre, el cliente, las fuentes de vídeo y las observaciones. El botón PDF enseña antes una vista previa de las tres hojas (la pantalla con sus datos; el esquema de conexión, el cableado y la lista de material; y los planos técnicos de señal y de alimentación), desde la que se puede ver a pantalla completa, imprimir o guardar. El ojo de cualquier bloque abre también la lista de material y los equipos.</p>
       <p style="margin:0"><b>Sin conexión.</b> El botón de descarga del pie instala SCREENS en el aparato y guarda una copia para usarlo sin red.</p>
       <p style="margin:0" class="nota">Cálculo automático que puede contener errores: revísalo antes de presupuestar o instalar.</p></div></div>`;
     VENT = { que };
@@ -560,7 +595,7 @@ function abre(que) {
       <div class="fila"><button type="button" class="calcular" data-pdf style="font-size:calc(var(--u)*15)">VER EL PDF</button>${tog(false, 'data-ver="mat"', 'Lista de material')}${tog(false, 'data-cierra', 'Cerrar')}</div></div></div>`;
     VENT = { que };
   } else {
-    const LISTA = R && R.r ? [['sim', 'Simulación a escala', () => `<div class="lienzo">${svgSim((innerWidth * .88 - 30) / Math.max(200, innerHeight * .86 - 96), 0)}</div>`], ['senal', VISTAS[0][3](), () => `<div class="lienzo papel">${VISTAS[0][2]()}${cosidoCtl()}</div>`], ['elec', VISTAS[1][3](), () => `<div class="lienzo papel">${VISTAS[1][2]()}${cosidoCtl('elec')}</div>`], ['dist', VISTAS[2][3](), () => `<div class="lienzo papel">${VISTAS[2][2]()}</div>`], ['esq', VISTAS[3][3](), () => `<div class="lienzo papel">${VISTAS[3][2]()}</div>`], ['mat', 'Lista de material', () => `<div class="lienzo papel mat-caja">${tablaMaterial()}</div>`], ['equipo', 'Equipos del proyecto', fichas]] : [];
+    const LISTA = R && R.r ? [['sim', 'Simulación a escala', () => `<div class="lienzo">${svgSim((innerWidth * .88 - 30) / Math.max(200, innerHeight * .86 - 96), 0)}</div>`], ['senal', VISTAS[0][3](), () => `<div class="lienzo papel">${VISTAS[0][2]((innerWidth * .88 - 30) / Math.max(200, innerHeight * .86 - 96))}${cosidoCtl()}</div>`], ['elec', VISTAS[1][3](), () => `<div class="lienzo papel">${VISTAS[1][2]((innerWidth * .88 - 30) / Math.max(200, innerHeight * .86 - 96))}${cosidoCtl('elec')}</div>`], ['dist', VISTAS[2][3](), () => `<div class="lienzo papel">${VISTAS[2][2]()}</div>`], ['esq', VISTAS[3][3](), () => `<div class="lienzo papel">${VISTAS[3][2]()}</div>`], ['mat', 'Lista de material', () => `<div class="lienzo papel mat-caja">${tablaMaterial()}</div>`], ['equipo', 'Equipos del proyecto', fichas]] : [];
     if (!LISTA.length) return; if (que === 'vista') que = VISTAS[E.vista][0];
     let i = Math.max(0, LISTA.findIndex((x) => x[0] === que)); VENT = { que: 'visor', LISTA, i };
     const pinta = () => { const x = VENT.LISTA[VENT.i]; v.innerHTML = `<div class="vent" role="dialog" aria-modal="true" aria-label="${esc(x[1])}"><div class="vent-cab">${esc(x[1])}<span class="sep"></span><span class="nota">${VENT.i + 1} / ${VENT.LISTA.length}</span>${bt('ant', 'Anterior', 'data-paso="-1"')}${bt('sig', 'Siguiente', 'data-paso="1"')}${bt('x', 'Cerrar', 'data-cierra')}</div><div class="vent-cu">${x[2]()}</div></div>`; };
@@ -814,7 +849,7 @@ async function svgImg(svgTxt, w, h, fondo, tinta) {
   pinta(); await new Promise((ok) => setTimeout(ok, 150)); pinta();
   return cv.toDataURL('image/jpeg', .9);
 }
-/* PDF del proyecto en dos hojas: 1) la pantalla, la simulación y todos sus datos; 2) el esquema de conexión, el cableado y la lista de material */
+/* PDF del proyecto en tres hojas: 1) la pantalla, la simulación y todos sus datos; 2) el esquema de conexión, el cableado y la lista de material; 3) los planos técnicos de señal y de alimentación (v10.94) */
 let HACIENDO_PDF = false, SIN_CONT_PDF = false;
 async function pdf() {
   if (!R || !R.r) { tostada('Calcula primero una pantalla.'); return; } if (!window.AVPDF) { tostada('No se ha podido cargar el módulo de PDF.'); return; } if (HACIENDO_PDF) return; HACIENDO_PDF = true;
@@ -822,7 +857,8 @@ async function pdf() {
   try {
     if (VENT) cierra(); const { m, r } = R, p = R.proc, me = R.media, TI = '#17181c', G = '#c9ccd3';
     const img = async (svg, w, h, bg) => `<img src="${await svgImg(svg, w, h, bg, TI)}" alt="" style="display:block;width:100%;height:auto;border:1px solid ${G};border-radius:6px">`;
-    const sim = await img(svgSim(1.5, 0, { pdf: true }), 860, 573, '#1a1a1d'), sen = await img(svgRejilla('senal'), 1000, 620, '#f4f5f7'), ele = await img(svgRejilla('elec'), 1000, 620, '#f4f5f7'), esq = await img(svgEsquema(), 1000, 620, '#f4f5f7');
+    const sim = await img(svgSim(1.5, 0, { pdf: true }), 860, 573, '#1a1a1d'), sen = await img(svgRejilla('senal', true), 1000, 620, '#f4f5f7'), ele = await img(svgRejilla('elec', true), 1000, 620, '#f4f5f7'), esq = await img(svgEsquema(), 1000, 620, '#f4f5f7');
+    const pSen = await img(planoSenal(true), 1000, 540, '#fbfcfd'), pEle = await img(planoElec(true), 1000, 540, '#fbfcfd');   /* v10.94 · planos técnicos en la hoja 3 */
     const fila = (k, v) => (v === '' || v == null ? '' : `<tr><td style="padding:1.5px 0;color:#555">${k}</td><td style="padding:1.5px 0 1.5px 8px;font-weight:700;text-align:right">${v}</td></tr>`), rot = (s) => `<div style="font:800 8.5px/1.2 Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#555;margin:0 0 3px">${s}</div>`;
     const caja = (tit, filas) => `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px;background:#fff">${rot(tit)}<table style="width:100%;border-collapse:collapse;font:400 9.5px/1.35 Inter,Arial,sans-serif">${filas}</table></div>`;
     /* v10.59 · la misma cabecera que el resto de los PDF: los dos logos y, entre ellos, UNA línea pequeña (web · fecha · hora) que encoge si no cabe; el proyecto y el cliente, si se han escrito, van debajo */
@@ -845,10 +881,12 @@ async function pdf() {
       `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px"><div>${rot('Cableado de señal')}${sen}</div><div>${rot('Cableado eléctrico')}${ele}</div></div>` +
       rot('Lista de material') + `<table style="width:100%;border-collapse:collapse;font:400 9.5px/1.4 Inter,Arial,sans-serif;margin-bottom:5px"><thead><tr>${['Cant.', 'Referencia', 'Descripción'].map((s, i) => `<th style="text-align:${i ? 'left' : 'right'};padding:3px 6px;border-bottom:1.5px solid ${TI};font-weight:800">${s}</th>`).join('')}</tr></thead><tbody>${material().map((x) => `<tr><td style="text-align:right;padding:3px 6px;border-top:1px ${x.pieza ? 'dotted' : 'solid'} ${G};font-weight:700;white-space:nowrap">${x.c === '' ? '' : fmt(x.c) + (x.pieza ? '×' : '')}</td><td data-crudo style="padding:3px 6px 3px ${x.pieza ? 22 : 6}px;border-top:1px ${x.pieza ? 'dotted' : 'solid'} ${G};white-space:nowrap;font-weight:700"><span style="display:inline-block;width:${x.pieza ? 6 : 8}px;height:${x.pieza ? 6 : 8}px;border-radius:${x.pieza ? 1 : 4}px;margin-right:6px;vertical-align:0;background:${COL_GRUPO[x.g] || '#999'}"></span>${esc(x.url ? x.ref : tr(x.ref))}</td><td style="padding:3px 6px;border-top:1px ${x.pieza ? 'dotted' : 'solid'} ${G}">${esc(x.desc)}</td></tr>`).join('')}</tbody></table>` +
       `<div style="font:400 8.5px/1.4 Inter,Arial,sans-serif;color:#555">${tr(NOTA_MAT)}</div>`;
+    const p3 = cab('hoja 3 de 3') + rot('Plano de señal') + `<div style="margin-bottom:10px">${pSen}</div>` + rot('Plano de alimentación') + `<div style="margin-bottom:6px">${pEle}</div>` +
+      `<div style="font:400 8.5px/1.4 Inter,Arial,sans-serif;color:#555">${tr('* Planos orientativos calculados por SCREENS: confirmar con el fabricante el cosido, la cascada y la protección antes de instalar.')}</div>`;
     hoja.id = 'hoja'; hoja.style.cssText = `position:fixed;left:-20000px;top:0;width:702px;background:#fff;color:${TI};font:400 10px/1.4 Inter,Arial,sans-serif`;
-    hoja.innerHTML = `<div class="pdf-p1"><div style="padding:0 0 6px">${p1}</div></div><div style="height:60px"></div><div class="pdf-p2"><div style="padding:0 0 6px">${p2}</div></div>`;
+    hoja.innerHTML = `<div class="pdf-p1"><div style="padding:0 0 6px">${p1}</div></div><div style="height:60px"></div><div class="pdf-p2"><div style="padding:0 0 6px">${p2}</div></div><div style="height:60px"></div><div class="pdf-p3"><div style="padding:0 0 6px">${p3}</div></div>`;
     document.body.appendChild(hoja); await Promise.all([...hoja.querySelectorAll('img')].map((i) => (i.complete ? 0 : new Promise((ok) => { i.onload = i.onerror = ok; })))); await new Promise((ok) => setTimeout(ok, 60));
-    const pv = await window.AVPDF.exporta({ previa: true, raiz: hoja, paginas: [['.pdf-p1'], ['.pdf-p2']], margen: 12, claro: false, nombre: window.AVPDF.sello('SCREENS'), titulo: 'SCREENS · ' + (E.proy || m.crm),
+    const pv = await window.AVPDF.exporta({ previa: true, raiz: hoja, paginas: [['.pdf-p1'], ['.pdf-p2'], ['.pdf-p3']], margen: 12, claro: false, nombre: window.AVPDF.sello('SCREENS'), titulo: 'SCREENS · ' + (E.proy || m.crm),
       /* v10.38 · el pie del PDF es el mismo que el de la pantalla: aviso con su triángulo y, debajo, la línea de crédito común */
       pieHtml: AV_TRI + tr('Cálculo automático que puede contener errores: revísalo antes de presupuestar o instalar.') + '\n' + (window.AVCREDITO ? window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma(), { sinEnlaces: true }) : VERSION + ' ' + new Date().getFullYear() + ' · mediaservi.com'),
       alClonar: (doc, raiz) => { raiz.style.setProperty('position', 'absolute', 'important'); raiz.style.setProperty('left', '0', 'important'); raiz.style.setProperty('top', '0', 'important'); [...doc.body.children].forEach((e) => { if (e !== raiz && !e.contains(raiz)) e.style.setProperty('display', 'none', 'important'); }); } });

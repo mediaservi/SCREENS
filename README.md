@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.93** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.94** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -21,7 +21,7 @@ Icono de pestaña y de app (noviembre 2026) en el estilo de placa de la familia 
 
 ## Para qué sirve
 
-Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que se lea bien a 4 m"* a una propuesta técnica verificable: modelo de cabinet o proyector, número de equipos, resolución, peso, consumo, líneas de señal y eléctricas, electrónica y mediaserver, esquema de conexión, lista de material y PDF.
+Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que se lea bien a 4 m"* a una propuesta técnica verificable: modelo de cabinet o proyector, número de equipos, resolución, peso, consumo, líneas de señal y eléctricas, electrónica y mediaserver, esquema de conexión, planos técnicos de señal y de alimentación, lista de material y PDF.
 
 ## Funciones
 
@@ -37,7 +37,8 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 - **Simulación a escala:** la pantalla en su pared, con figura humana, cotas y contenido de prueba (fuentes multimedia, enlace propio o archivo). Pared a elegir: hormigón, madera, mármol, tres ladrillos, **sin fondo** o **fondo propio** (una foto subida o un enlace pegado, que se guarda en este navegador).
 - **Cableado:** señal, eléctrico, distancia de visionado y esquema de conexión. Con backup, cada puerto lleva un segundo cable por el último cabinet de su cadena. La **manguera** se dibuja como un solo tubo hasta la salida elegida con las flechas ← ↑ ↓ → (4 esquinas y 4 centros de lateral), con el número de cables.
 - **Lista de material** completa (cabinets, fuentes, cable HDMI PureLink según la distancia, mediaserver, electrónica, fibra, Cat6, distribución eléctrica, PC de control).
-- **PDF de dos hojas:** resumen con simulación y datos; esquema, cableados y material.
+- **Planos técnicos (v10.94):** con PLANO · Técnico, el cableado de señal pasa a plano con «tarjeta-puerto-orden», X/Y/W/H en píxeles, E/S y redundancia, y el eléctrico a circuitos en cascada con su entrada de corriente, cada uno con su cuadro de información.
+- **PDF de tres hojas:** resumen con simulación y datos; esquema, cableados y material; planos técnicos de señal y de alimentación.
 
 **Varias pantallas, sala inmersiva y proyección (consola)**
 - **Mandos** en las dos primeras columnas: tipo, tamaño y distancias (medidas, elevación, distancia del público, techo, puertas y obstáculos), luz y superficie, material, ajuste del equipo y electrónica o mediaserver; cada bloque con su RESTABLECER. Si no caben, los que no se usan se pliegan con su resumen.
@@ -75,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.93)
+## Cambios de la versión actual (v10.94)
+- **Planos técnicos de conexionado en SCREENS LED** (pedido por Josep, 24-11-2026), en el formato que usa el técnico para pasárselos al cliente y con los mismos cálculos de SCREENS:
+  - **Plano de señal**: cada cabinet con «tarjeta-puerto-orden» y su X, Y, W, H en píxeles; una línea de color por puerto de datos con el sentido del cosido, **E** (entrada del puerto) y **S** (salida, fin de la cadena); con backup, la **redundancia R** de cada cadena, numerada después de los puertos principales (por ejemplo 5 puertos de señal y los otros 5 de redundancia). Cuadro «Información de la pantalla»: tamaño en píxeles, nombre, modelo, cabinets, píxeles por cabinet, procesador, puertos usados, máximo de cabinets por puerto, cosido y fecha.
+  - **Plano de alimentación**: los circuitos de 16 A en cascada, en U entre columnas (o filas), con la flecha roja de entrada de corriente, el paso de cable entre verticales en discontinua (puede necesitar prolongarlo) y un cuadro con circuitos, máximo de cabinets en cascada, consumo por cabinet, consumo de pico, corriente total y la recomendación de protección (diferenciales superinmunizados de curva C, uno por circuito).
+  - **En la portada**: el bloque CABLEADO tiene abajo el selector **PLANO · Reparto / Técnico** en las pestañas Señal y Eléctrico (también al verlo en grande); Reparto es el dibujo de siempre con la manguera.
+  - **En el PDF**: una tercera hoja con los dos planos sobre fondo claro de plano. En la consola (varias pantallas LED), el PDF añade los dos planos de cada pantalla, con la numeración de puertos de todo el proyecto.
+  - Datos opcionales del catálogo que ya se leen si el panel los trae: **cascada** (máximo de cabinets en cascada por circuito; si no está, los que caben en una línea de 16 A) y **wMed** (consumo medio por cabinet en W; si no está, el consumo medio no se muestra).
+
+## Cambios de la v10.93
 - **SIMULAR con más vida** (pedido por Josep, 24-11-2026):
   - **Tráfico** por todas las calles: coches de colores y taxis negros con las puertas amarillas, con faros y pilotos encendidos de noche; **personas** por las aceras.
   - Una **patrulla de policía** parada en un cruce con las luces azules y rojas, y una **ambulancia** circulando lejos con sus destellos.

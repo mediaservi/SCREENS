@@ -1,7 +1,9 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
-import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo } from './led.js';
+import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.94';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
@@ -24,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.93';
+const VERSION = 'v10.94';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1410,6 +1412,7 @@ function imprimir() {
   h += `<div class="im-res">${vistaResultados(c)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
+  if (E.tecnologia === 'led' && c.modelo) h += planosPdf(c);   // v10.94 · planos técnicos de cada pantalla
   // pie en el margen inferior de cada hoja; si el navegador no dibuja esos márgenes (Safari, Firefox), va al final del documento.
   // Las cajas vacías de arriba y de abajo a la izquierda evitan que el navegador añada su fecha, título y dirección a la hoja
   if (cajasMargen()) h += `<style>@page { margin-bottom: 18mm; @top-left { content: "" } @top-center { content: "" } @top-right { content: "" } @bottom-left { content: "" } @bottom-center { content: url("data:image/svg+xml,${encodeURIComponent(AV_TRI_PDF.replace(/ style="[^"]*"/, ''))}") ${cssTxt(' ' + t('avisoPdf'))} "\\A" ${cssTxt(pie + (web ? ' ' : ''))} ${web ? icoPie() + ' ' + cssTxt(' ' + web) : ''}; } @bottom-right { content: counter(page) "/" counter(pages); } }</style>`;
@@ -1428,6 +1431,29 @@ function imprimir() {
   }, 60));
 }
 window.addEventListener('afterprint', () => { const d = $('#impresion'); if (d) d.innerHTML = ''; });
+
+/* v10.94 · planos técnicos de cada pantalla LED para el PDF, en el formato que el técnico pasa al cliente: el de señal (tarjeta-puerto-orden, X/Y/W/H en
+   píxeles, E/S y redundancia, con la numeración de puertos de todo el proyecto) y el de alimentación (circuitos en cascada con su flecha de entrada).
+   Los recorridos siguen el mismo criterio automático con el que se cuentan las líneas (columnas o filas enteras por puerto o por circuito). */
+const COLS_PLANO = ['#19b5b0', '#c264c8', '#62b85a', '#4b4bc8', '#c2c040', '#e0803a', '#3a9be0', '#d0507a', '#8a8f9a', '#40c090'];
+function planosPdf(c) {
+  const m = c.modelo, x = c.elec || {}, bk = !!E.elec.backup, T = c.tot || {}, fs = c.filas.filter(f => f.r && f.r.cols && f.r.rows).slice(0, 8); if (!fs.length || !m) return '';
+  idiomaPlano(idioma());
+  const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; }, f2 = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const pixCab = m.cabPixAncho * m.cabPixAlto, cabPuerto = Math.max(1, Math.floor(PX_PUERTO / pixCab)), amp = Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), casc = Math.floor(num(m.cascada)), wMed = num(m.wMed);
+  const hoy = new Date(), l = idioma() === 'en' ? 'en-GB' : 'es-ES', fecha = hoy.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + hoy.toLocaleTimeString(l, { hour: '2-digit', minute: '2-digit' });
+  const img = (svg) => `<img class="im-plano" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace('style="color:var(--txt)"', 'color="#17181c"').replace(/currentColor/g, '#17181c'))}" alt="">`;
+  const out = fs.map(f => { const r = f.r, n = r.lineas, S = planCosido(r.cols, r.rows, cabPuerto), cabLin0 = amp > 0 ? Math.max(1, Math.floor(16 / amp)) : r.cab, cabLin = casc > 0 ? Math.min(cabLin0, casc) : cabLin0, P = planCosido(r.cols, r.rows, cabLin);
+    const acum = (a) => a.reduce((o, v, i) => (o.push(i ? o[i - 1] + a[i - 1] : 0), o), []), colsPx = Array(r.cols).fill(+m.cabPixAncho), rowsPx = Array(r.rows).fill(+m.cabPixAlto);
+    const geo = { colsMm: Array(r.cols).fill(+m.cabAncho), rowsMm: Array(r.rows).fill(+m.cabAlto), colsPx, rowsPx, colsX: acum(colsPx), rowsY: acum(rowsPx), H: 540, top: 8, bottom: 8, colores: COLS_PLANO, tr: trPlano };
+    const nota = r.quitados ? ['Retícula completa: no descuenta los cabinets quitados por puertas u obstáculos.'] : [];
+    const sen = svgPlanoSenal({ ...geo, rutas: S.rutas, cosido: S.modo, backup: bk, puerto0: f.lin ? f.lin[0] - 1 : 0, nTotal: T.lineas || n, info: [['Tamaño de la pantalla', r.resW + ' × ' + r.resH + ' px'], ['Nombre', f.nombre], ['Modelo', m.crm], ['Cabinets', r.cols + ' × ' + r.rows + ' = ' + r.cab], ['Píxeles por cabinet', m.cabPixAncho + ' × ' + m.cabPixAlto], ['Procesador', x.proc ? x.proc.modelo : '—'], ['Puertos de datos', (f.lin ? 'P' + f.lin[0] + (f.lin[1] > f.lin[0] ? '–' + f.lin[1] : '') : n) + (bk ? ' + R' : '')], ['Máx. por puerto', cabPuerto + ' cab · ' + f2(PX_PUERTO / 1000) + 'k px'], ['Cosido', trPlano(S.modo)], ['Fecha', fecha]],
+      notas: ['Cada cabinet: tarjeta-puerto-orden, posición X, Y y tamaño W, H en píxeles.', 'E: entrada del puerto · S: salida, fin de la cadena.'].concat(bk ? ['R: redundancia (backup), otro puerto que entra por el último cabinet de cada cadena.'] : []).concat(nota) });
+    const ele = svgPlanoElec({ ...geo, rutas: P.rutas, cosido: P.modo, porCab: +m.wMax > 0 ? f2(m.wMax) + ' W' : '', info: [['Circuitos', P.rutas.length + ' × 16 A · 230 V'], ['Máx. en cascada', cabLin + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? f2(m.wMax) + ' W' : '', amp > 0 ? f2(amp, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? f2(r.kw, 2) + ' kW' : '—']].concat(wMed > 0 ? [['Consumo medio', f2(wMed * r.cab / 1000, 2) + ' kW']] : []).concat([['Corriente total', amp > 0 ? f2(r.cab * amp, 1) + ' A' : '—'], ['Cosido', trPlano(P.modo)]]),
+      notas: ['Flecha roja: entrada de corriente de cada circuito; sus cabinets van en cascada.', P.modo === 'vertical' ? 'El paso del cable entre verticales (discontinua) puede requerir prolongarlo para que llegue.' : 'El paso del cable entre filas (discontinua) puede requerir prolongarlo para que llegue.', 'Protección recomendada: diferenciales superinmunizados de curva C, uno por circuito.'].concat(amp > 0 ? [] : ['Sin datos de consumo en el catálogo.']) });
+    return `<div class="im-plano-par"><div class="im-plano-tit"><b>${f.nombre}</b> · ${trPlano('Plano de señal')}</div>${img(sen)}<div class="im-plano-tit"><b>${f.nombre}</b> · ${trPlano('Plano de alimentación')}</div>${img(ele)}</div>`; }).join('');
+  return `<section class="res-sec im-planos"><div class="res-tit">${trPlano('Planos técnicos')}</div>${out}<p class="im-plano-nota">${trPlano('* Planos orientativos calculados por SCREENS: confirmar con el fabricante el cosido, la cascada y la protección antes de instalar.')}</p></section>`;
+}
 
 // línea de cabecera del PDF: tipo de proyecto y medidas, tecnología, superficies o disposición, equipos y cifras clave
 function tituloPdf(c) {

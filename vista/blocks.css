@@ -514,6 +514,9 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 .mangas button:not(:disabled):hover { border-color: var(--verde); box-shadow: 0 0 0 calc(var(--u) * 2) var(--verde); }
 .mangas em { font-style: normal; color: var(--txt); }
 .vent .mangas { font-size: calc(var(--u) * 15); top: calc(var(--u) * 54); }
+/* v10.94 · tipo de plano (reparto o técnico), abajo en el lienzo del cableado */
+.cosidos.planos { top: auto; bottom: calc(var(--u) * 8); }
+.vent .cosidos.planos { top: auto; bottom: calc(var(--u) * 12); }
 @media (max-width: 900px), (max-height: 520px) { .mangas button.fle { width: calc(var(--u) * 36); height: calc(var(--u) * 32); } .mangas { top: calc(var(--u) * 46); } }
 
 /* v10.30 · aviso del pie: al mismo tamaño que los créditos, con su triangulito de aviso (monocromo, filete del color del texto), en una columna que se estira lo que haga falta */

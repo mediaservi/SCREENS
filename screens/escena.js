@@ -91,7 +91,7 @@ export class Escena {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
     s.renderOrder = 10; s.userData.asp = w / h; return s;
   }
-  _etiqueta(txt, pos, alto = 0.34, opc) { const s = this._texto(txt, opc); s.scale.set(alto * s.userData.asp, alto, 1); s.position.copy(pos); this.grupo.add(s); return s; }
+  _etiqueta(txt, pos, alto = 0.34, opc) { const s = this._texto(txt, opc); s.scale.set(alto * s.userData.asp, alto, 1); s.position.copy(pos); s.userData.ind = true; this.grupo.add(s); return s; }
   _figura() {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg"><path d="${HUMAN_PATH}"/></svg>`;
     const datos = new SVGLoader().parse(svg);
@@ -109,7 +109,7 @@ export class Escena {
     const A = a.clone().add(n), B = b.clone().add(n);
     const pts = [a, A, A, B, B, b].map(p => p.clone().setY(0.012));
     const g = new THREE.BufferGeometry().setFromPoints(pts);
-    this.grupo.add(new THREE.LineSegments(g, mat));
+    const cota = new THREE.LineSegments(g, mat); cota.userData.ind = true; this.grupo.add(cota);
     this._etiqueta(txt, A.clone().add(B).multiplyScalar(0.5).setY(0.18), 0.38);
   }
 
@@ -232,8 +232,8 @@ export class Escena {
       this._cotaSuelo(new THREE.Vector3(-W / 2, 0, D / 2), new THREE.Vector3(W / 2, 0, D / 2), `${fmt(W)} m`, 0.55);
       this._cotaSuelo(new THREE.Vector3(W / 2, 0, D / 2), new THREE.Vector3(W / 2, 0, -D / 2), `${fmt(D)} m`, 0.55);
     }
-    // contenido en movimiento (ascensor de demostración o vídeo / imagen propios): base apagada y capa de contenido encima
-    const vivo = m.contenido === 'ascensor' || (m.contenido === 'propio' && !!m.medio), cont = vivo || m.contenido === 'propio' ? 'apagado' : m.contenido;
+    // contenido en movimiento (paisaje simulado o vídeo / imagen propios): base apagada y capa de contenido encima
+    const vivo = m.contenido === 'simular' || (m.contenido === 'propio' && !!m.medio), cont = vivo || m.contenido === 'propio' ? 'apagado' : m.contenido;
     this._vivos = [];
     const pano = m.contenido === 'panorama' ? this._panorama() : null;
     // tramos del panorama en el orden de recorrido
@@ -330,7 +330,7 @@ export class Escena {
     if (m.sombras) this._zonaSegura(m.sombras, !!sala);
     // figura humana: en el centro de la sala, o delante de las pantallas a la distancia del público
     const fig = new THREE.Mesh(this.figuraGeo, new THREE.MeshStandardMaterial({ color: 0x8a8a93, roughness: 0.6, metalness: 0.05 }));
-    fig.castShadow = true;
+    fig.castShadow = true; fig.userData.ind = true;
     if (sala) fig.position.set(W * 0.16, 0, -D * 0.04); else fig.position.set(0.7, 0, m.distPublico);
     G.add(fig);
     if (!sala) { const fig2 = fig.clone(); fig2.position.x = -0.6; fig2.position.z += 0.5; fig2.rotation.y = 0.25; G.add(fig2); }
@@ -348,6 +348,11 @@ export class Escena {
     // sombra y encuadre de la luz direccional
     const R = Math.max(W, D) * 0.8; Object.assign(this.sol.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 1, far: 60 }); this.sol.shadow.camera.updateProjectionMatrix();
     this.ctrl.target.set(0, Math.min(H, altoMax) * 0.45, sala ? 0 : -1);
+    // v10.85 · INDICADORES apagados: fuera rótulos, cotas, avisos, figuras y safety zone; solo quedan las pantallas, los proyectores y su haz
+    if (!m.etiquetas) this.grupo.traverse(o => { if (o.userData.ind) o.visible = false; });
+    // encuadre de la proyección (superficies y proyectores) para la vista cenital
+    { const c = new THREE.Box3(); m.superficies.forEach(f => { const q = f.s, w = (f.r ? f.r.ancho : q.ancho) / 2; [-w, w].forEach(a => c.expandByPoint(new THREE.Vector3(q.x + Math.cos(q.rot) * a, q.elev || 0, q.z - Math.sin(q.rot) * a))); });
+      (m.haces || []).forEach(h => { if (h.lente) c.expandByPoint(new THREE.Vector3(h.lente.x, h.lente.y, h.lente.z)); }); this.cajaProy = c.isEmpty() ? null : c; }
     this.vista(this.vistaActual, true);
     if (this._vivos.length && !this._animando) { this._animando = true; requestAnimationFrame(() => this._bucle()); }
     if (!this._vivos.length) this._animando = false;
@@ -400,10 +405,10 @@ export class Escena {
   // Capa de contenido sobre una superficie con el modo de ajuste elegido:
   // continuo (un ultrapanorámico recorre todas las superficies sin cortes), estirar, rellenar (recorta), encajar (bandas negras), repetir y espejo
   _capaMedio(g, R, tramo, m, suelo) {
-    const demo = m.contenido === 'ascensor', base = demo ? this._ascensor() : this._medioTex(m.medio);
+    const demo = m.contenido === 'simular', base = demo ? this._simula() : this._medioTex(m.medio);
     if (!base) return;
     const t = base.clone(); t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true;
-    const aC = demo ? this._asc.c.width / this._asc.c.height : (m.medio.w / m.medio.h) || 1.78, aS = R.w / R.h;
+    const aC = demo ? this._sim.c.width / this._sim.c.height : (m.medio.w / m.medio.h) || 1.78, aS = R.w / R.h;
     let modo = demo ? 'continuo' : (m.medio.modo || 'continuo'); if (modo === 'continuo' && !tramo) modo = 'rellenar';
     let w = R.w, h = R.h;
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.repeat.set(1, 1); t.offset.set(0, 0);
@@ -421,33 +426,42 @@ export class Escena {
     const t = md.tipo === 'video' ? new THREE.VideoTexture(md.el) : new THREE.Texture(md.el);
     t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; this._medio = { el: md.el, t }; return t;
   }
-  // Demostración «ascensor»: un hueco que baja, continuo en todas las paredes (vigas, luces y plantas que suben)
-  _ascensor() {
-    if (!this._asc) { const c = document.createElement('canvas'); c.width = 2048; c.height = 512; this._asc = { c, x: c.getContext('2d'), t: new THREE.CanvasTexture(c), t0: performance.now() }; this._asc.t.colorSpace = THREE.SRGBColorSpace; }
-    this._pintaAscensor(); return this._asc.t;
+  // v10.85 · SIMULAR: paisaje inmersivo generado aquí, en movimiento y sin costuras a lo ancho (recorre todas las paredes):
+  // cielo que cambia de color, aurora, estrellas, sol, tres cordilleras en paralaje y un lago con reflejos
+  _simula() {
+    if (!this._sim) { const c = document.createElement('canvas'); c.width = 2048; c.height = 512; this._sim = { c, x: c.getContext('2d'), t: new THREE.CanvasTexture(c), t0: performance.now(),
+      est: Array.from({ length: 140 }, (_, i) => [((i * 733) % 2048), ((i * 197) % 230), 0.4 + ((i * 37) % 10) / 10]) }; this._sim.t.colorSpace = THREE.SRGBColorSpace; }
+    this._pintaSimula(); return this._sim.t;
   }
-  _pintaAscensor() {
-    const A = this._asc, x = A.x, W = A.c.width, H = A.c.height, s = (performance.now() - A.t0) / 1000;
-    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#07080c'); g.addColorStop(0.5, '#1b1f29'); g.addColorStop(1, '#07080c'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-    // hormigón con juntas que suben (la cabina baja a 1,2 m/s)
-    const paso = H * 0.55, v = H * 0.42, off = (s * v) % paso;
-    x.strokeStyle = 'rgba(255,255,255,.06)'; x.lineWidth = 2;
-    for (let y = H + paso - off; y > -paso; y -= paso / 4) { x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
-    for (let y = H + paso - off; y > -paso; y -= paso) {
-      const pl = Math.floor((s * v + (H + paso - y)) / paso);
-      x.fillStyle = '#2a2f3b'; x.fillRect(0, y - 18, W, 36);
-      x.fillStyle = 'rgba(255,190,90,.9)'; for (let u = 64; u < W; u += 256) { x.fillRect(u, y - 4, 60, 8); }
-      x.fillStyle = '#ffd500'; x.font = `800 ${Math.round(H * 0.07)}px ${SANS}`; x.textAlign = 'center'; x.textBaseline = 'middle';
-      for (let u = 256; u < W; u += 512) x.fillText('−' + (pl % 40), u, y - 46);
-    }
-    // guías de la cabina (fijas)
-    x.fillStyle = '#3a3f4b'; for (let u = 0; u < 4; u++) { x.fillRect(W * (u + 0.5) / 4 - 10, 0, 20, H); }
-    x.fillStyle = 'rgba(0,255,4,.75)'; x.font = `700 ${Math.round(H * 0.045)}px ${MONO}`; x.textAlign = 'left'; x.fillText('▼ SCREENS · DEMO', 24, 30);
+  _pintaSimula() {
+    const S = this._sim, x = S.x, W = S.c.width, H = S.c.height, s = (performance.now() - S.t0) / 1000, hz = H * 0.62, TAU = Math.PI * 2;
+    const ciclo = (Math.sin(s * 0.05) + 1) / 2, mez = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k)), rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
+    const cielo = x.createLinearGradient(0, 0, 0, hz);
+    cielo.addColorStop(0, rgb(mez([10, 8, 40], [24, 10, 60], ciclo))); cielo.addColorStop(0.55, rgb(mez([60, 30, 110], [150, 50, 120], ciclo))); cielo.addColorStop(1, rgb(mez([255, 120, 90], [255, 170, 80], ciclo)));
+    x.fillStyle = cielo; x.fillRect(0, 0, W, hz);
+    S.est.forEach(([ex, ey, b]) => { x.globalAlpha = (0.35 + 0.65 * Math.abs(Math.sin(s * b + ex))) * (1 - ciclo * 0.6); x.fillStyle = '#fff'; x.fillRect((ex + s * 4) % W, ey, 2, 2); }); x.globalAlpha = 1;
+    // aurora: cintas onduladas que se mueven
+    for (let k = 0; k < 3; k++) { x.beginPath(); for (let u = 0; u <= W; u += 16) { const y = 70 + k * 34 + Math.sin(u / W * TAU * (2 + k) + s * (0.4 + k * 0.15)) * 26 + Math.sin(u / W * TAU * 5 - s * 0.3) * 9; if (u) x.lineTo(u, y); else x.moveTo(u, y); }
+      x.strokeStyle = ['rgba(60,255,170,.28)', 'rgba(120,200,255,.22)', 'rgba(200,120,255,.18)'][k]; x.lineWidth = 26 - k * 6; x.stroke(); }
+    // sol que sale y se pone
+    const sy = hz - 40 - ciclo * 110, sx = W * 0.5 + Math.sin(s * 0.02) * W * 0.05, sol = x.createRadialGradient(sx, sy, 6, sx, sy, 120);
+    sol.addColorStop(0, 'rgba(255,240,200,1)'); sol.addColorStop(0.25, 'rgba(255,200,120,.85)'); sol.addColorStop(1, 'rgba(255,140,90,0)'); x.fillStyle = sol; x.fillRect(sx - 130, sy - 130, 260, 260);
+    // tres cordilleras: cada una se desplaza a su velocidad (paralaje) y es periódica en el ancho, sin costura
+    const sierra = (base, alt, f, vel, col, fase) => { const off = (s * vel) % W; x.beginPath(); x.moveTo(0, hz);
+      for (let u = 0; u <= W; u += 8) { const q = (u + off) / W * TAU; x.lineTo(u, base - alt * (0.55 + 0.25 * Math.sin(q * f + fase) + 0.12 * Math.sin(q * f * 3 + fase * 2) + 0.08 * Math.sin(q * f * 7))); }
+      x.lineTo(W, hz); x.closePath(); x.fillStyle = col; x.fill(); };
+    sierra(hz, 150, 3, 6, rgb(mez([70, 40, 110], [110, 50, 120], ciclo)), 0.3);
+    sierra(hz, 105, 4, 14, rgb(mez([40, 24, 70], [70, 30, 80], ciclo)), 1.7);
+    sierra(hz, 60, 6, 30, '#120b22', 4.1);
+    // lago: el cielo reflejado, con ondas
+    const lago = x.createLinearGradient(0, hz, 0, H); lago.addColorStop(0, rgb(mez([120, 60, 120], [200, 90, 110], ciclo))); lago.addColorStop(1, '#05040c'); x.fillStyle = lago; x.fillRect(0, hz, W, H - hz);
+    x.fillStyle = 'rgba(255,220,170,.5)'; for (let i = 0; i < 18; i++) { const y = hz + 6 + i * 10, w = 120 - i * 5 + Math.sin(s * 2 + i) * 14; x.globalAlpha = 0.6 - i * 0.03; x.fillRect(sx - w / 2 + Math.sin(s * 1.5 + i * 0.7) * 6, y, w, 3); } x.globalAlpha = 1;
+    x.strokeStyle = 'rgba(255,255,255,.07)'; x.lineWidth = 2; for (let y = hz + 12; y < H; y += 14) { x.beginPath(); for (let u = 0; u <= W; u += 32) { const yy = y + Math.sin(u / W * TAU * 12 + s * 1.2 + y) * 2; if (u) x.lineTo(u, yy); else x.moveTo(u, yy); } x.stroke(); }
   }
   _bucle() {
     if (!this._animando || !this._vivos.length) { this._animando = false; return; }
     if (!document.hidden) {
-      if (this._asc && this.modelo && this.modelo.contenido === 'ascensor') { this._pintaAscensor(); this._vivos.forEach(t => { t.needsUpdate = true; }); }
+      if (this._sim && this.modelo && this.modelo.contenido === 'simular') { this._pintaSimula(); this._vivos.forEach(t => { t.needsUpdate = true; }); }
       else if (this._medio && this.modelo && this.modelo.medio && this.modelo.medio.tipo === 'img') { /* imagen fija: sin redibujar */ }
       this.render();
     }
@@ -512,6 +526,14 @@ export class Escena {
     if (nombre === 'dentro') {
       if (sala) { this.cam.position.set(0, 1.62, D * 0.36); t.set(0, Math.min(1.7, H * 0.48), -D / 2); }
       else { const dp = this.modelo ? this.modelo.distPublico : 5; this.cam.position.set(0, 1.62, dp + 0.9); t.set(0, Math.min(centro.y, 1.8), caja.min.z); }
+    } else if (nombre === 'lateral' || nombre === 'frontal') {   // v10.85 · de perfil (desde la derecha) o de frente (desde el público), encuadrando la escena
+      const lat = nombre === 'lateral', anchoV = lat ? tam.z : tam.x, fondoV = lat ? tam.x : tam.z, dist = Math.max(anchoV / asp, tam.y) / 2 / Math.tan(fov / 2) * 1.15 + fondoV / 2;
+      if (lat) this.cam.position.set(centro.x + dist, centro.y, centro.z + 0.0005); else this.cam.position.set(centro.x + 0.0005, centro.y + tam.y * 0.35, centro.z + dist);   // de frente, algo por encima del público para que las figuras no tapen la imagen
+      t.copy(centro);
+    } else if (nombre === 'cenital') {   // v10.85 · desde arriba, encuadrando solo la proyección (superficies, proyectores y haces)
+      const cp = this.cajaProy || caja, cc = cp.getCenter(new THREE.Vector3()), ts = cp.getSize(new THREE.Vector3());
+      const alto = Math.max(ts.z + 1, (ts.x + 1) / asp) / 2 / Math.tan(fov / 2) * 1.3, dz = (ts.z + 1) * 0.1;   // algo más alto y corrido: la barra de botones tapa la parte de arriba
+      this.cam.position.set(cc.x, cp.max.y + alto, cc.z - dz + 0.0005); t.set(cc.x, 0, cc.z - dz);
     } else if (nombre === 'planta') {
       const alto = Math.max(tam.z, tam.x / asp) / 2 / Math.tan(fov / 2) * 1.12;
       this.cam.position.set(centro.x, alto + tam.y, centro.z + 0.0005); t.set(centro.x, 0, centro.z);

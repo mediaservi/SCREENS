@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v10.85';
+const VERSION = 'v10.86';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -391,7 +391,7 @@ function pintaResumen() {
     (n ? `<div class="ss-ajpro" title="${esc(t('ajProT'))}"><span class="ss-fit">${ic('pro')}${esc(t('ajPro')(n))}</span><button type="button" class="ss-mini" data-ss="restablece">${esc(t('restablecer'))}</button></div>` : '') +
     necesitasLed() + `<button type="button" class="ss-ancho" data-ss="asis">${ic('varita')}<span class="ss-fit">${esc(t('repetir'))}</span></button>`;
 }
-/* v10.85 · VARIAS LED en SIMPLE: debajo de lo que pides, lo que necesitas (el equipo principal), sin huecos vacíos y sin tecnicismos */
+/* v10.86 · VARIAS LED en SIMPLE: debajo de lo que pides, lo que necesitas (el equipo principal), sin huecos vacíos y sin tecnicismos */
 function necesitasLed() {
   if (!esLedC()) return ''; const c = C().c; if (!c || !c.modelo || !c.tot) return ''; const T2 = c.tot, x = c.elec || {}, lin = Math.max(1, Math.ceil((T2.amp || 0) / 16));
   const f = [['led', t('nCabs'), fmt(T2.cab, 0) + ' × ' + c.modelo.crm], x.proc ? ['chip', t('nProc'), x.proc.marca + ' ' + x.proc.modelo] : null, x.media ? ['media', t('nMedia'), x.media.marca + ' ' + x.media.modelo] : null, ['red', t('nRed'), t('nRedV')(fmt(T2.lineas, 0))], T2.kw > 0 ? ['rayo', t('nLuz'), t('nLuzV')(fmt(T2.kw, 1), lin)] : null].filter(Boolean);
@@ -595,7 +595,7 @@ function resLed() {
   AV = [];
   if (R.relajado) AV.push({ n: 'A', txt: R.relajado, crudo: false });
   if (R.alt) AV.push({ n: 'A', txt: R.alt, crudo: false });   /* v10.69 · alternativa de alquiler en stock */
-  /* v10.85 · el aviso de batch es stock interno: fuera de los avisos públicos (sale en pantalla y en el PDF); el admin lo ve en PRO, bloque CABINET */
+  /* v10.86 · el aviso de batch es stock interno: fuera de los avisos públicos (sale en pantalla y en el PDF); el admin lo ve en PRO, bloque CABINET */
   if (R.origen === 'cercano') AV.push({ n: 'A', txt: t('lCerca')(fm(E.pitch), fm(R.pitch)) });
   if (R.origen === 'sinres') AV.push({ n: 'A', txt: t('lSinRes')(E.resMin) });
   if (!R.proc) AV.push({ n: 'A', txt: t('lSinProc') });
@@ -871,7 +871,7 @@ function ponVista(v) {
 }
 function sincroniza() {
   document.querySelectorAll('[data-ss-swc]').forEach((c) => { c.checked = vista === 'pro'; });
-  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.85 · burbuja del móvil */
+  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.86 · burbuja del móvil */
   document.querySelectorAll('.ss-sw [data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   document.querySelectorAll('.ss-sw').forEach((s) => { s.title = t('sw'); s.setAttribute('aria-label', t('sw')); });
 }

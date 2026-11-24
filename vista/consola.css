@@ -636,3 +636,6 @@ html.bk .blq[data-blq="a2"] .num input { font-size: 17px; padding-top: 1px; padd
 html.bk .blq[data-blq="a2"] .campo > label { margin-bottom: 2px; }
 html.bk .blq[data-blq="a2"] .blq-cuerpo > .etq { margin: 2px 0 0; }
 html.bk .blq[data-blq="a2"] .blq-cuerpo .sec-btn { min-height: 0; height: 30px; }
+/* v10.85 · barra de la simulación: las seis vistas caben en una fila */
+html.piel .esc-barra .tog { padding: 3px 7px; letter-spacing: .03em; }
+html.piel .esc-barra > div { gap: 5px; }

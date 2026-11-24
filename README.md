@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.91** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.92** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -75,7 +75,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.91) · para probar en beta
+## Cambios de la versión actual (v10.92)
+- **SIMULAR con un día entero en bucle** (pedido por Josep, 24-11-2026): el vuelo de 64 s empieza a mediodía, pasa por la hora dorada y la puesta de sol, se hace de noche con estrellas, ventanas encendidas en toda la ciudad, farolas, el templo iluminado y haces de luz que barren el cielo, y amanece para volver al principio sin cortes.
+
+## Cambios de la v10.91
 - **SIMULAR en 360°**: un vuelo de dron de 48 s en bucle cerrado alrededor de un gran templo modernista de torres agujas (piedra perforada, remates de colores, cruz y estrella en las torres mayores), sobre una ciudad de manzanas con chaflán y patio, con calles arboladas, plazas, estanque, cordillera al fondo y mar. Se dibuja con una cámara cúbica y se convierte en un panorama cilíndrico de 360°: la vuelta completa casa en las esquinas de una sala de 4 paredes (y sirve para salas esféricas). El templo queda delante, en la pared frontal. Todo es geometría generada en la app: no hay que descargar ningún vídeo.
 
 ## Cambios de la v10.90 · para probar en beta

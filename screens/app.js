@@ -24,7 +24,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.89';
+const VERSION = 'v10.90';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -89,7 +89,7 @@ function listaLed() {
   const conSol = L.tipo !== 'INDOOR' ? L.sol : '', base = conSol === 'directo' ? SOL_DIRECTO : conSol === 'indirecto' ? SOL_INDIRECTO : (MIN_NITS[L.tipo] || 0), nits = Math.max(base, +L.nitsMin || 0), tope = conSol === 'indirecto' && nits < SOL_DIRECTO ? SOL_DIRECTO : Infinity;
   { const enRango = lista.filter(m => m.nits >= nits && m.nits < tope), conNits = lista.filter(m => m.nits >= nits);
     if (enRango.length) lista = enRango; else if (conNits.length) lista = conNits; else if (nits) avisoLed.push(t('relNits', { n: nits })); nitsLed = nits; }
-  if (protegidoLed()) { const p = lista.filter(esProt); if (p.length) lista = p; else avisoLed.push(t('relProt')); }
+  if (protegidoLed()) { const p = lista.filter(esProt); if (p.length) lista = p; else if (E.led.protegido) avisoLed.push(t('relProt')); }   // v10.89 · en una sala (protegido por defecto) no se avisa al entrar: solo si se ha pedido a mano
   return ordenar(lista);
 }
 // brillos mínimos que se pueden pedir con − y + (los de los cabinets de este entorno)

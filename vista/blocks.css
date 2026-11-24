@@ -639,3 +639,7 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 }
 @media (max-width: 359px) and (orientation: portrait) { .f-h1 .h1r [data-nuevo] { display: none !important; } }   /* el isotipo ya empieza un cálculo nuevo */
 @media print { .stk-int, .stk-btn, .stk-pop { display: none !important; } }   /* v10.80 · el stock interno nunca sale impreso */
+/* v10.89 · RESTABLECER en la cabecera de cada bloque con datos: botón algo más pequeño y título que se encoge antes de cortarse */
+.blk-cab .ic-bt.rblk { width: calc(var(--u) * 30); height: calc(var(--u) * 30); flex: none; }
+.blk-cab:has(.rblk) > b { letter-spacing: .04em; }
+[data-blk="M1B"] .blk-cab > b, [data-blk="M2A"] .blk-cab > b { font-size: .86em; }

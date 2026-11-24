@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.89** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.90** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -75,7 +75,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.89) · para probar en beta
+## Cambios de la versión actual (v10.90) · para probar en beta
+- **Una pantalla LED (portada): cada bloque con datos lleva su RESTABLECER** (entorno y uso, dimensiones, cabinet, cabinets, resolución, electrónica, mediaserver y señal), como manda la regla del proyecto; el RESTABLECER de la ventana Ajustes, que no hacía nada, ya funciona.
+- **Varias LED en sala**: ya no sale al entrar el aviso «No hay LED protegido…» (en una sala se prefiere protegido por defecto); solo avisa si se ha pedido a mano.
+- **Móvil**: las cifras del resultado en dos columnas (tres en horizontal) y bajas, para que el veredicto y las pestañas se vean en la primera pantalla.
+
+## Cambios de la v10.89 · para probar en beta
 Revisión de los datos de los fabricantes (más de 100 pruebas por marca), revisión de usabilidad y prueba con cuatro perfiles de usuario (integrador, comercial de alquiler, organizador de eventos y arquitecto o museo), 24-11-2026.
 - **Interfaz común en todas las modalidades de la consola** (una y varias pantallas, LED y proyección):
   - **Una sola columna de datos con 4 pasos numerados**, cada uno con su RESTABLECER: en proyección ① Sala y proyector (con el proyector y la óptica), ② Pantalla, ③ Distancia de proyección y ④ Avanzado (ajuste del equipo, luz, público, obstáculos, fuera de especificación y electrónica); en LED ① Sala y uso, ② Tamaño y distancias, ③ Equipo y ④ Electrónica de control. Al entrar, el paso ① está siempre abierto.

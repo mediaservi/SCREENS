@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.98** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.99** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,14 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.98)
+## Cambios de la versión actual (v10.99)
+Proyección, estado que se quedaba de una configuración a otra:
+- **La sala inmersiva arranca a oscuras (15 lx).** Antes solo cogía su luz al pulsar el tipo; con el navegador limpio, tras «Nuevo cálculo» o al restablecer arrancaba a 140 lx y proponía proyectores de 20.000 lm. Ahora la luz por defecto va siempre con el tipo (sala 15 lx, mapping 5 lx, pared 140 lx), salvo que se elija otra.
+- **Lúmenes mínimos y tipo de óptica pedidos por escrito:** ya no se quedan de una petición a la siguiente y, mientras estén puestos, un aviso dice que AUTO está eligiendo solo entre eso y cómo quitarlo.
+- **Altura de proyector fijada por encima del techo:** se suelta también en pared y en una pantalla (antes solo en la sala inmersiva).
+- El aviso de «candado soltado» se enseña una vez, no se queda fijo.
+
+## Cambios de la v10.98
 Proyección en AUTO, cinco correcciones:
 - **Al salir de MAPPING no se hereda nada.** Pasar por mapping dejaba la pantalla en 10,67 × 6 m y la distancia de proyección fijada a 6 m, y eso se arrastraba a PARED y a la sala inmersiva (de ahí salía el «tiro que no cabe»). Ahora vuelve la pantalla que había y la distancia en automático.
 - **Con mucha luz AUTO ya no se queda en rojo si un equipo mayor lo evita.** Sube de cuerpo hasta llegar al contraste mínimo de 7:1 (antes paraba en 250 nits y el propio aviso pedía más lúmenes).

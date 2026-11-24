@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.98';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.99';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.98';
+const VERSION = 'v10.99';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -146,6 +146,7 @@ function calcular(forzarMulti) {
     const c = { esp, dist, modelo, lista, filas, tot: totales(filas), avisoLed: avisoLed.slice() };
     c.elec = electronica(c); c.veredicto = veredicto(c); return c;
   }
+  if (!E.proy.luzMano) luzDeTipo(tipoProy());   /* v10.99 · la luz por defecto es la del tipo (sala inmersiva 15 lx, mapping 5 lx, pared 140 lx) también al arrancar, al restablecer y al cambiar de modo; antes solo al pulsar el tipo, y la sala inmersiva arrancaba a 140 lx */
   const sups = superficies(esp, 0);
   const una = esp.tipo === 'sueltas' && !E.proy.multi && !forzarMulti;
   const opc = { solapeMin: E.proy.solape / 100, oos: !!E.proy.oos, una };
@@ -154,6 +155,7 @@ function calcular(forzarMulti) {
      encima del techo, que venían de otra sala o de otro modo) se suelta solo: vuelve a AUTO y se avisa. Antes se respetaba y salía un tiro imposible */
   if (esp.tipo === 'sala') { const pw0 = sups.filter(s => s.tipo !== 'suelo'), cabe = pw0.length ? Math.min(...pw0.map(s => alcance(esp, s, 0))) : Infinity, d0 = Number(E.proy.dist) || 0, a0 = Number(E.proy.altura) || 0;
     if (d0 > cabe + 1e-6) { SUELTO.dist = d0; E.proy.dist = 0; } if (a0 > esp.alto + 1e-6) { SUELTO.altura = a0; E.proy.altura = 0; } }
+  else { const th = Number(esp.sueltas.techo) || 0, a0 = Number(E.proy.altura) || 0; if (th > 0 && a0 > th + 1e-6) { SUELTO.altura = a0; E.proy.altura = 0; } }   /* v10.99 · también en pared y en una pantalla */
   const fijaDist = Math.max(0, Number(E.proy.dist) || 0);
   // v8.2 · tipo de proyección: mapping (fachada a distancia), pared (auditorio o pared normal) o sala inmersiva
   const tipoP = tipoProy();
@@ -337,7 +339,8 @@ function veredicto(c) {
     const pw = c.filas.filter(f => f.s.tipo !== 'suelo'), nom = (L) => L.map(f => f.nombre).join(' · '), S = c.sombras || {}, con = Math.round(c.tot.contrasteMin * 10) / 10;   // el color va con el número que se lee
     if (c.consejo) R('consejo', t('noValeProy', { a: c.consejo.nombre }));
     else if (c.multiPosible) A('multiPosible', t('vMultiPosible', { n: c.multiPosible.n }));
-    if (c.esp && c.esp.tipo === 'sala') { if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) })); }
+    if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) }));
+    { const lm = Number(E.proy.lmMin) || 0, to = E.proy.tipoOpt || ''; if (lm || to) A('filtro', t('vFiltro', { s: [lm ? '≥ ' + fmtPx(lm) + ' lm' : '', to ? t('opt_' + to).toLowerCase() : ''].filter(Boolean).join(' · ') })); }   /* v10.99 · se ve lo que limita la elección */
     if (pw.some(f => f.p.noCubre)) R('noCubre', t('noCubre'));
     { const L = pw.filter(f => f.p.fuera); if (L.length) R('fuera', t('fuera') + ': ' + nom(L) + '.'); }
     { const L = pw.filter(f => f.p.chica); if (L.length) R('chica', t('chica') + ': ' + nom(L) + '.'); }
@@ -1104,6 +1107,7 @@ function calcularPeticion() {
   if (r.cantidad === 'una' && !c.esp.tipo) E.esp.tipo = 'sueltas';
   // v8.0 · una petición de proyección parte de la posición AUTO, salvo lo que diga (distancia, orientación, montaje)
   if (r.tecnologia === 'proy') Object.assign(E.proy, { dist: 0, orient: 'auto', montaje: 'auto', altura: 0, tipo: 'pared' });
+  E.proy.lmMin = 0; E.proy.tipoOpt = '';   /* v10.99 · cada petición empieza sin los lúmenes mínimos ni el tipo de óptica de la anterior */
   Object.assign(E.led, c.led); Object.assign(E.proy, c.proy); Object.assign(E.elec, c.elec);
   if (c.proy.tipo === 'mapping' && !r.vistos.some(x => x.k === 'medida')) { const d = Number(E.proy.dist) || 0; alMapping(); if (r.vistos.some(x => x.k === 'distProy')) E.proy.dist = d; }   // v10.63
   if (c.sueltas.salaFondo && !c.proy.dist) E.proy.distMax = Math.max(1, c.sueltas.salaFondo - 0.3);   // v10.89 · el proyector tiene que caber en la sala
@@ -1111,7 +1115,7 @@ function calcularPeticion() {
   if ((E.tecnologia === 'proy') && c.proy.lux == null) luzDeTipo(E.esp.tipo === 'sala' ? 'sala' : E.proy.tipo === 'mapping' ? 'mapping' : 'pared');
   // v10.89 · el techo no puede quedar por debajo del montaje pedido (evita avisos falsos de «pasa del techo»)
   if (c.sueltas.techo == null && Number(E.proy.altura) > 0 && Number(E.esp.sueltas.techo) > 0 && E.esp.sueltas.techo < E.proy.altura + 0.3) E.esp.sueltas.techo = Math.round((E.proy.altura + 0.5) * 10) / 10;
-  if (c.proy.lux != null) E.proy.luzUso = (USOS_LUZ.find(u => u[1] === Number(c.proy.lux)) || [''])[0];
+  if (c.proy.lux != null) { E.proy.luzUso = (USOS_LUZ.find(u => u[1] === Number(c.proy.lux)) || [''])[0]; E.proy.luzMano = true; }
   if (c.led.tipo || c.led.clase) E.led.crm = '';
   if (c.elec.backup || c.elec.conexion) E.elec.sel = '';
   if (r.pitch) {   // v7.9 · «P1.5», «pitch 1,5»…: el modelo de ese pitch (si el catálogo lo tiene)
@@ -1283,6 +1287,7 @@ document.addEventListener('click', (ev) => {
   if (b.dataset.pared) { E.esp.paredes[b.dataset.pared] = !E.esp.paredes[b.dataset.pared]; actualizar(); return; }
   if (b.dataset.cam) { E.vista.camara = b.dataset.cam; if (escena) escena.vista(b.dataset.cam === 'interior' ? 'dentro' : b.dataset.cam); barraEscena(); guardar(); return; }
   const a = b.dataset.accion;
+  if (a) { SUELTO.dist = 0; SUELTO.altura = 0; }   /* v10.99 · el aviso de candado soltado se enseña una vez */
   // nuevo cálculo: valores por defecto en el mismo modo de la consola
   if (a === 'inicio') { const cant = E.cantidad, tec = E.tecnologia; E = DEF(); E.cantidad = cant; E.tecnologia = tec; nlTexto = ''; const i = $('#nl-texto'); if (i) i.value = ''; estadoNl('');
     if (unaLed()) { guardar(); aIframe({ tipo: 'screens-reset' }); return; } actualizar(); return; }
@@ -1321,7 +1326,7 @@ document.addEventListener('click', (ev) => {
     if (!led && (k === 'a' || k === 'a7')) cp(E.proy, d.proy, ['dist', 'distMin', 'distMax']);
     if (!led && (k === 'a' || k === 'a3')) { cp(E.esp.sueltas, d.esp.sueltas, ['dist']); E.esp.obst = []; E.proy.oos = false; }
     if ((k === 'a' || k === 'a2') && (led || E.esp.tipo === 'sala')) { cp(E.esp, d.esp, ['ancho', 'fondo', 'alto']); E.esp.paredes = d.esp.paredes; cp(E.esp.sueltas, d.esp.sueltas, ['n', 'disp', 'ancho', 'alto', 'sep', 'angulo', 'central', 'cAncho', 'cAlto']); delete E.esp.sueltas.tams; }
-    if ((k === 'a' || k === 'a3') && !led) cp(E.proy, d.proy, ['lux', 'luzUso', 'ganancia']);
+    if ((k === 'a' || k === 'a3') && !led) { cp(E.proy, d.proy, ['lux', 'luzUso', 'ganancia']); E.proy.luzMano = false; }
     if (led && (k === 'a' || k === 'a2' || k === 'a4')) { cp(E.esp, d.esp, ['elev', 'altoCubierto']); cp(E.esp.sueltas, d.esp.sueltas, ['elev', 'dist', 'techo']); E.esp.obst = []; }
     if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos', 'lmMin', 'tipoOpt']); }
     if (k === 'b2') { if (led) E.led.ajuste = d.led.ajuste; else cp(E.proy, d.proy, ['solape', 'multi', 'orient']); }
@@ -1417,7 +1422,7 @@ document.addEventListener('change', (ev) => {
     if (s.dataset.sel === 'esp.sueltas.formato' || s.dataset.sel === 'esp.sueltas.medPor') { const q = E.esp.sueltas, r = ratioFormato(); if (r) { q.medVal = medDe(q.medPor || 'diag', q.ancho, q.ancho / r); q._wh = null; } }   // v10.88 · se conserva el ancho
     actualizar(); }   // otro proyector: su óptica vuelve a AUTO
   if (s.dataset.rango) { fijar(s.dataset.rango, Math.round(Number(s.value) * 100) / 100); actualizar(); }   // v8.2 · deslizador del zoom: fija la distancia
-  if (s.dataset.uso && s.value) { const u = USOS_LUZ.find(x => x[0] === s.value); if (u) { E.proy.lux = u[1]; E.proy.luzUso = u[0]; } actualizar(); }
+  if (s.dataset.uso && s.value) { const u = USOS_LUZ.find(x => x[0] === s.value); if (u) { E.proy.lux = u[1]; E.proy.luzUso = u[0]; E.proy.luzMano = true; } actualizar(); }
   if (s.dataset.vtSel) { E.vista.vtSup = Number(s.value) || 0; actualizar(true); }   // v8.3 · superficie de las vistas técnicas
 });
 

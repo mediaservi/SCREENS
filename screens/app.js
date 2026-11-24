@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.1';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.2';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.1';
+const VERSION = 'v11.2';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1093,7 +1093,7 @@ function rotulo(x) {
     case 'distProy': return t('distOpticaK') + ' ' + fmt(x.v, 1) + ' m'; case 'montaje': return t('mo_' + x.v) + (x.h ? ' ' + fmt(x.h, 1) + ' m' : '');
     case 'fibra': return t('fibra'); case 'central': return t('central') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m';
     case 'salaMed': return t('salaRec') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pulgadas': return fmt(x.v, 0) + '″'; case 'lumenes': return '≥ ' + fmt(x.v, 0) + ' lm'; case 'optica': return t('opt_' + x.v); case 'ledTipo': return t('ped_' + x.v);
-    case 'laterales': return t('laterales') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pitch': return 'P' + fmt(x.v, 2) + (x.ok ? ' · ' + x.ok : ''); default: return x.v;
+    case 'laterales': return t('laterales') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m'; case 'pitch': return 'P' + fmt(x.v, 2) + (x.ok ? ' · ' + x.ok : ''); case 'texto': return x.v; default: return x.v;
   }
 }
 function calcularPeticion() {
@@ -1120,6 +1120,24 @@ function calcularPeticion() {
   // v10.89 · el techo no puede quedar por debajo del montaje pedido (evita avisos falsos de «pasa del techo»)
   if (c.sueltas.techo == null && Number(E.proy.altura) > 0 && Number(E.esp.sueltas.techo) > 0 && E.esp.sueltas.techo < E.proy.altura + 0.3) E.esp.sueltas.techo = Math.round((E.proy.altura + 0.5) * 10) / 10;
   if (c.proy.lux != null) { E.proy.luzUso = (USOS_LUZ.find(u => u[1] === Number(c.proy.lux)) || [''])[0]; E.proy.luzMano = true; }
+  /* v11.2 · marca, proyector, óptica y número de proyectores nombrados en la petición (antes se ignoraban sin decirlo) */
+  const sinLeer = [];
+  if (E.tecnologia === 'proy') {
+    const plano = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''), T = ' ' + txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') + ' ', TP = plano(T);
+    const mar = MARCAS_PROY.filter(m => T.includes(m.toLowerCase()));
+    if (mar.length && mar.length < MARCAS_PROY.length) { E.proy.marcas = mar; mar.forEach(m => r.vistos.push({ k: 'texto', v: m })); }
+    const largo = (l) => l.sort((x, y) => plano(y).length - plano(x).length)[0];
+    const cu = largo([...new Set(PROYECTORES.map(q => q.modelo))].filter(m => plano(m).length >= 5 && TP.includes(plano(m))));
+    if (cu) { E.proy.cuerpo = cu; const q = PROYECTORES.find(x => x.modelo === cu); if (q && !marcasActivas().includes(q.marca)) E.proy.marcas = []; r.vistos.push({ k: 'texto', v: cu }); }
+    const op = largo([...new Set(PROYECTORES.filter(q => q.optica && (!cu || q.modelo === cu)).map(q => q.optica))].filter(o => plano(o).length >= 5 && TP.includes(plano(o))));
+    if (op) { E.proy.optica = op; r.vistos.push({ k: 'texto', v: op }); }
+    /* referencias con pinta de modelo u óptica que el catálogo no tiene: se avisa */
+    (T.match(/\b(?:eb|du|dk|dh|dw|dx|d\d\d|elpl[a-z])[- ]?[a-z]{0,3}\d{2,5}[a-z0-9-]*\b/g) || []).forEach(w => { const k = plano(w); if (k.length >= 5 && ![cu, op].some(z => z && (plano(z).includes(k) || k.includes(plano(z))))) sinLeer.push(w.trim().toUpperCase()); });
+    const np = T.match(/\b(\d+|dos|tres|cuatro|cinco|seis|two|three|four|five|six|quatre|cinc|sis)\s+(?:(?:laser|video|4k|dlp|lcd|uhd)\s+){0,2}(?:video)?(?:proyectores|projectors|projectores)\b/);
+    if (np) { const k = { dos: 2, two: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatre: 4, cinco: 5, five: 5, cinc: 5, seis: 6, six: 6, sis: 6 }[np[1]] || parseInt(np[1], 10);
+      if (k > 1 && E.cantidad === 'una' && E.esp.tipo === 'sueltas' && !E.proy.multi) { E.proy.multi = true; r.vistos.push({ k: 'multi' }); }
+      nProyPedidos = k; } else nProyPedidos = 0;
+  }
   if (c.led.tipo || c.led.clase) E.led.crm = '';
   if (c.elec.backup || c.elec.conexion) E.elec.sel = '';
   if (r.pitch) {   // v7.9 · «P1.5», «pitch 1,5»…: el modelo de ese pitch (si el catálogo lo tiene)
@@ -1128,11 +1146,12 @@ function calcularPeticion() {
     const v = r.vistos.find(x => x.k === 'pitch'); if (m) { E.led.crm = m.crm; if (v) v.ok = m.crm; }
   }
   actualizar();
-  nlNoUsado = r.noUsado || [];
+  nlNoUsado = (r.noUsado || []).concat(sinLeer);
+  { const hay = calculo && calculo.tot ? calculo.tot.n : 0; if (E.tecnologia === 'proy' && nProyPedidos > 1 && hay && hay !== nProyPedidos) nlNoUsado.push(nProyPedidos + ' ' + t('proyectores').toLowerCase()); }   /* v11.2 · si el cálculo no sale con los proyectores pedidos, se dice */
   estadoNl((r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : ''), nlNoUsado.length > 0);
   if (nlNoUsado.length) actualizar();
 }
-let nlNoUsado = [];
+let nlNoUsado = [], nProyPedidos = 0;
 
 // v8.5 · bloque de una zona: cabecera con testigo, nombre, resumen (se lee cuando está plegado) y su RESTABLECER; debajo, el cuerpo
 const blq = (id, tit, res, cuerpo, reset) => `<section class="mod blq" data-blq="${id}"><div class="mod-tit"><button type="button" class="blq-cab" data-accion="blq" data-id="${id}" aria-expanded="true"><i class="blq-led"></i><span class="blq-nom">${tit}</span><span class="blq-res">${res || ''}</span></button>${reset ? `<button type="button" class="sec-btn reset" data-accion="${reset}">${t('restablecer')}</button>` : ''}</div><div class="blq-cuerpo">${cuerpo}</div></section>`;

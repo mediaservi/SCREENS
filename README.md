@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.1** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.2** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,14 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.1)
+## Cambios de la versión actual (v11.2)
+Petición escrita de proyección:
+- **Marca, proyector y óptica nombrados** («proyector Vivitek…», «EB-PU2216B con ELPLU04…»): se leen y el cálculo se hace con ellos. Una referencia que no está en el catálogo se avisa en «No he usado».
+- **Número de proyectores** («2 proyectores para pantalla de 8 × 2,5»): en una pantalla activa la multiproyección; si el cálculo no sale con los pedidos, se avisa.
+- **Distancia de proyección:** «a 8 m», «desde la cabina a 18 m», «distancia de proyección 11 m» y «throw distance 16 m» se leen como distancia del proyector (no cuando hablan del público, de la altura o de dónde cuelga).
+- **«Con mucha luz»**, «sala muy luminosa», «bright room», «molta llum»: 300 lx.
+
+## Cambios de la v11.1
 Petición escrita de proyección («escribe lo que necesitas»):
 - **Peticiones sin la palabra «pantalla»** («proyección de 6 × 3,4 a 8 m…»): se calculaban con la luz de una sala inmersiva a oscuras (15 lx) y daban por buenos proyectores cortos de luz. Ahora se calculan como una pantalla, con su luz normal.
 - **Resolución de vídeo en un pliego** («WUXGA (1920 x 1200)», «resolución 3840 x 2160»): ya no se toma por la medida de la pantalla.

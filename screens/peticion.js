@@ -98,6 +98,8 @@ export function interpretar(texto, tecCtx) {
     || t.match(/(?:distancia de vision|distancia de visio|viewing distance|vista a|ver a|veure a)\s*(?:de\s*)?(\d+(?:\.\d+)?)/);
   if (dist) { c.sueltas.dist = n(dist[1]); vistos.push({ k: 'publico', v: c.sueltas.dist }); }
   const lx = t.match(/(\d+(?:\.\d+)?)\s*(?:lx|lux)\b/); if (lx) { c.proy.lux = n(lx[1]); vistos.push({ k: 'lux', v: c.proy.lux }); }
+  /* v11.2 · «con mucha luz», «sala muy luminosa», «bright room», «molta llum»: 300 lx */
+  if (!lx && /mucha luz|muy luminos|muy iluminad|plena luz|luz ambiente alta|bright (?:room|space|light)|lots of light|high ambient|molta llum|molt lluminos/.test(t)) { c.proy.lux = 300; vistos.push({ k: 'lux', v: 300 }); }
   // v10.62 · los escalones de luz: Theatre room 14, Living 70, Meeting room 140, Class room 210
   if (!lx && /a oscuras|oscura|dark room|fosca|a les fosques|\bcine\b|cinema|theatre room|home theat/.test(t)) { c.proy.lux = 14; vistos.push({ k: 'lux', v: 14 }); }
   else if (!lx && /\baula\b|classroom|class room/.test(t)) { c.proy.lux = 210; vistos.push({ k: 'lux', v: 210 }); }
@@ -128,6 +130,14 @@ export function interpretar(texto, tecCtx) {
   else if (c.proy.tipo === 'mapping' && c.sueltas.dist == null) {   // «fachada de 12 x 20 a 40 m»
     const am = t.match(/(?:\ba|\bat|desde|des de|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres)\b(?!\s*(?:de alto|de ancho|high|wide|d'alt|d'ample))/);
     if (am) { c.proy.dist = n(am[1]); vistos.push({ k: 'distProy', v: c.proy.dist }); }
+  }
+  /* v11.2 · en proyección, «a 8 m» / «desde la cabina a 18 m» sin más es la distancia de proyección (no si habla del público, de la altura o de dónde cuelga) */
+  { const dt = t.match(/(?:distancia de (?:proyeccion|tiro|projeccio|tir)|throw distance|projection distance)[^\d.]{0,14}(\d+(?:\.\d+)?)\s*(?:m|metros|metres|meters)\b/); if (dt && c.proy.dist == null) { c.proy.dist = n(dt[1]); vistos.push({ k: 'distProy', v: c.proy.dist }); } }
+  if (c.proy.dist == null && tecP === 'proy' && c.esp.tipo !== 'sala') {
+    const RD = /(?:\ba|\bat|desde|des de|from)\s*(\d+(?:\.\d+)?)\s*(?:m|metros|metres|meters)\b(?!\s*(?:de alto|de altura|de ancho|de base|high|wide|d'alt|d'ample|d'alcada|x\b|×|por\b|by\b))/g; let q;
+    while ((q = RD.exec(t))) { const v = n(q[1]), antes = t.slice(Math.max(0, q.index - 16), q.index);
+      if (v === c.sueltas.dist || /publico|public|audienc|espectador|viewer|truss|colgad|penjat|hung|hanging|altura|height|alcada|techo|sostre|ceiling/.test(antes)) continue;
+      c.proy.dist = v; vistos.push({ k: 'distProy', v }); break; }
   }
   // v10.89 · lúmenes mínimos del proyector y tipo de óptica pedidos
   const lmP = t.match(/(\d+(?:\.\d{3})*|\d+(?:\.\d+)?\s*k)\s*(?:lm\b|lumen(?:es|s)?\b|ansi)/);

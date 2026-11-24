@@ -28,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.13';
+const VERSION = 'v11.14';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -427,6 +427,10 @@ function pestanas(c) {
   return `<div class="res-pest" role="tablist">${PESTAS.map(k => `<button type="button" class="tog${k === v ? ' on' : ''}" role="tab" aria-selected="${k === v}" data-accion="pest" data-v="${k}">${t('pest_' + k)}${k === 'av' && n ? ` <b class="pn-av">${n}</b>` : ''}</button>`).join('')}</div>`;
 }
 // cada parte del resultado, a su pestaña (las que no llevan ninguna se ven siempre)
+/* v11.14 · tablas de resultados que no caben a lo ancho del bloque: cada fila pasa a ficha (rótulo encima de su dato), sin columnas escondidas a la derecha */
+function encajaTablas() { document.querySelectorAll('#res .tabla-caja').forEach((c) => { const tb = c.querySelector('table.tabla'); if (!tb || tb.classList.contains('mat')) return; tb.classList.remove('apila'); if (!c.clientWidth) return;
+  if (tb.scrollWidth <= c.clientWidth + 1 && c.scrollWidth <= c.clientWidth + 1) return; const th = [...tb.querySelectorAll('thead th')].map((x) => x.textContent.trim());
+  tb.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => { if (th[i] && td.colSpan === 1) td.dataset.th = th[i]; })); tb.classList.add('apila'); }); }
 function marcaPestanas(r) {
   if (!r) return;
   [...r.children].forEach(x => { if (x.dataset.pz) return; const cl = x.classList;
@@ -1271,6 +1275,7 @@ function actualizar(sinEscena) {
   plegar();
   ['A', 'B'].forEach(k => { if (!sc[k]) return; const m = $(`#panel${k} .blq.act[data-blq="${sc[k][0]}"] .blq-cuerpo`); if (m) m.scrollTop = sc[k][1]; });
   marcaPestanas($('#res'));
+  encajaTablas();
   activarVistas($('#res'), calculo, fijarVt);
   barraEscena(); bandaOos();
   try { dispatchEvent(new Event('sc-calculo')); } catch (e) {}   /* v10.88 · la ventana grande de las vistas técnicas se vuelve a pintar */
@@ -1375,7 +1380,7 @@ document.addEventListener('click', (ev) => {
   // v8.5 · bloques de las zonas: abrir uno plegado, ir a las cifras o a la ficha y restablecer cada bloque por separado
   if (a === 'blq') { const zn = b.closest('.zona'); if (zn) { tocar(zn.dataset.zona, b.dataset.id); plegar(); } return; }
   if (a === 'calc-ir') { irA('.res-tot'); return; }
-  if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; } return; }
+  if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; encajaTablas(); } return; }
   if (a === 'ficha-ir') { irA('#det-equipo'); return; }
   if (/^reset-(a|a\d|b\d)(\+(a\d|b\d|elec))*$/.test(a)) { const d = DEF(), cp = (o, src, ks) => ks.forEach(x => { o[x] = src[x]; }), led = E.tecnologia === 'led';
     for (const k of a.slice(6).split('+')) {   // v10.89 · un paso puede juntar varios bloques: se restablecen todos
@@ -1618,7 +1623,7 @@ const obsTextos = new MutationObserver(() => requestAnimationFrame(ajustarTextos
 const roTextos = typeof ResizeObserver === 'function' ? new ResizeObserver(() => requestAnimationFrame(ajustarTextos)) : null;
 new MutationObserver(() => { if (roTextos) document.querySelectorAll('.blq-nom:not([data-ro])').forEach((e) => { e.setAttribute('data-ro', ''); roTextos.observe(e); }); }).observe(document.body, { childList: true, subtree: true });
 ['app', 'consola'].forEach(id => obsTextos.observe(document.getElementById(id), { childList: true, subtree: true }));
-window.addEventListener('resize', () => requestAnimationFrame(() => { plegar(); ajustarPh(); }));
+window.addEventListener('resize', () => requestAnimationFrame(() => { plegar(); ajustarPh(); encajaTablas(); }));
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { ajustarTextos(); ajustarPh(); });
 
 // ---------- cabecera y arranque ----------

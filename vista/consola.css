@@ -607,9 +607,9 @@ html.bk #bk-tot .res-tot:has(> .bk-sum) > .bk-obs { grid-column: span 3; }
 html.bk #bk-tot .bk-vts > .vt { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
 html.bk #bk-tot .bk-vts .vt-cab { grid-column: 1; grid-row: 1; padding-right: 14px; }
 html.bk #bk-tot .bk-vts .vt-shift { grid-column: 2; grid-row: 1; flex-wrap: nowrap; align-self: stretch; min-width: 0; margin: 0; padding: 0 10px 0 4px; gap: 8px; background: var(--banda); }
-html.bk #bk-tot .bk-vts .vt-shift label { white-space: nowrap; font-size: 10.5px; }
-html.bk #bk-tot .bk-vts .vt-shift input[type="range"] { flex: 1 1 60px; min-width: 50px; }
-html.bk #bk-tot .bk-vts .vt-shift b { font-size: 12px; }
+html.bk #bk-tot .bk-vts .vt-shift label { white-space: normal; line-height: 1.1; flex: 0 1 auto; min-width: 0; font-size: 10.5px; }   /* v11.14 · en dos renglones si hace falta: el botón Centrar ya no se corta en portátil */
+html.bk #bk-tot .bk-vts .vt-shift input[type="range"] { flex: 1 1 60px; min-width: 36px; }
+html.bk #bk-tot .bk-vts .vt-shift b { font-size: 12px; white-space: nowrap; flex: none; }
 html.bk #bk-tot .bk-vts .vt-shift .sec-btn { height: 28px; padding: 0 10px; font-size: 11px; flex: none; }
 html.bk #bk-tot .bk-vts .vt-shift .vt-h { display: none; }
 html.bk #bk-tot .bk-vts .vt-rejilla { grid-column: 1 / -1; grid-row: 2; padding: 6px; gap: 6px; }
@@ -710,7 +710,7 @@ html.bk #res > .res-tot > .tar { padding: 0 0 6px; gap: 0; }
 html.bk #res > .res-tot > .tar .t { min-height: 30px; padding: 4px 10px; font-size: 10.5px; }
 html.bk #res > .res-tot > .tar .v { padding: 4px 10px 0; font-size: 24px; }
 html.bk #res > .res-tot > .tar .v small { font-size: 12px; }
-html.bk #res > .res-tot > .tar .s { padding: 0 10px; font-size: 11px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+html.bk #res > .res-tot > .tar .s { padding: 0 10px; font-size: 11px; line-height: 1.25; display: block; overflow: visible; }   /* v11.14 · la línea pequeña entera, en los renglones que necesite */
 html.bk #res > .res-tot > .tar .s .sem { display: none; }
 html.piel .nl-beta { display: none; }   /* R13 · el BETA no compite con la casilla de la petición */
 /* v10.89 · móvil: después de la petición, primero el RESULTADO, luego la simulación y al final los pasos */
@@ -725,6 +725,6 @@ html.piel:not(.bk) #res > .res-tot > .tar .t { min-height: 30px; padding: 4px 10
 html.piel:not(.bk) #res > .res-tot > .tar .t .blk-ic { display: none; }
 html.piel:not(.bk) #res > .res-tot > .tar .v { padding: 4px 10px 0; font-size: 22px; }
 html.piel:not(.bk) #res > .res-tot > .tar .v small { font-size: 12px; }
-html.piel:not(.bk) #res > .res-tot > .tar .s { padding: 0 10px; font-size: 11px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.piel:not(.bk) #res > .res-tot > .tar .s { padding: 0 10px; font-size: 11px; line-height: 1.25; white-space: normal; overflow: visible; }
 html.piel:not(.bk) #res > .res-tot > .tar .s .sem { display: none; }
 @media (orientation: landscape) and (max-height: 500px) { html.piel:not(.bk) #res > .res-tot { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }

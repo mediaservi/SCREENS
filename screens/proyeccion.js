@@ -28,7 +28,7 @@ EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 // PU1000 y 60″ en el resto) y, las ultracortas plegadas, la separación fija entre la imagen y el proyector (sep, m) y lo que va de la lente
 // a la cara del cuerpo más cercana a la pantalla (desfase, m). Las plegadas no desplazan la imagen: va pegada al proyector.
 /* v11.6 · ELPLU03S, ELPLW05 y ELPLM08 en PQ2000: desplazamiento ±25 / ±8 % (antes ±18 / ±6); ELPLU03S en PU2000 ±24 / ±8 % y mínimo de 80″ también
-   en PU1000; ELPLM08 en PQ2000 con tope de 9.600 lm. Leído en la herramienta de cálculo de Epson (24-11-2026) */
+   en PU1000; ELPLM08 en PQ2000 con tope de 9.600 lm. Datos del fabricante (24-11-2026) */
 export const OPTICAS = [
   { ref: 'ELPLX01S', tipo: 'ust', plegada: 1, sep: { PU1000: 0.259 }, desfase: { PU1000: 0.332 }, lm: { PU1000: 0.855 }, min: 100, s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
   { ref: 'ELPLX02S', tipo: 'ust', plegada: 1, sep: { PU2000: 0.2, PQ2000: 0.228, XQ2030: 0.228 }, desfase: { PU2000: 0.21, PQ2000: 0.225, XQ2030: 0.225 }, lm: { PU2000: 0.845, PQ2000: 0.845 }, lmXQ: 20000, min: 100, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
@@ -49,8 +49,7 @@ export const OPTICAS = [
   { ref: 'ELPLL11H', tipo: 'larga', lmXQ: 29900, minS: { XQ2030: 70 }, s: { PU1000: [9.90, 15.52, 67, 30], PU2000: [7.23, 11.38, 60, 18], PQ2000: [6.99, 11.00, 64, 16], XQ2030: [6.99, 11.00, 64, 16] } }
 ];
 // ópticas fijas: desplazamiento (V, H en %), imagen mínima (″) y, las ultracortas, separación imagen–proyector y desfase lente–cuerpo
-// holgEsq: separación entre proyectores de paredes distintas según el manual (EB-815E: 20 cm libres en el lado de la ventilación)
-const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255, holgEsq: 0.20 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
+const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
   'EB-L695SE': { sh: [50, 20], min: 80 }, 'EB-L795SE': { sh: [50, 20], min: 60 }, 'EB-L695SU': { sh: [50, 20], min: 60 } };
 
 export const SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
@@ -66,6 +65,14 @@ const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.2
 // Separación mínima entre chasis por la ventilación (guía de instalación de Epson: 10–40 cm libres alrededor de las rejillas;
 // lado a lado, 150 cm sin mampara o 20–40 cm con mampara). Se aplica 40 cm en horizontal y 20 cm en vertical.
 export const HOLGURA = { h: 0.40, v: 0.20, sinMampara: 1.5 };
+/* v11.14 · separación mínima entre chasis de cada modelo, la del manual del fabricante con mampara entre equipos (Josep, 24-11-2026): [con mampara, sin mampara], en m.
+   EB-815E 20 cm (110 sin mampara) · EB-805F mampara a 40 cm de la salida de aire y a 20 cm de las entradas (120 sin mampara) · serie L695SE/L795SE/L695SU 20 y 40 cm
+   (150 sin mampara); donde el manual da dos cifras (lado de salida y lado de entrada) se aplica la mayor, 40 cm · EB-PQ 30 cm (70 sin mampara). Los modelos que no están aquí usan la general (HOLGURA): de los EB-PU1006W/1007B/1008B/2010B el manual
+   da 70 cm sin mampara y falta leer la cifra con mampara; EB-PU22xx, EB-XQ2030B y Vivitek, pendientes de leer en su manual. */
+const HOLG_MODELO = { 'EB-815E': [0.20, 1.10], 'EB-805F': [0.40, 1.20], 'EB-L695SE': [0.40, 1.50], 'EB-L795SE': [0.40, 1.50], 'EB-L695SU': [0.40, 1.50],
+  'EB-PQ2008B': [0.30, 0.70], 'EB-PQ2010B': [0.30, 0.70], 'EB-PQ2213B': [0.30, 0.70], 'EB-PQ2216B': [0.30, 0.70], 'EB-PQ2220B': [0.30, 0.70] };
+/* entre paredes distintas, la del manual de los dos equipos (la mayor); en la misma superficie nunca baja de la general */
+export const holgura = (a, b, misma) => { const x = a && a.holgEsq, y = b && b.holgEsq; if (!x || !y) return HOLGURA.h; return misma ? Math.max(HOLGURA.h, x, y) : Math.max(x, y); };
 
 function leer() {
   const out = [];
@@ -74,11 +81,11 @@ function leer() {
     const [aw, ah] = c[5].split(':').map(Number);
     const px = (c[6].match(/(\d{3,5})\s*x\s*(\d{3,5})/) || []).slice(1).map(Number);
     const base = { marca: c[0], modelo: c[1], serie: c[2] === 'fija' ? '' : c[2], ar: aw / ah, arTxt: c[5], resX: px[0] || 1920, resY: px[1] || 1080, resTxt: c[6],
-      k4: /4K/i.test(c[7]), k4nativo: c[7] === '4K', maxDiagPulg: Number(c[8]), maxDiagPulgOOS: Number(c[9]), imagen: c[10] || '', chasis: CHASIS[c[1]] || [0.55, 0.45, 0.2] };
+      k4: /4K/i.test(c[7]), k4nativo: c[7] === '4K', maxDiagPulg: Number(c[8]), maxDiagPulgOOS: Number(c[9]), imagen: c[10] || '', chasis: CHASIS[c[1]] || [0.55, 0.45, 0.2], ...(HOLG_MODELO[c[1]] ? { holgEsq: HOLG_MODELO[c[1]][0], holgSin: HOLG_MODELO[c[1]][1] } : {}) };
     const combo = (optica, tr, lumens, sh, x) => ({ ...base, id: c[1] + (optica ? '|' + optica : ''), optica, nombre: c[1] + (optica ? ' + ' + optica : ''),
       trMin: Math.min(...tr), trMax: Math.max(...tr), lumens, ust: Math.min(...tr) < 0.4, shiftV: sh[0] || 0, shiftVcontra: sh[0] || 0, shiftH: sh[1] || 0, shiftSube: !!sh[2], ...(x || {}) });
     if (c[2] === 'fija') { const F = FIJA_EPSON[c[1]] || {}, tr = c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
-      out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.holgEsq ? { holgEsq: F.holgEsq } : {}), ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
+      out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
     OPTICAS.forEach((o) => {
       const d = o.s[c[2]]; if (!d) return;
       const sr = c[2], cuerpoLm = Number(c[4]);
@@ -106,7 +113,7 @@ const VIVITEK = [
   { serie: 'DU5000Z', g: '5U', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [15, 5], H: 2, offset: 0.5, chasis: [0.496, 0.380, 0.160], m: [['DU5051Z', 6300], ['DU5053Z', 7700]] },
   { serie: 'DK5000Z', g: '5K', res: '4K UHD (3840 x 2160)', ar: '16:9', k4: true, V: [22, 2], H: 2, offset: 0.5, chasis: [0.496, 0.380, 0.160], m: [['DK5153Z', 6200]] }
 ];
-// v11.8 · D89-UST01 en los DU7x99 (chip 0,67″): imagen mínima de 124″ (unos 2,66 m de ancho), la que deja el simulador de Vivitek (no acerca a menos de 1,036 m)
+// v11.8 · D89-UST01 en los DU7x99 (chip 0,67″): imagen mínima de 124″ (unos 2,66 m de ancho), según los datos del fabricante (no acerca a menos de 1,036 m)
 // [tipo, trMin, trMax, foco [min, max], foco mecánico [min, max] | 0, imagen [min, max] | 0, V [hacia, contra] | 0, H | 0, brillo [ancho, tele] | 0]
 const LENTES_VIVITEK = {
   67: { 'D89-UST01': ['ust', 0.368, 0.39, [0.53, 2.25], [0.45, 3.58], [124, 400], [60, 45], 2.5, 0], 'D86-04705': ['corta', 0.47, 0.5, [0.81, 3.16], [0.81, 3.16], [0, 300], 0, 0, 0],
@@ -428,8 +435,8 @@ function medio(h) {
   return { x: (lat ? d : w) / 2, y: a / 2, z: (lat ? w : d) / 2 };
 }
 const chocan = (a, b) => { const A = medio(a), B = medio(b);
-  /* v11.13 · entre paredes distintas, la separación del manual del fabricante si la da (Josep, 24-11-2026); si no, la general */
-  const hg = a.sup !== b.sup && a.prod && b.prod && a.prod.holgEsq && b.prod.holgEsq ? Math.max(a.prod.holgEsq, b.prod.holgEsq) : HOLGURA.h;
+  /* v11.13 · entre paredes distintas, la separación del manual del fabricante si la da (Josep, 24-11-2026); si no, la general. v11.14 · todos los modelos con dato */
+  const hg = holgura(a.prod, b.prod, a.sup === b.sup);
   return Math.abs(a.lente.x - b.lente.x) < A.x + B.x + hg && Math.abs(a.lente.z - b.lente.z) < A.z + B.z + hg && Math.abs(a.lente.y - b.lente.y) < A.y + B.y + HOLGURA.v; };
 // puntos del chasis (caja con su tamaño real alrededor de la lente)
 const puntosCuerpo = (h) => { const M = medio(h), L = h.lente, out = [];
@@ -470,7 +477,7 @@ export function resolverChoques(haces, alto) {
       // Una altura marcada a mano manda: no se cambia.
       const pr0 = h.prod || {}, fija = !!pr0.plegada, hor = ((h.vert ? Math.min(pr0.shiftV || 0, pr0.shiftVcontra != null ? pr0.shiftVcontra : (pr0.shiftV || 0)) : pr0.shiftH) || 0) / 100;
       if (!fija && !h.fijaY && h.imgH) for (let k = 1; k <= 4; k++) dys.push(-k * paso, k * paso);
-      const lado = M.x * 2 + HOLGURA.h, lim = fija ? 0 : Math.min((h.ancho || 0) * 0.25, hor * (h.ancho || 0));
+      const lado = M.x * 2 + holgura(h.prod, h.prod, true), lim = fija ? 0 : Math.min((h.ancho || 0) * 0.25, hor * (h.ancho || 0));
       for (let k = 1; k * lado <= lim + 1e-6; k++) dxs.push(k * lado, -k * lado);
       for (let x = 0.1; x < Math.min(lado, lim + 1e-6); x += 0.1) dxs.push(x, -x);   // pasos cortos: a veces basta con poco
       if (lim > 0.05 && lim < lado) dxs.push(lim, -lim);

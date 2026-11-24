@@ -169,5 +169,14 @@ export function interpretar(texto, tecCtx) {
   if (pitch) usados.add(Math.round(pitch * 100));
   const noUsado = []; { const U = /(\d+(?:\.\d+)?)\s*(m\b|mts|metros|metres|lm\b|lumen(?:es|s)?|lx\b|lux\b|″|"|pulgadas|inches|polzades|%|personas|persones|people)/g; let q;
     while ((q = U.exec(t))) { const v = parseFloat(q[1]); if (/lumen|lm/.test(q[2]) && c.proy.lmMin) continue; if (!usados.has(Math.round(v * 100))) noUsado.push(q[0].trim().replace('.', ',')); } }
+  /* v11.14 · lo que se pide y hoy no cambia el cálculo se dice, en vez de callarlo: «4K» y la retroproyección no tienen mando; un formato que no cuadra
+     con la medida escrita tampoco se aplica. «Láser» sí se da por entendido: todos los proyectores del catálogo lo son. */
+  if (tecP === 'proy') {
+    if (/\b4k\b|\buhd\b|ultra ?hd/.test(t)) noUsado.push('4K');
+    if (/retropro[yj]ec|rear[- ]projection|pro[yj]eccion? (?:trasera|posterior)|pro[yj]eccio (?:posterior|del darrere)|(?:desde|por) detras|des de darrere|from behind/.test(t)) noUsado.push('retroproyección');
+    if (/\blaser\b/.test(t)) vistos.push({ k: 'texto', v: 'láser' });
+    const fm = t.match(/\b(16:9|16:10|4:3|21:9|1:1)\b/);
+    if (fm && !c.sueltas.formato) { const [fa, fb] = fm[1].split(':').map(Number), a = c.sueltas.ancho, b = c.sueltas.alto; if (!(a && b) || Math.abs(a / b - fa / fb) / (fa / fb) > 0.03) noUsado.push(fm[1]); }
+  }
   return { cantidad, tecnologia, cambios: c, vistos, pitch, cob: /\bcob\b/.test(t), noUsado: [...new Set(noUsado)] };
 }

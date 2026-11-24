@@ -251,6 +251,12 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 .tabla td { padding: 5px 8px; border-bottom: 1px solid var(--linea); font-family: var(--mono); color: var(--txt-2); white-space: nowrap; }
 .tabla td:first-child { font-family: var(--sans); font-weight: 700; color: var(--txt); letter-spacing: .04em; }
 .tabla-caja { overflow-x: auto; background: #1d1d20; border: 1px solid #0b0b0c; border-radius: 10px; }
+/* v11.14 · tabla que no cabe a lo ancho del bloque de resultados: una ficha por fila, con el rótulo de cada columna encima de su dato */
+#res .tabla.apila thead { display: none; } #res .tabla.apila, #res .tabla.apila tbody { display: block; }
+#res .tabla.apila tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; padding: 9px 10px; border-bottom: 1px solid var(--linea); } #res .tabla.apila tr:last-child { border-bottom: 0; }
+#res .tabla.apila td { display: flex; flex-direction: column; gap: 1px; padding: 0; border: 0; white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+#res .tabla.apila td::before { content: attr(data-th); font: 800 9.5px/1.3 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--tenue); }
+#res .tabla.apila td:first-child { grid-column: 1 / -1; font-size: 13.5px; } #res .tabla.apila td:first-child::before { content: none; } #res .tabla.apila td:empty { display: none; }
 .pie { flex: none; text-align: center; font-size: 10.5px; color: var(--tenue-2); padding: 6px 10px 8px; background: var(--bg); border-top: 1px solid #000; }
 .pie a { color: inherit; text-decoration: none; }
 

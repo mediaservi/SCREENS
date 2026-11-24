@@ -243,7 +243,7 @@ const anchoMin = (p) => (p.minDiagPulg > 0 ? p.minDiagPulg * 0.0254 * p.ar / Mat
 // tiroObjetivo, la distancia preferida en metros (pared: el proyector a la altura del público). Si el zoom no llega, el extremo más cercano
 // v10.66 · una: una pantalla = un proyector (regla de Josep, 18-11-2026). Con «una», la rejilla es siempre 1 × 1: si esa imagen no llega,
 // no cubre o pasa del máximo, sale así, con su aviso, en vez de repartirla en varios equipos. El blending solo se calcula si se pide.
-export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false, banda = 0 } = {}) {
+export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = false, dist = 0, orient = 'auto', trObjetivo = 0, tiroObjetivo = 0, una = false, banda = 0, nitsMin = 0 } = {}) {
   const W = sup.ancho, H = sup.alto, nwMax = anchoMax(p, oos), nwMin = anchoMin(p), sMin = Math.max(0, solapeMin);
   const puedeV = !p.plegada && !(p.ust && (p.shiftSube || !p.optica)) && !p.offset;   // v10.89 · las plegadas y las de lente en el borde (offset), solo en horizontal
   const ors = orient === 'vertical' ? (puedeV ? ['v'] : ['h']) : orient === 'horizontal' ? ['h'] : (puedeV ? ['h', 'v'] : ['h']);
@@ -284,7 +284,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
       // primero lo que funciona (dentro de la sala, del tamaño máximo, del zoom y de los solapes), luego con menos equipos,
       // menos imagen desperdiciada y más brillo; a igualdad, en horizontal
       const coste = (fuera ? 1e7 : 0) + (noCubre ? 4e6 : 0) + (limite || chica ? 2e6 : 0) + (fueraMec ? 4e6 : fueraFoco && !oos ? 1.5e6 : 0) + (exS > 0 ? 5e6 + exS * 1e5 : 0) + (exR > 0 ? 1e6 + exR * 1e5 : 0)
-        + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0) + (franja ? 3000 : 0) + (fSpec ? 1500 : 0);
+        + cols * rows * 1000 + (recX + recY) * 300 + (oxR + oyR) * 60 - Math.min(lux / Math.PI, 300) * 0.2 + (o === 'v' ? 2 : 0) + (franja ? 3000 : 0) + (fSpec ? 1500 : 0) + (nitsMin > 0 && lux / Math.PI < nitsMin ? (1 - lux / Math.PI / nitsMin) * 20000 : 0);   /* v11.11 · blending para llegar al brillo: cada proyector de más compensa si acerca al objetivo */
       const cand = { o, cols, rows, iw, ih, ox, oy, oxR, oyR, recX, recY, tiro, fuera, lux, limite, chica, noCubre, fueraZoom, coste, kb, fueraFoco, fueraMec, parcial: franja ? Math.max(0, H - ih) : 0, fSpec, fr: !!franja };
       if (franja) { if (!mejorF || coste < mejorF.coste) mejorF = cand; } else if (!mejor || coste < mejor.coste) mejor = cand;
       }

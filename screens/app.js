@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.4';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.5';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.4';
+const VERSION = 'v11.5';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -202,10 +202,10 @@ function calcular(forzarMulti) {
   // AUTO: la instalación limpia (sin chasis que choquen ni proyectores dentro de otros haces) con menos equipos y más brillo.
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
   // y solo las mejores pasan por la colocación completa con sombras y choques
-  const rapido = (q) => { let k = pref(q) * 1000; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
-    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; }); return k + q.lumens / 1000 * 1.5; };
+  const rapido = (q) => { let k = pref(q) * 1000, nm = Infinity; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
+    k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; nm = Math.min(nm, r.nits); }); return k + q.lumens / 1000 * 1.5 * pesoLm(nm); };
   const supS = sups.find(s => s.tipo === 'suelo');
-  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - valeBrillo(r.nits) * 0.5 + q.lumens / 1000 * 1.5; };
+  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - valeBrillo(r.nits) * 0.5 + q.lumens / 1000 * 1.5 * pesoLm(r.nits); };
   const mejores = (lista, k = 10, fc = rapido) => lista.length <= k ? lista : lista.map(q => ({ q, c: fc(q) })).sort((a, b) => a.c - b.c).slice(0, k).map(x => x.q);
   const mejorDe = (lista, fn) => lista.map(q => ({ q, r: fn(q) })).sort((x, y) => x.r.coste - y.r.coste)[0];
   // v10.54 · solo las marcas activadas (todas, si no se ha quitado ninguna)
@@ -239,16 +239,17 @@ function calcular(forzarMulti) {
      Antes las tres llevaban el que pedía la central y las laterales salían con muchos más lúmenes de los necesarios. Con el modelo elegido a mano, ese en todas */
   let prCentral = null;
   if (!fijo && esp.tipo === 'sueltas' && sups.some(s => s.central) && sups.some(s => s.tipo !== 'suelo' && !s.central)) {
-    const rapDe = (sub) => (q) => { let k = pref(q) * 1000; sub.forEach(s => { const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
-      k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; }); return k + q.lumens / 1000 * 1.5; };
+    const rapDe = (sub) => (q) => { let k = pref(q) * 1000, nm = Infinity; sub.forEach(s => { const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
+      k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5; nm = Math.min(nm, r.nits); }); return k + q.lumens / 1000 * 1.5 * pesoLm(nm); };
     const LM = lista.filter(q => q.marca === proyector.marca), top = (fc) => LM.map(q => ({ q, c: fc(q) })).sort((x, y) => x.c - y.c).slice(0, 10).map(x => x.q);
-    const pL = mejorDe(top(rapDe(sups.filter(s => s.tipo !== 'suelo' && !s.central))), q => montar(q, prSuelo, null, proyector)).q;
-    const pCn = mejorDe(top(rapDe(sups.filter(s => s.central))), q => montar(pL, prSuelo, null, q)).q;
     const mal = (r) => [r.filas.filter(f => f.p.fuera).length + (r.S.fueraSala || 0), r.filas.filter(f => f.p.noCubre || f.p.limite || f.p.chica).length, r.S.conflictos.length + r.S.choques.length, r.filas.reduce((n, f) => n + f.p.n, 0)];
     const rA = montar(proyector, prSuelo), mA = mal(rA);
-    /* se reparte si no empeora nada: ni lo que no cabe, ni lo que no cubre, ni choques, ni número de equipos, ni el brillo útil de ninguna pantalla */
+    /* se reparte si no empeora nada: ni lo que no cabe, ni lo que no cubre, ni choques, ni número de equipos, ni el brillo útil de ninguna pantalla.
+       v11.5 · cada medida se queda con el primero de su lista (el que mejor le va a ella sola) que cumple eso */
     const vale = (r) => { const m = mal(r); return m.every((v, i) => v <= mA[i]) && r.filas.every((f, i) => valeBrillo(f.p.nits) >= valeBrillo(rA.filas[i].p.nits) - 1); };
-    const op = [[pL, pCn], [pL, proyector]].find(([a, b]) => (a !== proyector || b !== proyector) && vale(montar(a, prSuelo, null, b)));
+    const pL = top(rapDe(sups.filter(s => s.tipo !== 'suelo' && !s.central))).find(q => vale(montar(q, prSuelo, null, proyector))) || proyector;
+    const pCn = top(rapDe(sups.filter(s => s.central))).find(q => vale(montar(pL, prSuelo, null, q))) || proyector;
+    const op = pL !== proyector || pCn !== proyector ? [pL, pCn] : null;
     if (op) { const cen0 = proyector; proyector = op[0]; prCentral = op[1] !== op[0] ? op[1] : null; if (prSuelo === cen0 && !haySuelo) prSuelo = proyector; }
   }
   inst = montar(proyector, prSuelo, null, prCentral);
@@ -325,9 +326,12 @@ function calcular(forzarMulti) {
    máximo brillo: busca el que hace falta para un contraste de 15:1 con la luz del sitio (como poco 45 nits, como mucho 250) y, entre los que llegan,
    el de menos lúmenes. Llegar al objetivo vale lo mismo que antes valía llegar a 250 nits; pasarse no suma y los lúmenes de más restan un poco */
 /* v10.98 · en mapping (fachadas, que no son una pantalla blanca) el mínimo es de 80 nits. El objetivo del 15:1 tiene tope de 250 nits, pero AUTO ya no se queda en rojo
-   si un equipo mayor lo evita: con mucha luz sube hasta el contraste mínimo de 7:1 (pendiente de decidir con Josep si debe subir hasta el 15:1) */
-const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.max(Math.min(250, Math.max(tipoProy() === 'mapping' ? 80 : 45, 14 * lx / Math.PI)), 6 * lx / Math.PI); };
+   si un equipo mayor lo evita: con mucha luz sube hasta un contraste de 10:1 (v11.5) */
+const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.max(Math.min(250, Math.max(tipoProy() === 'mapping' ? 80 : 45, 14 * lx / Math.PI)), 9 * lx / Math.PI); };   /* v11.5 · con luz ambiente, AUTO sube hasta un contraste de 10:1 (decidido por Josep, 24-11-2026; antes 7:1) */
 const valeBrillo = (nits) => { const o = nitsObjetivo(); return Math.min(nits, o) * 250 / o; };
+/* v11.5 · los lúmenes de más solo penalizan cuando sobran: si el equipo no llega al brillo buscado, la penalización baja en proporción (con mucha luz,
+   al subir el objetivo, ganaba el proyector más flojo por ahorrar lúmenes) */
+const pesoLm = (nits) => Math.min(1, Math.max(0, nits) / nitsObjetivo());
 const SUELTO = { dist: 0, altura: 0 };   // v10.96 · candados soltados por no caber en la sala (hasta que se vuelva a fijar uno)
 // coste de una instalación de proyección: primero que quepa, luego que no haya sombras de equipos ni choques, luego menos proyectores y más brillo
 function costeInstalacion(filas, S) {
@@ -336,7 +340,7 @@ function costeInstalacion(filas, S) {
   const zona = S.zona && S.zona.ok ? S.zona.ancho * S.zona.fondo : 0;
   // v10.63 · también cuenta que no cubra (antes ganaba la que no cubría por llevar menos equipos) y el solape excesivo
   const noCubre = filas.filter(f => f.p.noCubre).length, solape = filas.filter(f => f.s.tipo !== 'suelo' && f.p.solapeRel > SOLAPE_MAX + 1e-6).length;
-  return fuera * 1e7 + (S.fueraSala || 0) * 2e6 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 - zona * 2;
+  return fuera * 1e7 + (S.fueraSala || 0) * 2e6 + noCubre * 1e6 + solape * 1.5e6 + (S.conflictos.length + S.choques.length) * 1e5 + (S.obst ? S.obst.length : 0) * 1e4 + limite * 2000 + n * 100 - valeBrillo(nits) + Math.max(0, ...filas.map(f => (f.proyector && f.proyector.lumens) || 0)) / 1000 * 1.5 * pesoLm(nits) - zona * 2;
 }
 // v10.63 · UN SOLO VEREDICTO: lo calcula el motor con todo lo que avisa PRO y lo pintan igual PRO (arriba de RESULTADOS y en el PDF) y SIMPLE
 // (su semáforo y la lista de avisos). Rojo: no se puede montar así; ámbar: se puede, pero hay algo que corregir. De más a menos grave.

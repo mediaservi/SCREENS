@@ -1,28 +1,30 @@
 /* SCREENS · service worker: uso sin conexión.
    Estrategia: red primero (datos siempre actualizados) y, si no hay red, la copia guardada
    (aplicación, librerías e imágenes). */
-const CACHE = 'screens-offline-v94';
+const CACHE = 'screens-offline-v95';
 const EXCLUIR = /youtube|googlevideo|ytimg|google-analytics|script\.google\.com|docs\.google\.com|googleusercontent|google\.com/;
 
 self.addEventListener('install', () => self.skipWaiting());
 // al activarse borra las copias guardadas con otro nombre (versiones anteriores)
 self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 
+/* 24-11-2026 · una navegación que el servidor redirige (carpeta sin la barra final) recibe una redirección limpia: una respuesta ya redirigida no se puede entregar a una navegación (ERR_FAILED) */
+const limpia = p => Promise.resolve(p).then(r => (r && r.redirected ? Response.redirect(r.url, 302) : r));
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || !/^https?:/.test(req.url) || EXCLUIR.test(req.url)) return;
-  e.respondWith((async () => {
+  e.respondWith((req.mode === 'navigate' ? limpia : (x) => x)((async () => {
     const cache = await caches.open(CACHE);
     try {
       // v10.68 · sin caché: lo de la propia app se pide siempre al servidor (revalidando), sin pasar por la copia del navegador;
       // GitHub Pages no deja poner cabeceras propias y sirve con 10 minutos de caducidad
       const res = await (new URL(req.url).origin === self.location.origin ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req));
-      if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()).catch(() => {});
+      if (res && !res.redirected && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()).catch(() => {});
       return res;
     } catch (err) {
       const hit = await cache.match(req, { ignoreSearch: false }) || (req.mode === 'navigate' ? await cache.match('./index.html') || await cache.match(self.registration.scope) : null);
       if (hit) return hit;
       throw err;
     }
-  })());
+  })()));
 });

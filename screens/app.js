@@ -2,7 +2,7 @@
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
-import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.95';   // v10.94 · planos técnicos de señal y alimentación en el PDF
+import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=10.96';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
@@ -26,7 +26,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v10.95';
+const VERSION = 'v10.96';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -149,6 +149,10 @@ function calcular(forzarMulti) {
   const una = esp.tipo === 'sueltas' && !E.proy.multi && !forzarMulti;
   const opc = { solapeMin: E.proy.solape / 100, oos: !!E.proy.oos, una };
   // v8.0 · distancia fija (torres al otro lado de la calle, truss…), orientación (horizontal / vertical) y montaje con su altura
+  /* v10.96 · en una sala, un candado que ya no cabe (una distancia fijada mayor que lo que da la sala hasta la pared de enfrente, o una altura por
+     encima del techo, que venían de otra sala o de otro modo) se suelta solo: vuelve a AUTO y se avisa. Antes se respetaba y salía un tiro imposible */
+  if (esp.tipo === 'sala') { const pw0 = sups.filter(s => s.tipo !== 'suelo'), cabe = pw0.length ? Math.min(...pw0.map(s => alcance(esp, s, 0))) : Infinity, d0 = Number(E.proy.dist) || 0, a0 = Number(E.proy.altura) || 0;
+    if (d0 > cabe + 1e-6) { SUELTO.dist = d0; E.proy.dist = 0; } if (a0 > esp.alto + 1e-6) { SUELTO.altura = a0; E.proy.altura = 0; } }
   const fijaDist = Math.max(0, Number(E.proy.dist) || 0);
   // v8.2 · tipo de proyección: mapping (fachada a distancia), pared (auditorio o pared normal) o sala inmersiva
   const tipoP = tipoProy();
@@ -289,6 +293,7 @@ function calcular(forzarMulti) {
   }
   c.elec = electronica(c); c.veredicto = veredicto(c); return c;
 }
+const SUELTO = { dist: 0, altura: 0 };   // v10.96 · candados soltados por no caber en la sala (hasta que se vuelva a fijar uno)
 // coste de una instalación de proyección: primero que quepa, luego que no haya sombras de equipos ni choques, luego menos proyectores y más brillo
 function costeInstalacion(filas, S) {
   let n = 0, fuera = 0, limite = 0, nits = Infinity;
@@ -318,6 +323,7 @@ function veredicto(c) {
     const pw = c.filas.filter(f => f.s.tipo !== 'suelo'), nom = (L) => L.map(f => f.nombre).join(' · '), S = c.sombras || {}, con = Math.round(c.tot.contrasteMin * 10) / 10;   // el color va con el número que se lee
     if (c.consejo) R('consejo', t('noValeProy', { a: c.consejo.nombre }));
     else if (c.multiPosible) A('multiPosible', t('vMultiPosible', { n: c.multiPosible.n }));
+    if (c.esp && c.esp.tipo === 'sala') { if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) })); }
     if (pw.some(f => f.p.noCubre)) R('noCubre', t('noCubre'));
     { const L = pw.filter(f => f.p.fuera); if (L.length) R('fuera', t('fuera') + ': ' + nom(L) + '.'); }
     { const L = pw.filter(f => f.p.chica); if (L.length) R('chica', t('chica') + ': ' + nom(L) + '.'); }
@@ -718,7 +724,7 @@ window.SC_VT = {
   txt: (k) => t(k)
 };
 function fijarDesdeVistas(o, d) {
-  if (o.dist != null) E.proy.dist = Math.round(o.dist * 100) / 100;
+  if (o.dist != null) { E.proy.dist = Math.round(o.dist * 100) / 100; SUELTO.dist = 0; }
   if (o.yL != null) {
     const m = E.proy.montaje === 'auto' ? (d.apoyo ? 'apoyado' : 'colgado') : E.proy.montaje;
     const alt = m === 'apoyado' ? o.yL - d.altoCh / 2 : o.yL + (d.q.rows - 1) * d.paso + d.altoCh / 2 + 0.05;
@@ -1327,6 +1333,7 @@ document.addEventListener('click', (ev) => {
     luzDeTipo(v); actualizar(); return; }
   // candados: al cerrarlo se fija el valor que estaba calculando AUTO; al abrirlo vuelve a AUTO
   if (a === 'lock-dist' || a === 'lock-alt') {
+    SUELTO.dist = 0; SUELTO.altura = 0;
     const pw = calculo && calculo.filas ? calculo.filas.find(f => f.s.tipo !== 'suelo' && f.pos) : null, r2 = (v) => Math.round(v * 100) / 100;
     if (a === 'lock-dist') E.proy.dist = Number(E.proy.dist) > 0 ? 0 : (pw ? r2(pw.pos.dist) : 0);
     else if (Number(E.proy.altura) > 0) E.proy.altura = 0;

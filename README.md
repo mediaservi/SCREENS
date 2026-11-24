@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v10.95** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v10.96** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v10.95)
+## Cambios de la versión actual (v10.96)
+- **Sala inmersiva en AUTO: un candado antiguo ya no estropea el cálculo** (fallo grave avisado por Josep, 24-11-2026). Si quedaba fijada una distancia de proyección de otra sala o de otro modo (por ejemplo 6 m) y la sala nueva tenía 6 m de fondo, AUTO la respetaba y proponía un tiro que no cabe («El tiro no cabe en la sala»). Lo mismo con una altura de proyector fijada por encima del techo. Ahora, en una sala, la distancia fijada que no cabe hasta la pared de enfrente y la altura por encima del techo **se sueltan solas**, se calcula en automático con la óptica que sí cabe y un aviso lo dice. En español, inglés y catalán.
+
+## Cambios de la v10.95
 - **Petición escrita en UNA · LED: entiende el modelo, los cabinets y los píxeles** (fallo grave avisado por Josep, 24-11-2026). «UFIX-COB-1.2, 8 × 8 cabinets, 4800 × 2700 mm, 3840 × 2160 píxeles» daba otro modelo y una pantalla de 8 × 8 metros, porque «8 × 8 cabinets» se leía como metros y el nombre del modelo se ignoraba. Ahora:
   - **El modelo por su nombre** (con guiones, espacios o coma decimal) manda sobre el pitch, el brillo y el stock, y pone su entorno y su uso.
   - **«N × M cabinets»** (o columnas × filas) son columnas y filas; **«W × H píxeles»** es la resolución. Sin medida en metros, la pantalla sale de ahí.

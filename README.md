@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.7** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.8** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.7)
+## Cambios de la versión actual (v11.8)
+- **Vivitek D89-UST01 en los DU7099Z, DU7199Z y DU7299Z:** imagen mínima de 124″ (unos 2,66 m de ancho), como en el simulador de Vivitek. Antes se aceptaba una imagen de 2 m con el proyector a 0,75 m, más cerca de lo que permite la óptica.
+
+## Cambios de la v11.7
 Salas inmersivas:
 - **EPSON EB-L695SE primero:** en una sala inmersiva, AUTO lo elige siempre que monte limpio y dé un contraste de 10:1 en todas las paredes, aunque lleve hasta dos equipos más que otra opción.
 - **Salas pequeñas con ultracortas de óptica fija (EB-815E, EB-805F):** cuando cubrir la pared entera obliga a varias filas de proyectores que chocan, AUTO propone una sola fila que cubre todo el ancho y unos 2 m de alto, aunque sea fuera de especificación. El veredicto sale en ámbar y avisa de la franja sin imagen y del modo fuera de especificación. Antes estas salas salían en rojo.

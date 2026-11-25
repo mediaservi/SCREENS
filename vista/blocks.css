@@ -825,10 +825,10 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 }
 :root[data-tema="claro"] .pz-n { color: #fff; }
 :root[data-tema="claro"] .pz:not(.ab) .pz-n { color: var(--tenue); }
-/* v11.29 · desplegable de cabinets: el único indicio público de stock es un fondo algo distinto en la lista (discreto, pero se ve), acorde con el tema oscuro o claro */
+/* v11.29 · desplegable de cabinets: el único indicio público de stock es un fondo algo distinto en la lista (discreto, pero se ve), acorde con el tema oscuro o claro · v11.30: en el verde del logotipo de Traulux (#00a894) */
 select[data-crm] option, select[data-crm] optgroup { background: #1b1c20; color: #e9ecf2; }
 select[data-crm] optgroup { color: #9aa0ad; font-style: normal; }
-select[data-crm] option.stk { background: #26375c; color: #dbe6ff; }
+select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 :root[data-tema="claro"] select[data-crm] option, :root[data-tema="claro"] select[data-crm] optgroup { background: #fff; color: #15161a; }
 :root[data-tema="claro"] select[data-crm] optgroup { color: #5a5d66; }
-:root[data-tema="claro"] select[data-crm] option.stk { background: #dfe8ff; color: #12265e; }
+:root[data-tema="claro"] select[data-crm] option.stk { background: #cdeee9; color: #06463e; }

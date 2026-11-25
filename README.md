@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.29** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.30** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.29)
+## Cambios de la versión actual (v11.30)
+- Desplegable de cabinets · el fondo que señala los modelos con stock pasa del azul al verde del logotipo de Traulux, en su versión oscura o clara según el tema.
+
+## Cambios de la v11.29
 - **Desplegable de cabinets · el indicio de stock se ve mejor.** Los modelos con stock llevan ahora un fondo ligeramente distinto en la lista (azulado), en lugar de solo un color de letra casi igual al resto. La lista sigue el tema: oscura en el tema oscuro y clara en el claro. En el móvil, el selector propio del sistema puede no mostrarlo.
 
 ## Cambios de la v11.28

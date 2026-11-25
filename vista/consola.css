@@ -760,3 +760,6 @@ html.bk .ley > span { gap: 4px; } html.bk .ley i { width: 8px; height: 8px; flex
    y sin desplazamiento por dentro); solo un paso que no cabe ni él solo conserva su desplazamiento */
 html.bk .zona:not(:has(> .blq.act)):not(.mide) > .blq:not(.pleg) { flex: 1 0 auto; grid-template-rows: auto minmax(0, 1fr); }
 html.bk .zona:not(:has(> .blq.act)):not(.mide) > .blq:not(.pleg) > .blq-cuerpo { align-content: space-evenly; }
+/* v11.19 · desplegable de cabinets: el único indicio público de stock es el color del nombre (con stock, azul marino; sin stock, negro) */
+select[data-sel="led.crm"] option { background: #fff; color: #15161a; }
+select[data-sel="led.crm"] option.stk { color: #17357f; }

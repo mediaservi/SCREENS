@@ -116,14 +116,17 @@
     no: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="4" width="15" height="11" rx="2"/><path d="M1.5 8h15M4.5 11.5h4"/><circle cx="17.5" cy="16.5" r="5.5" fill="currentColor" stroke="none"/><path d="M17.5 13.6v3l2 1.2" stroke="#1a1206" stroke-width="1.8"/></svg>'
   };
   /* v10.70 · junto al icono, 3 rayas tipo semáforo según lo disponible en el batch mayor (1 roja, 2 ámbar, 3 verdes); sin números */
-  const stockIc = (si, nivel) => (si === true || si === false ? `<span class="sc-stock ${si ? 'si' : 'no'}">${IC_STOCK[si ? 'si' : 'no']}</span>` + (nivel >= 1 && nivel <= 3 ? `<span class="sc-sem n${nivel}" aria-hidden="true"><i></i><i></i><i></i></span>` : '') : '');
+  /* v11.19 · los iconos de stock (caja verde, reloj naranja y semáforo) solo los ve el admin con su llave, y solo en su bloque: en público no sale
+     ningún icono ni texto de stock (el único indicio es el color del nombre en el desplegable de cabinets). En las fichas y en el PDF, nunca */
+  const interno = () => { try { return typeof globalThis.SC_INTERNO === 'function' && !!globalThis.SC_INTERNO(); } catch (e) { return false; } };
+  const stockIc = (si, nivel) => (interno() && (si === true || si === false) ? `<span class="sc-stock ${si ? 'si' : 'no'}">${IC_STOCK[si ? 'si' : 'no']}</span>` + (nivel >= 1 && nivel <= 3 ? `<span class="sc-sem n${nivel}" aria-hidden="true"><i></i><i></i><i></i></span>` : '') : '');
   function fichaHTML(d) {
     const ic = DIBUJO[d.icono] || DIBUJO.elec;
     // v7.8 · foto real del frontal (la de la ficha o la que ha encontrado el motor); al pulsarla, la trasera, otras vistas y el frontal en grande
     const fe = fotosEquipo(d.claveFoto || d.modelo, d.foto, d.fotoTrasera, d.vistas), foto = fe.frontal || fe.trasera || fe.vistas[0] || '';
     const fotos = fotosDe(fe.frontal, fe.trasera, fe.vistas), nombre = [d.marca, d.modelo].filter(Boolean).join(' ');
     const visor = fotos.length ? ` data-visor="${esc(JSON.stringify({ t: nombre, f: fotos }))}" role="button" tabindex="0" aria-label="${esc(txv().ver + ' ' + nombre)}" title="${esc(txv().ver + ' ' + nombre)}"` : '';
-    const st = stockIc(d.stock, d.nivel);   // v10.50 · el stock solo con su icono: nunca en texto
+    const st = '';   // v11.19 · la ficha es pública y sale en el PDF: sin icono de stock (antes, v10.50, llevaba el icono)
     let h = `<article class="ficha${d.sel ? ' fi-sel' : ''}" style="--fi-ac:${esc(d.acento || '#00ff04')}">`;
     h += `<div class="fi-cab"><span class="fi-cat">${esc(d.cat || '')}</span>${st}</div>`;
     h += `<div class="fi-cuerpo"><div class="fi-foto${fotos.length ? ' fi-zoom' : ''}"${visor}>${ic}${foto ? `<img src="${esc(foto)}" alt="${esc(d.modelo)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>`;

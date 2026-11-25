@@ -22,13 +22,14 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
-import '../comun/ficha.js?v=10.71';   // v10.50 · con versión: el icono de stock es nuevo
+globalThis.SC_INTERNO = esInterno;   // v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin
+import '../comun/ficha.js?v=11.19';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.18';
+const VERSION = 'v11.19';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -165,7 +166,7 @@ function calcular(forzarMulti) {
     if (E.led.clase === 'INSTALL' && modelo.class === 'INSTALL' && !enStock(modelo) && !protegidoLed()) {
       const encaja = (x) => sups.every(s => { const q = calcularLed(s, x, E.led.ajuste); return Math.abs(q.ancho - s.ancho) <= s.ancho * 0.15 + 1e-9 && Math.abs(q.alto - s.alto) <= s.alto * 0.15 + 1e-9; });
       const alt = ordenar(catalogo.filter(x => x.tipo === modelo.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(modelo) && (!E.led.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nitsLed && Math.abs(x.pitch - modelo.pitch) <= 0.2 + 1e-9 && encaja(x)))[0];
-      if (alt) avisoLed.push(t('altRental', { m: alt.crm }));
+      if (alt && esInterno()) avisoLed.push(t('altRental', { m: alt.crm }));   // v11.19 · habla de stock: solo lo ve el admin
     }
     const c = { esp, dist, modelo, lista, filas, tot: totales(filas), avisoLed: avisoLed.slice() };
     c.elec = electronica(c); c.veredicto = veredicto(c); return c;
@@ -696,7 +697,7 @@ function bloqueObst(sala) {
 }
 function partesLed(c) {
   const l = E.led, lista = c.lista || [];
-  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}>[${m.pitch}p] ${m.crm}</option>`).join('');
+  const opts = lista.map(m => `<option value="${m.crm}"${m.crm === l.crm ? ' selected' : ''}${enStock(m) ? ' class="stk"' : ''}>[${m.pitch}p] ${m.crm}</option>`).join('');
   let mat = '';
   if (estadoCat === 'cargando' && !catalogo.length) mat += `<p class="ayuda">${t('cargando')}</p>`;
   else if (!catalogo.length) mat += `<p class="aviso">${t('sinCat')}</p>`;

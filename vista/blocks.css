@@ -825,3 +825,7 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 }
 :root[data-tema="claro"] .pz-n { color: #fff; }
 :root[data-tema="claro"] .pz:not(.ab) .pz-n { color: var(--tenue); }
+/* v11.19 · desplegable de cabinets: el único indicio público de stock es el color del nombre (con stock, azul marino; sin stock, negro) */
+select[data-crm] option, select[data-crm] optgroup { background: #fff; color: #15161a; }
+select[data-crm] optgroup { color: #5a5d66; font-style: normal; }
+select[data-crm] option.stk { color: #17357f; }

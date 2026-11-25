@@ -825,7 +825,10 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 }
 :root[data-tema="claro"] .pz-n { color: #fff; }
 :root[data-tema="claro"] .pz:not(.ab) .pz-n { color: var(--tenue); }
-/* v11.19 · desplegable de cabinets: el único indicio público de stock es el color del nombre (con stock, azul marino; sin stock, negro) */
-select[data-crm] option, select[data-crm] optgroup { background: #fff; color: #15161a; }
-select[data-crm] optgroup { color: #5a5d66; font-style: normal; }
-select[data-crm] option.stk { color: #17357f; }
+/* v11.29 · desplegable de cabinets: el único indicio público de stock es un fondo algo distinto en la lista (discreto, pero se ve), acorde con el tema oscuro o claro */
+select[data-crm] option, select[data-crm] optgroup { background: #1b1c20; color: #e9ecf2; }
+select[data-crm] optgroup { color: #9aa0ad; font-style: normal; }
+select[data-crm] option.stk { background: #26375c; color: #dbe6ff; }
+:root[data-tema="claro"] select[data-crm] option, :root[data-tema="claro"] select[data-crm] optgroup { background: #fff; color: #15161a; }
+:root[data-tema="claro"] select[data-crm] optgroup { color: #5a5d66; }
+:root[data-tema="claro"] select[data-crm] option.stk { background: #dfe8ff; color: #12265e; }

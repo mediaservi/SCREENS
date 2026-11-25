@@ -760,6 +760,10 @@ html.bk .ley > span { gap: 4px; } html.bk .ley i { width: 8px; height: 8px; flex
    y sin desplazamiento por dentro); solo un paso que no cabe ni él solo conserva su desplazamiento */
 html.bk .zona:not(:has(> .blq.act)):not(.mide) > .blq:not(.pleg) { flex: 1 0 auto; grid-template-rows: auto minmax(0, 1fr); }
 html.bk .zona:not(:has(> .blq.act)):not(.mide) > .blq:not(.pleg) > .blq-cuerpo { align-content: space-evenly; }
-/* v11.19 · desplegable de cabinets: el único indicio público de stock es el color del nombre (con stock, azul marino; sin stock, negro) */
-select[data-sel="led.crm"] option { background: #fff; color: #15161a; }
-select[data-sel="led.crm"] option.stk { color: #17357f; }
+/* v11.29 · desplegable de cabinets: el único indicio público de stock es un fondo algo distinto en la lista (discreto, pero se ve), acorde con el tema oscuro o claro */
+select[data-sel="led.crm"] option, select[data-sel="led.crm"] optgroup { background: #1b1c20; color: #e9ecf2; }
+select[data-sel="led.crm"] optgroup { color: #9aa0ad; font-style: normal; }
+select[data-sel="led.crm"] option.stk { background: #26375c; color: #dbe6ff; }
+:root[data-tema="claro"] select[data-sel="led.crm"] option, :root[data-tema="claro"] select[data-sel="led.crm"] optgroup { background: #fff; color: #15161a; }
+:root[data-tema="claro"] select[data-sel="led.crm"] optgroup { color: #5a5d66; }
+:root[data-tema="claro"] select[data-sel="led.crm"] option.stk { background: #dfe8ff; color: #12265e; }

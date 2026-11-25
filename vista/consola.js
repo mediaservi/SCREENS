@@ -96,7 +96,9 @@
   /* si en una columna sobra sitio y hay un bloque plegado, se abre el primero y se desplaza por dentro: nada de huecos vacíos con bloques cerrados */
   function rellena() { if (!de.classList.contains('bk')) return; ['#panelA'].forEach(function (s) { var z = $(s); if (!z || z.querySelector(':scope > .blq.act')) return; var p = z.querySelector(':scope > .blq.pleg'); if (!p) return;
     z.classList.add('mide'); var a = z.querySelector(':scope > .blq'), b = z.lastElementChild, libre = z.clientHeight - (b.offsetTop + b.offsetHeight - a.offsetTop); z.classList.remove('mide'); if (libre < 130) return;
-    p.classList.remove('pleg'); p.classList.add('act'); var c = p.querySelector('.blq-cab'); if (c) c.setAttribute('aria-expanded', 'true'); }); }
+    /* v11.18 · solo se abre si cabe entero: ya no se abre recortado y con desplazamiento por dentro (el sitio que sobra se reparte entre los pasos abiertos) */
+    p.classList.remove('pleg'); var cu = p.querySelector('.blq-cuerpo'); if (z.scrollHeight > z.clientHeight + 1 || (cu && cu.scrollHeight > cu.clientHeight + 2)) { p.classList.add('pleg'); return; }
+    var c = p.querySelector('.blq-cab'); if (c) c.setAttribute('aria-expanded', 'true'); }); }
   function primera() { try { var q = JSON.parse(localStorage.getItem('screens_blocks_modo') || 'null'); if (!q) return; localStorage.removeItem('screens_blocks_modo'); ['tecnologia:' + q.t, 'cantidad:' + q.c].forEach(function (s) { var k = s.split(':'), b = $('#consola [data-set="' + k[0] + '"][data-v="' + k[1] + '"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); } catch (x) {} }
 
   /* avisos breves */

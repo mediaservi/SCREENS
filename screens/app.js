@@ -28,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.17';
+const VERSION = 'v11.18';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1245,7 +1245,8 @@ function plegar() {
     const zona = $('#panel' + z.toUpperCase()); if (!zona) return;
     const bl = [...zona.querySelectorAll('.blq')], por = (id) => bl.find(b => b.dataset.blq === id);
     bl.forEach(b => b.classList.remove('pleg', 'act'));
-    const cabe = () => zona.scrollHeight <= zona.clientHeight + 1;
+    /* v11.18 · caber es que la columna no desborde Y que ningún paso abierto quede recortado por dentro (los pasos encogen antes de desbordar la columna) */
+    const cabe = () => zona.scrollHeight <= zona.clientHeight + 1 && bl.every(b => { if (b.classList.contains('pleg')) return true; const c = b.querySelector('.blq-cuerpo'); return !c || c.scrollHeight <= c.clientHeight + 2; });
     if (TRES() && !cabe()) {
       bl.forEach(b => b.classList.add('pleg'));
       const orden = reciente[z].map(por).filter(Boolean).concat(bl.filter(b => !reciente[z].includes(b.dataset.blq)));
@@ -1305,6 +1306,9 @@ function actualizar(sinEscena) {
   if (!sinEscena) { clearTimeout(tEsc); tEsc = setTimeout(construirEscena, 60); }
   if (window.SCSIMPLE) window.SCSIMPLE.aviso();   // v10.49 · el modo SIMPLE se repinta con el mismo cálculo
 }
+/* v11.18 · los controles de VISTA (contenido, indicadores, modo del medio) solo cambian lo que se ve: se repinta la barra y la escena, con el
+   mismo cálculo; no se recalcula ni se rehacen los paneles (antes se rehacía todo y el foco se perdía) */
+function soloVista(foco) { guardar(); barraEscena(); if (calculo) { clearTimeout(tEsc); construirEscena(); } if (foco) { const n = document.querySelector(foco); if (n) n.focus(); } }
 function construirEscena() {
   if (!escena || !calculo) return;
   const c = calculo, sala = c.esp.tipo === 'sala' ? { ancho: c.esp.ancho, fondo: c.esp.fondo, alto: c.esp.alto } : null;
@@ -1368,13 +1372,14 @@ function fijar(ruta, valor) { const p = ruta.split('.'); let o = E; for (let i =
 document.addEventListener('click', (ev) => {
   const b = ev.target.closest('button, a[data-accion]'); if (!b || b.disabled) return;
   if (b.tagName === 'A') ev.preventDefault();
+  if (b.dataset.set === 'vista.contenido') { E.vista.contenido = b.dataset.v; soloVista(`#esc-cont [data-v="${b.dataset.v}"]`); return; }
   if (b.dataset.set) { fijar(b.dataset.set, b.dataset.bool ? b.dataset.v === '1' : b.dataset.numV ? Number(b.dataset.v) : b.dataset.v);
     if (/^elec\.(backup|escalador|conexion)$/.test(b.dataset.set)) E.elec.sel = '';
     if (b.dataset.set === 'elec.marca' || b.dataset.set === 'elec.proyEq') { E.elec.selMedia = ''; E.elec.selBlend = ''; }
     if (/^led\.(clase|tipo|transp|gold|protegido|sol)$/.test(b.dataset.set)) { E.led.crm = ''; if (b.dataset.set === 'led.tipo') { E.led.nitsMin = 0; E.led.sol = ''; } }
     actualizar(b.dataset.set === 'esp.sueltas.disp' ? false : false); return; }
   if (b.dataset.pared) { E.esp.paredes[b.dataset.pared] = !E.esp.paredes[b.dataset.pared]; actualizar(); return; }
-  if (b.dataset.cam) { E.vista.camara = b.dataset.cam; if (escena) escena.vista(b.dataset.cam === 'interior' ? 'dentro' : b.dataset.cam); barraEscena(); guardar(); return; }
+  if (b.dataset.cam) { E.vista.camara = b.dataset.cam; if (escena) escena.vista(b.dataset.cam === 'interior' ? 'dentro' : b.dataset.cam); barraEscena(); guardar(); { const n = document.querySelector(`#esc-vistas [data-cam="${E.vista.camara}"]`); if (n) n.focus(); } return; }
   const a = b.dataset.accion;
   if (a) { SUELTO.dist = 0; SUELTO.altura = 0; }   /* v10.99 · el aviso de candado soltado se enseña una vez */
   // nuevo cálculo: valores por defecto en el mismo modo de la consola
@@ -1384,7 +1389,7 @@ document.addEventListener('click', (ev) => {
     if (unaLed()) { pintarConsola(); aIframe({ tipo: 'screens-idioma', lang: idioma() }); return; }
     soltarEscena(); $('#app').innerHTML = ''; actualizar(); return; }
   if (a === 'info') { aIframe({ tipo: 'screens-info' }); return; }
-  if (a === 'etiquetas') { E.vista.etiquetas = !E.vista.etiquetas; actualizar(); return; }
+  if (a === 'etiquetas') { E.vista.etiquetas = !E.vista.etiquetas; soloVista('#esc-cont [data-accion="etiquetas"]'); return; }   /* v11.18 · es de vista: no recalcula ni repinta los paneles */
   if (a === 'zona') { E.vista.zona = !E.vista.zona; actualizar(); return; }
   if (a === 'subir') { const f = $('#medio-archivo'); if (f) f.click(); return; }
   if (a === 'pdf') { if (unaLed()) aIframe({ tipo: 'screens-pdf' }); else imprimir(); return; }
@@ -1507,6 +1512,7 @@ document.addEventListener('change', (ev) => {
       .catch(err => estadoNl(t(err && err.message === 'formato' ? 'est_formato' : 'est_modelo')));
     s.value = ''; return;
   }
+  if (s.dataset.sel === 'vista.modo') { E.vista.modo = s.value; soloVista('#esc-medio select'); return; }
   if (s.dataset.sel) { fijar(s.dataset.sel, s.value); if (s.dataset.sel === 'proy.cuerpo') E.proy.optica = '';
     if (s.dataset.sel === 'esp.sueltas.formato' || s.dataset.sel === 'esp.sueltas.medPor') { const q = E.esp.sueltas, r = ratioFormato(); if (r) { q.medVal = medDe(q.medPor || 'diag', q.ancho, q.ancho / r); q._wh = null; } }   // v10.88 · se conserva el ancho
     actualizar(); }   // otro proyector: su óptica vuelve a AUTO

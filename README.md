@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.27** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.28** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.27)
+## Cambios de la versión actual (v11.28)
+- **Petición escrita de una pantalla LED · una petición nueva ya no hereda «exterior» ni «alquiler» de la anterior.** Si se borra del texto la referencia a exterior (o a alquiler) y se vuelve a calcular, el resultado vuelve a interior y a instalación fija; antes se quedaba con lo de la petición previa. Con el mismo texto, lo elegido con los botones se respeta.
+- **SIMULAR · la pista de AVHUB pasa a ser un recorrido en 360°:** un túnel de rack con tiras de luz en los colores de la marca, una pantalla por app con su captura real y su logotipo oficial (y enfrente su icono en una matriz de puntos), hasta llegar al logotipo de AVHUB. Paredes y suelo casan en toda la vuelta. Mientras el vídeo carga se ve la pista anterior.
+
+## Cambios de la v11.27
 - **Petición escrita · un exterior negado es interior.** «No es necesario que sea de exterior», «no hace falta exterior», «no exterior» o «not outdoor» ya no eligen una pantalla de exterior: se toma como interior, igual que «dentro de…». Vale para una pantalla LED y para varias. Antes bastaba con que apareciera la palabra «exterior».
 - **SIMULAR · la pista de WONDERWALK pasa a ser un recorrido en 360°.** Es el camino del propio juego, grabado desde dentro: de la pradera al atardecer, por el bosque y el puente, hasta el castillo de noche, con Mevi por delante. Las paredes dan la vuelta completa sin costuras (frente, lados y lo que queda atrás) y el suelo es el camino que pasa bajo los pies. El título entra al principio y se retira. Mientras el vídeo carga se ven las imágenes fijas de antes.
 

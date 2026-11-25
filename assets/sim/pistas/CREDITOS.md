@@ -17,4 +17,4 @@ Fotografías antiguas en **dominio público**, tomadas de Wikimedia Commons (lic
 Las fotografías se guardan en blanco y negro; el color se añade en pantalla. Ajustes: bcn-06 es un fotograma de un par estereoscópico; bcn-08 está recortada a la zona de vías y se le ha retirado un pelo del negativo.
 
 ## Resto
-Logotipos e isotipos de AVHUB y sus apps, capturas de las apps, imágenes de El Misterio de Ek Chuah y WONDERWALK y vídeo de las escenas de El Misterio de Ek Chuah (ek-360.mp4) y recorrido de WONDERWALK grabado del propio juego (ww-360.mp4): material propio de mediaservi.com.
+Logotipos e isotipos de AVHUB y sus apps, capturas de las apps, imágenes de El Misterio de Ek Chuah y WONDERWALK y vídeo de las escenas de El Misterio de Ek Chuah (ek-360.mp4), recorrido de WONDERWALK grabado del propio juego (ww-360.mp4) y recorrido de AVHUB generado para SCREENS (avhub-360.mp4): material propio de mediaservi.com.

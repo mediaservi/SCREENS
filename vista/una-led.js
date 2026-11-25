@@ -25,11 +25,11 @@ import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
 globalThis.SC_INTERNO = esInterno;   /* v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin */
-import '../comun/ficha.js?v=11.27';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=11.28';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.27';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.28';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -158,7 +158,7 @@ if (E.fondo === 'propio' && !FPROP) E.fondo = DEF.fondo;
 /* ---------- petición escrita ---------- */
 /* v10.95 · lo que la petición da en cabinets o en píxeles y no en metros: se aplica al acabar el cálculo, con el cabinet ya elegido */
 let PEND = null;
-function interpreta(raw) {
+function interpreta(raw, nueva) {
   let t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' '; const v = [];
   /* v10.95 · el modelo por su nombre («UFIX-COB-1.2», «slim fix 2.6 50»): manda sobre todo lo demás; el más largo que coincida */
   let mod = null; PEND = null;
@@ -189,8 +189,10 @@ function interpreta(raw) {
     /* v10.63 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
     E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
   /* v10.63 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
-  if (d || cabs || px || mod) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
-  /* v11.27 · «no hace falta que sea de exterior», «no exterior», «not outdoor»: un exterior negado es interior; «dentro de…» también */
+  if (d || cabs || px || mod) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0;
+    /* v11.28 · y tampoco hereda exterior ni alquiler: si el texto ha cambiado y ya no los nombra, vuelve a interior y fija (con el mismo texto, lo elegido con los botones se respeta) */
+    if (nueva) { E.tipo = DEF.tipo; E.clase = DEF.clase; } }
+  /* v11.28 · «no hace falta que sea de exterior», «no exterior», «not outdoor»: un exterior negado es interior; «dentro de…» también */
   const tu = t.replace(/(?:\bno\b|\bnot\b|n't|\bsin\b|\bsense\b|\bwithout\b|\btampoco\b|\bni\b)[^.,;:!?\n]{0,45}?(?:exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa)/g, ' interior ');
   if (/escaparate|vitrina|shop ?window|storefront|aparador/.test(t)) { E.tipo = 'ESCAPARATE'; v.push('escaparate'); }
   else if (/exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa/.test(tu)) { E.tipo = 'OUTDOOR'; v.push('exterior'); }
@@ -757,7 +759,7 @@ function monta() {
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.88 · en móvil vertical la versión va al pie */ /* v10.88 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
     if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); puenteSale(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
-    const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
+    const nueva = E.texto.trim() !== (E.txtAnt || ''); E.txtAnt = E.texto.trim(); const v = interpreta(E.texto, nueva); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
   const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
   document.addEventListener('click', (e) => { const q = (s) => e.target.closest(s); let b; if (q('.rejilla button, .velo [data-set]')) USADO = true; if (q('a[href*="consola.html?modo"]')) puenteSale();   /* v11.17 · al saltar a varias o a proyección, el proyecto viaja */

@@ -89,10 +89,11 @@ vec3 mundo(vec3 d){
   return mix(vec3(.90,.89,.85)*(.8+.2*n2(q*6.)), c, junta);
 }` + CAPA_SIMPLE;
 
-/* ---------- 2 · AVHUB: muro de píxeles LED con los colores de la marca, haz que da la vuelta a la sala y rótulos por pared ---------- */
+/* ---------- 2 · AVHUB (v11.28): recorrido en 360° por un túnel de rack con una pantalla por app (captura real y logotipo oficial) hasta el logotipo de AVHUB,
+   grabado en cinco caras (ver cubo()). Sin vídeo cargado, lo de antes: muro de píxeles LED con los colores de la marca, haz que da la vuelta a la sala y rótulos por pared ---------- */
 const G_AVHUB = `
 vec3 marca(float k){ vec3 A=vec3(0.,1.,.02), B=vec3(.6,0.,1.), C=vec3(0.,.70,1.); k=fract(k)*3.; return k<1.?mix(A,C,k): k<2.?mix(C,B,k-1.): mix(B,A,k-2.); }
-vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
+vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(-d.x,d.z);
   if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y);
     float an1=fract(r*7.-t*.9), anillo=smoothstep(.06,.0,abs(an1-.5)-.0)*smoothstep(1.5,.2,r);
     float radio=smoothstep(.035,.0,abs(fract(a2/TAU*24.)-.5)*r*.6)*smoothstep(.12,.3,r);
@@ -112,7 +113,8 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
   float haz=exp(-pow(dAng(an, t*TAU/5.)*2.2,2.)); c+=mix(marca(t*.1), vec3(1.), .35)*haz*px*.95;
   c+=vec3(.0,.7,1.)*exp(-pow((y+.965)*9.,2.))*.5;
   return c; }
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z);
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ if(hayVid>.5) return c;   /* con vídeo, logotipos y capturas van dentro del propio recorrido */
+  float an = esSuelo>.5 ? 0. : atan(-d.x,d.z);
   float sale=smoothstep(0.,.7, t*1.5-dAng(an,0.)*.55)*smoothstep(10.,9.4,t);
   return mix(c, k.rgb, k.a*sale); }`;
 
@@ -337,7 +339,7 @@ function capaBcn(x, P) { const az = azarDe(71); P.forEach((p) => enPared(x, p, (
 /* ---------- las pistas ---------- */
 const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
-  { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo },
+  { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo, video: 'sim/pistas/avhub-360.mp4', vdur: 12 },
   { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07, video: 'sim/pistas/ww-360.mp4', vdur: 12 },
   { id: 'volcan', glsl: G_VOLCAN },

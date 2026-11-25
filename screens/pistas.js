@@ -1,17 +1,17 @@
-// SCREENS · SIMULAR por pistas (v11.21, pedido por Josep, 25-11-2026): seis pistas de 10 s que se suceden al azar y en bucle.
+// SCREENS · SIMULAR por pistas (v11.21, pedido por Josep, 25-11-2026): seis pistas de 12 s (v11.25; antes 10) que se suceden al azar y en bucle, con una transición al azar entre doce en cada corte.
 // Cada pista es un «mundo» visto desde el centro de la sala: las paredes lo miran en 360° continuo (la vuelta casa en la esquina)
 // y el suelo mira hacia abajo, de modo que pared y suelo casan en el zócalo. Todas pintan las 4 paredes y el suelo; la escena
 // solo enseña las superficies que tenga el proyecto. Casi todo se genera en la tarjeta gráfica (sin vídeos que descargar).
 import * as THREE from 'three';
 import { crearDron } from './simula.js';
 
-const DUR = 10, FUND = 0.45, W = 2048, H = 512, WS = 1024;
+const DUR = 12, FUND = 0.8, NTRANS = 12, W = 2048, H = 512, WS = 1024;
 const RAIZ = new URL('../assets/', import.meta.url).href;
 const azarDe = (s) => { let a = s; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; };
 
 /* ---------- GLSL común: ruido, rayo de cada píxel y composición con la capa de rótulos e imágenes ---------- */
 const COMUN = `precision highp float;
-uniform float t, T, esSuelo, uF, fade, hayCapa, zoomCapa; uniform sampler2D capa, base; uniform vec4 pu0, pu1; varying vec2 v;
+uniform float t, T, esSuelo, uF, fade, trans, semilla, hayCapa, zoomCapa; uniform sampler2D capa, base; uniform vec4 pu0, pu1; varying vec2 vv; vec2 v;
 #define TAU 6.28318530718
 float h1(float n){ return fract(sin(n)*43758.5453); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -34,8 +34,30 @@ vec2 uvCapa(float z){ if(esSuelo>.5) return .5+(v-.5)/z; for(int i=0;i<4;i++){ f
 vec2 pared(){ for(int i=0;i<4;i++){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w, b = i==0?pu1.x: i==1?pu1.y: i==2?pu1.z: pu1.w; if(a>=0. && v.x>=a && v.x<=b) return vec2(float(i), (v.x-a)/max(b-a,1e-4)); } return vec2(-1.,0.); }
 `;
 const FIN = `
-void main(){ vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, zoomCapa>0. ? uvCapa(1.+zoomCapa*t/10.) : v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
-  c=max(c,0.); gl_FragColor=vec4(pow(c, vec3(2.2))*fade, 1.); }`;
+/* ---------- transiciones entre pistas: doce maneras de irse a negro y volver, una al azar en cada corte ----------
+   f = 1 pista entera · f = 0 negro. Las que deforman la imagen (pixelado, fallo de señal, onda) mueven v antes de pintar */
+void main(){ float f=clamp(fade,0.,1.), g=1.-f; int tr=int(trans+.5); vec2 q=vv; float sx=semilla*17.3;
+  if(g>0.){
+    if(tr==2){ float n=mix(1., 260., pow(f,2.2)); vec2 cel=vec2(n*(esSuelo>.5?1.:4.), n); q=(floor(vv*cel)+.5)/cel; }                       /* pixelado: bloques cada vez mayores */
+    else if(tr==7){ float b=floor(vv.y*26.), k=h2(vec2(b, floor(T*14.)+sx)); q.x=fract(vv.x+(k-.5)*g*g*.5*step(.35,k)); }                 /* fallo de señal: franjas desplazadas */
+    else if(tr==10){ q.y=clamp(vv.y+sin(vv.x*TAU*6.+T*9.)*g*g*.12, 0., 1.); q.x=fract(vv.x+sin(vv.y*TAU*3.+T*7.)*g*g*.03); } }             /* onda de calor */
+  v=q; vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, zoomCapa>0. ? uvCapa(1.+zoomCapa*t/12.) : v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
+  c=pow(max(c,0.), vec3(2.2));
+  if(g>0.){ vec2 u=vec2(vv.x*(esSuelo>.5?1.:4.), vv.y); float m=f; vec3 lz=vec3(0.);
+    if(tr==1){ float n=fbm2(u*5.+sx)*.75+n2(u*23.+sx)*.25, e=g*1.25-.12; m=smoothstep(e-.02, e+.02, n); float br=smoothstep(.03,.0,abs(n-e-.012));     /* quemado: el borde arde */
+      lz=mix(vec3(1.,.28,.02), vec3(1.,.9,.5), br)*br*1.3*step(.01,g); c=mix(c, c*vec3(.35,.2,.12), smoothstep(.16,.02,n-e)); }
+    else if(tr==2){ m=smoothstep(0.,.3,f); }
+    else if(tr==3){ c=mix(c, vec3(1.), smoothstep(0.,.7,g)); m=smoothstep(0.,.3,f); }                                                               /* destello a blanco */
+    else if(tr==4){ float a=esSuelo>.5 ? fract(atan(vv.y-.5,vv.x-.5)/TAU+.5) : fract(vv.x-uF+.5), e=f*1.2-.1; m=1.-smoothstep(e-.1,e+.1,a); }                    /* cortina que da la vuelta a la sala */
+    else if(tr==5){ float l=fract(u.x*6.); m=step(l, f*1.05); }                                                                                    /* persianas verticales */
+    else if(tr==6){ vec2 cl=fract(u*vec2(9.,9.))-.5; m=step(length(cl), f*.75); }                                                                  /* trama de puntos */
+    else if(tr==7){ m=smoothstep(0.,.35,f); c=mix(c, c.gbr, g*.5); lz=vec3(.5,.9,1.)*step(.985,h2(vec2(floor(vv.y*180.), floor(T*30.))))*g*.6; }
+    else if(tr==8){ float al=f*f; m=step(abs(vv.y-.5), al*.5+.004); lz=vec3(.9,.95,1.)*smoothstep(.012,.0,abs(vv.y-.5))*g*g*2.*step(.02,f); if(esSuelo>.5) m=step(length(vv-.5), al*.75+.004); }   /* apagado de tubo: la imagen se cierra en una raya */
+    else if(tr==9){ vec2 id=floor(u*vec2(14.,14.)); m=step(h2(id+sx), f*1.08-.04); }                                                               /* mosaico: las teselas se apagan una a una */
+    else if(tr==10){ m=smoothstep(0.,.45,f); }
+    else if(tr==11){ float col=floor(u.x*40.), cae=h2(vec2(col,sx))*.6+.4; m=step(1.-vv.y, f*1.6*cae+f*.2); if(esSuelo>.5) m=step(h2(floor(vv*24.)+sx)*.7+.3, f*1.3); lz=vec3(.0,1.,.3)*smoothstep(.04,.0,abs((1.-vv.y)-(f*1.6*cae+f*.2)))*.5*(1.-esSuelo); }   /* lluvia: la imagen cae por columnas */
+    c=c*m+lz; }
+  gl_FragColor=vec4(c, 1.); }`;
 const CAPA_SIMPLE = `vec3 conCapa(vec3 c, vec4 k, vec3 d){ return mix(c, k.rgb, k.a); }`;
 
 /* ---------- 1 · SAGRADA FAMÍLIA: el vuelo del dron en las paredes y un trencadís en el suelo ---------- */
@@ -78,7 +100,7 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
   float col=floor(an/TAU*84.), alt=-.96+(.25+.45*h1(col))*(.55+.45*sin(t*TAU*1.2+h1(col+3.)*TAU))*.9;
   float eq=step(y,alt)*step(-.96,y);
   vec3 c=vec3(.012,.012,.022)+marca(an/TAU*2.+y*.25+t*.06)*px*(lum*.75+eq*.85);
-  /* el haz: una franja de luz que da dos vueltas a la sala en los 10 s */
+  /* el haz: una franja de luz que da algo más de dos vueltas a la sala en los 12 s */
   float haz=exp(-pow(dAng(an, t*TAU/5.)*2.2,2.)); c+=mix(marca(t*.1), vec3(1.), .35)*haz*px*.95;
   c+=vec3(.0,.7,1.)*exp(-pow((y+.965)*9.,2.))*.5;
   return c; }
@@ -150,7 +172,7 @@ vec3 espacio(vec3 d){ vec3 ge=d*170.; vec3 e=floor(ge); vec3 c=vec3(.004,.006,.0
     float lejos=smoothstep(.03,.2,-d.y); luna=mix(vec3(.30,.33,.40), luna, smoothstep(.03,.35,-d.y)); c=mix(c, luna, lejos*smoothstep(2.7,2.1,t)); }
   return c; }
 vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an),sin(an),0.);
-  float k=t/10., baja=smoothstep(.36,.94,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
+  float k=t/12., baja=smoothstep(.36,.94,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
   float hl=mix(7.5,.95,smoothstep(.42,1.,k));                                      /* a qué distancia queda el lago */
   /* el cielo del atardecer de Hawái y el mar de nubes que atravesamos */
   vec3 cielo=mix(vec3(1.,.55,.24), vec3(.12,.24,.52), smoothstep(-.3,.55,d.y)); cielo=mix(cielo, vec3(1.,.8,.5), exp(-pow(dAng(an,.8)*1.3,2.))*smoothstep(.5,-.2,d.y)*.6);
@@ -225,7 +247,7 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
       float ang3=atan(gh.y,gh.x)+h2(idh)*TAU; float rel=.5+.5*sin(length(gh)*46.+sin(ang3*3.)*2.5);
       c=vec3(.42,.47,.45)*(.6+.4*rel)*(.86+.14*n2(g*26.))*mix(.4,1.,junta)*luz; }
     /* una franja de sol que barre el pavimento */
-    c*=.82+.3*exp(-pow((p.x*.7+p.y*.7-(t/10.*3.-1.5))*2.2,2.)); return c; }
+    c*=.82+.3*exp(-pow((p.x*.7+p.y*.7-(t/12.*3.-1.5))*2.2,2.)); return c; }
   float y=d.y/L; vec3 u=vec3(cos(an),sin(an),0.);
   vec3 c=mix(vec3(.93,.88,.76), vec3(.84,.76,.60), fbm(vec3(u.xy*6., y*6.)))*(.92+.08*n3(vec3(u.xy*120.,y*120.)));
   /* arrimadero de azulejo modernista abajo y cenefa arriba */
@@ -306,8 +328,8 @@ export function crearPistas(renderer) {
   const ORD = ['izquierda', 'frontal', 'derecha', 'trasera'];
   PISTAS.forEach((p) => {
     p.mat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, capa: { value: negro }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
-      vertexShader: 'varying vec2 v; void main(){ v = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
+      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, capa: { value: negro }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
+      vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
     if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
     if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
     p.hecha = '';
@@ -316,13 +338,15 @@ export function crearPistas(renderer) {
     if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capa(x, paredes); } catch (e) {} p.tx.needsUpdate = true; }
     if (p.capaSuelo) { const x = p.cvS.getContext('2d'); x.clearRect(0, 0, WS, WS); try { p.capaSuelo(x); } catch (e) {} p.txS.needsUpdate = true; } }
   /* orden al azar sin repetir pista seguida: se barajan las seis y se vuelve a barajar al acabar la tanda */
-  const az = azarDe(Math.floor(Math.random() * 2147483000) + 1), cola = []; let fija = null;
+  const az = azarDe(Math.floor(Math.random() * 2147483000) + 1), az2 = azarDe(Math.floor(Math.random() * 2147483000) + 1), cola = []; let fija = null;
   function pistaN(n) { while (cola.length <= n) { const b = PISTAS.map((_, i) => i); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(az() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } if (cola.length && b[0] === cola[cola.length - 1]) b.push(b.shift()); cola.push(...b); } return cola[n]; }
+  /* una transición al azar por corte (el corte n separa la pista n de la n+1), sin repetir la anterior */
+  const cortes = []; function corteN(n) { if (n < 0) return { e: 0, s: 0 }; while (cortes.length <= n) { let e; do { e = Math.floor(az2() * NTRANS); } while (cortes.length && e === cortes[cortes.length - 1].e); cortes.push({ e, s: az2() }); } return cortes[n]; }
   function pinta(T) {
     const n = Math.floor(T / DUR), tl = fija ? fija.t != null ? fija.t : T % DUR : T - n * DUR, p = fija ? PISTAS[fija.i] : PISTAS[pistaN(n)];
-    const fade = fija ? 1 : Math.min(1, tl / FUND, (DUR - tl) / FUND);
+    const fade = fija ? (fija.f != null ? fija.f : 1) : Math.min(1, tl / FUND, (DUR - tl) / FUND), ct = fija ? { e: fija.e || 0, s: .37 } : corteN(tl < DUR / 2 ? n - 1 : n);
     if (p.dron) { dron.frente(uF); dron.pinta(T); }
-    capas(p); const U = p.mat.uniforms; U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade);
+    capas(p); const U = p.mat.uniforms; U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
     const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b);
     quad.material = p.mat; const prev = renderer.getRenderTarget();
     U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; renderer.setRenderTarget(rt); renderer.render(esc, cam);
@@ -331,5 +355,5 @@ export function crearPistas(renderer) {
   }
   return { rt, rtSuelo: rtS, pinta, dur: DUR, frente: (u) => { uF = u; },
     paredes: (L) => { if (!L || !L.length) return; const f = JSON.stringify(L); if (f !== firma) { firma = f; paredes = L; } },
-    fijar: (id, t) => { const i = PISTAS_ID.indexOf(id); fija = i < 0 ? null : { i, t }; } };   /* para pruebas y capturas: una pista (y un instante) fijos */
+    fijar: (id, t, e, f) => { const i = PISTAS_ID.indexOf(id); fija = i < 0 ? null : { i, t, e, f }; } };   /* para pruebas y capturas: una pista (y un instante) fijos */
 }

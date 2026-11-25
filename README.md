@@ -82,7 +82,7 @@ Los calculadores de audio y escenario que nacieron aquí (primero como «Hardwar
   - AVHUB: muro de píxeles con los colores de la marca, un haz que da la vuelta a la sala y un rótulo distinto en cada pared.
   - El Misterio de Ek Chuah: cámara de piedra con antorchas, glifos que se encienden en oro y jade, una escena en cada pared y disco solar en el suelo.
   - WONDERWALK: noche violeta con luna, castillos y pinos, y un prado con el remolino de magia.
-  - Volcán: descenso desde las nubes por la chimenea del cráter hasta el lago de lava, con tótems tiki y antorchas.
+  - Volcán: desde la Luna, con la Tierra en el horizonte, caída y entrada en la atmósfera, y descenso por la chimenea del cráter hasta el lago de lava, con tótems tiki y antorchas.
   - Barcelona: fotografías antiguas que se colorean (pendiente de las fotografías) sobre un suelo de panots y mosaico hidráulico.
 
 ## Cambios de la v11.20

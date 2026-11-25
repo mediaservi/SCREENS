@@ -28,6 +28,14 @@ mat2 giro(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
 /* el rayo: en pared, panorama cilíndrico con el frente en uF; en suelo, el punto del suelo visto desde el centro (casa con el zócalo) */
 vec3 rayo(){ if(esSuelo>.5){ vec2 p=(v-.5)*2.; return normalize(vec3(-p.x, -.965, -p.y)); }
   float a=(v.x-uF)*TAU, y=-.18+(v.y-.5)*1.5708; return normalize(vec3(-sin(a), y, cos(a))); }
+/* vídeo de 360° en cinco caras (v11.27): rejilla de 3 × 2 → frente · derecha · detrás / izquierda · suelo. Cada cara lateral abarca 90° a lo ancho
+   y de −1,38 a +0,88 a lo alto (en tangentes); la del suelo mira hacia abajo con el frente arriba. Devuelve el mundo grabado en la dirección d,
+   de modo que las paredes dan la vuelta completa sin costuras y casan con el suelo, sea cual sea el reparto de la sala */
+vec3 cubo(vec3 d){ vec2 q; float col=1., fila=1.;
+  if(esSuelo>.5){ vec2 p=vec2(-d.x, d.z)/(-d.y)/1.04; q=vec2(.5+.5*p.x, 1.-(.5-.5*p.y)*.88235); q.x=clamp(q.x,.002,.998); q.y=clamp(q.y,.12,.998); }
+  else { float an=atan(-d.x,d.z), k=floor(an/1.5707963+.5), b=an-k*1.5707963; k=mod(k+4.,4.); if(k<2.5){ col=k; fila=0.; } else { col=0.; fila=1.; }
+    q=vec2(.5+.5*tan(b), (d.y/(length(d.xz)*cos(b))+1.38)/2.26); q=clamp(q, vec2(.002), vec2(.998)); }
+  return texture2D(vid, vec2((col+q.x)/3., 1.-(fila+1.-q.y)*.5)).rgb; }
 /* la capa vista con un acercamiento lento, pared a pared (cada pantallazo se corta exacto en su esquina) */
 vec2 uvCapa(float z){ if(esSuelo>.5) return .5+(v-.5)/z; for(int i=0;i<4;i++){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w, b = i==0?pu1.x: i==1?pu1.y: i==2?pu1.z: pu1.w; if(a>=0. && v.x>=a && v.x<=b){ float c=(a+b)*.5; return vec2(c+(v.x-c)/z, .5+(v.y-.5)/z); } } return v; }
 /* 0 izquierda · 1 frontal · 2 derecha · 3 trasera (−1 si el píxel no cae en ninguna) y posición 0–1 dentro de esa pared */
@@ -110,7 +118,8 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
 
 /* ---------- 3 · EK CHUAH (v11.26): las escenas animadas del juego, una por pared y las cuatro a la vez (un solo vídeo de 2 × 2: alux · santuario / cacao · jade),
    con la cámara entrando en cada sala; el suelo de losas recoge la luz de cada pared. Mientras el vídeo no ha cargado, la imagen fija de cada escena.
-   4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
+   4 · WONDERWALK (v11.27): el camino del juego recorrido de verdad, de la pradera al castillo, grabado en 360° desde el propio juego (cinco caras; ver cubo()).
+      Sin vídeo cargado, las imágenes fijas de antes ---------- */
 const G_EK = `
 /* la escena de la pared i en el punto q (0–1 a lo ancho y a lo alto de su fotograma) */
 vec3 escena(int i, vec2 q){ q=clamp(q, vec2(.004,.008), vec2(.996,.992)); vec2 o = i==0?vec2(0.,.5): i==1?vec2(.5,.5): i==2?vec2(0.,0.): vec2(.5,0.); return texture2D(vid, o+q*.5).rgb; }
@@ -155,8 +164,9 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z);
   vec3 g=vec3(floor(v*vec2(esSuelo>.5?40.:160.,40.)), floor(T*2.)); float ch=step(.992,h3(g))*oro; col+=vec3(1.,.9,.5)*ch*.5;
   return mix(c, col, k.a); }`;
 const G_WW = `
-vec3 mundo(vec3 d){ return vec3(.03,.01,.06); }
+vec3 mundo(vec3 d){ return hayVid>.5 ? cubo(d) : vec3(.03,.01,.06); }
 vec3 conCapa(vec3 c, vec4 k, vec3 d){ vec3 col=k.rgb;
+  if(hayVid>.5) return mix(c, k.rgb, k.a*(1.-esSuelo)*smoothstep(.3,1.1,t)*smoothstep(4.4,3.6,t));     /* con vídeo, solo el título: entra y se va */
   vec2 gq=v*vec2(esSuelo>.5?46.:184.,46.)+vec2(0.,-T*.25); vec2 id=floor(gq); float ch=step(.988,h2(id))*smoothstep(.3,.04,length(fract(gq)-.5))*(.5+.5*sin(T*4.+h2(id+2.)*TAU));
   col+=mix(vec3(.6,1.,.5), vec3(.9,.5,1.), h2(id+5.))*ch*.9;                                 /* chispas de la varita */
   return mix(c, col, k.a); }`;
@@ -314,7 +324,7 @@ function rotuloImg(x, P, n, alto, pie) { const p = P.find((q) => q.id === 'front
 const EK_IMG = { frontal: 'ek-santuario', izquierda: 'ek-alux', derecha: 'ek-cacao', trasera: 'ek-jade' };
 function capaEk(x, P, conVideo) { if (!conVideo) sangre(x, P, EK_IMG); rotuloImg(x, P, 'ek-titulo', .34, .99); }
 const WW_IMG = { frontal: 'ww-castillo', izquierda: 'ww-camino', derecha: 'ww-puente', trasera: 'ww-bosque' };
-function capaWw(x, P) { sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
+function capaWw(x, P, conVideo) { if (!conVideo) sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
 
 /* Barcelona: fotografías antiguas en dominio público (assets/sim/pistas/bcn-01 … 08 y CREDITOS.md).
    Dos en cada pared, con paspartú y sombra, como postales sobre el papel pintado */
@@ -329,7 +339,7 @@ const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
   { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo },
   { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10 },
-  { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07 },
+  { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07, video: 'sim/pistas/ww-360.mp4', vdur: 12 },
   { id: 'volcan', glsl: G_VOLCAN },
   { id: 'barcelona', glsl: G_BCN, capa: capaBcn },
 ];

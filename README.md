@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.26** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.27** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.26)
+## Cambios de la versión actual (v11.27)
+- **Petición escrita · un exterior negado es interior.** «No es necesario que sea de exterior», «no hace falta exterior», «no exterior» o «not outdoor» ya no eligen una pantalla de exterior: se toma como interior, igual que «dentro de…». Vale para una pantalla LED y para varias. Antes bastaba con que apareciera la palabra «exterior».
+- **SIMULAR · la pista de WONDERWALK pasa a ser un recorrido en 360°.** Es el camino del propio juego, grabado desde dentro: de la pradera al atardecer, por el bosque y el puente, hasta el castillo de noche, con Mevi por delante. Las paredes dan la vuelta completa sin costuras (frente, lados y lo que queda atrás) y el suelo es el camino que pasa bajo los pies. El título entra al principio y se retira. Mientras el vídeo carga se ven las imágenes fijas de antes.
+
+## Cambios de la v11.26
 - **SIMULAR · la pista de El Misterio de Ek Chuah pasa a ser imagen en movimiento.** Cada pared muestra una escena animada original del juego (el alux, el santuario, el pasadizo del cacao y la galería de jade), las cuatro a la vez y al compás, con la cámara entrando en cada sala durante los 12 segundos. En las paredes más anchas que la escena, los lados continúan en penumbra. El suelo de losas recoge en vivo la luz de cada pared (dorada junto al santuario, verde junto al jade). El título oficial entra al principio y se retira. Mientras el vídeo carga se ve la imagen fija de cada escena, como antes.
 - El uso sin conexión deja pasar las peticiones de vídeo por tramos, para que el vídeo de la pista se reproduzca y se recoloque bien.
 

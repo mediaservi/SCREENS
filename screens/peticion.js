@@ -109,7 +109,7 @@ export function interpretar(texto, tecCtx) {
   if (!lx && c.proy.lux == null && /salon de (?:bodas|banquetes|celebraciones|eventos)|banquet|boda|wedding|casament/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }
   const g = t.match(/(?:ganancia|gain|guany)\s*(?:de\s*)?(\d+(?:\.\d+)?)/); if (g) { c.proy.ganancia = n(g[1]); vistos.push({ k: 'ganancia', v: c.proy.ganancia }); }
   const te = t.replace(/(?:colgad[oa]s?|penjats?|hung)\s*(?:del|from the|of the)?\s*(?:techo|sostre|ceiling)\s*(?:a|at)?\s*(?=\d)/g, 'colgado a ').match(/techo\s*(?:de|a)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:m|metros)?\s*de techo|ceiling\s*(?:of\s*)?(\d+(?:\.\d+)?)|sostre\s*(?:de\s*|a\s*)?(\d+(?:\.\d+)?)/);
-  if (!te && /pabellon|pavello|exterior|outdoor|aire libre|aire lliure|fachada|facade|facana|\bedificio\b/.test(t)) c.sueltas.techo = 0;   // v10.89 · sin techo que limite
+  if (!te && /pabellon|pavello|exterior|outdoor|aire libre|aire lliure|fachada|facade|facana|\bedificio\b/.test(t.replace(/(?:\bno\b|\bnot\b|n't|\bsin\b|\bsense\b|\bwithout\b|\btampoco\b|\bni\b)[^.,;:!?\n]{0,45}?(?:exterior|outdoor|outside|intemperie|aire libre|aire lliure)/g, ' '))) c.sueltas.techo = 0;   // v10.89 · sin techo que limite
   if (te) { const v = n(te[1] || te[2] || te[3] || te[4]); c.sueltas.techo = v; if (c.esp.tipo === 'sala' && c.esp.alto == null) c.esp.alto = v; vistos.push({ k: 'techo', v }); }
   // v8.2 · tipo de proyección: mapping (fachada o edificio, «mapping») o pared (auditorio, pared); la sala inmersiva sale de «sala»
   if (/mapping|fachada|facade|facana|\bedificio\b|\bedifici\b|building/.test(t)) { c.proy.tipo = 'mapping'; vistos.push({ k: 'tipo', v: 'mapping' }); }
@@ -156,7 +156,8 @@ export function interpretar(texto, tecCtx) {
   else if (colg) { c.proy.montaje = 'colgado'; c.proy.altura = n(colg[1]); vistos.push({ k: 'montaje', v: 'colgado', h: c.proy.altura }); }
   else if (/colgad[oa]s? del techo|del techo|hung from the ceiling|penjats? del sostre/.test(t) && /proyect|project/.test(t)) { c.proy.montaje = 'colgado'; vistos.push({ k: 'montaje', v: 'colgado' }); }
   // LED: interior / exterior, instalación / alquiler; electrónica
-  if (/exterior|outdoor|intemperie/.test(t)) { c.led.tipo = 'OUTDOOR'; vistos.push({ k: 'ledTipo', v: 'exterior' }); } else if (/interior|indoor/.test(t)) c.led.tipo = 'INDOOR';
+  const tu = t.replace(/(?:\bno\b|\bnot\b|n't|\bsin\b|\bsense\b|\bwithout\b|\btampoco\b|\bni\b)[^.,;:!?\n]{0,45}?(?:exterior|outdoor|outside|intemperie|aire libre|aire lliure)/g, ' interior ');   // v11.27 · un exterior negado («no hace falta que sea de exterior») es interior
+  if (/exterior|outdoor|intemperie/.test(tu)) { c.led.tipo = 'OUTDOOR'; vistos.push({ k: 'ledTipo', v: 'exterior' }); } else if (/interior|indoor|\bdentro\b|\bdins\b/.test(tu)) c.led.tipo = 'INDOOR';
   if (/alquiler|rental|lloguer|eventos|gira/.test(t)) { c.led.clase = 'RENTAL'; vistos.push({ k: 'ledTipo', v: 'alquiler' }); }
   if (/backup|redundan/.test(t)) { c.elec.backup = true; vistos.push({ k: 'ledTipo', v: 'backup' }); }
   if (/fibra|fiber|fibre/.test(t)) { c.elec.conexion = 'fibra'; vistos.push({ k: 'fibra' }); }

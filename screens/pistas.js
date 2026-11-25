@@ -278,11 +278,13 @@ function capaEk(x, P) { sangre(x, P, EK_IMG); rotuloImg(x, P, 'ek-titulo', .34, 
 const WW_IMG = { frontal: 'ww-castillo', izquierda: 'ww-camino', derecha: 'ww-puente', trasera: 'ww-bosque' };
 function capaWw(x, P) { sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
 
-/* Barcelona: collage de fotos antiguas (assets/sim/pistas/bcn-01.webp … bcn-12.webp); cada pared recibe tres, con paspartú y sombra */
-function capaBcn(x, P) { const az = azarDe(71); let n = 0; P.forEach((p) => enPared(x, p, (x, h, a) => { const cols = 3, an = Math.min(a * .92, 1700), cw = an / cols;
-  for (let i = 0; i < cols; i++) { n = n % 12 + 1; const im = img('sim/pistas/bcn-' + String(n).padStart(2, '0') + '.webp'); const hh = h * (.36 + az() * .1), ww = Math.min(cw * .86, hh * (im ? im.width / im.height : 1.4)), cx = -an / 2 + cw * (i + .5), cy = h * (.36 + (az() - .5) * .1), g = (az() - .5) * .09;
-    if (!im) { az(); continue; } x.save(); x.translate(cx, cy); x.rotate(g); x.shadowColor = 'rgba(40,25,10,.5)'; x.shadowBlur = 22; x.shadowOffsetY = 9; x.fillStyle = '#f7f1e0'; x.fillRect(-ww / 2 - 14, -hh / 2 - 14, ww + 28, hh + 44); x.shadowColor = 'transparent';
-    x.filter = 'grayscale(1) contrast(1.08)'; cubre(x, im, -ww / 2, -hh / 2, ww, hh); x.filter = 'none'; x.restore(); } })); }
+/* Barcelona: fotografías de Antoni Esplugas (1852-1929), dominio público, vía Wikimedia Commons (assets/sim/pistas/bcn-01 … 06 y CREDITOS.md).
+   Una en cada lateral y dos en la frontal y en la trasera, con paspartú y sombra, como postales sobre el papel pintado */
+const BCN = { izquierda: [5], frontal: [1, 2], derecha: [6], trasera: [3, 4] };
+function capaBcn(x, P) { const az = azarDe(71); P.forEach((p) => enPared(x, p, (x, h, a) => { const L = P.length === 1 ? [1, 2] : (BCN[p.id] || [1]), n = L.length, an = Math.min(a * .9, 1500), cw = an / n;
+  L.forEach((k, i) => { const im = img('sim/pistas/bcn-0' + k + '.webp'), g = (az() - .5) * .07, dy = (az() - .5) * .05; if (!im) return; const asp = im.width / im.height; let hh = h * (asp < 1 ? .58 : .5), ww = hh * asp; if (ww > cw * .86) { ww = cw * .86; hh = ww / asp; }
+    x.save(); x.translate(-an / 2 + cw * (i + .5), h * (.37 + dy)); x.rotate(g); x.shadowColor = 'rgba(40,25,10,.5)'; x.shadowBlur = 22; x.shadowOffsetY = 9; x.fillStyle = '#f7f1e0'; x.fillRect(-ww / 2 - 14, -hh / 2 - 14, ww + 28, hh + 46); x.shadowColor = 'transparent';
+    x.drawImage(im, -ww / 2, -hh / 2, ww, hh); x.restore(); }); })); }
 
 /* ---------- las pistas ---------- */
 const PISTAS = [

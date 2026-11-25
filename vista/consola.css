@@ -274,7 +274,7 @@ html.piel:not(.bk) #res { border-radius: 0 0 18px 18px; padding: 10px; backgroun
 html.piel:not(.bk) .res-tot { gap: 10px; }
 html.piel:not(.bk) .tar .v { font-size: 28px; }
 html.piel:not(.bk) .tar .t { min-height: 40px; font-size: 12px; }
-@media (max-width: 1023px) {
+@media (max-width: 900px) {
   html.piel .cab { display: flex; flex-wrap: wrap; align-items: center; padding: 6px 0; row-gap: 4px; }
   html.piel .cab-izq { flex: 0 0 auto; }
   html.piel .cab .fam { display: flex; order: 0; flex: 1 1 0; min-width: 0; }
@@ -751,3 +751,7 @@ html.piel #res > .res-pest .tog:hover { border-color: var(--vista); box-shadow: 
 .ley i { width: 9px; height: 9px; border-radius: 50%; background: var(--verde-txt); }
 .ley i.l-r { background: var(--txt); } .ley i.l-v { background: var(--vista); }
 html:not(.bk) .ley { display: none; }
+/* la leyenda cede sitio al título del bloque: nunca lo corta */
+html.bk #res-marco > header > b, html.bk .bk-marco > header > b { flex: none; }
+html.bk .ley { flex: 0 1 auto; min-width: 0; overflow: hidden; gap: 9px; font-size: 10.5px; letter-spacing: .05em; margin-right: 2px; }
+html.bk .ley > span { gap: 4px; } html.bk .ley i { width: 8px; height: 8px; flex: none; }

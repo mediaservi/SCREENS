@@ -26,7 +26,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
 
   /* escritorio y TV: la plantilla de 1920 × 1080 escalada a la ventana. En el móvil, bloques apilados con cabecera, petición y pie fijos */
-  var ANCHO = function () { return matchMedia('(min-width: 1024px) and (min-height: 521px)').matches; };
+  var ANCHO = function () { return matchMedia('(min-width: 901px) and (min-height: 521px)').matches; };
   function escala() { var b = document.body; if (!b) return; if (!ANCHO()) { de.classList.remove('bk'); b.style.zoom = ''; b.style.width = ''; b.style.height = ''; de.style.removeProperty('--bk-w'); de.style.removeProperty('--bk-h'); return; }
     de.classList.add('bk'); var z = Math.max(Math.min(innerWidth / 1920, innerHeight / 1080), Math.min(innerWidth / 1600, innerHeight / 900, 1));   /* v10.83 · en portátiles (menos de 1920 × 1080) la plantilla es de 1600 × 900: letra más grande */ b.style.zoom = z; b.style.width = (innerWidth / z) + 'px'; b.style.height = (innerHeight / z) + 'px'; de.style.setProperty('--bk-w', (innerWidth / z) + 'px'); de.style.setProperty('--bk-h', (innerHeight / z) + 'px'); }
 

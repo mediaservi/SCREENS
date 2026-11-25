@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.16** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.17** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.16)
+## Cambios de la versión actual (v11.17)
+- **El proyecto viaja al cambiar de modalidad.** Al pasar de una pantalla LED a varias o a proyección, y al volver, se conservan las medidas, la elevación, la distancia de visionado, el entorno y el uso, el modelo y la electrónica. Las medidas viajan siempre (al volver a una LED, solo si se trabajaba con una pantalla o con pantallas sueltas); el resto, solo lo que se ha cambiado, para que un salto no altere nada que no se haya tocado. Al recargar la página no se aplica nada.
+- **La consola usa su distribución de escritorio desde 901 × 521 px**, igual que la portada: en televisores de 960 × 540 ya no cae a la maqueta de móvil.
+- La leyenda de colores ya no recorta el título de Resultados en portátil.
+
+## Cambios de la v11.16
 - **Una sola estructura de pantalla para toda la app.** La portada de una pantalla LED pasa a la misma distribución que varias pantallas y proyección: a la izquierda los datos en cuatro pasos numerados (Entorno y uso · Tamaño y resolución · Equipo · Electrónica de control), en el centro la simulación en grande con los planos debajo, y a la derecha los resultados. Los bloques ya no cambian de sitio ni de tamaño al pasar de una modalidad a otra. Se conservan todas las funciones.
 - **Resultados con veredicto también en una pantalla LED:** seis cifras clave, un semáforo con los avisos del cálculo y tres pestañas (Resumen, Material y Avisos). Las lecturas que estaban mezcladas con los campos (medida real, peso, consumo, líneas) pasan a esta zona.
 - **Tres colores con un solo significado:** verde, lo que tú decides y entra en el cálculo; blanco, lo que sale del cálculo; azul, lo que solo cambia la vista (cámara, contenido, indicadores, fondos, tipo de plano, unidades, pestañas). Hay una leyenda en la cabecera de Resultados y vale para las cuatro modalidades.

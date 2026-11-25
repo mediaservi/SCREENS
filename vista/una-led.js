@@ -28,7 +28,7 @@ import '../comun/ficha.js?v=10.71';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.16';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.17';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -98,6 +98,26 @@ const GUARDA = 'screens-blocks-1';
 const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0', plano: 'reparto' };
 const E = Object.assign({}, DEF,
   (() => { try { return JSON.parse(localStorage.getItem(GUARDA) || '{}'); } catch (e) { return {}; } })());
+/* v11.17 · PUENTE ENTRE MODALIDADES: al pasar de una pantalla LED a varias o a proyección (y al volver) el proyecto sigue siendo el mismo:
+   medidas, elevación, distancia, entorno y uso, modelo y electrónica viajan a la otra página. Solo se aplica en el salto, nunca al recargar. */
+const PUENTE = 'screens_puente', PUENTE_K = 'screens_puente_k';
+/* Las medidas viajan siempre. Lo demás, solo si se ha cambiado de su valor de fábrica o ya viajó antes (las dos páginas no parten de los mismos valores:
+   así un salto no cambia por su cuenta nada que no se haya tocado). */
+const puenteLig = () => { try { const a = JSON.parse(localStorage.getItem(PUENTE_K) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
+const PUENTE_M = { clase: 'clase', tipo: 'tipo', crm: 'crm', ajuste: 'ajuste', transp: 'transp', gold: 'gold', protegido: 'protegido', sol: 'sol', nitsMin: 'nitsMin', backup: 'backup', escalador: 'escalador', conexion: 'conexion', dante: 'dante', marca: 'marca', sel: 'procSel', selMedia: 'mediaSel', elev: 'elev', dist: 'dist' };   /* clave del puente → clave del estado de esta página */
+const puenteSale = () => { try { const lig = puenteLig(), k = Object.keys(PUENTE_M).filter((x) => lig.includes(x) || E[PUENTE_M[x]] !== DEF[PUENTE_M[x]]);
+  localStorage.setItem(PUENTE_K, JSON.stringify([...new Set(lig.concat(k))]));
+  sessionStorage.setItem(PUENTE, JSON.stringify({ t: Date.now(), de: 'una-led', k, tam: { w: E.w, h: E.h, elev: E.elev / 100, dist: E.dist },
+    led: { clase: E.clase, tipo: E.tipo, crm: E.crm, ajuste: E.ajuste === 'cerca' ? 'cercano' : 'dentro', transp: !!E.transp, gold: !!E.gold, protegido: !!E.protegido, sol: E.sol, nitsMin: E.nitsMin },
+    elec: { backup: !!E.backup, escalador: E.escalador, conexion: E.conexion, dante: !!E.dante, marca: E.marca, sel: E.procSel, selMedia: E.mediaSel } })); } catch (e) {} };
+(() => { try { const p = JSON.parse(sessionStorage.getItem(PUENTE) || 'null'); sessionStorage.removeItem(PUENTE); if (!p || p.de !== 'consola' || !(Date.now() - p.t < 120000)) return;
+  const num = (v) => typeof v === 'number' && isFinite(v), en = (v, l) => l.includes(v), K = Array.isArray(p.k) ? p.k : [], va = (x) => K.includes(x);
+  if (p.tam) { if (num(p.tam.w) && p.tam.w > 0) E.w = p.tam.w; if (num(p.tam.h) && p.tam.h > 0) E.h = p.tam.h; if (va('elev') && num(p.tam.elev) && p.tam.elev >= 0) E.elev = Math.round(p.tam.elev * 100); if (va('dist') && num(p.tam.dist) && p.tam.dist >= 0) E.dist = p.tam.dist; }
+  const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano'])) E.ajuste = l.ajuste === 'cercano' ? 'cerca' : 'dentro';
+  ['transp', 'gold', 'protegido'].forEach((x) => { if (va(x) && typeof l[x] === 'boolean') E[x] = l[x]; }); if (va('sol') && typeof l.sol === 'string') E.sol = l.sol; if (va('nitsMin') && num(l.nitsMin) && l.nitsMin >= 0) E.nitsMin = l.nitsMin;
+  const c = p.elec || {}; if (va('backup') && typeof c.backup === 'boolean') E.backup = c.backup; if (va('escalador') && en(c.escalador, ['con', 'sin', 'indiferente'])) E.escalador = c.escalador; if (va('conexion') && en(c.conexion, ['directo', 'fibra'])) E.conexion = c.conexion; if (va('dante') && typeof c.dante === 'boolean') E.dante = c.dante;
+  if (va('marca') && en(c.marca, ['ninguno', 'todos', 'novastar', 'pixelhue'])) E.marca = c.marca; if (va('sel') && typeof c.sel === 'string') E.procSel = c.sel; if (va('selMedia') && typeof c.selMedia === 'string') E.mediaSel = c.selMedia;
+  localStorage.setItem(GUARDA, JSON.stringify(E)); } catch (e) {} })();
 let USADO = false;   /* el resultado solo ocupa la casilla cuando ya se ha pedido o tocado algo: al abrir se ve la casilla vacía con su ejemplo */
 let EDITA = false;   /* true mientras se escribe una petición: la casilla enseña el texto y no el resultado */
 let CAT = [], ESTADO = 'cargando', R = null;   /* R: resultado del cálculo en curso */
@@ -733,11 +753,11 @@ function monta() {
   /* el pie común de AVHUB (credito.js): mismo texto que el resto de apps, editable desde el panel, y con el aviso legal en su ventana */
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.88 · en móvil vertical la versión va al pie */ /* v10.88 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
-    if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
+    if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); puenteSale(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
     const v = interpreta(E.texto); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
   const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
-  document.addEventListener('click', (e) => { const q = (s) => e.target.closest(s); let b; if (q('.rejilla button, .velo [data-set]')) USADO = true;
+  document.addEventListener('click', (e) => { const q = (s) => e.target.closest(s); let b; if (q('.rejilla button, .velo [data-set]')) USADO = true; if (q('a[href*="consola.html?modo"]')) puenteSale();   /* v11.17 · al saltar a varias o a proyección, el proyecto viaja */
     if (q('[data-aviso-calc]') && movilV()) { tostada('Cálculo automático que puede contener errores: revísalo antes de presupuestar o instalar. El aviso completo sale también en el PDF.', 6000); return; }
     if ((b = q('[data-alt-crm]'))) { try { $('#stk-pop').hidePopover(); } catch (x) {} E.crm = b.dataset.altCrm; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); return; }   /* v10.75 · alternativa con stock elegida desde la ficha de stock */
     if ((b = q('[data-pz]'))) { const n = +b.dataset.pz; if (PZV.includes(n)) PZA = PZA.filter((x) => PZV.includes(x) && x !== n); else PZA = PZA.filter((x) => x !== n).concat(n); PZFIT = null; try { localStorage.setItem(PZK, JSON.stringify(PZA)); } catch (x) {} pintaRejilla(); ajustaTextos(); const f = document.querySelector(`[data-pz="${n}"]`); if (f) f.focus(); return; }   /* v11.16 · abrir o plegar un paso */

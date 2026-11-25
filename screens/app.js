@@ -28,7 +28,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.16';
+const VERSION = 'v11.17';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -50,6 +50,28 @@ const DEF = () => ({
 });
 let E = DEF();
 try { const g = JSON.parse(localStorage.getItem('screens_estado') || 'null'); if (g && g.esp) { const d = DEF(); E = Object.assign(d, g, { elec: Object.assign(d.elec, g.elec || {}), vista: Object.assign(d.vista, g.vista || {}), proy: Object.assign(d.proy, g.proy || {}), esp: Object.assign(d.esp, g.esp, { sueltas: Object.assign(d.esp.sueltas, (g.esp || {}).sueltas || {}) }) }); } } catch (e) {}
+/* v11.17 · PUENTE ENTRE MODALIDADES: al llegar desde la portada de una pantalla LED (o al volver a ella) el proyecto sigue siendo el mismo:
+   medidas, elevación, distancia, entorno y uso, modelo y electrónica viajan de una página a la otra. Solo en el salto, nunca al recargar. */
+const PUENTE = 'screens_puente', PUENTE_K = 'screens_puente_k';
+/* Las medidas viajan siempre (al volver a una LED, solo si aquí se trabajaba con una pantalla o con pantallas sueltas). Lo demás, solo si se ha
+   cambiado de su valor de fábrica o ya viajó antes: las dos páginas no parten de los mismos valores y un salto no debe cambiar nada que no se haya tocado. */
+const puenteLig = () => { try { const a = JSON.parse(localStorage.getItem(PUENTE_K) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
+let modoAnt = null;   /* la modalidad que se estaba viendo antes del último cambio */
+const puenteSale = () => { try { const s = E.esp.sueltas, d = DEF(), suel = !!modoAnt && (modoAnt.una || modoAnt.suel), lig = puenteLig();
+  const LED = ['clase', 'tipo', 'crm', 'ajuste', 'transp', 'gold', 'protegido', 'sol', 'nitsMin'], ELE = ['backup', 'escalador', 'conexion', 'dante', 'marca', 'sel', 'selMedia'];
+  const k = LED.filter((x) => lig.includes(x) || E.led[x] !== d.led[x]).concat(ELE.filter((x) => lig.includes(x) || E.elec[x] !== d.elec[x]));
+  if (suel && (lig.includes('elev') || s.elev !== d.esp.sueltas.elev)) k.push('elev'); if (suel && !E.proy.pubNS && (lig.includes('dist') || s.dist !== d.esp.sueltas.dist)) k.push('dist');
+  localStorage.setItem(PUENTE_K, JSON.stringify([...new Set(lig.concat(k))]));
+  sessionStorage.setItem(PUENTE, JSON.stringify({ t: Date.now(), de: 'consola', k, tam: suel ? { w: s.ancho, h: s.alto, elev: s.elev, dist: s.dist } : null, led: Object.assign({}, E.led),
+    elec: { backup: !!E.elec.backup, escalador: E.elec.escalador, conexion: E.elec.conexion, dante: !!E.elec.dante, marca: E.elec.marca, sel: E.elec.sel, selMedia: E.elec.selMedia } })); } catch (e) {} };
+try { const p = JSON.parse(sessionStorage.getItem(PUENTE) || 'null'); sessionStorage.removeItem(PUENTE);
+  if (p && p.de === 'una-led' && Date.now() - p.t < 120000) { const num = (v) => typeof v === 'number' && isFinite(v), en = (v, l) => l.includes(v), s = E.esp.sueltas, K = Array.isArray(p.k) ? p.k : [], va = (x) => K.includes(x);
+    if (p.tam) { if (num(p.tam.w) && p.tam.w > 0) s.ancho = p.tam.w; if (num(p.tam.h) && p.tam.h > 0) s.alto = p.tam.h; if (va('elev') && num(p.tam.elev) && p.tam.elev >= 0) s.elev = Math.min(10, p.tam.elev); if (va('dist') && num(p.tam.dist) && p.tam.dist >= 0.5) { s.dist = p.tam.dist; E.proy.pubNS = false; } }
+    const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.led.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.led.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.led.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano'])) E.led.ajuste = l.ajuste;
+    ['transp', 'gold', 'protegido'].forEach((x) => { if (va(x) && typeof l[x] === 'boolean') E.led[x] = l[x]; }); if (va('sol') && typeof l.sol === 'string') E.led.sol = l.sol; if (va('nitsMin') && num(l.nitsMin) && l.nitsMin >= 0) E.led.nitsMin = l.nitsMin;
+    const c = p.elec || {}; if (va('backup') && typeof c.backup === 'boolean') E.elec.backup = c.backup; if (va('escalador') && en(c.escalador, ['con', 'sin', 'indiferente'])) E.elec.escalador = c.escalador; if (va('conexion') && en(c.conexion, ['directo', 'fibra'])) E.elec.conexion = c.conexion; if (va('dante') && typeof c.dante === 'boolean') E.elec.dante = c.dante;
+    if (va('marca') && en(c.marca, ['ninguno', 'todos', 'novastar', 'pixelhue'])) E.elec.marca = c.marca; if (va('sel') && typeof c.sel === 'string') E.elec.sel = c.sel; if (va('selMedia') && typeof c.selMedia === 'string') E.elec.selMedia = c.selMedia;
+    localStorage.setItem('screens_estado', JSON.stringify(E)); } } catch (e) {}
 delete E.paso; // v7.0 · consola única: se entra directamente al cuadro de mandos (ya no hay página de selector)
 // ?led (enlaces de siempre al cálculo de una pantalla LED): la consola se abre en «Una + LED»
 try { if (new URLSearchParams(location.search).has('led')) { E.cantidad = 'una'; E.tecnologia = 'led'; } } catch (e) {}
@@ -1217,7 +1239,7 @@ function zonas(c) {
 // se pliega enseñando su resumen. Si ni uno solo cabe (muchos obstáculos en un portátil), ese bloque se desplaza por dentro de su marco.
 const reciente = { a: ['a2', 'a5', 'a7', 'a1', 'b1', 'a3', 'b3'], b: [] };   // v10.89 · el paso ① siempre abierto al entrar; el ④ (avanzado) es el primero en plegarse
 const tocar = (z, id) => { if (!reciente[z] || !id) return; reciente[z] = [id].concat(reciente[z].filter(k => k !== id)); };
-const TRES = () => matchMedia('(min-width: 1024px)').matches;
+const TRES = () => matchMedia('(min-width: 901px)').matches;
 function plegar() {
   ['a', 'b'].forEach(z => {
     const zona = $('#panel' + z.toUpperCase()); if (!zona) return;
@@ -1262,7 +1284,8 @@ function actualizar(sinEscena) {
   document.body.classList.toggle('con-led', led1);
   $('#btn-info').hidden = !led1;
   // v10.29 · una pantalla LED es la portada (index.html, mismo formato): la consola lleva allí. La versión clásica (led.html) se ha retirado
-  if (led1) { location.replace('./'); return; }
+  if (led1) { puenteSale(); location.replace('./'); return; }
+  modoAnt = { una: E.cantidad === 'una', suel: E.esp.tipo === 'sueltas' };   /* v11.17 · para el puente: qué se estaba viendo */
   if ($('#sc-led')) app.innerHTML = '';
   if (!$('#panelA')) { soltarEscena(); app.innerHTML = vistaTrabajo(); crearEscena(); }
   normalizaTam();   // v10.88 · ancho y alto desde la proporción y la diagonal / ancho / alto

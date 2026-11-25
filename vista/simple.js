@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.16';
+const VERSION = 'v11.17';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
@@ -30,7 +30,7 @@ const ASIS_URL = QS.get('asis');
 if (ASIS_URL) { try { QS.delete('asis'); const q = QS.toString(); history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) {} }
 document.documentElement.classList.toggle('sc-simple', vista === 'simple');
 /* apilado (móvil, vertical y poca altura; en la consola, también sin la plantilla escalada de escritorio): las piezas una debajo de otra */
-const MQ_MOV = matchMedia('(orientation: portrait), (max-width: 900px), (max-height: 560px)'), MQ_BK = matchMedia('(min-width: 1024px) and (min-height: 521px)');
+const MQ_MOV = matchMedia('(orientation: portrait), (max-width: 900px), (max-height: 560px)'), MQ_BK = matchMedia('(min-width: 901px) and (min-height: 521px)');
 const apila = () => MQ_MOV.matches || (PAG === 'consola' && !MQ_BK.matches);
 const ponApila = () => document.documentElement.classList.toggle('ss-apila', apila());
 ponApila();

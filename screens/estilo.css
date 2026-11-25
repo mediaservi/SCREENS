@@ -121,7 +121,7 @@ body.con-led { height: 100%; }
 .mod-tit .reset { margin-left: auto; }
 /* v8.5 · consola de 3 zonas: «la pantalla» (A) y «el equipo» (B) son columnas fijas de alto completo que nunca se desplazan; el centro se desplaza.
    Mismos bloques en el mismo orden en todos los modos; si la altura no da, los bloques se pliegan enseñando su resumen (plegar() en app.js). */
-@media (min-width: 1024px) { .trabajo.z3 { grid-template-columns: clamp(256px, 20vw, 340px) clamp(256px, 20vw, 340px) minmax(0, 1fr); } }
+@media (min-width: 901px) { .trabajo.z3 { grid-template-columns: clamp(256px, 20vw, 340px) clamp(256px, 20vw, 340px) minmax(0, 1fr); } }
 .zona { display: flex; flex-direction: column; gap: 8px; overflow: hidden; min-height: 0; padding: 8px 10px 10px; align-content: normal; }
 .zona-cab { flex: none; display: flex; align-items: center; gap: 8px; font-size: var(--t-lab); font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--tenue); text-shadow: 0 1px 0 #000; white-space: nowrap; }
 .zona-cab b { flex: none; width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; background: var(--hundido); border: 1px solid #000; color: var(--verde); font: 400 12px/1 var(--mono); letter-spacing: 0; box-shadow: inset 0 1px 3px rgba(0,0,0,.6); }
@@ -164,7 +164,7 @@ body.con-led { height: 100%; }
 @keyframes destino { 0% { box-shadow: 0 0 0 2px var(--verde), 0 0 22px rgba(0,255,4,.45); } 100% { box-shadow: 0 0 0 2px rgba(0,255,4,0), 0 0 0 rgba(0,255,4,0); } }
 @media (prefers-reduced-motion: reduce) { .res .dest, .res-tot.dest { animation: none; } }
 /* el centro se desplaza entero: la vista arriba y, debajo, las cifras y el detalle */
-@media (min-width: 1024px) {
+@media (min-width: 901px) {
   .trabajo.z3 .vista { display: block; overflow-y: auto; container-type: size; scrollbar-width: thin; }
   .trabajo.z3 .escena { height: max(300px, 60vh - 110px); }
   @supports (height: 1cqh) { .trabajo.z3 .escena { height: max(300px, 62cqh); } }
@@ -262,7 +262,7 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 
 /* ---------- Adaptación ---------- */
 @media (max-width: 1279px) { .res-tot { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 1023px) {
+@media (max-width: 900px) {
   body { height: auto; }
   .consola { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
   .con-nl { grid-column: 1 / -1; }
@@ -419,7 +419,7 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 @media (hover: hover) { .fam a:hover img { opacity: 1; filter: none; } }
 .fam a:focus-visible { outline: 1px solid var(--verde); outline-offset: 4px; } .fam a:focus-visible img, .fam a:active img { opacity: 1; filter: none; }
 .fam-pie { display: none; flex: none; justify-content: center; flex-wrap: wrap; gap: 8px 18px; padding: 8px 10px 4px; background: var(--bg); border-top: 1px solid #000; }
-@media (max-width: 1023px) { .cab .fam { display: none; } .fam-pie { display: flex; } .fam-pie + .pie { border-top: 0; padding-top: 2px; } .fam-pie img { height: 16px; } }
+@media (max-width: 900px) { .cab .fam { display: none; } .fam-pie { display: flex; } .fam-pie + .pie { border-top: 0; padding-top: 2px; } .fam-pie img { height: 16px; } }
 @media print { .fam-pie { display: none !important; } }
 
 /* v10.54 · botones dentro de un aviso o una ayuda (usar el modelo propuesto, activar fuera de especificación, quitar el margen) */

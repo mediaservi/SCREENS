@@ -11,7 +11,7 @@ const azarDe = (s) => { let a = s; return () => { a = (a * 16807) % 2147483647; 
 
 /* ---------- GLSL común: ruido, rayo de cada píxel y composición con la capa de rótulos e imágenes ---------- */
 const COMUN = `precision highp float;
-uniform float t, T, esSuelo, uF, fade, hayCapa; uniform sampler2D capa, base; uniform vec4 pu0, pu1; varying vec2 v;
+uniform float t, T, esSuelo, uF, fade, hayCapa, zoomCapa; uniform sampler2D capa, base; uniform vec4 pu0, pu1; varying vec2 v;
 #define TAU 6.28318530718
 float h1(float n){ return fract(sin(n)*43758.5453); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -28,11 +28,13 @@ mat2 giro(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
 /* el rayo: en pared, panorama cilíndrico con el frente en uF; en suelo, el punto del suelo visto desde el centro (casa con el zócalo) */
 vec3 rayo(){ if(esSuelo>.5){ vec2 p=(v-.5)*2.; return normalize(vec3(-p.x, -.965, -p.y)); }
   float a=(v.x-uF)*TAU, y=-.18+(v.y-.5)*1.5708; return normalize(vec3(-sin(a), y, cos(a))); }
+/* la capa vista con un acercamiento lento, pared a pared (cada pantallazo se corta exacto en su esquina) */
+vec2 uvCapa(float z){ if(esSuelo>.5) return .5+(v-.5)/z; for(int i=0;i<4;i++){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w, b = i==0?pu1.x: i==1?pu1.y: i==2?pu1.z: pu1.w; if(a>=0. && v.x>=a && v.x<=b){ float c=(a+b)*.5; return vec2(c+(v.x-c)/z, .5+(v.y-.5)/z); } } return v; }
 /* 0 izquierda · 1 frontal · 2 derecha · 3 trasera (−1 si el píxel no cae en ninguna) y posición 0–1 dentro de esa pared */
 vec2 pared(){ for(int i=0;i<4;i++){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w, b = i==0?pu1.x: i==1?pu1.y: i==2?pu1.z: pu1.w; if(a>=0. && v.x>=a && v.x<=b) return vec2(float(i), (v.x-a)/max(b-a,1e-4)); } return vec2(-1.,0.); }
 `;
 const FIN = `
-void main(){ vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
+void main(){ vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, zoomCapa>0. ? uvCapa(1.+zoomCapa*t/10.) : v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
   c=max(c,0.); gl_FragColor=vec4(pow(c, vec3(2.2))*fade, 1.); }`;
 const CAPA_SIMPLE = `vec3 conCapa(vec3 c, vec4 k, vec3 d){ return mix(c, k.rgb, k.a); }`;
 
@@ -84,88 +86,21 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
   float sale=smoothstep(0.,.7, t*1.5-dAng(an,0.)*.55)*smoothstep(10.,9.4,t);
   return mix(c, k.rgb, k.a*sale); }`;
 
-/* ---------- 3 · EK CHUAH: cámara de piedra maya, antorchas, glifos que se encienden y disco solar en el suelo ---------- */
+/* ---------- 3 · EK CHUAH y 4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
 const G_EK = `
-vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
-  float onda=dAng(an, t*TAU/10.+.6), oro=exp(-pow(onda*2.2,2.)), jade=exp(-pow(dAng(an, t*TAU/10.+.6+TAU*.5)*2.2,2.));
-  float ll=0.; for(int i=0;i<4;i++){ float a0=TAU*.125+float(i)*TAU*.25; ll+=exp(-pow(dAng(an,a0)*2.6,2.))*(.75+.25*n2(vec2(T*7.+float(i)*9.,float(i)))); }
-  if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y);
-    vec2 g=vec2(a2/TAU*floor(6.+r*14.), r*6.); vec2 id=floor(g), f=fract(g);
-    float junta=smoothstep(.0,.05,f.x)*smoothstep(1.,.95,f.x)*smoothstep(.0,.06,f.y)*smoothstep(1.,.94,f.y);
-    vec3 c=vec3(.33,.35,.28)*(.55+.45*h2(id))*(.7+.6*fbm2(p*14.))*mix(.35,1.,junta);
-    c=mix(c, vec3(.16,.30,.12), smoothstep(.55,.75,fbm2(p*5.+3.))*.6);
-    /* disco solar de oro: rayos, anillo de glifos y cristal central */
-    float rayos=smoothstep(.0,.25, cos(a2*16.+t*.5))*smoothstep(.62,.3,r)*smoothstep(.2,.26,r);
-    float anillo=smoothstep(.03,.0,abs(r-.24))+smoothstep(.02,.0,abs(r-.64));
-    float gl=step(.5,h2(vec2(floor(a2/TAU*40.), floor(r*30.))))*smoothstep(.07,.04,abs(r-.7));
-    float pulso=.6+.4*sin(t*TAU*.3);
-    c+=vec3(1.,.74,.18)*(rayos*.5+anillo*.9+gl*.6)*pulso;
-    c+=mix(vec3(1.,.85,.3), vec3(.2,1.,.6), .5+.5*sin(t*TAU*.2))*exp(-r*r*40.)*1.6;
-    c*=.5+.5*smoothstep(1.6,.2,r); return c; }
-  float y=d.y/L; vec2 g=vec2(an/TAU*30., (y+1.)*5.2); g.x+=.5*mod(floor(g.y),2.); vec2 id=floor(g), f=fract(g);
-  float junta=smoothstep(.0,.035,f.x)*smoothstep(1.,.965,f.x)*smoothstep(.0,.07,f.y)*smoothstep(1.,.93,f.y);
-  float gr=fbm(vec3(d.xz/L*11., y*11.));
-  vec3 c=vec3(.36,.38,.31)*(.55+.45*h2(id))*(.6+.75*gr)*mix(.3,1.,junta);
-  c=mix(c, vec3(.15,.30,.11), smoothstep(.5,.72,fbm(vec3(d.xz/L*3.,y*3.+2.)))*smoothstep(.1,-.8,y)*.75);
-  /* sillares con glifos tallados: se encienden en oro o en jade cuando pasa la luz */
-  float esG=step(.7,h2(id+7.3)); vec2 q=floor(f*vec2(7.,5.)); float dentro=step(.12,f.x)*step(f.x,.88)*step(.16,f.y)*step(f.y,.84);
-  q.x=min(q.x,6.-q.x); float talla=esG*dentro*step(.46,h2(id*3.1+q));
-  c*=1.-.45*talla; c+=talla*(vec3(1.,.72,.16)*oro+vec3(.1,1.,.62)*jade)*1.4;
-  /* cenefa superior de grecas */
-  float gre=step(.42,y)*step(y,.52)*step(.5,fract(an/TAU*60.+.25*step(.47,y))); c=mix(c, c*.45+vec3(1.,.72,.16)*.25*(oro+.25), gre);
-  c*=vec3(1.,.76,.48)*(.55+1.5*ll)+vec3(.10,.14,.12); c+=vec3(1.,.8,.3)*oro*.07+vec3(.1,1.,.6)*jade*.05;
-  return c; }
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ float fl=.92+.08*n2(vec2(T*6.,3.)); return mix(c, k.rgb*fl, k.a); }`;
-
-/* ---------- 4 · WONDERWALK: noche violeta, luna, castillo y pinos en 360°, y un prado con el remolino de magia en el suelo ---------- */
+vec3 mundo(vec3 d){ return vec3(.02,.015,.01); }
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z);
+  float fl=.93+.07*n2(vec2(T*6.,3.));                                                        /* parpadeo de antorcha */
+  float oro = esSuelo>.5 ? .5+.5*sin(t*TAU*.3) : exp(-pow(dAng(an, t*TAU/10.+.6)*2.,2.));   /* la luz dorada que da la vuelta a la sala */
+  vec3 col=k.rgb*fl*(1.+.28*oro)+vec3(1.,.75,.2)*oro*.06;
+  vec3 g=vec3(floor(v*vec2(esSuelo>.5?40.:160.,40.)), floor(T*2.)); float ch=step(.992,h3(g))*oro; col+=vec3(1.,.9,.5)*ch*.5;
+  return mix(c, col, k.a); }`;
 const G_WW = `
-float almena(float x, float y, float w, float h, float n){ float cuerpo=step(abs(x),w)*step(y,h); float dientes=step(abs(x),w)*step(y,h+.018)*step(.5,fract(x/w*n)); return max(cuerpo,dientes); }
-vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
-  if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y);
-    float hi=fbm2(p*9.), br=smoothstep(.55,.9, n2(p*vec2(140.,60.)*giro(.4)))*.5;
-    vec3 c=mix(vec3(.05,.16,.12), vec3(.10,.30,.18), hi)+vec3(.1,.35,.16)*br;
-    /* sendero de losas en espiral */
-    float esp=fract(a2/TAU+r*1.6); float cam=smoothstep(.09,.05,abs(esp-.5))*smoothstep(.16,.26,r);
-    vec2 lg=vec2(r*18., a2*r*9.); float losa=smoothstep(.0,.12,fract(lg.x))*smoothstep(.0,.12,fract(lg.y));
-    c=mix(c, vec3(.42,.40,.48)*(.6+.4*h2(floor(lg)))*mix(.5,1.,losa), cam*.85);
-    /* remolino de magia: verde y morado girando */
-    float sw=.5+.5*sin(a2*3.+r*22.-t*5.), sw2=.5+.5*sin(a2*5.-r*30.-t*3.5+1.);
-    float nucleo=exp(-r*r*36.);
-    c+=(vec3(.75,.2,1.)*pow(sw,3.)+vec3(.3,1.,.35)*pow(sw2,4.)*.8)*smoothstep(.34,.05,r)*.9+vec3(.95,.7,1.)*nucleo*1.4;
-    vec2 gs=p*60.+vec2(0.,T*.6); float ch=step(.985,h2(floor(gs)))*smoothstep(.3,.04,length(fract(gs)-.5))*(.5+.5*sin(T*5.+h2(floor(gs)+3.)*TAU)); c+=vec3(.7,1.,.6)*ch*1.3*smoothstep(1.1,.2,r);
-    return c*(.55+.45*smoothstep(1.5,.3,r)); }
-  float y=d.y/L; vec3 u=vec3(cos(an),sin(an),0.);
-  /* cielo, estrellas, nubes y luna */
-  vec3 c=mix(vec3(.30,.13,.46), vec3(.06,.03,.17), smoothstep(-.15,.6,y));
-  vec3 ge=d*150.; vec3 e=floor(ge); float st=step(.994,h3(e))*smoothstep(.34,.05,length(fract(ge)-.5)); c+=vec3(.95,.92,1.)*st*1.4*(.55+.45*sin(T*3.+h3(e+1.)*TAU))*smoothstep(-.05,.2,y);
-  float nb=fbm(vec3(u.xy*2.4+T*.012, y*5.)); c=mix(c, vec3(.42,.22,.60), smoothstep(.5,.8,nb)*.45*smoothstep(-.1,.3,y));
-  vec3 lu=normalize(vec3(-sin(.55), .42, cos(.55))); float dl=acos(clamp(dot(d,lu),-1.,1.));
-  float luna=smoothstep(.085,.079,dl); c=mix(c, vec3(.98,.90,.62)*(.86+.14*n3(d*40.)), luna); c+=vec3(.9,.75,.5)*exp(-dl*9.)*.3;
-  /* sierra lejana y colinas */
-  float m1=-.02+.17*n3(u*2.3+4.)+.05*n3(u*9.); c=mix(c, vec3(.11,.07,.25), smoothstep(m1+.006,m1-.006,y));
-  float m2=-.16+.10*n3(u*4.+11.)+.03*n3(u*13.); vec3 colina=mix(vec3(.05,.14,.13), vec3(.09,.24,.16), n3(vec3(u.xy*30., y*30.)));
-  /* castillo: lienzos de ladrillo con almenas, torres y ventanas encendidas (dos, uno delante y otro detrás) */
-  for(int i=0;i<2;i++){ float a0 = i==0 ? -1.15 : 2.45; float x=mod(an-a0+TAU*.5,TAU)-TAU*.5, s = i==0 ? 1. : .6; x/=s; float yy=(y-m2-.01)/s;
-    float cu=max(almena(x,yy,.36,.2,9.), max(almena(x-.3,yy,.085,.36,3.), max(almena(x+.33,yy,.07,.3,3.), almena(x-.02,yy,.11,.46,4.))));
-    cu*=step(0.,yy+.05);
-    vec2 lb=vec2(x*46., yy*90.); lb.x+=.5*mod(floor(lb.y),2.); float mort=smoothstep(.0,.12,fract(lb.x))*smoothstep(.0,.2,fract(lb.y));
-    vec3 lad=vec3(.62,.36,.2)*(.72+.28*h2(floor(lb)))*mix(.6,1.,mort)*(.6+.5*smoothstep(-.4,.4,x));
-    vec2 wv=vec2(x*26., yy*24.); float vent=step(.84,h2(floor(wv)+float(i)*7.))*step(abs(fract(wv.x)-.5),.16)*step(abs(fract(wv.y)-.5),.3)*step(.06,yy);
-    lad=mix(lad, vec3(1.,.86,.42)*(.85+.15*sin(T*2.+h2(floor(wv))*TAU)), vent);
-    float pu=step(abs(x+.02),.045)*step(yy,.085+sqrt(max(0.,.002-(x+.02)*(x+.02)))); lad=mix(lad, vec3(.12,.06,.05), pu*step(-.02,yy));
-    c=mix(c, lad, cu); }
-  c=mix(c, colina, smoothstep(m2+.005,m2-.005,y));
-  /* pinos en primer término */
-  float cel=an/TAU*38.; float idp=floor(cel), fx=fract(cel)-.5; float hp=.16+.22*h1(idp), bs=-.36+.07*h1(idp+5.);
-  float yy2=(y-bs)/hp; float pino=step(0.,yy2)*step(yy2,1.)*step(abs(fx), (1.-yy2)*.42*(.72+.28*fract(yy2*3.5)))*step(.3,h1(idp+2.));
-  float m3=-.36+.05*n3(u*6.+2.); vec3 prado=mix(vec3(.05,.16,.12), vec3(.10,.30,.18), fbm(vec3(u.xy*9., y*9.)));
-  c=mix(c, vec3(.03,.11,.09)*(.7+.6*h1(idp)), pino);
-  c=mix(c, prado, smoothstep(m3+.006,m3-.006,y));
-  /* chispas de magia flotando */
-  vec3 gc=vec3(u.xy*30., (y-T*.03)*30.); vec3 ce=floor(gc); float ch=step(.99,h3(ce))*(.5+.5*sin(T*4.+h3(ce+2.)*TAU))*smoothstep(.3,.03,length(fract(gc)-.5));
-  c+=mix(vec3(.5,1.,.45), vec3(.85,.4,1.), h3(ce+5.))*ch*1.5;
-  return c; }
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ return mix(c, k.rgb, k.a*smoothstep(.2,1.4,t)*smoothstep(10.,9.4,t)); }`;
+vec3 mundo(vec3 d){ return vec3(.03,.01,.06); }
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ vec3 col=k.rgb;
+  vec2 gq=v*vec2(esSuelo>.5?46.:184.,46.)+vec2(0.,-T*.25); vec2 id=floor(gq); float ch=step(.988,h2(id))*smoothstep(.3,.04,length(fract(gq)-.5))*(.5+.5*sin(T*4.+h2(id+2.)*TAU));
+  col+=mix(vec3(.6,1.,.5), vec3(.9,.5,1.), h2(id+5.))*ch*.9;                                 /* chispas de la varita */
+  return mix(c, col, k.a); }`;
 
 /* ---------- 5 · VOLCÁN: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
 const G_VOLCAN = `
@@ -313,20 +248,14 @@ function capaAvhubSuelo(x) { const c = WS / 2, iso = img('sim/pistas/isotipo-avh
   APPS.forEach(([app, col], i) => { const an = -Math.PI / 2 + i * Math.PI * 2 / APPS.length, px = c + Math.cos(an) * 345, py = c + Math.sin(an) * 345, ic = img('sim/pistas/icono-' + app + '.svg');
     x.beginPath(); x.arc(px, py, 62, 0, 7); x.fillStyle = 'rgba(4,4,10,.92)'; x.fill(); x.lineWidth = 3; x.strokeStyle = col; x.stroke(); if (ic) x.drawImage(ic, px - 38, py - 38, 76, 76); }); }
 
+/* una escena original por pared, a sangre; si falta una pared, su escena no sale (el resto no se mueve) */
+function sangre(x, P, mapa) { P.forEach((p) => enPared(x, p, (x, h, a) => { const im = img('sim/pistas/' + (mapa[p.id] || mapa.frontal) + '.webp'); if (im) cubre(x, im, -a / 2, 0, a, h); else { x.fillStyle = '#0b0b10'; x.fillRect(-a / 2, 0, a, h); } })); }
+function sueloImg(x, n) { const im = img('sim/pistas/' + n + '.webp'); if (im) cubre(x, im, 0, 0, WS, WS); }
+function rotuloImg(x, P, n, alto, pie) { const p = P.find((q) => q.id === 'frontal') || P[0]; if (!p) return; enPared(x, p, (x, h, a) => { const ti = img('sim/pistas/' + n + '.webp'); if (!ti) return; let th = h * alto, tw = th * ti.width / ti.height; if (tw > a * .8) { tw = a * .8; th = tw * ti.height / ti.width; } x.drawImage(ti, -tw / 2, h * pie - th, tw, th); }); }
 const EK_IMG = { frontal: 'ek-santuario', izquierda: 'ek-alux', derecha: 'ek-cacao', trasera: 'ek-jade' };
-function capaEk(x, P) { P.forEach((p) => enPared(x, p, (x, h, a) => { const im = img('sim/pistas/' + (EK_IMG[p.id] || 'ek-santuario') + '.webp'); const fr = p.id === 'frontal', hh = h * (fr ? .5 : .56), ww = Math.min(hh * 16 / 9, a * .8), y0 = h * (fr ? .07 : .2);
-  /* marco de oro con esquinas escalonadas */
-  for (const [m, col] of [[20, '#3b2a08'], [15, '#d9a521'], [8, '#6a4a0c'], [4, '#f3d36a']]) { x.fillStyle = col; x.fillRect(-ww / 2 - m, y0 - m, ww + 2 * m, hh + 2 * m); }
-  x.fillStyle = '#d9a521'; for (const sx of [-1, 1]) for (const sy of [0, 1]) x.fillRect(sx * (ww / 2 + 8) - 16, y0 + sy * hh + (sy ? -8 : -24), 32, 32);
-  if (im) cubre(x, im, -ww / 2, y0, ww, hh); else { x.fillStyle = '#1a1407'; x.fillRect(-ww / 2, y0, ww, hh); }
-  if (p.id === 'frontal') { const ti = img('sim/pistas/ek-titulo.webp'); if (ti) { const th = h * .36, tw = th * ti.width / ti.height; x.drawImage(ti, -tw / 2, h * .985 - th, tw, th); } } })); }
-
-function capaWw(x, P) { P.forEach((p) => enPared(x, p, (x, h, a) => { x.textAlign = 'center'; x.textBaseline = 'middle';
-  if (p.id === 'frontal' || P.length === 1) { const im = img('sim/pistas/wonderwalk.webp'); const hh = h * .6, ww = Math.min(hh * 16 / 9, a * .7), y0 = h * .06;
-    if (im) { x.save(); x.beginPath(); x.roundRect(-ww / 2, y0, ww, hh, 26); x.clip(); cubre(x, im, -ww / 2, y0, ww, hh); x.restore(); x.lineWidth = 8; x.strokeStyle = '#b06cff'; x.beginPath(); x.roundRect(-ww / 2, y0, ww, hh, 26); x.stroke(); x.lineWidth = 3; x.strokeStyle = '#8dff5a'; x.beginPath(); x.roundRect(-ww / 2 - 9, y0 - 9, ww + 18, hh + 18, 32); x.stroke(); } }
-  if (p.id !== 'frontal' && P.length > 1) return; const txt = 'WONDERWALK', yy = h * .8;
-  encaja(x, txt, Math.min(a * .7, 1100), 104, 800); x.lineJoin = 'round'; x.lineWidth = 20; x.strokeStyle = '#2a0b4d'; x.strokeText(txt, 0, yy); x.lineWidth = 8; x.strokeStyle = '#b06cff'; x.strokeText(txt, 0, yy);
-  const g = x.createLinearGradient(0, yy - 50, 0, yy + 50); g.addColorStop(0, '#f6ffd0'); g.addColorStop(1, '#8dff5a'); x.fillStyle = g; x.fillText(txt, 0, yy); })); }
+function capaEk(x, P) { sangre(x, P, EK_IMG); rotuloImg(x, P, 'ek-titulo', .34, .99); }
+const WW_IMG = { frontal: 'ww-castillo', izquierda: 'ww-camino', derecha: 'ww-puente', trasera: 'ww-bosque' };
+function capaWw(x, P) { sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
 
 /* Barcelona: collage de fotos antiguas (assets/sim/pistas/bcn-01.webp … bcn-12.webp); cada pared recibe tres, con paspartú y sombra */
 function capaBcn(x, P) { const az = azarDe(71); let n = 0; P.forEach((p) => enPared(x, p, (x, h, a) => { const cols = 3, an = Math.min(a * .92, 1700), cw = an / cols;
@@ -338,8 +267,8 @@ function capaBcn(x, P) { const az = azarDe(71); let n = 0; P.forEach((p) => enPa
 const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
   { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo },
-  { id: 'ekchuah', glsl: G_EK, capa: capaEk },
-  { id: 'wonderwalk', glsl: G_WW, capa: capaWw },
+  { id: 'ekchuah', glsl: G_EK, capa: capaEk, capaSuelo: (x) => sueloImg(x, 'ek-suelo'), zoom: .07 },
+  { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07 },
   { id: 'volcan', glsl: G_VOLCAN },
   { id: 'barcelona', glsl: G_BCN, capa: capaBcn },
 ];
@@ -354,9 +283,9 @@ export function crearPistas(renderer) {
   const ORD = ['izquierda', 'frontal', 'derecha', 'trasera'];
   PISTAS.forEach((p) => {
     p.mat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, hayCapa: { value: 0 }, capa: { value: negro }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
+      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, capa: { value: negro }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
       vertexShader: 'varying vec2 v; void main(){ v = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
-    if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; p.tx.wrapS = THREE.RepeatWrapping; }
+    if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
     if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
     p.hecha = '';
   });

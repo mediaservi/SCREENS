@@ -11,7 +11,7 @@ const azarDe = (s) => { let a = s; return () => { a = (a * 16807) % 2147483647; 
 
 /* ---------- GLSL común: ruido, rayo de cada píxel y composición con la capa de rótulos e imágenes ---------- */
 const COMUN = `precision highp float;
-uniform float t, T, esSuelo, uF, fade, trans, semilla, hayCapa, zoomCapa, hayVid; uniform sampler2D capa, base, vid; uniform vec4 pu0, pu1, asp; varying vec2 vv; vec2 v;
+uniform float t, T, esSuelo, uF, fade, trans, semilla, hayCapa, zoomCapa, hayVid; uniform sampler2D capa, capa2, base, vid; uniform vec4 pu0, pu1, asp; varying vec2 vv; vec2 v;
 #define TAU 6.28318530718
 float h1(float n){ return fract(sin(n)*43758.5453); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -173,8 +173,9 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ vec3 col=k.rgb;
   col+=mix(vec3(.6,1.,.5), vec3(.9,.5,1.), h2(id+5.))*ch*.9;                                 /* chispas de la varita */
   return mix(c, col, k.a); }`;
 
-/* ---------- 5 · VOLCÁN (v11.31): recorrido 3D grabado en cinco caras (ver cubo()): despegue de la Luna con la Tierra delante, reentrada, caída sobre la isla
-   y descenso por la chimenea de basalto hasta el lago de lava con los tótems. Sin vídeo cargado, lo de antes: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
+/* ---------- 5 · DE LA LUNA A LA PLAYA (v11.32; el identificador sigue siendo «volcan»): recorrido 3D grabado en cinco caras (ver cubo()): despegue de la Luna
+   con la Tierra delante y vuelo en arco sobre el Pacífico hasta posarse en una playa tropical de noche, con palmeras y luna llena sobre el mar.
+   Sin vídeo cargado, lo de antes: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
 const G_VOLCAN = `
 vec3 lava(vec2 p, float e){ vec2 w=vec2(fbm2(p*1.3+vec2(0.,T*.11)), fbm2(p*1.3+vec2(5.2,-T*.09))); float f=fbm2(p*2.2+w*2.2+T*.05);
   float costra=smoothstep(.42,.60,f), gr=cresta(vec3(p*3.+w, T*.04));
@@ -254,8 +255,7 @@ vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(
   c=mix(arriba, c, smoothstep(.36,.5,k)); c+=vec3(1.,.35,.05)*.03*glow;
   return c; }` + CAPA_SIMPLE;
 
-/* ---------- 6 · BARCELONA (v11.31): paseo en 360° por una galería modernista (suelo hidráulico, arrimadero de azulejo, arcos y globos de luz) con las ocho
-   fotografías colgadas, que se colorean al llegar a ellas; grabado en cinco caras (ver cubo()). Sin vídeo cargado, lo de antes: fotos antiguas que se colorean sobre papel, y panots y mosaico hidráulico en el suelo ---------- */
+/* ---------- 6 · BARCELONA (v11.32): las ocho fotografías antiguas a toda pared, dos por pared una tras otra, que se colorean; suelo fijo de mosaico hidráulico y panots ---------- */
 const G_BCN = `
 float flor(vec2 f){ vec2 q=abs(f-.5); float pet=min(length(q-vec2(.2,.0)), length(q-vec2(.0,.2)))-.13; float cen=length(f-.5)-.085; float ar=abs(length(f-.5)-.4)-.012;
   return min(min(abs(pet)-.018, abs(cen)-.016), max(ar, -1.)); }
@@ -264,7 +264,7 @@ vec3 hidra(vec2 p){ vec2 f=fract(p)-.5; vec2 a=abs(f); float est=max(a.x,a.y)*.7
   vec3 c=crema; c=mix(c, azul, step(rombo,.5)*step(.42,rombo)); c=mix(c, teja, step(est,.31)); c=mix(c, crema, step(r,.2)); c=mix(c, verde, step(r,.15)*step(.5,fract(atan(f.y,f.x)/TAU*8.))); c=mix(c, ocre, step(r,.07));
   vec2 e=abs(fract(p+.5)-.5); c=mix(c, ocre, step(length(e),.13)); c=mix(c, azul, step(length(e),.07));
   return c*(.9+.1*n2(p*40.)); }
-vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(-d.x,d.z);
+vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
   if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y); vec3 c;
     float luz=.78+.22*smoothstep(-1.,1., p.x*.6+p.y*.8);
     if(r<.46){ c=hidra(p*giro(.7854)*7.)*luz; }
@@ -276,22 +276,22 @@ vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(
       float ed=max(abs(gh.x), dot(abs(gh), vec2(.5,.8660254))); float junta=smoothstep(.5,.47,ed);
       float ang3=atan(gh.y,gh.x)+h2(idh)*TAU; float rel=.5+.5*sin(length(gh)*46.+sin(ang3*3.)*2.5);
       c=vec3(.42,.47,.45)*(.6+.4*rel)*(.86+.14*n2(g*26.))*mix(.4,1.,junta)*luz; }
-    /* una franja de sol que barre el pavimento */
-    c*=.82+.3*exp(-pow((p.x*.7+p.y*.7-(t/12.*3.-1.5))*2.2,2.)); return c; }
+    return c; }   /* v11.32 · el suelo queda fijo (antes lo barría una franja de sol) */
   float y=d.y/L; vec3 u=vec3(cos(an),sin(an),0.);
   vec3 c=mix(vec3(.93,.88,.76), vec3(.84,.76,.60), fbm(vec3(u.xy*6., y*6.)))*(.92+.08*n3(vec3(u.xy*120.,y*120.)));
   /* arrimadero de azulejo modernista abajo y cenefa arriba */
   if(y<-.55){ vec2 g=vec2(an/TAU*64., (y+.97)*10.2); c=hidra(g)*.9; c=mix(c, vec3(.16,.28,.46), step(-.575,y)); }
   float cen=step(.47,y)*step(y,.56); float lat=.5+.5*sin(an*40.)*sin(an*40.+y*30.); c=mix(c, mix(vec3(.26,.42,.30), vec3(.80,.58,.22), lat), cen*.85);
   return c; }
-/* la foto entra en blanco y negro y se colorea como una postal iluminada a mano, con una ola que recorre la sala */
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ if(hayVid>.5) return c;   /* con vídeo, las fotos van colgadas dentro del propio recorrido */
-  float an=atan(-d.x,d.z); float lum=dot(k.rgb, vec3(.3,.59,.11));
-  float y=v.y; vec3 tinte=mix(mix(vec3(.50,.33,.20), vec3(.86,.70,.50), smoothstep(.1,.6,lum)), vec3(.60,.80,.98), smoothstep(.55,.95,lum)*smoothstep(.45,.8,y));
+/* v11.32 · cada pared es una fotografía a toda pared (sin marcos ni paseo): entra en blanco y negro, se colorea como una postal iluminada a mano con una ola
+   que recorre la sala y se acerca muy despacio; a media pista se funde con la segunda fotografía de esa pared */
+vec3 fotoBcn(sampler2D s, float tt, float an){ vec3 g=pow(texture2D(s, uvCapa(1.03+.09*clamp(tt,0.,6.6)/6.6)).rgb, vec3(1./2.2)); float lum=dot(g, vec3(.3,.59,.11)), y=v.y;
+  vec3 tinte=mix(mix(vec3(.50,.33,.20), vec3(.86,.70,.50), smoothstep(.1,.6,lum)), vec3(.60,.80,.98), smoothstep(.55,.95,lum)*smoothstep(.45,.8,y));
   tinte=mix(tinte, vec3(.36,.52,.30), smoothstep(.25,.5,lum)*smoothstep(.5,.2,y)*.35);
-  vec3 col=mix(vec3(lum), tinte*(.35+lum*.95), .82); float esFoto=step(abs(k.r-k.g)+abs(k.g-k.b), .06);
-  float ola=smoothstep(-.4,.4, t*.9-1.6-dAng(an,0.)*.9+ (v.y-.5)*.6);
-  vec3 foto=mix(vec3(lum)*vec3(1.,.97,.9), col, ola); return mix(c, mix(k.rgb, foto, esFoto), k.a*smoothstep(0.,.8,t)); }`;
+  vec3 col=mix(vec3(lum), tinte*(.35+lum*.95), .82); float ola=smoothstep(-.4,.4, tt*1.15-1.3-dAng(an,0.)*.5+(y-.5)*.6);
+  return mix(vec3(lum)*vec3(1.,.97,.9), col, ola); }
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z); if(k.a<.5) return c;
+  return mix(fotoBcn(capa, t, an), fotoBcn(capa2, t-5.7, an), smoothstep(5.7,6.5,t)); }`;
 
 /* ---------- capas de rótulos e imágenes (lienzo 2D, se pintan una vez por pista y por reparto de paredes) ---------- */
 const IMG = {}; let imgV = 0;
@@ -332,12 +332,9 @@ const WW_IMG = { frontal: 'ww-castillo', izquierda: 'ww-camino', derecha: 'ww-pu
 function capaWw(x, P, conVideo) { if (!conVideo) sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
 
 /* Barcelona: fotografías antiguas en dominio público (assets/sim/pistas/bcn-01 … 08 y CREDITOS.md).
-   Dos en cada pared, con paspartú y sombra, como postales sobre el papel pintado */
+   Dos por pared, una detrás de otra, a toda pared */
 const BCN = { izquierda: [5, 4], frontal: [1, 2], derecha: [6, 3], trasera: [7, 8] };
-function capaBcn(x, P) { const az = azarDe(71); P.forEach((p) => enPared(x, p, (x, h, a) => { const L = P.length === 1 ? [1, 2] : (BCN[p.id] || [1]), n = L.length, an = Math.min(a * .9, 1500), cw = an / n;
-  L.forEach((k, i) => { const im = img('sim/pistas/bcn-0' + k + '.webp'), g = (az() - .5) * .07, dy = (az() - .5) * .05; if (!im) return; const asp = im.width / im.height; let hh = h * (asp < 1 ? .58 : .5), ww = hh * asp; if (ww > cw * .86) { ww = cw * .86; hh = ww / asp; }
-    x.save(); x.translate(-an / 2 + cw * (i + .5), h * (.37 + dy)); x.rotate(g); x.shadowColor = 'rgba(40,25,10,.5)'; x.shadowBlur = 22; x.shadowOffsetY = 9; x.fillStyle = '#f7f1e0'; x.fillRect(-ww / 2 - 14, -hh / 2 - 14, ww + 28, hh + 46); x.shadowColor = 'transparent';
-    x.drawImage(im, -ww / 2, -hh / 2, ww, hh); x.restore(); }); })); }
+const capaBcnN = (n) => (x, P) => P.forEach((p) => enPared(x, p, (x, h, a) => { const L = P.length === 1 ? [1, 2] : (BCN[p.id] || [1, 2]), im = img('sim/pistas/bcn-0' + L[n] + '.webp'); if (im) cubre(x, im, -a / 2, 0, a, h); else { x.fillStyle = '#d9c9a0'; x.fillRect(-a / 2, 0, a, h); } }));
 
 /* ---------- las pistas ---------- */
 const PISTAS = [
@@ -346,7 +343,7 @@ const PISTAS = [
   { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07, video: 'sim/pistas/ww-360.mp4', vdur: 12 },
   { id: 'volcan', glsl: G_VOLCAN, video: 'sim/pistas/volcan-360.mp4', vdur: 12 },
-  { id: 'barcelona', glsl: G_BCN, capa: capaBcn, video: 'sim/pistas/bcn-360.mp4', vdur: 12 },
+  { id: 'barcelona', glsl: G_BCN, capa: capaBcnN(0), capaB: capaBcnN(1) },
 ];
 export const PISTAS_ID = PISTAS.map((p) => p.id);
 
@@ -359,9 +356,10 @@ export function crearPistas(renderer) {
   const ORD = ['izquierda', 'frontal', 'derecha', 'trasera'];
   PISTAS.forEach((p) => {
     p.mat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, hayVid: { value: 0 }, capa: { value: negro }, vid: { value: negro }, asp: { value: new THREE.Vector4(1.67, 1.67, 1.67, 1.67) }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
+      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, hayVid: { value: 0 }, capa: { value: negro }, capa2: { value: negro }, vid: { value: negro }, asp: { value: new THREE.Vector4(1.67, 1.67, 1.67, 1.67) }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
       vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
     if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
+    if (p.capaB) { p.cvB = document.createElement('canvas'); p.cvB.width = W; p.cvB.height = H; p.txB = new THREE.CanvasTexture(p.cvB); p.txB.colorSpace = THREE.SRGBColorSpace; p.txB.generateMipmaps = false; p.txB.minFilter = THREE.LinearFilter; }
     if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
     /* v11.26 · pista con vídeo: un solo elemento, sin sonido, que se lleva al compás de la pista · v11.31: cada vídeo se descarga cuando le toca o cuando va a ser el siguiente (no los cinco al abrir SIMULAR) */
     if (p.video) { const el = document.createElement('video'); el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('muted', ''); el.preload = 'none'; el.crossOrigin = 'anonymous'; el.src = RAIZ + p.video;
@@ -379,6 +377,7 @@ export function crearPistas(renderer) {
     if (el.paused && !p.vEsp) { p.vEsp = true; const pr = el.play(); if (pr && pr.then) pr.catch(() => {}).then(() => { p.vEsp = false; }); else p.vEsp = false; } }
   function capas(p) { const f = firma + '|' + imgV + '|' + (document.fonts ? document.fonts.status : '') + '|' + (p.vOk ? 'v' : ''); if (p.hecha === f) return; p.hecha = f;
     if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capa(x, paredes, !!p.vOk); } catch (e) {} p.tx.needsUpdate = true; }
+    if (p.capaB) { const x = p.cvB.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capaB(x, paredes); } catch (e) {} p.txB.needsUpdate = true; }
     if (p.capaSuelo) { const x = p.cvS.getContext('2d'); x.clearRect(0, 0, WS, WS); try { p.capaSuelo(x); } catch (e) {} p.txS.needsUpdate = true; } }
   /* orden al azar sin repetir pista seguida: se barajan las seis y se vuelve a barajar al acabar la tanda */
   const az = azarDe(Math.floor(Math.random() * 2147483000) + 1), az2 = azarDe(Math.floor(Math.random() * 2147483000) + 1), cola = []; let fija = null;
@@ -393,7 +392,7 @@ export function crearPistas(renderer) {
     capas(p); const U = p.mat.uniforms; U.hayVid.value = p.vOk ? 1 : 0; U.vid.value = p.vOk ? p.txV : negro; U.zoomCapa.value = p.vOk ? 0 : (p.zoom || 0); U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
     const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b); const as = [1.67, 1.67, 1.67, 1.67]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0 && q.w > 0 && q.h > 0) as[i] = q.w / q.h; }); U.asp.value.fromArray(as);
     quad.material = p.mat; const prev = renderer.getRenderTarget();
-    U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; renderer.setRenderTarget(rt); renderer.render(esc, cam);
+    U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; U.capa2.value = p.capaB ? p.txB : negro; renderer.setRenderTarget(rt); renderer.render(esc, cam);
     U.esSuelo.value = 1; U.hayCapa.value = p.capaSuelo ? 1 : 0; U.capa.value = p.capaSuelo ? p.txS : negro; renderer.setRenderTarget(rtS); renderer.render(esc, cam);
     renderer.setRenderTarget(prev);
   }

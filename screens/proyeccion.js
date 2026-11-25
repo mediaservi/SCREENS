@@ -29,6 +29,10 @@ EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 // a la cara del cuerpo más cercana a la pantalla (desfase, m). Las plegadas no desplazan la imagen: va pegada al proyector.
 /* v11.6 · ELPLU03S, ELPLW05 y ELPLM08 en PQ2000: desplazamiento ±25 / ±8 % (antes ±18 / ±6); ELPLU03S en PU2000 ±24 / ±8 % y mínimo de 80″ también
    en PU1000; ELPLM08 en PQ2000 con tope de 9.600 lm. Datos del fabricante (24-11-2026) */
+/* v11.32 · NORMA (Josep, 25-11-2026): solo se ofrece material dado de alta. Mandan la web (charmex.net) y el CRM, que se ponen al día cada 15 días;
+   una óptica que aún no está en ellos no entra en el cálculo, ni en AUTO ni a mano, porque no se podría entregar. Sus datos se quedan aquí:
+   cuando se dé de alta basta con quitarla de esta lista. */
+export const OPTICAS_SIN_ALTA = ['ELPLX04H'];
 export const OPTICAS = [
   { ref: 'ELPLX01S', tipo: 'ust', plegada: 1, sep: { PU1000: 0.259 }, desfase: { PU1000: 0.332 }, lm: { PU1000: 0.855 }, min: 100, s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
   { ref: 'ELPLX02S', tipo: 'ust', plegada: 1, sep: { PU2000: 0.2, PQ2000: 0.228, XQ2030: 0.228 }, desfase: { PU2000: 0.21, PQ2000: 0.225, XQ2030: 0.225 }, lm: { PU2000: 0.845, PQ2000: 0.845 }, lmXQ: 20000, min: 100, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
@@ -87,7 +91,7 @@ function leer() {
     if (c[2] === 'fija') { const F = FIJA_EPSON[c[1]] || {}, tr = c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
       out.push(combo('', tr, Number(c[4]), F.sh || [], { minDiagPulg: F.min || 0, ...(F.sep ? { ust: true, plegada: true, sepUST: F.sep, desfase: F.desfase } : { ust: false }) })); return; }
     OPTICAS.forEach((o) => {
-      const d = o.s[c[2]]; if (!d) return;
+      const d = o.s[c[2]]; if (!d || OPTICAS_SIN_ALTA.includes(o.ref)) return;
       const sr = c[2], cuerpoLm = Number(c[4]);
       let lm = sr === 'XQ2030' && o.lmXQ ? Math.min(cuerpoLm, o.lmXQ) : Math.round(cuerpoLm * ((o.lm && o.lm[sr]) || 1));
       if (o.lmMax && o.lmMax[sr]) lm = Math.min(lm, o.lmMax[sr]);

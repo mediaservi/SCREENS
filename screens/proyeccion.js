@@ -32,7 +32,13 @@ EPSON,EB-XQ2030B,XQ2030,,30000,16:9,4K (3840 x 2160),4K,1000,1100,`;
 /* v11.32 · NORMA (Josep, 25-11-2026): solo se ofrece material dado de alta. Mandan la web (charmex.net) y el CRM, que se ponen al día cada 15 días;
    una óptica que aún no está en ellos no entra en el cálculo, ni en AUTO ni a mano, porque no se podría entregar. Sus datos se quedan aquí:
    cuando se dé de alta basta con quitarla de esta lista. */
-export const OPTICAS_SIN_ALTA = ['ELPLX04H'];
+export const OPTICAS_SIN_ALTA = ['ELPLX04H', 'ELPLU06H', 'ELPLU07H', 'ELPLU04H', 'ELPLL11H'];
+/* v11.34 · Las ópticas «H» son la serie nueva (para el EB-XQ2030B de 30.000 lm, compatibles con los cuerpos anteriores): todavía no se venden ni habrá
+   stock en unos meses, así que no se ofrecen. Las que tienen gemela sin «H» (W08, W06, M15, M10 y M11) pasan a ofrecerse con la referencia sin «H»,
+   que es la de catálogo: mismas relaciones de proyección, desplazamientos y lúmenes en los cuerpos PU y PQ (hoja de especificaciones del fabricante
+   de la serie EB-PU2010, r106), y con el EB-XQ2030B quedan en 20.000 lm, como el resto de ópticas sin «H» (guía de ópticas del fabricante).
+   Cada una guarda su gemela en refH y sus lúmenes con el EB-XQ2030B en lmXQH, para activarla cuando llegue.
+   Los datos de Epson se contrastan siempre con las hojas de especificaciones de cada modelo publicadas por el fabricante. */
 export const OPTICAS = [
   { ref: 'ELPLX01S', tipo: 'ust', plegada: 1, sep: { PU1000: 0.259 }, desfase: { PU1000: 0.332 }, lm: { PU1000: 0.855 }, min: 100, s: { PU1000: [0.35, 0.35, 17, 10, 1] } },
   { ref: 'ELPLX02S', tipo: 'ust', plegada: 1, sep: { PU2000: 0.2, PQ2000: 0.228, XQ2030: 0.228 }, desfase: { PU2000: 0.21, PQ2000: 0.225, XQ2030: 0.225 }, lm: { PU2000: 0.845, PQ2000: 0.845 }, lmXQ: 20000, min: 100, s: { PU2000: [0.35, 0.35, 25, 15, 1], PQ2000: [0.34, 0.34, 30, 13, 1], XQ2030: [0.34, 0.34, 30, 13, 1] } },
@@ -42,13 +48,14 @@ export const OPTICAS = [
   { ref: 'ELPLU07H', tipo: 'corta', lmXQ: 26700, minS: { XQ2030: 80 }, s: { PU1000: [0.64, 0.87, 67, 30], PU2000: [0.47, 0.64, 60, 18], PQ2000: [0.46, 0.62, 64, 16], XQ2030: [0.46, 0.62, 64, 16] } },
   { ref: 'ELPLU04', tipo: 'corta', lm: { PU1000: 0.905, PU2000: 0.95, PQ2000: 0.945 }, lmXQ: 20000, s: { PU1000: [0.87, 1.05, 67, 30], PU2000: [0.64, 0.77, 60, 18], PQ2000: [0.62, 0.75, 64, 16], XQ2030: [0.62, 0.75, 64, 16] } },
   { ref: 'ELPLU04H', tipo: 'corta', lmXQ: 27800, minS: { XQ2030: 80 }, s: { PU1000: [0.86, 1.22, 67, 30], PU2000: [0.64, 0.90, 60, 18], PQ2000: [0.62, 0.87, 64, 16], XQ2030: [0.62, 0.87, 64, 16] } },
-  { ref: 'ELPLW05', tipo: 'angular', lm: { PU1000: 0.87 }, lmMax: { PU2000: 11700, PQ2000: 12000 }, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 25, 8] } },
-  { ref: 'ELPLW08H', tipo: 'angular', lm: { PU1000: 0.855, PU2000: 0.955, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [1.18, 1.66, 67, 30], PU2000: [0.86, 1.21, 60, 18], PQ2000: [0.83, 1.17, 64, 16], XQ2030: [0.83, 1.17, 64, 16] } },
-  { ref: 'ELPLW06H', tipo: 'angular', lm: { PU1000: 0.945, PU2000: 0.955, PQ2000: 0.955 }, lmXQ: 28700, s: { PU1000: [1.62, 2.22, 67, 30], PU2000: [1.19, 1.62, 60, 18], PQ2000: [1.15, 1.57, 64, 16], XQ2030: [1.15, 1.57, 64, 16] } },
+  { ref: 'ELPLW05', tipo: 'angular', lm: { PU1000: 0.87, PU2000: 0.89 },   /* v11.34 · 8.900 lm con el EB-PU2010 (hoja de especificaciones del fabricante) */
+    lmMax: { PU2000: 11700, PQ2000: 12000 }, s: { PU1000: [1.04, 1.46, 67, 30], PU2000: [0.77, 1.07, 24, 10], PQ2000: [0.74, 1.04, 25, 8] } },
+  { ref: 'ELPLW08', refH: 'ELPLW08H', lmXQH: 28500, tipo: 'angular', lm: { PU1000: 0.855, PU2000: 0.955, PQ2000: 0.95 }, lmXQ: 20000, s: { PU1000: [1.18, 1.66, 67, 30], PU2000: [0.86, 1.21, 60, 18], PQ2000: [0.83, 1.17, 64, 16], XQ2030: [0.83, 1.17, 64, 16] } },
+  { ref: 'ELPLW06', refH: 'ELPLW06H', lmXQH: 28700, tipo: 'angular', lm: { PU1000: 0.945, PU2000: 0.955, PQ2000: 0.955 }, lmXQ: 20000, s: { PU1000: [1.62, 2.22, 67, 30], PU2000: [1.19, 1.62, 60, 18], PQ2000: [1.15, 1.57, 64, 16], XQ2030: [1.15, 1.57, 64, 16] } },
   { ref: 'ELPLM08', tipo: 'estandar', lmMax: { PU2000: 10000, PQ2000: 9600 }, minS: { PU2000: 80, PQ2000: 80 }, s: { PU1000: [1.44, 2.32, 67, 30], PU2000: [1.06, 1.69, 24, 10], PQ2000: [1.02, 1.64, 25, 8] } },
-  { ref: 'ELPLM15H', tipo: 'estandar', lm: { PU1000: 0.985 }, lmXQ: 30000, s: { PU1000: [2.16, 3.48, 67, 30], PU2000: [1.57, 2.56, 60, 18], PQ2000: [1.52, 2.47, 64, 16], XQ2030: [1.52, 2.47, 64, 16] } },
-  { ref: 'ELPLM10H', tipo: 'media', lm: { PU1000: 0.975, PU2000: 0.99, PQ2000: 0.985 }, lmXQ: 29700, s: { PU1000: [3.32, 5.06, 67, 30], PU2000: [2.42, 3.71, 60, 18], PQ2000: [2.34, 3.59, 64, 16], XQ2030: [2.34, 3.59, 64, 16] } },
-  { ref: 'ELPLM11H', tipo: 'media', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [4.85, 7.38, 67, 30], PU2000: [3.54, 5.41, 60, 18], PQ2000: [3.42, 5.23, 64, 16], XQ2030: [3.42, 5.23, 64, 16] } },
+  { ref: 'ELPLM15', refH: 'ELPLM15H', lmXQH: 30000, tipo: 'estandar', lm: { PU1000: 0.985 }, lmXQ: 20000, s: { PU1000: [2.16, 3.48, 67, 30], PU2000: [1.57, 2.56, 60, 18], PQ2000: [1.52, 2.47, 64, 16], XQ2030: [1.52, 2.47, 64, 16] } },
+  { ref: 'ELPLM10', refH: 'ELPLM10H', lmXQH: 29700, tipo: 'media', lm: { PU1000: 0.975, PU2000: 0.99, PQ2000: 0.985 }, lmXQ: 20000, s: { PU1000: [3.32, 5.06, 67, 30], PU2000: [2.42, 3.71, 60, 18], PQ2000: [2.34, 3.59, 64, 16], XQ2030: [2.34, 3.59, 64, 16] } },
+  { ref: 'ELPLM11', refH: 'ELPLM11H', lmXQH: 28500, tipo: 'media', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 20000, s: { PU1000: [4.85, 7.38, 67, 30], PU2000: [3.54, 5.41, 60, 18], PQ2000: [3.42, 5.23, 64, 16], XQ2030: [3.42, 5.23, 64, 16] } },
   { ref: 'ELPLL08', tipo: 'larga', lm: { PU1000: 0.935, PU2000: 0.95, PQ2000: 0.95 }, lmXQ: 28500, s: { PU1000: [7.21, 10.11, 67, 30], PU2000: [5.27, 7.41, 60, 18], PQ2000: [5.09, 7.16, 64, 16], XQ2030: [5.09, 7.16, 64, 16] } },
   { ref: 'ELPLL11H', tipo: 'larga', lmXQ: 29900, minS: { XQ2030: 70 }, s: { PU1000: [9.90, 15.52, 67, 30], PU2000: [7.23, 11.38, 60, 18], PQ2000: [6.99, 11.00, 64, 16], XQ2030: [6.99, 11.00, 64, 16] } }
 ];

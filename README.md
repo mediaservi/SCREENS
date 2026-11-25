@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.33** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.34** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.33)
+## Cambios de la versión actual (v11.34)
+- **Proyección · las ópticas que se ofrecen son las de catálogo.** Las ópticas de la serie nueva (referencias acabadas en «H») dejan de proponerse hasta que estén disponibles. Las que tienen equivalente en la serie actual (gran angular W06 y W08; estándar y media distancia M15, M10 y M11) se ofrecen con esa referencia, con las mismas relaciones de proyección, desplazamientos y luminosidad según la información del fabricante. Con el EB-XQ2030B, estas ópticas quedan en 20.000 lm.
+- Proyección · el ELPLW05 con el EB-PU2010 da 8.900 lm (antes se calculaba con 10.000), según la información del fabricante.
+
+## Cambios de la v11.33
 - **SIMULAR · de la Luna a la playa:** al posarse, la vista gira hacia el mar y la luna llena queda de frente, más baja y más grande, con palmeras en primer término junto al agua. Mientras el vídeo carga ya no asoma el volcán antiguo: se ve un cielo de noche con estrellas.
 - **SIMULAR · El Misterio de Ek Chuah:** el título entra bien grande en la pared frontal, en un zoom hacia el espectador, y da paso al alux saltando; a la derecha, la galería de la pantera de jade; a la izquierda, el altar dorado; detrás, el pasadizo del cacao.
 - **SIMULAR · WONDERWALK:** el título ocupa la pared frontal y se escribe a pluma, de izquierda a derecha, durante los primeros segundos.

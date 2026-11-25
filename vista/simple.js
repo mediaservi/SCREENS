@@ -13,7 +13,7 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.33';
+const VERSION = 'v11.34';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -253,7 +253,7 @@ const P = {
   pro: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   varita: '<path d="M4 20L15 9"/><path d="M15 3.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/><path d="M19.5 10.5l.6 1.3 1.4.7-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.7z"/>',
   regla: '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
-  fabrica: '<path fill="currentColor" stroke="none" d="M2,22V9.98L9,7V9l5-2v3h8V22H2Zm2-2H20V12H12V9.95l-5,2V10L4,11.33V20Zm7-2h2V14H11v4ZM7,18H9V14H7v4Zm8,0h2V14H15v4Zm7-8H17l1-8h3l1,8ZM4,20H7h5h8H4Z"/>',   /* v10.59 · las marcas llevan la fábrica, no el proyector */
+  fabrica: '<path fill="currentColor" stroke="none" d="M2,22V9.98L9,7V9l5-2v3h8V22H2Zm2-2H20V12H12V9.95l-5,2V10L4,11.34V20Zm7-2h2V14H11v4ZM7,18H9V14H7v4Zm8,0h2V14H15v4Zm7-8H17l1-8h3l1,8ZM4,20H7h5h8H4Z"/>',   /* v10.59 · las marcas llevan la fábrica, no el proyector */
   ojo: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   altura: '<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>',
   persona: '<circle cx="12" cy="6" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/>',

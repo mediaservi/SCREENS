@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.23** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.24** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.23)
+## Cambios de la versión actual (v11.24)
+- SIMULAR · la pista de Barcelona queda con sus ocho fotografías antiguas definitivas, dos por pared: el Moll de la Fusta, la Rambla de les Flors, el Saló de Sant Joan, los monumentos a Prim y a Colón, la escalinata del Park Güell, el Hospital de Sant Pau recién construido y una estación de mercancías con sus trenes de vapor. Todas en dominio público (créditos en `assets/sim/pistas/CREDITOS.md`).
+
+## Cambios de la v11.23
 - SIMULAR · en la pista de El Misterio de Ek Chuah el suelo pasa a ser un enlosado como el de las escenas del juego: losas rectangulares desiguales, junta oscura, matas de musgo y muescas, a la luz de las antorchas (antes repetía el emblema del altar, que ya sale en una pared).
 
 ## Cambios de la v11.22

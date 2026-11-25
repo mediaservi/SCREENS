@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.34** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.35** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.34)
+## Cambios de la versión actual (v11.35)
+- **Proyección · luminosidad con cada óptica, revisada en toda la gama láser de ópticas intercambiables** según la información del fabricante:
+  - ELPLW05 con los EB-PQ2010, EB-PQ2008 y EB-PQ2213: unos 8.750, 7.000 y 11.400 lm (antes se calculaba con la luminosidad completa del proyector).
+  - ELPLM08 con los EB-PQ2213, EB-PQ2216 y EB-PQ2220: tope de 10.000 lm (antes 9.600); con el EB-PQ2008, unos 7.700 lm (antes 8.000).
+- El resto de combinaciones ya coincidía y no cambia.
+
+## Cambios de la v11.34
 - **Proyección · las ópticas que se ofrecen son las de catálogo.** Las ópticas de la serie nueva (referencias acabadas en «H») dejan de proponerse hasta que estén disponibles. Las que tienen equivalente en la serie actual (gran angular W06 y W08; estándar y media distancia M15, M10 y M11) se ofrecen con esa referencia, con las mismas relaciones de proyección, desplazamientos y luminosidad según la información del fabricante. Con el EB-XQ2030B, estas ópticas quedan en 20.000 lm.
 - Proyección · el ELPLW05 con el EB-PU2010 da 8.900 lm (antes se calculaba con 10.000), según la información del fabricante.
 

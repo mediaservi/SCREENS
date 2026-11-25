@@ -3,7 +3,7 @@
 // figura humana a escala, cotas y vistas predefinidas. Se renderiza solo cuando algo cambia.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { crearDron } from './simula.js';
+import { crearPistas } from './pistas.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
@@ -244,7 +244,8 @@ export class Escena {
     const anchoPano = ordenPano.reduce((a, f) => a + (f.r ? f.r.ancho : f.s.ancho), 0) || 1;
     let acum = 0; const tramo = {};
     ordenPano.forEach(f => { const w = f.r ? f.r.ancho : f.s.ancho; tramo[f.s.id] = { u0: acum / anchoPano, u1: (acum + w) / anchoPano }; acum += w; });
-    { const fr = tramo.frontal || tramo[(ordenPano[Math.floor((ordenPano.length - 1) / 2)] || { s: {} }).s.id]; this._simU = fr ? (fr.u0 + fr.u1) / 2 : 0.5; }   // v10.91 · el templo del vuelo, delante
+    { const fr = tramo.frontal || tramo[(ordenPano[Math.floor((ordenPano.length - 1) / 2)] || { s: {} }).s.id]; this._simU = fr ? (fr.u0 + fr.u1) / 2 : 0.5; }
+    this._simPar = ordenPano.map(f => ({ id: f.s.id, u0: tramo[f.s.id].u0, u1: tramo[f.s.id].u1, w: f.r ? f.r.ancho : f.s.ancho, h: f.r ? f.r.alto : f.s.alto }));   // v11.21 · cada pista sabe qué paredes hay y cuánto miden   // v10.91 · el templo del vuelo, delante
     const altoMax = Math.max(...m.superficies.map(f => (f.r ? f.r.alto : f.s.alto)), 1);
     let luces = 0;
     m.superficies.forEach((f, idx) => {
@@ -256,7 +257,7 @@ export class Escena {
         const tex = this._cartaLed(s, r, f.nombre, cont, pano ? { img: pano.img, ...tramo[s.id], altoMax } : null);
         if (s.tipo === 'suelo') {
           const lo = new THREE.Mesh(new THREE.BoxGeometry(r.ancho, 0.06, r.alto), [mMetal(), mMetal(), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }), mMetal(), mMetal(), mMetal()]);
-          lo.position.y = 0.03; G.add(lo); return;
+          lo.position.y = 0.03; G.add(lo); if (m.contenido === 'simular') this._capaSuelo(G, r.ancho, r.alto, 0.064); return;
         }
         const frente = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
         const caja = new THREE.Mesh(new THREE.BoxGeometry(r.ancho, r.alto, t), [mMetal(), mMetal(), mMetal(), mMetal(), frente, mMetal()]);
@@ -281,7 +282,7 @@ export class Escena {
           const tex = this._sueloProy(s, p, cont);
           if (vivo && m.contenido === 'propio') { const gS = new THREE.Group(); gS.rotation.x = -Math.PI / 2; G.add(gS); this._capaMedio(gS, { x: 0, y: 0, z: 0.012, w: s.ancho, h: s.alto }, null, m, true); }
           const pl = new THREE.Mesh(new THREE.PlaneGeometry(s.ancho, s.alto), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
-          pl.rotation.x = -Math.PI / 2; pl.position.y = 0.006; G.add(pl);
+          pl.rotation.x = -Math.PI / 2; pl.position.y = 0.006; G.add(pl); if (m.contenido === 'simular') this._capaSuelo(G, s.ancho, s.alto, 0.012);
           p.pos.forEach((q, i) => this._proyector(G, new THREE.Vector3(q.x, H - 0.15, q.z), [
             new THREE.Vector3(q.x - p.imgW / 2, 0.01, q.z - p.imgH / 2), new THREE.Vector3(q.x + p.imgW / 2, 0.01, q.z - p.imgH / 2),
             new THREE.Vector3(q.x + p.imgW / 2, 0.01, q.z + p.imgH / 2), new THREE.Vector3(q.x - p.imgW / 2, 0.01, q.z + p.imgH / 2)], i + 10, prod, true, m.conflictos && m.conflictos.has(s.id + ':' + i)));
@@ -433,9 +434,13 @@ export class Escena {
   // v10.91 · SIMULAR: vuelo de dron en bucle cerrado (48 s) dibujado en 360°: la vuelta completa casa en la esquina de una sala de 4 paredes.
   // El templo queda en la pared frontal (o en el centro del recorrido si no hay pared frontal).
   _simula() {
-    if (!this._sim) { this._sim = crearDron(this.renderer); this._sim.t0 = performance.now(); }
-    this._sim.frente(this._simU != null ? this._simU : 0.5); this._pintaSimula(); return this._sim.rt.texture;
+    if (!this._sim) { this._sim = crearPistas(this.renderer); this._sim.t0 = performance.now(); }
+    this._sim.paredes(this._simPar); this._sim.frente(this._simU != null ? this._simU : 0.5); this._pintaSimula(); return this._sim.rt.texture;
   }
+  // v11.21 · el suelo de la pista en marcha: la misma escena mirando hacia abajo, recortada al formato del suelo
+  _capaSuelo(G, w, h, y) { this._simula(); const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv, a = w / h, rx = a >= 1 ? 1 : a, ry = a >= 1 ? 1 / a : 1;
+    for (let k = 0; k < uv.count; k++) uv.setXY(k, .5 + (uv.getX(k) - .5) * rx, .5 + (uv.getY(k) - .5) * ry);
+    const pl = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: this._sim.rtSuelo.texture, toneMapped: false })); pl.rotation.x = -Math.PI / 2; pl.position.y = y; G.add(pl); this._vivos.push({ demo: true }); }
   _pintaSimula() { const S = this._sim; if (S) S.pinta((performance.now() - S.t0) / 1000); }
   _bucle() {
     if (!this._animando || !this._vivos.length) { this._animando = false; return; }

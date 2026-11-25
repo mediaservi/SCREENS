@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.20** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.21** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,16 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.20)
+## Cambios de la versión actual (v11.21)
+- **SIMULAR por pistas.** El contenido simulado pasa a ser una lista de seis pistas de 10 segundos que se suceden al azar y en bucle, con fundido entre ellas. Todas pintan las cuatro paredes en 360° continuo y también el suelo (casan en el zócalo); cada proyecto enseña solo las superficies que tiene.
+  - Vuelo sobre el templo modernista, ahora con un suelo de trencadís.
+  - AVHUB: muro de píxeles con los colores de la marca, un haz que da la vuelta a la sala y un rótulo distinto en cada pared.
+  - El Misterio de Ek Chuah: cámara de piedra con antorchas, glifos que se encienden en oro y jade, una escena en cada pared y disco solar en el suelo.
+  - WONDERWALK: noche violeta con luna, castillos y pinos, y un prado con el remolino de magia.
+  - Volcán: descenso desde las nubes por la chimenea del cráter hasta el lago de lava, con tótems tiki y antorchas.
+  - Barcelona: fotografías antiguas que se colorean (pendiente de las fotografías) sobre un suelo de panots y mosaico hidráulico.
+
+## Cambios de la v11.20
 - **Lo escrito viaja también desde la vista SIMPLE.** Al saltar de una pantalla LED a varias o a proyección (y al volver) desde SIMPLE o desde su asistente, se conservan las medidas y el resto de datos, igual que en la vista completa.
 - Los enlaces con `?modo=` conservan el idioma y el asistente indicados en la dirección.
 - En varias pantallas LED, el pie de cada pantalla del esquema (medidas, resolución y líneas) baja a dos líneas en vez de cortarse.

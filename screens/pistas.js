@@ -173,7 +173,8 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ vec3 col=k.rgb;
   col+=mix(vec3(.6,1.,.5), vec3(.9,.5,1.), h2(id+5.))*ch*.9;                                 /* chispas de la varita */
   return mix(c, col, k.a); }`;
 
-/* ---------- 5 · VOLCÁN: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
+/* ---------- 5 · VOLCÁN (v11.31): recorrido 3D grabado en cinco caras (ver cubo()): despegue de la Luna con la Tierra delante, reentrada, caída sobre la isla
+   y descenso por la chimenea de basalto hasta el lago de lava con los tótems. Sin vídeo cargado, lo de antes: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
 const G_VOLCAN = `
 vec3 lava(vec2 p, float e){ vec2 w=vec2(fbm2(p*1.3+vec2(0.,T*.11)), fbm2(p*1.3+vec2(5.2,-T*.09))); float f=fbm2(p*2.2+w*2.2+T*.05);
   float costra=smoothstep(.42,.60,f), gr=cresta(vec3(p*3.+w, T*.04));
@@ -199,7 +200,7 @@ vec3 espacio(vec3 d){ vec3 ge=d*170.; vec3 e=floor(ge); vec3 c=vec3(.004,.006,.0
     float l=(relieveLuna(p+sl*e2)-relieveLuna(p-sl*e2))/(2.*e2); vec3 luna=vec3(.46,.49,.56)*(.6+.3*fbm2(p*.7))*clamp(.8+l*.17,.22,1.5);
     float lejos=smoothstep(.03,.2,-d.y); luna=mix(vec3(.30,.33,.40), luna, smoothstep(.03,.35,-d.y)); c=mix(c, luna, lejos*smoothstep(2.7,2.1,t)); }
   return c; }
-vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an),sin(an),0.);
+vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an),sin(an),0.);
   float k=t/12., baja=smoothstep(.36,.94,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
   float hl=mix(7.5,.95,smoothstep(.42,1.,k));                                      /* a qué distancia queda el lago */
   /* el cielo del atardecer de Hawái y el mar de nubes que atravesamos */
@@ -253,7 +254,8 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an)
   c=mix(arriba, c, smoothstep(.36,.5,k)); c+=vec3(1.,.35,.05)*.03*glow;
   return c; }` + CAPA_SIMPLE;
 
-/* ---------- 6 · BARCELONA: fotos antiguas que se colorean sobre papel, y panots y mosaico hidráulico en el suelo ---------- */
+/* ---------- 6 · BARCELONA (v11.31): paseo en 360° por una galería modernista (suelo hidráulico, arrimadero de azulejo, arcos y globos de luz) con las ocho
+   fotografías colgadas, que se colorean al llegar a ellas; grabado en cinco caras (ver cubo()). Sin vídeo cargado, lo de antes: fotos antiguas que se colorean sobre papel, y panots y mosaico hidráulico en el suelo ---------- */
 const G_BCN = `
 float flor(vec2 f){ vec2 q=abs(f-.5); float pet=min(length(q-vec2(.2,.0)), length(q-vec2(.0,.2)))-.13; float cen=length(f-.5)-.085; float ar=abs(length(f-.5)-.4)-.012;
   return min(min(abs(pet)-.018, abs(cen)-.016), max(ar, -1.)); }
@@ -262,7 +264,7 @@ vec3 hidra(vec2 p){ vec2 f=fract(p)-.5; vec2 a=abs(f); float est=max(a.x,a.y)*.7
   vec3 c=crema; c=mix(c, azul, step(rombo,.5)*step(.42,rombo)); c=mix(c, teja, step(est,.31)); c=mix(c, crema, step(r,.2)); c=mix(c, verde, step(r,.15)*step(.5,fract(atan(f.y,f.x)/TAU*8.))); c=mix(c, ocre, step(r,.07));
   vec2 e=abs(fract(p+.5)-.5); c=mix(c, ocre, step(length(e),.13)); c=mix(c, azul, step(length(e),.07));
   return c*(.9+.1*n2(p*40.)); }
-vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
+vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(-d.x,d.z);
   if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y); vec3 c;
     float luz=.78+.22*smoothstep(-1.,1., p.x*.6+p.y*.8);
     if(r<.46){ c=hidra(p*giro(.7854)*7.)*luz; }
@@ -283,7 +285,8 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
   float cen=step(.47,y)*step(y,.56); float lat=.5+.5*sin(an*40.)*sin(an*40.+y*30.); c=mix(c, mix(vec3(.26,.42,.30), vec3(.80,.58,.22), lat), cen*.85);
   return c; }
 /* la foto entra en blanco y negro y se colorea como una postal iluminada a mano, con una ola que recorre la sala */
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z); float lum=dot(k.rgb, vec3(.3,.59,.11));
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ if(hayVid>.5) return c;   /* con vídeo, las fotos van colgadas dentro del propio recorrido */
+  float an=atan(-d.x,d.z); float lum=dot(k.rgb, vec3(.3,.59,.11));
   float y=v.y; vec3 tinte=mix(mix(vec3(.50,.33,.20), vec3(.86,.70,.50), smoothstep(.1,.6,lum)), vec3(.60,.80,.98), smoothstep(.55,.95,lum)*smoothstep(.45,.8,y));
   tinte=mix(tinte, vec3(.36,.52,.30), smoothstep(.25,.5,lum)*smoothstep(.5,.2,y)*.35);
   vec3 col=mix(vec3(lum), tinte*(.35+lum*.95), .82); float esFoto=step(abs(k.r-k.g)+abs(k.g-k.b), .06);
@@ -342,8 +345,8 @@ const PISTAS = [
   { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo, video: 'sim/pistas/avhub-360.mp4', vdur: 12 },
   { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07, video: 'sim/pistas/ww-360.mp4', vdur: 12 },
-  { id: 'volcan', glsl: G_VOLCAN },
-  { id: 'barcelona', glsl: G_BCN, capa: capaBcn },
+  { id: 'volcan', glsl: G_VOLCAN, video: 'sim/pistas/volcan-360.mp4', vdur: 12 },
+  { id: 'barcelona', glsl: G_BCN, capa: capaBcn, video: 'sim/pistas/bcn-360.mp4', vdur: 12 },
 ];
 export const PISTAS_ID = PISTAS.map((p) => p.id);
 
@@ -360,13 +363,14 @@ export function crearPistas(renderer) {
       vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
     if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
     if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
-    /* v11.26 · pista con vídeo: un solo elemento, sin sonido, que se carga al abrir SIMULAR y se lleva al compás de la pista */
-    if (p.video) { const el = document.createElement('video'); el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('muted', ''); el.preload = 'auto'; el.crossOrigin = 'anonymous'; el.src = RAIZ + p.video;
+    /* v11.26 · pista con vídeo: un solo elemento, sin sonido, que se lleva al compás de la pista · v11.31: cada vídeo se descarga cuando le toca o cuando va a ser el siguiente (no los cinco al abrir SIMULAR) */
+    if (p.video) { const el = document.createElement('video'); el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('muted', ''); el.preload = 'none'; el.crossOrigin = 'anonymous'; el.src = RAIZ + p.video;
       p.vid = el; p.txV = new THREE.VideoTexture(el); p.txV.generateMipmaps = false; p.txV.minFilter = p.txV.magFilter = THREE.LinearFilter; p.vOk = false; }
     p.hecha = '';
   });
   /* el vídeo dura vdur y la pista DUR: va algo más lento para llenarla entera; si se descuadra (pestaña en segundo plano, equipo lento) se recoloca */
-  function video(p, activa, tl, quieto) { const el = p.vid; if (!activa) { if (!el.paused) el.pause(); return; }
+  function carga(p) { if (p && p.vid && !p.vCarga) { p.vCarga = true; p.vid.preload = 'auto'; try { p.vid.load(); } catch (e) {} } }
+  function video(p, activa, tl, quieto) { const el = p.vid; if (!activa) { if (!el.paused) el.pause(); return; } carga(p);
     p.vOk = el.readyState >= 2 && !el.error; if (el.readyState < 1) return;
     const k = p.vdur / DUR, obj = Math.min(p.vdur - .06, Math.max(0, tl * k));
     if (quieto) { if (!el.paused) el.pause(); if (Math.abs(el.currentTime - obj) > .03 && !el.seeking) el.currentTime = obj; return; }
@@ -385,7 +389,7 @@ export function crearPistas(renderer) {
     const n = Math.floor(T / DUR), tl = fija ? fija.t != null ? fija.t : T % DUR : T - n * DUR, p = fija ? PISTAS[fija.i] : PISTAS[pistaN(n)];
     const fade = fija ? (fija.f != null ? fija.f : 1) : Math.min(1, tl / FUND, (DUR - tl) / FUND), ct = fija ? { e: fija.e || 0, s: .37 } : corteN(tl < DUR / 2 ? n - 1 : n);
     if (p.dron) { dron.frente(uF); dron.pinta(T); }
-    PISTAS.forEach((q) => { if (q.vid) video(q, q === p, tl, !!(fija && fija.t != null)); });
+    PISTAS.forEach((q) => { if (q.vid) video(q, q === p, tl, !!(fija && fija.t != null)); }); if (!fija) carga(PISTAS[pistaN(n + 1)]);
     capas(p); const U = p.mat.uniforms; U.hayVid.value = p.vOk ? 1 : 0; U.vid.value = p.vOk ? p.txV : negro; U.zoomCapa.value = p.vOk ? 0 : (p.zoom || 0); U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
     const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b); const as = [1.67, 1.67, 1.67, 1.67]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0 && q.w > 0 && q.h > 0) as[i] = q.w / q.h; }); U.asp.value.fromArray(as);
     quad.material = p.mat; const prev = renderer.getRenderTarget();

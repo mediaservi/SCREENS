@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.30** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.31** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.30)
+## Cambios de la versión actual (v11.31)
+- **SIMULAR · la pista del volcán pasa a ser un recorrido 3D en 360°:** despegue desde la superficie de la Luna, con sus cráteres y la Tierra delante; llegada a la Tierra y reentrada; caída sobre la isla entre nubes y descenso por la chimenea de basalto, con vetas encendidas, hasta el lago de lava rodeado de tótems y antorchas.
+- **SIMULAR · la pista de Barcelona pasa a ser un paseo en 360° por una galería modernista** (suelo de baldosa hidráulica, arrimadero de azulejo, arcos y globos de luz) con las ocho fotografías antiguas colgadas: cada una entra en blanco y negro y se colorea, como una postal iluminada a mano, al llegar a ella.
+- Con esto, las seis pistas son imagen en movimiento. Cada vídeo se descarga cuando le toca o cuando va a ser el siguiente, no todos al abrir SIMULAR; mientras uno carga se ve la pista anterior.
+- Una pantalla LED · en el tema claro, el rótulo VISTA de la barra de fondos se lee (va en azul claro sobre la barra oscura).
+
+## Cambios de la v11.30
 - Desplegable de cabinets · el fondo que señala los modelos con stock pasa del azul al verde del logotipo de Traulux, en su versión oscura o clara según el tema.
 
 ## Cambios de la v11.29

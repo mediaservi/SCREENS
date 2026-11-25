@@ -660,6 +660,8 @@ table.mat a { color: inherit; text-decoration: underline; text-underline-offset:
 :root { --vista: #38c6ff; }
 :root[data-tema="claro"] { --vista: #0071b8; }
 .vis-r { flex: none; display: inline-flex; align-items: center; gap: calc(var(--u) * 5); font-size: calc(var(--u) * 11); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--vista); opacity: .9; white-space: nowrap; }
+/* v11.31 · dentro de la barra de fondos (siempre oscura) el rótulo va en el azul claro también en el tema claro: con el azul oscuro no se leía */
+.fondos .vis-r { color: #38c6ff; opacity: 1; }
 .vis-r::before { content: ''; width: calc(var(--u) * 14); height: calc(var(--u) * 9); border: calc(var(--u) * 1.6) solid currentColor; border-radius: 50% / 60%; box-shadow: inset 0 0 0 calc(var(--u) * 1.6) var(--blk), inset 0 0 0 calc(var(--u) * 4) currentColor; }
 #rejilla .pestanas button, .cosidos.planos button { border-radius: 999px; }
 #rejilla .pestanas button[aria-pressed="true"], .cosidos.planos button[aria-pressed="true"], :root[data-tema="claro"] .cosidos.planos button[aria-pressed="true"] { color: var(--vista); border-color: var(--vista); background: color-mix(in srgb, var(--vista) 14%, var(--blk)); box-shadow: none; }

@@ -25,11 +25,11 @@ import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
 globalThis.SC_INTERNO = esInterno;   /* v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin */
-import '../comun/ficha.js?v=11.30';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=11.31';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.30';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.31';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -190,9 +190,9 @@ function interpreta(raw, nueva) {
     E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
   /* v10.63 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
   if (d || cabs || px || mod) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0;
-    /* v11.30 · y tampoco hereda exterior ni alquiler: si el texto ha cambiado y ya no los nombra, vuelve a interior y fija (con el mismo texto, lo elegido con los botones se respeta) */
+    /* v11.31 · y tampoco hereda exterior ni alquiler: si el texto ha cambiado y ya no los nombra, vuelve a interior y fija (con el mismo texto, lo elegido con los botones se respeta) */
     if (nueva) { E.tipo = DEF.tipo; E.clase = DEF.clase; } }
-  /* v11.30 · «no hace falta que sea de exterior», «no exterior», «not outdoor»: un exterior negado es interior; «dentro de…» también */
+  /* v11.31 · «no hace falta que sea de exterior», «no exterior», «not outdoor»: un exterior negado es interior; «dentro de…» también */
   const tu = t.replace(/(?:\bno\b|\bnot\b|n't|\bsin\b|\bsense\b|\bwithout\b|\btampoco\b|\bni\b)[^.,;:!?\n]{0,45}?(?:exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa)/g, ' interior ');
   if (/escaparate|vitrina|shop ?window|storefront|aparador/.test(t)) { E.tipo = 'ESCAPARATE'; v.push('escaparate'); }
   else if (/exterior|outdoor|outside|intemperie|aire libre|aire lliure|fachada|facana|facade|\bcalle\b|carrer|street|terraza|terrassa/.test(tu)) { E.tipo = 'OUTDOOR'; v.push('exterior'); }

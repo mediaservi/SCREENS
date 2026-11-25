@@ -23,13 +23,13 @@ import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
 globalThis.SC_INTERNO = esInterno;   // v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin
-import '../comun/ficha.js?v=11.32';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=11.33';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.32';
+const VERSION = 'v11.33';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);

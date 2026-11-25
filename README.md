@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.32** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.33** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.32)
+## Cambios de la versión actual (v11.33)
+- **SIMULAR · de la Luna a la playa:** al posarse, la vista gira hacia el mar y la luna llena queda de frente, más baja y más grande, con palmeras en primer término junto al agua. Mientras el vídeo carga ya no asoma el volcán antiguo: se ve un cielo de noche con estrellas.
+- **SIMULAR · El Misterio de Ek Chuah:** el título entra bien grande en la pared frontal, en un zoom hacia el espectador, y da paso al alux saltando; a la derecha, la galería de la pantera de jade; a la izquierda, el altar dorado; detrás, el pasadizo del cacao.
+- **SIMULAR · WONDERWALK:** el título ocupa la pared frontal y se escribe a pluma, de izquierda a derecha, durante los primeros segundos.
+- **SIMULAR · Barcelona:** todo el suelo es panot de flor (se retiran el mosaico hidráulico del centro y el panot hexagonal).
+
+## Cambios de la v11.32
 - **SIMULAR · la pista de la Luna cambia de destino:** despega de la superficie lunar con la Tierra delante y, ya sobre el Pacífico, llega en un vuelo en arco a una isla tropical hasta posarse en la playa, de noche: palmeras, luna llena con su reflejo en el mar, nubes en el horizonte y cielo estrellado. Ya no baja al volcán.
 - **SIMULAR · WONDERWALK a ritmo de paseo:** el recorrido va ahora del final del bosque al castillo, pasando por el puente, a un tercio de la velocidad anterior.
 - **SIMULAR · Barcelona sin paseo:** las fotografías antiguas ocupan cada pared entera (dos por pared, una tras otra, con un fundido a media pista), se colorean como postales iluminadas a mano y se acercan muy despacio. El suelo queda fijo. Se retira la galería con los cuadros.

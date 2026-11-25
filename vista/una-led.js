@@ -25,11 +25,11 @@ import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
 globalThis.SC_INTERNO = esInterno;   /* v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin */
-import '../comun/ficha.js?v=11.19';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
+import '../comun/ficha.js?v=11.20';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.19';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.20';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -1082,7 +1082,7 @@ addEventListener('resize', () => { const g = $('#guia'); if (g) { const n = [...
   const ae = document.querySelector('.admin-esq'); if (ae) h.appendChild(ae); } }
 cargarEquipos(() => { if (R) todo(); });
 cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); });
-window.__blocks = { E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock, cabeEnBatch, AV_BATCH };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
+window.__blocks = { puente: () => puenteSale(), E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock, cabeEnBatch, AV_BATCH };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();
 /* v10.53 · COSIDO y MANGUERA (SEÑAL y ELÉCTRICO) caben siempre en su dibujo: si la fila es más ancha que el lienzo, se reduce entera (también en «Ver en grande») */
 (() => { let pend = 0; const encaja = () => { pend = 0; document.querySelectorAll('.cosidos, .mangas').forEach((f) => { const p = f.parentElement; if (!p || !p.clientWidth) return; f.style.transform = ''; const w = f.scrollWidth, max = p.clientWidth * .96; f.style.transformOrigin = '50% 0'; if (w > max) f.style.transform = `translateX(-50%) scale(${(max / w).toFixed(3)})`; }); };

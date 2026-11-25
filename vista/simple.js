@@ -13,9 +13,11 @@
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.19';
+const VERSION = 'v11.20';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
+/* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
+const ir = (u) => { try { const o = window.__blocks || window.__consola; o && o.puente && o.puente(); } catch (e) {} location.href = u; };
 const K_VISTA = 'screens_vista', K_ASIS = 'screens_simple_asis', K_PIDE = 'screens_simple_pide';
 const lee = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const pon = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
@@ -771,7 +773,7 @@ function siguiente() {
 /* elegir rama: si la rama vive en la otra página, se va allí con el asistente abierto en su primera pregunta */
 function rama(r) {
   if (r === 'led' && PAG !== 'portada') r = 'ledc';   /* v10.55 · en la consola, la rama LED es la de varias pantallas o sala (una sola lleva a la portada) */
-  if (r === 'proy' && PAG !== 'consola') { location.href = RAIZ + 'vista/consola.html?modo=una-proy&vista=simple&asis=proy'; return; }
+  if (r === 'proy' && PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=una-proy&vista=simple&asis=proy'); return; }
   if (r === 'proy') { const E = ED(); if (E.tecnologia !== 'proy' || modoCons() === 'varias') { E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; recalc(); } }
   W.rama = r; va(visibles(r)[0]);
 }
@@ -832,8 +834,8 @@ function responde(v) {
   if (p === 'calle') { if (v) { W.rec = 'led'; W.ayuda = 'calle'; va('rec'); } else va('oscuro'); return; }
   if (p === 'oscuro') { W.rec = v ? 'proy' : 'led'; W.ayuda = 'luz'; va('rec'); return; }
   if (p === 'ltipo') {   /* v10.55 · una pantalla se calcula en la portada; varias o una sala, en la consola */
-    if (v === 'una') { if (PAG === 'portada') { if (W.full) setTimeout(siguiente, 140); else cierra(); } else location.href = RAIZ + 'index.html?vista=simple' + (W.full ? '&asis=led' : ''); return; }
-    if (PAG !== 'consola') { location.href = RAIZ + 'vista/consola.html?modo=varias-led&vista=simple&asis=' + (v === 'sala' ? 'leds' : 'ledv'); return; }
+    if (v === 'una') { if (PAG === 'portada') { if (W.full) setTimeout(siguiente, 140); else cierra(); } else ir(RAIZ + 'index.html?vista=simple' + (W.full ? '&asis=led' : '')); return; }
+    if (PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=varias-led&vista=simple&asis=' + (v === 'sala' ? 'leds' : 'ledv')); return; }
     ponLedC(v === 'sala'); recalc(); if (W.full) { W.rama = 'ledc'; setTimeout(siguiente, 140); } else setTimeout(() => cierra(), 140); return;
   }
   const q = PREG[p]; if (!q) return;
@@ -906,7 +908,7 @@ function clic(e) {
   else if (a === 'oos-no') { ED().proy.oos = false; ED().proy.oosArr = false; recalc(); }
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta], [data-accion="reintentar"]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
-  else if (a === 'ir-led') { location.href = RAIZ + 'index.html?vista=simple'; }
+  else if (a === 'ir-led') { ir(RAIZ + 'index.html?vista=simple'); }
   else if (a === 'ir-proy') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; C().actualizar(); }
   else if (a === 'ir-sala') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'varias'; E.esp.tipo = 'sala'; C().actualizar(); }
   else if (a === 'saltar') cierra();

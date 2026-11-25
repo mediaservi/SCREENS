@@ -23,13 +23,13 @@ import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
 globalThis.SC_INTERNO = esInterno;   // v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin
-import '../comun/ficha.js?v=11.19';   // v10.50 · con versión: el icono de stock es nuevo
+import '../comun/ficha.js?v=11.20';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
 import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.19';
+const VERSION = 'v11.20';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1674,5 +1674,5 @@ try { if ('serviceWorker' in navigator && location.protocol.startsWith('http')) 
 cargarEquipos(() => { if (!unaLed()) actualizar(); });
 cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); });
 // v10.49 · lo que usa el modo SIMPLE (vista/simple.js): el mismo estado y el mismo cálculo que PRO
-window.__consola = { get E() { return E; }, MARCAS: MARCAS_PROY, marcas: marcasActivas, marca: alternaMarca, DEF, actualizar: () => actualizar(), get c() { return calculo; }, get estadoCat() { return estadoCat; }, peticion: () => calcularPeticion(), mapping: () => alMapping(), USOS_LUZ, LED_MAX };
+window.__consola = { puente: () => puenteSale(), get E() { return E; }, MARCAS: MARCAS_PROY, marcas: marcasActivas, marca: alternaMarca, DEF, actualizar: () => actualizar(), get c() { return calculo; }, get estadoCat() { return estadoCat; }, peticion: () => calcularPeticion(), mapping: () => alMapping(), USOS_LUZ, LED_MAX };
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();

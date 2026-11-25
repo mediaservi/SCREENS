@@ -559,7 +559,7 @@ html.bk #bk-tot .esq-p { margin: 0; min-width: 0; min-height: 0; display: flex; 
 html.bk #bk-tot .esq-p figcaption { flex: none; display: flex; justify-content: space-between; gap: 6px; font: 700 12.5px/1.2 Inter, system-ui, sans-serif; color: var(--txt); white-space: nowrap; overflow: hidden; }
 html.bk #bk-tot .esq-p figcaption span { font: 400 12.5px 'Share Tech Mono', ui-monospace, monospace; color: var(--tenue); }
 html.bk #bk-tot .esq-p svg { flex: 1 1 auto; min-height: 0; width: 100%; height: 100%; }
-html.bk #bk-tot .esq-d { flex: none; font: 400 12px/1.25 'Share Tech Mono', ui-monospace, monospace; color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.bk #bk-tot .esq-d { flex: none; font: 400 12px/1.25 'Share Tech Mono', ui-monospace, monospace; color: var(--tenue); white-space: normal; text-wrap: balance; overflow-wrap: anywhere; }   /* v11.20 · el pie de cada pantalla baja a dos líneas en vez de cortarse */
 html.bk #bk-tot .bk-sum .tenue { color: #ffb000; font-weight: 500; font-size: 13px; }
 /* el sumario en dos columnas (etiqueta encima, dato debajo): cabe sin desplazarse */
 html.bk #bk-tot .bk-sum dl { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; row-gap: 0; padding: 6px 14px 8px; }

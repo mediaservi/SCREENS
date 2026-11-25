@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.18** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.20** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.18)
+## Cambios de la versión actual (v11.20)
+- **Lo escrito viaja también desde la vista SIMPLE.** Al saltar de una pantalla LED a varias o a proyección (y al volver) desde SIMPLE o desde su asistente, se conservan las medidas y el resto de datos, igual que en la vista completa.
+- Los enlaces con `?modo=` conservan el idioma y el asistente indicados en la dirección.
+- En varias pantallas LED, el pie de cada pantalla del esquema (medidas, resolución y líneas) baja a dos líneas en vez de cortarse.
+
+## Cambios de la v11.19
+- **El stock es un dato interno.** Los iconos de stock, el rótulo «Por stock» y el aviso de alternativa de alquiler en stock ya no se muestran al público, ni en las fichas ni en el PDF. En el desplegable de cabinets, los modelos disponibles se distinguen solo por el color del nombre.
+
+## Cambios de la v11.18
 - **Los controles de vista ya no recalculan.** En varias pantallas y en proyección, cambiar el contenido (carta, simular, propio), los indicadores o el modo del medio repinta solo la simulación: los paneles no se rehacen y el foco se queda en el botón pulsado. La cámara también conserva el foco.
 - **Ningún paso se abre recortado.** En la columna de datos de varias pantallas y de proyección, un paso solo se abre si cabe entero; el sitio que sobra se reparte entre los pasos abiertos, sin huecos al pie ni desplazamiento por dentro. Solo un paso que no cabe ni él solo conserva su desplazamiento.
 

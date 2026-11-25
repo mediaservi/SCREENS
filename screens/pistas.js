@@ -90,12 +90,13 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
 const G_EK = `
 /* suelo de la pirámide: losas de piedra de tamaños desiguales, juntas con musgo, grietas y desgaste, a la luz de las antorchas */
 vec3 mundo(vec3 d){ if(esSuelo<.5) return vec3(.02,.015,.01);
-  vec2 p=d.xz/-d.y*.965; vec2 g=p*3.2; float fila=floor(g.y); g.x+=h1(fila*7.3)*.9; g.x*=.62+.3*h1(fila+2.); vec2 id=floor(g), f=fract(g);
-  float bx=.035+.02*h2(id+3.), jx=smoothstep(0.,bx,f.x)*smoothstep(1.,1.-bx,f.x), jy=smoothstep(0.,.05,f.y)*smoothstep(1.,.95,f.y), junta=jx*jy;
-  float gr=fbm2(p*13.+id*3.7), fino=n2(p*90.);
-  vec3 piedra=mix(vec3(.27,.31,.29), vec3(.56,.58,.52), h2(id))*mix(vec3(1.), vec3(1.06,1.,.88), h2(id+11.))*(.55+.75*gr)*(.9+.2*fino);
-  float bisel=smoothstep(0.,.14,f.x)*smoothstep(1.,.86,f.x)*smoothstep(0.,.18,f.y)*smoothstep(1.,.82,f.y); piedra*=.78+.22*bisel;        /* canto gastado */
-  float grieta=smoothstep(.90,.97, cresta(vec3(p*4.+id*1.3, 2.)))*step(.45,h2(id+8.)); piedra*=1.-.6*grieta;
+  vec2 p=d.xz/-d.y*.965; vec2 g=p*8.5+.35*vec2(n2(p*3.), n2(p*3.+9.)); vec2 gi=floor(g), gf=fract(g); float d1=9., d2=9.; vec2 id=vec2(0.), cen=vec2(0.);
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 q=vec2(float(x),float(y)); vec2 o=.12+.76*vec2(h2(gi+q), h2(gi+q+31.7)); float dd=length(q+o-gf); if(dd<d1){ d2=d1; d1=dd; id=gi+q; cen=q+o-gf; } else if(dd<d2) d2=dd; }
+  float borde=d2-d1, junta=smoothstep(.035,.11,borde), bisel=smoothstep(.06,.3,borde);                                   /* piezas irregulares, cada una con su forma */
+  float gr=fbm2(p*26.+id*3.7), fino=n2(p*150.);
+  vec3 piedra=mix(vec3(.25,.29,.27), vec3(.58,.60,.53), h2(id))*mix(vec3(1.), vec3(1.07,1.,.86), h2(id+11.))*(.55+.75*gr)*(.9+.2*fino);
+  piedra*=.74+.26*bisel; piedra*=.9+.2*dot(normalize(cen+1e-4), vec2(.6,.8))*(1.-bisel);                                  /* canto gastado, con su luz */
+  float grieta=smoothstep(.90,.97, cresta(vec3(p*9.+id*1.3, 2.)))*step(.6,h2(id+8.)); piedra*=1.-.6*grieta;
   vec3 c=mix(vec3(.05,.06,.04), piedra, junta);
   float musgo=smoothstep(.47,.62, fbm2(p*3.2+7.))*(1.-junta*.55)*smoothstep(.35,.6,fbm2(p*17.)+.25*(1.-bisel)); c=mix(c, vec3(.12,.26,.09)*(.7+.7*gr), musgo*.85);
   float r=length(p), a2=atan(-p.x,p.y);

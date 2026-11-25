@@ -167,19 +167,42 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z);
   return c; }
 vec3 conCapa(vec3 c, vec4 k, vec3 d){ return mix(c, k.rgb, k.a*smoothstep(.2,1.4,t)*smoothstep(10.,9.4,t)); }`;
 
-/* ---------- 5 · VOLCÁN: de las nubes al cráter y, tótems tiki y antorchas mediante, al lago de lava ---------- */
+/* ---------- 5 · VOLCÁN: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
 const G_VOLCAN = `
 vec3 lava(vec2 p, float e){ vec2 w=vec2(fbm2(p*1.3+vec2(0.,T*.11)), fbm2(p*1.3+vec2(5.2,-T*.09))); float f=fbm2(p*2.2+w*2.2+T*.05);
   float costra=smoothstep(.42,.60,f), gr=cresta(vec3(p*3.+w, T*.04));
   vec3 fuego=mix(vec3(1.,.22,.0), vec3(1.,.86,.32), smoothstep(.2,.5,f)*.4+pow(1.-f,3.)*.9);
   vec3 c=mix(fuego*(1.5+.5*sin(T*2.+f*9.)), vec3(.07,.03,.025)*(.5+gr), costra); c+=vec3(1.,.35,.05)*pow(1.-costra,2.)*.4; return c*e; }
+/* el arranque: la Tierra vista desde la Luna; caemos hacia el Pacífico, entramos en la atmósfera y bajamos al volcán */
+float crat(vec2 p){ vec2 i=floor(p), f=fract(p); float s=0.; for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 g=vec2(float(x),float(y)); vec2 o=vec2(h2(i+g),h2(i+g+17.3)); float r=.12+.34*h2(i+g+5.1);
+  float dd=length(g+o-f)/r; s+=-.7*smoothstep(1.,.2,dd)+.55*exp(-pow((dd-1.)*5.,2.)); } return s; }
+float relieveLuna(vec2 p){ return crat(p)+.5*crat(p*2.7+3.)+.25*crat(p*6.3+9.)+.35*fbm2(p*2.); }
+vec3 espacio(vec3 d){ vec3 ge=d*170.; vec3 e=floor(ge); vec3 c=vec3(.004,.006,.014)+vec3(1.,.97,.92)*step(.9935,h3(e))*smoothstep(.36,.04,length(fract(ge)-.5))*(.5+h3(e+2.));
+  vec3 E=normalize(vec3(0.,.2,1.)), R=normalize(cross(vec3(0.,1.,0.),E)), U=cross(E,R); float rho=.29*exp(pow(t/2.7,2.)*2.7), S=sin(min(rho,1.4))*max(1.,rho/1.4);
+  vec2 q=vec2(dot(d,R),dot(d,U))/S; float r2=dot(q,q), delante=step(0., dot(d,E)+step(1.4,rho));
+  if(r2<1. && delante>.5){ vec3 n=vec3(q, sqrt(1.-r2)); vec3 m=n; m.xz=giro(-2.3+T*.008)*m.xz; m.xy=giro(.25)*m.xy;
+    float f=fbm(m*2.1+vec3(1.7,4.2,.3)), tierra=smoothstep(.535,.57,f);
+    vec3 mar=mix(vec3(.01,.05,.22), vec3(.03,.36,.52), smoothstep(.44,.535,f)); vec3 suelo=mix(vec3(.10,.30,.10), vec3(.52,.42,.26), fbm(m*6.+2.));
+    vec3 col=mix(mar, suelo, tierra); col=mix(col, vec3(.95), smoothstep(.8,.92,abs(m.y)));
+    float nub=smoothstep(.48,.74, fbm(m*4.6+vec3(T*.012,0.,3.))*.7+fbm(m*11.)*.3); col=mix(col, vec3(1.), nub*.92);
+    float luz=pow(clamp(dot(n, normalize(vec3(-.45,.45,.78))),0.,1.), .8)*1.25+.03; col*=luz;
+    col+=vec3(.25,.55,1.)*pow(1.-n.z,3.)*1.1*luz; c=col; }
+  else if(delante>.5) c+=vec3(.2,.5,1.)*exp(-(sqrt(r2)-1.)*14.)*.7;
+  /* la superficie lunar bajo los pies, que se queda atrás */
+  float alt=1.+t*t*1.4; if(d.y<-.03){ vec2 p=d.xz/-d.y*alt*1.7; float e2=.05; vec2 sl=normalize(vec2(-.6,.5));
+    float l=(relieveLuna(p+sl*e2)-relieveLuna(p-sl*e2))/(2.*e2); vec3 luna=vec3(.46,.49,.56)*(.6+.3*fbm2(p*.7))*clamp(.8+l*.17,.22,1.5);
+    float lejos=smoothstep(.03,.2,-d.y); luna=mix(vec3(.30,.33,.40), luna, smoothstep(.03,.35,-d.y)); c=mix(c, luna, lejos*smoothstep(2.7,2.1,t)); }
+  return c; }
 vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an),sin(an),0.);
-  float k=t/10., baja=smoothstep(.22,.92,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
-  float hl=mix(7.5,.95,smoothstep(.3,1.,k));                                      /* a qué distancia queda el lago */
+  float k=t/10., baja=smoothstep(.36,.94,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
+  float hl=mix(7.5,.95,smoothstep(.42,1.,k));                                      /* a qué distancia queda el lago */
   /* el cielo del atardecer de Hawái y el mar de nubes que atravesamos */
   vec3 cielo=mix(vec3(1.,.55,.24), vec3(.12,.24,.52), smoothstep(-.3,.55,d.y)); cielo=mix(cielo, vec3(1.,.8,.5), exp(-pow(dAng(an,.8)*1.3,2.))*smoothstep(.5,-.2,d.y)*.6);
   float nb=fbm(d*2.6+vec3(0.,t*1.5,0.))*.6+fbm(d*6.+vec3(0.,t*3.4,0.))*.4; vec3 nubes=mix(vec3(.62,.50,.56), vec3(1.,.93,.86), smoothstep(.3,.75,nb));
-  vec3 arriba=mix(cielo, nubes, smoothstep(.3,.62,nb+.42*smoothstep(.0,.16,k)));
+  vec3 arriba=mix(cielo, nubes, smoothstep(.3,.62,nb+.42*smoothstep(.24,.36,k)));
+  if(k<.33){ vec3 esp=espacio(d); float entra=smoothstep(.2,.31,k);
+    esp+=vec3(1.,.55,.2)*pow(fbm(vec3(u.xy*3., d.y*2.-t*6.)),2.)*smoothstep(.2,.26,k)*(1.-entra)*.7*smoothstep(.0,-.8,d.y);   /* el roce de la reentrada */
+    vec3 bruma=mix(vec3(.42,.66,1.), vec3(1.), smoothstep(.3,.75,nb)); arriba=mix(esp, mix(bruma, arriba, smoothstep(.285,.33,k)), entra); }
   /* chimenea del cráter: basalto en columnas con vetas de magma, más encendidas cuanto más abajo */
   float y=d.y/L+prof; float glow=smoothstep(1.5,14.,prof);
   #define RELIEVE(yy) (fbm(vec3(u.xy*5.5, (yy)*5.5))*.55+cresta(vec3(u.xy*8., (yy)*1.1))*.45)
@@ -192,7 +215,7 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an)
   c+=mix(vec3(1.,.25,.02), vec3(1.,.85,.35), veta)*veta*(.5+1.8*glow)*(.8+.2*sin(T*3.+y));
   c+=vec3(1.,.30,.05)*(.03+.26*glow)*smoothstep(.4,-1.,d.y/L);                      /* resplandor del fondo */
   /* repisa con tótems tiki y antorchas: aparece al final del descenso */
-  float yr=d.y/L+(16.-prof)*.9; float ap=smoothstep(.55,.9,k);
+  float yr=d.y/L+(16.-prof)*.9; float ap=smoothstep(.66,.92,k);
   float cel=an/TAU*8.; float idt=floor(cel), fx=(fract(cel)-.5)*TAU/8.; float fl=.75+.25*n2(vec2(T*8.,idt));
   if(mod(idt,2.)<.5){ /* tótem: cuerpo de madera, ojos y boca de brasa */
     float an2=.105*(1.-.16*yr), cu=step(abs(fx),an2)*step(-.62,yr)*step(yr,.36);
@@ -217,11 +240,11 @@ vec3 mundo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an)
   /* la boca del cráter arriba y el lago de lava abajo */
   if(d.y>0.){ float rr=L*(.6+prof*1.1)/d.y; c=mix(c, arriba*mix(1.,.5,glow), smoothstep(1.,.9,rr)); }
   if(d.y<0.){ vec2 p=d.xz*(hl/-d.y); float rr=length(p); float orilla=smoothstep(1.02,.9,rr);
-    vec3 lv=lava(p*1.6, 1.)+vec3(1.,.5,.1)*smoothstep(.75,1.,rr)*.5; c=mix(c, lv, orilla*smoothstep(.2,.42,k)); }
+    vec3 lv=lava(p*1.6, 1.)+vec3(1.,.5,.1)*smoothstep(.75,1.,rr)*.5; c=mix(c, lv, orilla*smoothstep(.44,.6,k)); }
   /* pavesas que suben y calima */
-  vec3 gp=vec3(u.xy*30., (d.y/L-T*.55)*30.); vec3 ce=floor(gp); float pv=step(.985,h3(ce))*smoothstep(.3,.6,k)*smoothstep(.32,.04,length(fract(gp)-.5-.25*(vec3(h3(ce+3.),h3(ce+4.),h3(ce+5.))-.5)));
+  vec3 gp=vec3(u.xy*30., (d.y/L-T*.55)*30.); vec3 ce=floor(gp); float pv=step(.985,h3(ce))*smoothstep(.45,.65,k)*smoothstep(.32,.04,length(fract(gp)-.5-.25*(vec3(h3(ce+3.),h3(ce+4.),h3(ce+5.))-.5)));
   c+=vec3(1.,.6,.15)*pv*(.8+.6*sin(T*9.+h3(ce+1.)*TAU))*1.6;
-  c=mix(arriba, c, smoothstep(.1,.3,k)); c+=vec3(1.,.35,.05)*.03*glow;
+  c=mix(arriba, c, smoothstep(.36,.5,k)); c+=vec3(1.,.35,.05)*.03*glow;
   return c; }` + CAPA_SIMPLE;
 
 /* ---------- 6 · BARCELONA: fotos antiguas que se colorean sobre papel, y panots y mosaico hidráulico en el suelo ---------- */

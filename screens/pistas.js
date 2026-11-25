@@ -88,21 +88,26 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
 
 /* ---------- 3 · EK CHUAH y 4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
 const G_EK = `
-/* suelo de la pirámide: losas de piedra de tamaños desiguales, juntas con musgo, grietas y desgaste, a la luz de las antorchas */
+/* suelo de la pirámide, como el de las escenas del juego: losas rectangulares de tamaños desiguales en hiladas al tresbolillo,
+   color plano con sombreado de dibujo, junta oscura gruesa, matas de musgo en las juntas y alguna muesca */
 vec3 mundo(vec3 d){ if(esSuelo<.5) return vec3(.02,.015,.01);
-  vec2 p=d.xz/-d.y*.965; vec2 g=p*8.5+.35*vec2(n2(p*3.), n2(p*3.+9.)); vec2 gi=floor(g), gf=fract(g); float d1=9., d2=9.; vec2 id=vec2(0.), cen=vec2(0.);
-  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 q=vec2(float(x),float(y)); vec2 o=.12+.76*vec2(h2(gi+q), h2(gi+q+31.7)); float dd=length(q+o-gf); if(dd<d1){ d2=d1; d1=dd; id=gi+q; cen=q+o-gf; } else if(dd<d2) d2=dd; }
-  float borde=d2-d1, junta=smoothstep(.035,.11,borde), bisel=smoothstep(.06,.3,borde);                                   /* piezas irregulares, cada una con su forma */
-  float gr=fbm2(p*26.+id*3.7), fino=n2(p*150.);
-  vec3 piedra=mix(vec3(.25,.29,.27), vec3(.58,.60,.53), h2(id))*mix(vec3(1.), vec3(1.07,1.,.86), h2(id+11.))*(.55+.75*gr)*(.9+.2*fino);
-  piedra*=.74+.26*bisel; piedra*=.9+.2*dot(normalize(cen+1e-4), vec2(.6,.8))*(1.-bisel);                                  /* canto gastado, con su luz */
-  float grieta=smoothstep(.90,.97, cresta(vec3(p*9.+id*1.3, 2.)))*step(.6,h2(id+8.)); piedra*=1.-.6*grieta;
-  vec3 c=mix(vec3(.05,.06,.04), piedra, junta);
-  float musgo=smoothstep(.47,.62, fbm2(p*3.2+7.))*(1.-junta*.55)*smoothstep(.35,.6,fbm2(p*17.)+.25*(1.-bisel)); c=mix(c, vec3(.12,.26,.09)*(.7+.7*gr), musgo*.85);
-  float r=length(p), a2=atan(-p.x,p.y);
-  float ll=0.; for(int i=0;i<4;i++){ float a0=TAU*.125+float(i)*TAU*.25; ll+=exp(-pow(dAng(a2,a0)*1.6,2.))*smoothstep(.2,1.3,r)*(.75+.25*n2(vec2(T*7.+float(i)*9.,float(i)))); }
-  c*=vec3(1.,.9,.74)*(.7+.65*ll)+vec3(.04,.07,.06);
-  c+=vec3(1.,.72,.2)*exp(-pow((p.y-1.05)*1.3,2.))*.10+vec3(.1,.9,.6)*exp(-pow((p.y+1.05)*1.3,2.))*.06;   /* reflejo del santuario y del jade */
+  vec2 p=d.xz/-d.y*.965; vec2 w=p+.012*vec2(n2(p*7.)-.5, n2(p*7.+5.)-.5);                         /* trazo a mano: las líneas no son rectas del todo */
+  float gy=w.y*4.6; gy+=.26*sin(gy*2.1+1.3); float fila=floor(gy), fy=fract(gy);
+  float gx=w.x*(2.6+1.3*h1(fila*3.7))+h1(fila*7.3)*5.; gx+=.24*sin(gx*2.3+fila*5.); float col=floor(gx), fx=fract(gx); vec2 id=vec2(col,fila);
+  float jx=smoothstep(.0,.05,fx)*smoothstep(1.,.95,fx), jy=smoothstep(.0,.075,fy)*smoothstep(1.,.925,fy), junta=jx*jy;
+  vec3 piedra=mix(vec3(.27,.33,.31), vec3(.43,.49,.43), h2(id))*mix(vec3(1.), vec3(1.05,1.,.9), h2(id+11.));
+  piedra*=.93+.07*smoothstep(.35,.65,fbm2(p*9.+id*2.3));                                           /* manchas suaves, sin grano */
+  piedra*=1.+.10*smoothstep(.22,.06,fy)*step(.06,fy)+.07*smoothstep(.16,.05,fx)*step(.05,fx);      /* canto iluminado arriba y a la izquierda */
+  piedra*=1.-.16*smoothstep(.72,.94,fy)-.10*smoothstep(.8,.95,fx);                                 /* y en sombra abajo y a la derecha */
+  vec2 q=vec2(fx,fy)-vec2(.2+.6*h2(id+4.), .25+.5*h2(id+6.)); q=giro(h2(id+2.)*3.)*q;              /* muescas: trazos cortos y oscuros */
+  float muesca=step(.5,h2(id+8.))*smoothstep(.012,.004,abs(q.y))*step(abs(q.x),.07+.06*h2(id+9.)); piedra=mix(piedra, vec3(.10,.12,.10), muesca*.8);
+  vec3 c=mix(vec3(.07,.09,.07), piedra, junta);
+  float cerca=1.-smoothstep(.0,.22,min(min(fx,1.-fx),min(fy,1.-fy)*.7));                            /* musgo en matas, pegado a las juntas */
+  float mata=smoothstep(.60,.65, fbm2(p*5.5+3.))*smoothstep(.25,.75,cerca+.5*fbm2(p*20.));
+  c=mix(c, mix(vec3(.20,.36,.12), vec3(.36,.52,.18), smoothstep(.4,.7,fbm2(p*30.))), mata);
+  float r=length(p), a2=atan(-p.x,p.y); float ll=0.; for(int i=0;i<4;i++){ float a0=TAU*.125+float(i)*TAU*.25; ll+=exp(-pow(dAng(a2,a0)*1.6,2.))*smoothstep(.2,1.3,r)*(.8+.2*n2(vec2(T*7.+float(i)*9.,float(i)))); }
+  c*=vec3(1.,.93,.80)*(.78+.45*ll);
+  c=mix(c, c*vec3(1.35,1.12,.62), exp(-pow((p.y-1.05)*1.2,2.))*.55); c=mix(c, c*vec3(.62,1.2,1.08), exp(-pow((p.y+1.05)*1.2,2.))*.5);   /* la luz dorada del santuario y la verde del jade */
   return c; }
 vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z);
   float fl=.93+.07*n2(vec2(T*6.,3.));                                                        /* parpadeo de antorcha */

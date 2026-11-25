@@ -11,7 +11,7 @@ const azarDe = (s) => { let a = s; return () => { a = (a * 16807) % 2147483647; 
 
 /* ---------- GLSL común: ruido, rayo de cada píxel y composición con la capa de rótulos e imágenes ---------- */
 const COMUN = `precision highp float;
-uniform float t, T, esSuelo, uF, fade, trans, semilla, hayCapa, zoomCapa; uniform sampler2D capa, base; uniform vec4 pu0, pu1; varying vec2 vv; vec2 v;
+uniform float t, T, esSuelo, uF, fade, trans, semilla, hayCapa, zoomCapa, hayVid; uniform sampler2D capa, base, vid; uniform vec4 pu0, pu1, asp; varying vec2 vv; vec2 v;
 #define TAU 6.28318530718
 float h1(float n){ return fract(sin(n)*43758.5453); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -108,11 +108,24 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
   float sale=smoothstep(0.,.7, t*1.5-dAng(an,0.)*.55)*smoothstep(10.,9.4,t);
   return mix(c, k.rgb, k.a*sale); }`;
 
-/* ---------- 3 · EK CHUAH y 4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
+/* ---------- 3 · EK CHUAH (v11.26): las escenas animadas del juego, una por pared y las cuatro a la vez (un solo vídeo de 2 × 2: alux · santuario / cacao · jade),
+   con la cámara entrando en cada sala; el suelo de losas recoge la luz de cada pared. Mientras el vídeo no ha cargado, la imagen fija de cada escena.
+   4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
 const G_EK = `
+/* la escena de la pared i en el punto q (0–1 a lo ancho y a lo alto de su fotograma) */
+vec3 escena(int i, vec2 q){ q=clamp(q, vec2(.004,.008), vec2(.996,.992)); vec2 o = i==0?vec2(0.,.5): i==1?vec2(.5,.5): i==2?vec2(0.,0.): vec2(.5,0.); return texture2D(vid, o+q*.5).rgb; }
+/* a sangre en su pared: si la pared es más ancha que el fotograma se recorta poco de alto y los lados continúan en espejo (la sala se alarga) */
+vec3 vidPared(){ vec2 w=pared(); if(w.x<0.) return vec3(.02,.015,.01); int i=int(w.x+.5);
+  float A = i==0?asp.x: i==1?asp.y: i==2?asp.z: asp.w, R=A/1.7778; vec2 q=vec2(w.y, v.y);
+  float som=1.; if(R<1.) q.x=.5+(q.x-.5)*R; else { float k=min(R,1.4); q.y=.5+(q.y-.5)/k; q.x=.5+(q.x-.5)*R/k; som=exp(-pow(max(0., abs(q.x-.5)-.47)*3.4,2.)*3.); q.x=abs(mod(q.x+1.,2.)-1.); }   /* lo que continúa en espejo se va a la penumbra */
+  return escena(i, q)*som*(.3+.7*smoothstep(0.,.012,w.y)*smoothstep(1.,.988,w.y)); }
+/* la luz que cada pared echa sobre el suelo: el pie de su escena, desenfocado, más fuerte junto a ella */
+vec3 luzPared(int i, float s, float lejos){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w; if(a<0.) return vec3(0.);
+  s=clamp(s,.04,.96); vec3 c=vec3(0.); for(int j=0;j<2;j++) for(int n=0;n<5;n++) c+=escena(i, vec2(.5+(s-.5)*.6+(float(n)-2.)*.1, .16+.2*float(j)));
+  return c/10.*exp(-lejos*lejos*2.2); }
 /* suelo de la pirámide, como el de las escenas del juego: losas rectangulares de tamaños desiguales en hiladas al tresbolillo,
    color plano con sombreado de dibujo, junta oscura gruesa, matas de musgo en las juntas y alguna muesca */
-vec3 mundo(vec3 d){ if(esSuelo<.5) return vec3(.02,.015,.01);
+vec3 mundo(vec3 d){ if(esSuelo<.5) return hayVid>.5 ? vidPared() : vec3(.02,.015,.01);
   vec2 p=d.xz/-d.y*.965; vec2 w=p+.03*vec2(n2(p*4.)-.5, n2(p*4.+5.)-.5)+.008*vec2(n2(p*17.)-.5, n2(p*17.+3.)-.5);                         /* trazo a mano: las líneas no son rectas del todo */
   float gy=w.y*3.5; float sy=3.5*(1.+.8*cos(gy*2.1+1.3)); gy+=.38*sin(gy*2.1+1.3); float fila=floor(gy), fy=fract(gy);
   float kx=1.7+1.5*h1(fila*3.7); float gx=w.x*kx+h1(fila*7.3)*5.; float sx=kx*(1.+.83*cos(gx*2.3+fila*5.)); gx+=.36*sin(gx*2.3+fila*5.); float col=floor(gx), fx=fract(gx); vec2 id=vec2(col,fila);
@@ -130,9 +143,12 @@ vec3 mundo(vec3 d){ if(esSuelo<.5) return vec3(.02,.015,.01);
   c=mix(c, mix(vec3(.24,.33,.10), vec3(.40,.50,.16), smoothstep(.45,.6,fbm2(p*22.))), mata);
   float r=length(p), a2=atan(-p.x,p.y); float ll=0.; for(int i=0;i<4;i++){ float a0=TAU*.125+float(i)*TAU*.25; ll+=exp(-pow(dAng(a2,a0)*1.6,2.))*smoothstep(.2,1.3,r)*(.8+.2*n2(vec2(T*7.+float(i)*9.,float(i)))); }
   c*=vec3(1.,.95,.86)*(.8+.4*ll);
+  if(hayVid>.5){ vec3 lz=luzPared(1, .5-p.x*.5, 1.-p.y)+luzPared(3, .5+p.x*.5, 1.+p.y)+luzPared(0, .5+p.y*.5, 1.-p.x)+luzPared(2, .5-p.y*.5, 1.+p.x);
+    return c*(.4+lz*.85)+lz*.02; }
   c=mix(c, c*vec3(1.35,1.12,.62), exp(-pow((p.y-1.05)*1.2,2.))*.55); c=mix(c, c*vec3(.62,1.2,1.08), exp(-pow((p.y+1.05)*1.2,2.))*.5);   /* la luz dorada del santuario y la verde del jade */
   return c; }
 vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z);
+  if(hayVid>.5) return mix(c, k.rgb, k.a*smoothstep(.3,1.1,t)*smoothstep(4.4,3.6,t));        /* con vídeo, la capa solo lleva el título: entra y se va */
   float fl=.93+.07*n2(vec2(T*6.,3.));                                                        /* parpadeo de antorcha */
   float oro = esSuelo>.5 ? .5+.5*sin(t*TAU*.3) : exp(-pow(dAng(an, t*TAU/10.+.6)*2.,2.));   /* la luz dorada que da la vuelta a la sala */
   vec3 col=k.rgb*fl*(1.+.28*oro)+vec3(1.,.75,.2)*oro*.06;
@@ -296,7 +312,7 @@ function sangre(x, P, mapa) { P.forEach((p) => enPared(x, p, (x, h, a) => { cons
 function sueloImg(x, n) { const im = img('sim/pistas/' + n + '.webp'); if (im) cubre(x, im, 0, 0, WS, WS); }
 function rotuloImg(x, P, n, alto, pie) { const p = P.find((q) => q.id === 'frontal') || P[0]; if (!p) return; enPared(x, p, (x, h, a) => { const ti = img('sim/pistas/' + n + '.webp'); if (!ti) return; let th = h * alto, tw = th * ti.width / ti.height; if (tw > a * .8) { tw = a * .8; th = tw * ti.height / ti.width; } x.drawImage(ti, -tw / 2, h * pie - th, tw, th); }); }
 const EK_IMG = { frontal: 'ek-santuario', izquierda: 'ek-alux', derecha: 'ek-cacao', trasera: 'ek-jade' };
-function capaEk(x, P) { sangre(x, P, EK_IMG); rotuloImg(x, P, 'ek-titulo', .34, .99); }
+function capaEk(x, P, conVideo) { if (!conVideo) sangre(x, P, EK_IMG); rotuloImg(x, P, 'ek-titulo', .34, .99); }
 const WW_IMG = { frontal: 'ww-castillo', izquierda: 'ww-camino', derecha: 'ww-puente', trasera: 'ww-bosque' };
 function capaWw(x, P) { sangre(x, P, WW_IMG); rotuloImg(x, P, 'ww-titulo', .3, .34); }
 
@@ -312,7 +328,7 @@ function capaBcn(x, P) { const az = azarDe(71); P.forEach((p) => enPared(x, p, (
 const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
   { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo },
-  { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07 },
+  { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07 },
   { id: 'volcan', glsl: G_VOLCAN },
   { id: 'barcelona', glsl: G_BCN, capa: capaBcn },
@@ -328,14 +344,25 @@ export function crearPistas(renderer) {
   const ORD = ['izquierda', 'frontal', 'derecha', 'trasera'];
   PISTAS.forEach((p) => {
     p.mat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, capa: { value: negro }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
+      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, hayVid: { value: 0 }, capa: { value: negro }, vid: { value: negro }, asp: { value: new THREE.Vector4(1.67, 1.67, 1.67, 1.67) }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
       vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
     if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
     if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
+    /* v11.26 · pista con vídeo: un solo elemento, sin sonido, que se carga al abrir SIMULAR y se lleva al compás de la pista */
+    if (p.video) { const el = document.createElement('video'); el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('muted', ''); el.preload = 'auto'; el.crossOrigin = 'anonymous'; el.src = RAIZ + p.video;
+      p.vid = el; p.txV = new THREE.VideoTexture(el); p.txV.generateMipmaps = false; p.txV.minFilter = p.txV.magFilter = THREE.LinearFilter; p.vOk = false; }
     p.hecha = '';
   });
-  function capas(p) { const f = firma + '|' + imgV + '|' + (document.fonts ? document.fonts.status : ''); if (p.hecha === f) return; p.hecha = f;
-    if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capa(x, paredes); } catch (e) {} p.tx.needsUpdate = true; }
+  /* el vídeo dura vdur y la pista DUR: va algo más lento para llenarla entera; si se descuadra (pestaña en segundo plano, equipo lento) se recoloca */
+  function video(p, activa, tl, quieto) { const el = p.vid; if (!activa) { if (!el.paused) el.pause(); return; }
+    p.vOk = el.readyState >= 2 && !el.error; if (el.readyState < 1) return;
+    const k = p.vdur / DUR, obj = Math.min(p.vdur - .06, Math.max(0, tl * k));
+    if (quieto) { if (!el.paused) el.pause(); if (Math.abs(el.currentTime - obj) > .03 && !el.seeking) el.currentTime = obj; return; }
+    if (el.playbackRate !== k) el.playbackRate = k;
+    if (Math.abs(el.currentTime - obj) > .3 && !el.seeking) el.currentTime = obj;
+    if (el.paused && !p.vEsp) { p.vEsp = true; const pr = el.play(); if (pr && pr.then) pr.catch(() => {}).then(() => { p.vEsp = false; }); else p.vEsp = false; } }
+  function capas(p) { const f = firma + '|' + imgV + '|' + (document.fonts ? document.fonts.status : '') + '|' + (p.vOk ? 'v' : ''); if (p.hecha === f) return; p.hecha = f;
+    if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capa(x, paredes, !!p.vOk); } catch (e) {} p.tx.needsUpdate = true; }
     if (p.capaSuelo) { const x = p.cvS.getContext('2d'); x.clearRect(0, 0, WS, WS); try { p.capaSuelo(x); } catch (e) {} p.txS.needsUpdate = true; } }
   /* orden al azar sin repetir pista seguida: se barajan las seis y se vuelve a barajar al acabar la tanda */
   const az = azarDe(Math.floor(Math.random() * 2147483000) + 1), az2 = azarDe(Math.floor(Math.random() * 2147483000) + 1), cola = []; let fija = null;
@@ -346,8 +373,9 @@ export function crearPistas(renderer) {
     const n = Math.floor(T / DUR), tl = fija ? fija.t != null ? fija.t : T % DUR : T - n * DUR, p = fija ? PISTAS[fija.i] : PISTAS[pistaN(n)];
     const fade = fija ? (fija.f != null ? fija.f : 1) : Math.min(1, tl / FUND, (DUR - tl) / FUND), ct = fija ? { e: fija.e || 0, s: .37 } : corteN(tl < DUR / 2 ? n - 1 : n);
     if (p.dron) { dron.frente(uF); dron.pinta(T); }
-    capas(p); const U = p.mat.uniforms; U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
-    const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b);
+    PISTAS.forEach((q) => { if (q.vid) video(q, q === p, tl, !!(fija && fija.t != null)); });
+    capas(p); const U = p.mat.uniforms; U.hayVid.value = p.vOk ? 1 : 0; U.vid.value = p.vOk ? p.txV : negro; U.zoomCapa.value = p.vOk ? 0 : (p.zoom || 0); U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
+    const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b); const as = [1.67, 1.67, 1.67, 1.67]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0 && q.w > 0 && q.h > 0) as[i] = q.w / q.h; }); U.asp.value.fromArray(as);
     quad.material = p.mat; const prev = renderer.getRenderTarget();
     U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; renderer.setRenderTarget(rt); renderer.render(esc, cam);
     U.esSuelo.value = 1; U.hayCapa.value = p.capaSuelo ? 1 : 0; U.capa.value = p.capaSuelo ? p.txS : negro; renderer.setRenderTarget(rtS); renderer.render(esc, cam);

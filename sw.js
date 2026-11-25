@@ -1,7 +1,7 @@
 /* SCREENS · service worker: uso sin conexión.
    Estrategia: red primero (datos siempre actualizados) y, si no hay red, la copia guardada
    (aplicación, librerías e imágenes). */
-const CACHE = 'screens-offline-v124';
+const CACHE = 'screens-offline-v125';
 const EXCLUIR = /youtube|googlevideo|ytimg|google-analytics|script\.google\.com|docs\.google\.com|googleusercontent|google\.com/;
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -13,6 +13,7 @@ const limpia = p => Promise.resolve(p).then(r => (r && r.redirected ? Response.r
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || !/^https?:/.test(req.url) || EXCLUIR.test(req.url)) return;
+  if (req.headers.has('range')) return;   /* v11.26 · los vídeos se piden por tramos: los sirve el navegador directamente (una respuesta parcial no se puede guardar) */
   e.respondWith((req.mode === 'navigate' ? limpia : (x) => x)((async () => {
     const cache = await caches.open(CACHE);
     try {

@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.15** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.16** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.15)
+## Cambios de la versión actual (v11.16)
+- **Una sola estructura de pantalla para toda la app.** La portada de una pantalla LED pasa a la misma distribución que varias pantallas y proyección: a la izquierda los datos en cuatro pasos numerados (Entorno y uso · Tamaño y resolución · Equipo · Electrónica de control), en el centro la simulación en grande con los planos debajo, y a la derecha los resultados. Los bloques ya no cambian de sitio ni de tamaño al pasar de una modalidad a otra. Se conservan todas las funciones.
+- **Resultados con veredicto también en una pantalla LED:** seis cifras clave, un semáforo con los avisos del cálculo y tres pestañas (Resumen, Material y Avisos). Las lecturas que estaban mezcladas con los campos (medida real, peso, consumo, líneas) pasan a esta zona.
+- **Tres colores con un solo significado:** verde, lo que tú decides y entra en el cálculo; blanco, lo que sale del cálculo; azul, lo que solo cambia la vista (cámara, contenido, indicadores, fondos, tipo de plano, unidades, pestañas). Hay una leyenda en la cabecera de Resultados y vale para las cuatro modalidades.
+- **Pasos que nunca se cortan:** si los pasos abiertos no caben, se pliega el más antiguo; en un portátil pequeño, los apartados de un paso se ven de uno en uno.
+- **Cableado sin controles encima del dibujo:** cosido, manguera y tipo de plano van en una tira sobre el plano, en todos los formatos.
+- **Misma escala en toda la app:** la portada usa la plantilla de portátil (letra más grande) igual que el resto.
+
+## Cambios de la v11.15
 - **Portada de una pantalla LED en portátil:** se retira la recomposición de bloques de la v11.14; la portada vuelve a su distribución de siempre en todos los tamaños.
 
 ## Cambios de la v11.14

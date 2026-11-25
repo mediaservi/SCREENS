@@ -728,3 +728,26 @@ html.piel:not(.bk) #res > .res-tot > .tar .v small { font-size: 12px; }
 html.piel:not(.bk) #res > .res-tot > .tar .s { padding: 0 10px; font-size: 11px; line-height: 1.25; white-space: normal; overflow: visible; }
 html.piel:not(.bk) #res > .res-tot > .tar .s .sem { display: none; }
 @media (orientation: landscape) and (max-height: 500px) { html.piel:not(.bk) #res > .res-tot { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+
+/* v11.16 · controles de VISTA (cámara, contenido, indicadores): solo cambian lo que se ve, nunca el cálculo. Cápsula con piloto azul y el
+   rótulo «VISTA», igual que en la portada de una pantalla LED, para que no se confundan con las teclas de cálculo (verdes) */
+html.piel .esc-barra .tog, .esc-barra .tog { border-radius: 999px; }
+html.piel .esc-barra .tog.on, html.piel .esc-barra .tog[aria-pressed="true"] { color: #38c6ff; border-color: #38c6ff; background: rgba(8, 30, 44, .88); box-shadow: none; }
+html.piel .esc-barra .tog:hover { box-shadow: none; border-color: #38c6ff; }
+.esc-barra > #esc-vistas::before { content: 'VISTA'; align-self: center; display: inline-flex; align-items: center; margin-right: 2px; padding: 3px 8px 3px 6px; border-radius: 999px; background: rgba(20, 21, 24, .8); font: 800 10.5px Inter, system-ui, sans-serif; letter-spacing: .14em; color: #38c6ff; backdrop-filter: blur(6px); }
+html.piel .esc-barra .tog { padding: 3px 6px; font-size: 11px; letter-spacing: .02em; }
+html.piel .esc-barra > div { gap: 4px; }
+html[lang="en"] .esc-barra > #esc-vistas::before { content: 'VIEW'; }
+
+/* v11.16 · TRES COLORES CON UN SOLO SIGNIFICADO EN TODA LA APP: verde = ENTRADA (lo que tú decides y entra en el cálculo) · blanco = RESULTADO
+   (lo que sale) · azul = VISTA (solo cambia lo que se ve) */
+html.piel { --vista: #38c6ff; } html.piel[data-tema="claro"] { --vista: #0071b8; }
+html.piel .blq .num input { color: var(--verde-txt); }
+html.piel .res-sim .sim-l .mono { color: var(--txt); font-weight: 400; }
+html.piel #res > .res-pest .tog.on { color: var(--vista); border-color: var(--vista); background: color-mix(in srgb, var(--vista) 12%, transparent); box-shadow: inset 0 -3px 0 var(--vista); }
+html.piel #res > .res-pest .tog:hover { border-color: var(--vista); box-shadow: none; }
+.ley { flex: none; display: inline-flex; align-items: center; gap: 12px; margin-right: 6px; font: 800 11.5px Inter, system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--tenue); white-space: nowrap; }
+.ley > span { display: inline-flex; align-items: center; gap: 5px; }
+.ley i { width: 9px; height: 9px; border-radius: 50%; background: var(--verde-txt); }
+.ley i.l-r { background: var(--txt); } .ley i.l-v { background: var(--vista); }
+html:not(.bk) .ley { display: none; }

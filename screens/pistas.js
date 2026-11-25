@@ -88,7 +88,21 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an = esSuelo>.5 ? 0. : atan(-d.x,d.z
 
 /* ---------- 3 · EK CHUAH y 4 · WONDERWALK: imágenes originales del juego, una escena a sangre por pared (corte exacto en la esquina) ---------- */
 const G_EK = `
-vec3 mundo(vec3 d){ return vec3(.02,.015,.01); }
+/* suelo de la pirámide: losas de piedra de tamaños desiguales, juntas con musgo, grietas y desgaste, a la luz de las antorchas */
+vec3 mundo(vec3 d){ if(esSuelo<.5) return vec3(.02,.015,.01);
+  vec2 p=d.xz/-d.y*.965; vec2 g=p*3.2; float fila=floor(g.y); g.x+=h1(fila*7.3)*.9; g.x*=.62+.3*h1(fila+2.); vec2 id=floor(g), f=fract(g);
+  float bx=.035+.02*h2(id+3.), jx=smoothstep(0.,bx,f.x)*smoothstep(1.,1.-bx,f.x), jy=smoothstep(0.,.05,f.y)*smoothstep(1.,.95,f.y), junta=jx*jy;
+  float gr=fbm2(p*13.+id*3.7), fino=n2(p*90.);
+  vec3 piedra=mix(vec3(.27,.31,.29), vec3(.56,.58,.52), h2(id))*mix(vec3(1.), vec3(1.06,1.,.88), h2(id+11.))*(.55+.75*gr)*(.9+.2*fino);
+  float bisel=smoothstep(0.,.14,f.x)*smoothstep(1.,.86,f.x)*smoothstep(0.,.18,f.y)*smoothstep(1.,.82,f.y); piedra*=.78+.22*bisel;        /* canto gastado */
+  float grieta=smoothstep(.90,.97, cresta(vec3(p*4.+id*1.3, 2.)))*step(.45,h2(id+8.)); piedra*=1.-.6*grieta;
+  vec3 c=mix(vec3(.05,.06,.04), piedra, junta);
+  float musgo=smoothstep(.47,.62, fbm2(p*3.2+7.))*(1.-junta*.55)*smoothstep(.35,.6,fbm2(p*17.)+.25*(1.-bisel)); c=mix(c, vec3(.12,.26,.09)*(.7+.7*gr), musgo*.85);
+  float r=length(p), a2=atan(-p.x,p.y);
+  float ll=0.; for(int i=0;i<4;i++){ float a0=TAU*.125+float(i)*TAU*.25; ll+=exp(-pow(dAng(a2,a0)*1.6,2.))*smoothstep(.2,1.3,r)*(.75+.25*n2(vec2(T*7.+float(i)*9.,float(i)))); }
+  c*=vec3(1.,.9,.74)*(.7+.65*ll)+vec3(.04,.07,.06);
+  c+=vec3(1.,.72,.2)*exp(-pow((p.y-1.05)*1.3,2.))*.10+vec3(.1,.9,.6)*exp(-pow((p.y+1.05)*1.3,2.))*.06;   /* reflejo del santuario y del jade */
+  return c; }
 vec3 conCapa(vec3 c, vec4 k, vec3 d){ float an=atan(-d.x,d.z);
   float fl=.93+.07*n2(vec2(T*6.,3.));                                                        /* parpadeo de antorcha */
   float oro = esSuelo>.5 ? .5+.5*sin(t*TAU*.3) : exp(-pow(dAng(an, t*TAU/10.+.6)*2.,2.));   /* la luz dorada que da la vuelta a la sala */
@@ -267,7 +281,7 @@ function capaBcn(x, P) { const az = azarDe(71); let n = 0; P.forEach((p) => enPa
 const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
   { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo },
-  { id: 'ekchuah', glsl: G_EK, capa: capaEk, capaSuelo: (x) => sueloImg(x, 'ek-suelo'), zoom: .07 },
+  { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07 },
   { id: 'volcan', glsl: G_VOLCAN },
   { id: 'barcelona', glsl: G_BCN, capa: capaBcn },

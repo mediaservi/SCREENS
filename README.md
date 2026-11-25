@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.22** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.23** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,14 +76,17 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.22)
+## Cambios de la versión actual (v11.23)
+- SIMULAR · en la pista de El Misterio de Ek Chuah el suelo pasa a ser un enlosado de piedra con musgo y grietas, a la luz de las antorchas (antes repetía el emblema del altar, que ya sale en una pared).
+
+## Cambios de la v11.22
 - **SIMULAR · las pistas de El Misterio de Ek Chuah y de WONDERWALK usan solo imágenes originales de cada juego:** una escena a sangre en cada pared, con corte exacto en las esquinas, su título oficial en la pared frontal y una imagen propia en el suelo. Cada escena se acerca despacio durante los 10 segundos.
 
 ## Cambios de la v11.21
 - **SIMULAR por pistas.** El contenido simulado pasa a ser una lista de seis pistas de 10 segundos que se suceden al azar y en bucle, con fundido entre ellas. Todas pintan las cuatro paredes en 360° continuo y también el suelo (casan en el zócalo); cada proyecto enseña solo las superficies que tiene.
   - Vuelo sobre el templo modernista, ahora con un suelo de trencadís.
   - AVHUB: muro de píxeles con los colores de la marca, un haz que da la vuelta a la sala y un rótulo distinto en cada pared.
-  - El Misterio de Ek Chuah: una escena del juego en cada pared y el emblema solar en el suelo.
+  - El Misterio de Ek Chuah: una escena del juego en cada pared y un enlosado de piedra en el suelo.
   - WONDERWALK: una escena del juego en cada pared y la pradera en el suelo.
   - Volcán: desde la Luna, con la Tierra en el horizonte, caída y entrada en la atmósfera, y descenso por la chimenea del cráter hasta el lago de lava, con tótems tiki y antorchas.
   - Barcelona: fotografías antiguas que se colorean (pendiente de las fotografías) sobre un suelo de panots y mosaico hidráulico.

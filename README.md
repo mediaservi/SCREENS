@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.14** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.15** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,8 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.14)
-- **Portada de una pantalla LED a tamaño completo en portátil:** en ventanas de menos de 1920 × 1080 (portátiles, o un monitor Full HD con el navegador sin maximizar) la portada usa la plantilla de 1600 × 900, como la consola, con letra y botones un 20 % mayores. Para que quepa todo sin cortar nada, los bloques se recomponen: Entorno y Dimensiones · Cabinet y Cabinets · Resolución, Electrónica y Señal · Alimentación, Mediaserver e Instalación, y las dos pantallas (simulación y cableado) apiladas a la derecha. En 1920 × 1080 o más, y en móvil y tableta, nada cambia.
+## Cambios de la versión actual (v11.15)
+- **Portada de una pantalla LED en portátil:** se retira la recomposición de bloques de la v11.14; la portada vuelve a su distribución de siempre en todos los tamaños.
+
+## Cambios de la v11.14
 - **Textos que encogen en vez de cortarse:** el título de cada bloque, el nombre elegido en los desplegables, la medida real y las cuatro cifras de Dimensiones reducen la letra si no caben.
 - **Separación entre proyectores según el manual de cada modelo:** EB-815E 20 cm; EB-805F y serie EB-L695SE / L795SE / L695SU 40 cm; EB-PQ 30 cm (con mampara entre equipos). Los modelos sin dato leído siguen con la general de 40 cm.
 - **Resultados de varias pantallas y proyección:** las tablas de RESUMEN y TABLAS que no caben a lo ancho pasan a una ficha por superficie, con el rótulo de cada dato encima (antes había columnas escondidas a la derecha); la línea pequeña de las tarjetas de cifras sale entera; el botón CENTRAR de las vistas técnicas ya no se corta en portátil.

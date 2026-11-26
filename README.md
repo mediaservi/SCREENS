@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.37** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.38** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.37)
+## Cambios de la versión actual (v11.38)
+- **Proyección · regla nueva del cálculo:** cuando algo no se puede hacer de forma normal (no cabe, no cubre, choques, sombras, el proyector elegido no llega o queda una franja sin imagen), el cálculo prueba fuera de especificación:
+  - si así se puede, lo muestra fuera de especificación con todas sus advertencias;
+  - si no se puede de ninguna manera, el resultado dice «Configuración no realizable» y qué cambiar (medidas, paredes o colocación).
+  - Una franja sin imagen que tampoco se cubre fuera de especificación se sigue mostrando con su aviso, porque se puede montar así. El contraste bajo no cuenta como imposible: tiene su propio aviso.
+
+## Cambios de la v11.37
 - **Simulación a escala · el contenido de cada pared se dibuja a su altura real.** Cuando parte de la imagen de un proyector cae por debajo del suelo (se pierde), el contenido ya no se dibuja más alto de lo que llega de verdad. Antes, en una sala con ultracortas colgadas, las laterales parecían cubrir más alto que la frontal aunque las cuatro paredes llegan a la misma altura.
 
 ## Cambios de la v11.36

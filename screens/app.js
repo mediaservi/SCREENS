@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.37';
+const VERSION = 'v11.38';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -144,7 +144,23 @@ function nombreSup(s) { return s.tipo === 'pantalla' ? `${t('pantalla')} ${s.num
 // mano que no llega, se queda en una imagen con su «no se puede» y, si con blending saldría, se ofrece (c.multiPosible).
 const blendLimpio = (c) => !!(c && c.filas && c.filas.length && c.tot && c.tot.n > 1 && c.filas.every(f => f.s.tipo === 'suelo' || !(f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica || f.p.solapeRel > SOLAPE_MAX + 1e-6)) && !(c.sombras && ((c.sombras.choques || []).length || (c.sombras.conflictos || []).length)));
 const RECORTE_MULTI = 0.5;   // con una imagen se tira más de media imagen fuera de la pantalla (formatos muy apaisados): mejor blending
+/* v11.37 · REGLA DEL MOTOR (Josep, 26-11-2026): si algo no se puede hacer de forma normal (veredicto en rojo o una pared que no queda cubierta),
+   1) si se puede hacer fuera de especificación, se muestra así con todas las advertencias; 2) si no se puede de ninguna manera, se avisa de que la
+   configuración no es realizable. No se aplica si el fuera de especificación ya está activado a mano */
+let PROF_CALC = 0;
+const rojoMontaje = (c) => !!(c && c.veredicto && c.veredicto.motivos.some(m => m.n === 'R' && m.k !== 'contraste'));   /* el contraste bajo no impide montar: se arregla con más luz y va en su propio aviso */
+const fallaNormal = (c) => rojoMontaje(c) || !!(c && (c.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)));   /* incluye una franja sin imagen: se intenta cubrir fuera de especificación */
 function calcular(forzarMulti) {
+  PROF_CALC++;
+  try { const c = calcularBase(forzarMulti);
+    if (PROF_CALC > 1 || E.tecnologia === 'led' || E.proy.oos || !c || !(c.filas || []).some(f => f.s.tipo !== 'suelo') || !fallaNormal(c)) return c;
+    let alt = null; E.proy.oos = true; try { alt = calcularBase(forzarMulti); } finally { E.proy.oos = false; }
+    if (alt && !fallaNormal(alt)) { alt.oosAuto = true; alt.veredicto = veredicto(alt); return alt; }
+    if (rojoMontaje(c)) { c.noRealizable = true; c.veredicto = veredicto(c); }   /* con solo una franja sin imagen sí se puede montar: queda su aviso */
+    return c;
+  } finally { PROF_CALC--; }
+}
+function calcularBase(forzarMulti) {
   const esp = JSON.parse(JSON.stringify(E.esp));
   if (E.cantidad === 'una') { esp.tipo = 'sueltas'; esp.sueltas.n = 1; esp.sueltas.disp = 'linea'; }
   if (E.tecnologia === 'led') esp.paredes.suelo = false; // el suelo LED necesita cabinets de suelo específicos
@@ -399,6 +415,8 @@ function veredicto(c) {
     c.filas.filter(f => f.r && f.r.quitados).forEach(f => A('puerta', t('puertaLed', { n: f.nombre, c: f.r.quitados, w: fmt(f.r.huecos.reduce((a, x) => a + x.w, 0), 2), h: fmt(Math.max(...f.r.huecos.map(x => x.h)), 2) })));
   } else if (c.tot && c.filas.length) {
     const pw = c.filas.filter(f => f.s.tipo !== 'suelo'), nom = (L) => L.map(f => f.nombre).join(' · '), S = c.sombras || {}, con = Math.round(c.tot.contrasteMin * 10) / 10;   // el color va con el número que se lee
+    if (c.noRealizable) R('noRealizable', t('vNoRealizable'));   /* v11.37 */
+    if (c.oosAuto) A('oosAuto', t('vOosAuto'));
     if (c.consejo) R('consejo', t('noValeProy', { a: c.consejo.nombre }));
     else if (c.multiPosible) A('multiPosible', t('vMultiPosible', { n: c.multiPosible.n }));
     if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) }));
@@ -427,7 +445,7 @@ function veredicto(c) {
     if (c.tipoP === 'pared' && !E.proy.pubNS) (S.franjas || []).filter(f => f.prof > c.dist).forEach(f => A('publico', t('segPublico', { d: fmt(c.dist, 1), n: f.nombre })));
     if (c.multiAuto) A('multiAuto', t(c.multiBrillo ? 'vMultiBrillo' : 'vMultiAuto', { n: c.tot.n }));
     else if (c.multi && pw.some(f => f.p.n > 1)) A('multi', t('vMulti', { n: c.tot.n }));
-    if (E.proy.oos || pw.some(f => f.p.fueraSpec)) A('oos', t('vOos'));   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
+    if (E.proy.oos || c.oosAuto || pw.some(f => f.p.fueraSpec)) A('oos', t('vOos'));   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
     if (c.autoPropone) A('auto', t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre }));
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));
@@ -927,7 +945,7 @@ function bkAvisos(c, T) {
 function tarjeta(t1, v, uni, sub, ac) { return `<div class="tar" style="--ac:${ac}"><div class="t">${t1}</div><div class="v">${v}<small>${uni || ''}</small></div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`; }
 // v10.41 · fuera de especificación: el aviso también en la simulación 3D, en los resultados (y su ventana grande) y en el PDF
 function oosDatos(c) {
-  if (E.tecnologia === 'led' || !E.proy.oos || !c || !c.proyector || !c.filas) return null;
+  if (E.tecnologia === 'led' || !(E.proy.oos || (c && c.oosAuto)) || !c || !c.proyector || !c.filas) return null;
   const sel = c.proyector, usada = Math.max(0, ...c.filas.filter(f => f.s.tipo !== 'suelo' && f.p && f.p.imgW).map(f => Math.hypot(f.p.imgW, f.p.imgH) / 0.0254));
   return { sel, usada: Math.round(usada), sobre: usada > sel.maxDiagPulg + 0.5 };
 }

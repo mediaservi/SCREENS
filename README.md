@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.45** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.46** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.45)
+## Cambios de la versión actual (v11.46)
+- **SIMULAR · de la Luna a la playa, rehecha:**
+  - Despegue más lento: se ve el suelo de cráteres y la curva de la Luna al alejarnos, que de lejos queda en sombra con su borde iluminado.
+  - La Tierra se queda siempre en la pared frontal y crece hasta llenarla (ya no se escondía bajo el suelo a mitad de viaje); al llegar, la sala se endereza con el horizonte a la altura de los ojos sobre Australia.
+  - Bajada atravesando un banco de nubes doradas por el sol del atardecer, que suben a toda velocidad por las cuatro paredes, y salida a la noche sobre el mar hasta la playa.
+
+## Cambios de la v11.45
 - **Cuerpos 3D de Christie** en la simulación, cada serie con su forma y la medida real de su chasis (Captiva, Inspire, GS, Jazz, Korus y gran formato).
 - **Consejos en el RESUMEN de proyección:** cómo dejar la pared ideal para proyectar y, con blending, cómo se ajusta (curva de mezcla, nivel de negro, corrección de área, brillo y tono, escala y ajuste final).
 - **Fotos de los cabinets:** solo las oficiales del fabricante; sin foto oficial, la ficha enseña su dibujo.

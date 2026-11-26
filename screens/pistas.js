@@ -223,7 +223,7 @@ float crat(vec2 p){ vec2 i=floor(p), f=fract(p); float s=0.; for(int y=-1;y<=1;y
   float dd=length(g+o-f)/r; s+=-.7*smoothstep(1.,.2,dd)+.55*exp(-pow((dd-1.)*5.,2.)); } return s; }
 float lejosL=0.;
 float relieve(vec3 n){ vec3 e1=normalize(cross(uN0, vec3(.31,.83,.46))), e2=cross(uN0,e1); vec2 q=vec2(dot(n,e1), dot(n,e2));
-  return crat(q*22.)*.9+crat(q*90.+3.)*.5+(crat(q*420.+7.)*.3+crat(q*1500.+9.)*.15)*(1.-lejosL)+fbm2(q*60.)*.3; }
+  return crat(q*22.)*.9+crat(q*90.+3.)*.5*(1.-.85*lejosL)+(crat(q*420.+7.)*.3+crat(q*1500.+9.)*.15)*(1.-lejosL)+fbm2(q*60.)*.3*(1.-.7*lejosL); }
 vec3 estrellas(vec3 d){ vec3 ge=d*190.; vec3 e=floor(ge); return vec3(.003,.005,.012)+vec3(1.,.97,.92)*step(.9935,h3(e))*smoothstep(.36,.04,length(fract(ge)-.5))*(.4+h3(e+2.)); }
 vec3 viaje(vec3 dr){ vec3 d=normalize(uRg*(-dr.x)+uUp*dr.y+uFw*dr.z), o=uCam; vec3 c=estrellas(d);
   float te=esfera(o,d,vec3(0.),1.), tl=esfera(o,d,uLuna,.27);
@@ -238,13 +238,20 @@ vec3 viaje(vec3 dr){ vec3 d=normalize(uRg*(-dr.x)+uUp*dr.y+uFw*dr.z), o=uCam; ve
     float mu=max(dot(n,-d),0.); col+=vec3(.25,.55,1.)*pow(1.-mu,2.5)*(.15+.9*smoothstep(-.25,.3,l))*smoothstep(.0,.05,alt+.01);
     col+=vec3(1.,.45,.15)*exp(-pow(l*9.,2.))*.12;                                                    /* el borde del atardecer */
     c=col; }
-  else if(tl>0.){ vec3 n=normalize(o+d*tl-uLuna); vec3 sp=normalize(uSol-n*dot(uSol,n)); lejosL=smoothstep(.05,.6,tl);
+  else if(tl>0.){ vec3 n=normalize(o+d*tl-uLuna); vec3 sp=normalize(uSol-n*dot(uSol,n)); lejosL=smoothstep(.02,.3,tl);
     float e=max(.00004, tl*.004); float g=(relieve(normalize(n+sp*e))-relieve(normalize(n-sp*e)))/(2.*e); float l=dot(n,uSol);
-    float alb=.62*(.72+.28*fbm(n*4.))*(.9+.12*relieve(n)); c=vec3(alb)*vec3(1.,.98,.95)*clamp(l*1.25+g*e*9.,0.,1.7)+vec3(.006); }
+    float lj=smoothstep(.2,.9,tl);   /* v11.46 · de lejos, la Luna lisa con sus mares (sin el grano de los cráteres pequeños, que parpadeaba) */
+    float alb=.62*(.72+.28*fbm(n*4.))*(.9+.12*relieve(n)*(1.-lj))*(1.-.22*lj*smoothstep(.45,.7,fbm(n*2.3+4.))); c=vec3(alb)*vec3(1.,.98,.95)*clamp(l*1.25+g*e*9.*(1.-lj),0.,1.7)+vec3(.006); }
   else { float b0=dot(-o,d); if(b0>0.){ vec3 cp=o+d*b0; float b=length(cp); c+=vec3(.25,.55,1.)*exp(-(b-1.)*28.)*(.15+.85*smoothstep(-.3,.4,dot(normalize(cp),uSol))); } }
   return c; }
 vec3 mundo(vec3 d){ vec3 c=viaje(d), bruma=mix(vec3(.10,.22,.42), vec3(.02,.07,.20), smoothstep(-.6,.6,d.y));
-  c=mix(c, bruma, smoothstep(5.35,6.,t));                                                              /* entramos en la bruma marina de noche */
+  /* v11.46 · atravesamos un banco de nubes al atardecer: suben a toda velocidad alrededor de la sala, doradas por el sol bajo y cada vez más oscuras */
+  float nb=smoothstep(5.0,5.35,t)*smoothstep(6.05,5.7,t);
+  if(nb>.001){ vec3 q=vec3(d.x*2.6, d.y*1.6-t*5.5, d.z*2.6); float f=fbm(q)*.7+fbm(q*3.1+7.)*.3, den=smoothstep(.38,.72,f);
+    float sol=pow(max(dot(normalize(d+vec3(0.,.35,0.)), normalize(uRg*-.6+uUp*.15+uFw*.8)),0.),3.);
+    vec3 nc=mix(vec3(.28,.32,.45), vec3(1.,.82,.62), clamp(f*1.2-.25+sol*.6,0.,1.))*mix(1.,.35,smoothstep(5.45,5.95,t));
+    c=mix(c, nc, nb*mix(.55,1.,den)); }
+  c=mix(c, bruma, smoothstep(5.65,6.1,t));                                                             /* y salimos a la noche sobre el mar */
   if(hayVid>.5) c=mix(c, cubo(d), smoothstep(5.85,6.45,t)); else c=mix(c, bruma, smoothstep(6.,6.4,t));
   return c; }` + CAPA_SIMPLE;
 
@@ -350,12 +357,17 @@ const VJ = (() => { const la = -16.6 * Math.PI / 180, lo = 146.0 * Math.PI / 180
   const n0 = aT.clone().multiplyScalar(Math.cos(1.33)).add(sp.multiplyScalar(Math.sin(1.33))).normalize();   /* de pie en la Luna, con la Tierra a unos 14° sobre el horizonte */
   return { PT, N1, SOL, LUNA, n0, aT }; })();
 const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-function camino(t) { const { PT, N1, LUNA, n0, aT } = VJ;
-  const sube = .0015 + .9 * Math.pow(ss(0, 2.6, t), 1.6), Pl = LUNA.clone().add(n0.clone().multiplyScalar(.27 + sube));
+/* v11.46 · la Tierra ya no se esconde bajo el suelo a mitad de viaje: el frente mira siempre a la Tierra y la cámara solo se endereza (horizonte a la
+   altura de los ojos, la superficie llenando la parte baja de las cuatro paredes) cuando la Tierra ya ocupa toda la vista */
+function camino(t) { const { PT, N1, LUNA, n0 } = VJ;
+  const sube = .0015 + .9 * Math.pow(ss(.5, 3.2, t), 2.2), Pl = LUNA.clone().add(n0.clone().multiplyScalar(.27 + sube));
   const H1 = 1.35, Pa = PT.clone().multiplyScalar(1 + H1), k = ss(.9, 3.9, t); let P = Pl.lerp(Pa, k);
   if (t > 3.9) { const e = ss(3.9, 6.1, t), h = Math.exp(Math.log(H1) * (1 - e) + Math.log(.0012) * e); P = PT.clone().multiplyScalar(1 + h); }
-  const kU = ss(1.1, 4.4, t), U = n0.clone().multiplyScalar(1 - kU).add(PT.clone().multiplyScalar(kU)).normalize();
-  const kF = ss(2.6, 4.6, t), fRef = P.clone().negate().normalize().multiplyScalar(1 - kF).add(N1.clone().multiplyScalar(kF));   /* el frente mira a la Tierra hasta tenerla bajo los pies */ const F = fRef.sub(U.clone().multiplyScalar(fRef.dot(U))).normalize(), R = F.clone().cross(U).normalize();
+  const dT = P.clone().negate().normalize();                                                    /* hacia el centro de la Tierra */
+  const uViaje = n0.clone().sub(dT.clone().multiplyScalar(n0.dot(dT))); if (uViaje.lengthSq() < 1e-6) uViaje.copy(N1); uViaje.normalize();
+  const kV = ss(1.2, 2.8, t), kE = ss(3.7, 5.3, t);                                               /* de pie en la Luna → Tierra centrada en el frente → horizonte nivelado */
+  const U = n0.clone().multiplyScalar(1 - kV).add(uViaje.multiplyScalar(kV)).normalize().multiplyScalar(1 - kE).add(PT.clone().multiplyScalar(kE)).normalize();
+  const fRef = dT.clone().multiplyScalar(1 - kE).add(N1.clone().multiplyScalar(kE)); const F = fRef.sub(U.clone().multiplyScalar(fRef.dot(U))).normalize(), R = F.clone().cross(U).normalize();
   return { P, U, F, R: R.negate() }; }
 
 export function crearPistas(renderer) {

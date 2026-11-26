@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.40';
+const VERSION = 'v11.41';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -45,7 +45,7 @@ const DEF = () => ({
     sueltas: { n: 3, disp: 'arco', ancho: 4, alto: 2.25, elev: 0.6, sep: 0.1, angulo: 25, dist: 5, techo: 3, central: false, cAncho: 6, cAlto: 3.4 },
     obst: [] },
   led: { clase: 'INSTALL', tipo: 'INDOOR', crm: '', ajuste: 'dentro', transp: false, gold: false, protegido: false, sol: '', nitsMin: 0 },
-  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, multi: false, lux: 140, luzUso: 'reunion', ganancia: 1, dist: 0, distMin: 0, distMax: 0, pubNS: false, marcas: [], orient: 'auto', montaje: 'auto', altura: 0, oos: false, lmMin: 0, tipoOpt: '' },
+  proy: { tipo: 'pared', cuerpo: '', optica: '', idSuelo: '', solape: 15, multi: false, lux: 140, luzUso: 'reunion', ganancia: 1, dist: 0, distMin: 0, distMax: 0, pubNS: false, marcas: [], orient: 'auto', montaje: 'auto', altura: 0, oos: false, lmMin: 0, tipoOpt: '', blendEn: 'proy' },
   elec: { backup: false, escalador: 'con', conexion: 'directo', sel: '', marca: 'todos', dante: false, selMedia: '', proyEq: 'media', selBlend: '' },
   vista: { contenido: 'carta', etiquetas: true, camara: 'exterior', zona: true, modo: 'continuo', tec: 'todas', vtSup: 0 }
 });
@@ -447,6 +447,10 @@ function veredicto(c) {
     else if (c.multi && pw.some(f => f.p.n > 1)) A('multi', t('vMulti', { n: c.tot.n }));
     if (E.proy.oos || c.oosAuto || pw.some(f => f.p.fueraSpec)) A('oos', t('vOos'));   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
     if (c.autoPropone) A('auto', t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre }));
+    /* v11.41 · blending en los proyectores EPSON con 4K Enhancement: lo pierden; en la electrónica, hace falta un equipo que lo haga */
+    { const hayB = pw.some(f => f.p && f.p.n > 1), q = c.proyector;
+      if (hayB && (E.proy.blendEn || 'proy') === 'proy' && q && q.marca === 'EPSON' && q.k4 && !q.k4nativo) A('blend4k', t('vBlend4k'));
+      if (hayB && E.proy.blendEn === 'elec' && (E.elec.proyEq || 'media') === 'ninguno') A('blendElec', t('vBlendElec')); }
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));
     if (con >= 7 && con < 15) A('contraste', t('vConA'));
@@ -749,6 +753,9 @@ function partesProy(c) {
   // v10.66 · en pantallas y fachadas: una imagen por pantalla (por defecto) o multiproyección; el solape solo se enseña cuando hay blending
   const esPant = c.esp.tipo === 'sueltas', conBlend = !esPant || !!p.multi || !!c.multiAuto;
   if (esPant) aj += `<div class="etq">${t('imgPant')}</div><div class="fila c2">${tog(!conBlend, 'data-accion="proy-multi" data-v="0"', t('unaImg'))}${tog(conBlend, 'data-accion="proy-multi" data-v="1"', t('multiImg'))}</div>`;
+  /* v11.41 · quién hace el blending: los proyectores (su edge blending) o la electrónica (procesador o mediaserver), también con proyectores
+     que no lo traen. En los EPSON con 4K Enhancement, el blending interno lo desactiva: se avisa en RESULTADOS */
+  if (conBlend) aj += `<div class="etq">${t('blendEn')}</div><div class="fila c2">${tog((p.blendEn || 'proy') === 'proy', 'data-set="proy.blendEn" data-v="proy"', t('blendProy'))}${tog(p.blendEn === 'elec', 'data-set="proy.blendEn" data-v="elec"', t('blendElec'))}</div>`;
   if (conBlend) aj += `<div class="etq">${t('solape')}</div><div class="fila c3">${[15, 20, 25].map(v => tog(p.solape === v, `data-set="proy.solape" data-v="${v}" data-num-v="1"`, v + ' %')).join('')}</div>`;
   // 5) luz de la sala según el uso, y ganancia de la pantalla
   const uso = (USOS_LUZ.find(u => u[0] === p.luzUso && u[1] === Number(p.lux)) || [''])[0];
@@ -1258,7 +1265,7 @@ function zonas(c) {
     ? blq('a1', pn(1, 'bSalaUso'), e.rTipo, e.tipo, 'reset-a1') + blq('a2', pn(2, 'bTamDist'), junta(e.rTam, e.rEnt), e.tam + mas('a2', e.ent, ['esp.altoCubierto', 'esp.elev', 'esp.obst']), 'reset-a2')
       + blq('b1', pn(3, 'bEquipo'), junta(q.rMat, q.rAj), q.mat + mas('b1', q.aj, ['led.ajuste']), 'reset-b1+b2') + blq('b3', pn(4, 'elecMod'), rElec, modElec(c), 'reset-elec')   /* el paso de electrónica ya es el avanzado: sin cajón */
     : blq('a2', pn(1, 'bSalaProy'), junta(pa.rTipo, pa.rSala, q.rMat), pa.tipo + mas('a2', pa.salaP + q.mat, ['proy.montaje', 'proy.altura', 'proy.marcas', 'proy.cuerpo', 'proy.optica', 'proy.idSuelo']), 'reset-a2+b1') + blq('a5', pn(2, 'bImagen'), junta(pa.rTam, pa.rPos), pa.tam + mas('a5', pa.pos, ['esp.sueltas.elev', 'esp.elev', 'esp.altoCubierto']), 'reset-a5')
-      + blq('a7', pn(3, 'bDistProy'), pa.rDist, pa.dist, 'reset-a7') + blq('a3', pn(4, 'bAvanz'), junta(q.rAj, pa.rAvz, rElec), pa.avz + mas('a3', q.aj + modElec(c), ['proy.orient', 'proy.multi', 'proy.solape'].concat(EL)), 'reset-a3+b2+elec');
+      + blq('a7', pn(3, 'bDistProy'), pa.rDist, pa.dist, 'reset-a7') + blq('a3', pn(4, 'bAvanz'), junta(q.rAj, pa.rAvz, rElec), pa.avz + mas('a3', q.aj + modElec(c), ['proy.orient', 'proy.multi', 'proy.solape', 'proy.blendEn'].concat(EL)), 'reset-a3+b2+elec');
   const B = '';
   const equipo = q.fichas ? `<div class="res-sec" id="det-equipo"><div class="res-tit">${led ? ICO.led : ICO.proy}${t('equipoSel')}</div>${q.fichas}</div>` : '';
   return { A, B, equipo };
@@ -1404,6 +1411,7 @@ document.addEventListener('click', (ev) => {
   if (b.dataset.set) { fijar(b.dataset.set, b.dataset.bool ? b.dataset.v === '1' : b.dataset.numV ? Number(b.dataset.v) : b.dataset.v);
     if (/^elec\.(backup|escalador|conexion)$/.test(b.dataset.set)) E.elec.sel = '';
     if (b.dataset.set === 'elec.marca' || b.dataset.set === 'elec.proyEq') { E.elec.selMedia = ''; E.elec.selBlend = ''; }
+    if (b.dataset.set === 'proy.blendEn' && E.proy.blendEn === 'elec' && (E.elec.proyEq || 'media') === 'ninguno') { E.elec.proyEq = 'blend'; E.elec.selBlend = ''; }   /* v11.41 */
     if (/^led\.(clase|tipo|transp|gold|protegido|sol)$/.test(b.dataset.set)) { E.led.crm = ''; if (b.dataset.set === 'led.tipo') { E.led.nitsMin = 0; E.led.sol = ''; } }
     actualizar(b.dataset.set === 'esp.sueltas.disp' ? false : false); return; }
   if (b.dataset.pared) { E.esp.paredes[b.dataset.pared] = !E.esp.paredes[b.dataset.pared]; actualizar(); return; }
@@ -1454,7 +1462,7 @@ document.addEventListener('click', (ev) => {
     if ((k === 'a' || k === 'a3') && !led) { cp(E.proy, d.proy, ['lux', 'luzUso', 'ganancia']); E.proy.luzMano = false; }
     if (led && (k === 'a' || k === 'a2' || k === 'a4')) { cp(E.esp, d.esp, ['elev', 'altoCubierto']); cp(E.esp.sueltas, d.esp.sueltas, ['elev', 'dist', 'techo']); E.esp.obst = []; }
     if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos', 'lmMin', 'tipoOpt']); }
-    if (k === 'b2') { if (led) E.led.ajuste = d.led.ajuste; else cp(E.proy, d.proy, ['solape', 'multi', 'orient']); }
+    if (k === 'b2') { if (led) E.led.ajuste = d.led.ajuste; else cp(E.proy, d.proy, ['solape', 'multi', 'orient', 'blendEn']); }
     }
     ajuste.esp = ''; ajuste.obst = ''; actualizar(); return; }
   if (a === 'nits') { const L = [0].concat(nitsLista()), v = +E.led.nitsMin || 0, i = L.indexOf(v) < 0 ? 0 : L.indexOf(v), j = Math.max(0, Math.min(L.length - 1, i + Number(b.dataset.d))); E.led.nitsMin = L[j]; E.led.crm = ''; actualizar(); return; }

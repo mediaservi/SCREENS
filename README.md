@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.40** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.41** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.40)
+## Cambios de la versión actual (v11.41)
+- **Christie vuelve al cálculo** como tercera marca (EPSON > VIVITEK > CHRISTIE), con sus hojas de datos oficiales; el Crimson WU31 queda fuera por estar descatalogado. En AUTO solo se propone cuando las otras dos no dan una instalación limpia.
+- **Blending: en los proyectores o en la electrónica.** Con multiproyección, en AVANZADO › MÁS AJUSTES se elige quién hace la mezcla. Si la hacen proyectores EPSON con 4K Enhancement, se avisa de que lo pierden; en la electrónica, se usa el procesador de blending o el mediaserver.
+- **Direcciones directas:** screens.mediaservi.com/led, /proyeccion, /varias-led, /varias-proy, /sala y /sala-led abren cada modalidad.
+
+## Cambios de la v11.40
 - **Vista única:** se quita el interruptor SIMPLE · PRO; todo el mundo entra en la misma vista. Lo que tenía SIMPLE pasa a esta vista:
   - **AYÚDAME A ELEGIR** junto al logo abre el asistente de preguntas sencillas (ya no se abre solo al entrar; en el móvil y en la tableta, solo su icono).
   - **La frase del resultado** («Tu proyección…», «Tu pantalla LED…») y **COMPARTIR**, que copia el resumen en texto, encima de RESULTADOS.

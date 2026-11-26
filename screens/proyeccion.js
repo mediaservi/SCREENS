@@ -239,8 +239,8 @@ function leerChristie() {
   }));
   return out;
 }
-// v10.64 · CHRISTIE desactivado hasta que Josep pase su hoja de datos (16-11-2026): sus datos se quedan aquí, pero no entran en el catálogo
-export const CHRISTIE_ACTIVO = false;
+// v10.64 · CHRISTIE estuvo desactivado hasta tener su hoja de datos (16-11-2026)
+export const CHRISTIE_ACTIVO = true;   // v11.41 · reactivado (26-11-2026): hojas oficiales contrastadas, todo coincide; Crimson WU31 descatalogado y fuera
 export const PROYECTORES = [...leer(), ...leerVivitek(), ...(CHRISTIE_ACTIVO ? leerChristie() : [])];
 // cuerpos (con su serie) en el orden del catálogo, para elegir primero el proyector y después la óptica
 export const CUERPOS = [...new Map(PROYECTORES.map(q => [q.modelo, { modelo: q.modelo, marca: q.marca, serie: q.serie, lumens: Math.max(...PROYECTORES.filter(x => x.modelo === q.modelo).map(x => x.lumens)) }])).values()];

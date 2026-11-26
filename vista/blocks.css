@@ -864,3 +864,6 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
   .blocks { position: static; min-height: 100dvh; grid-template-rows: auto auto auto auto; }
   .rejilla { overflow: visible; }
 }
+/* con el cajón abierto, si el paso no cabe en portátiles bajos, se desplaza dentro del paso: nada queda cortado */
+.pz.ab .pz-cu:has(> .mas.abierto) { overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 900px), (max-height: 520px) { .pz.ab .pz-cu:has(> .mas.abierto) { overflow: visible; } }

@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.41';
+const VERSION = 'v11.42';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -449,7 +449,8 @@ function veredicto(c) {
     if (c.autoPropone) A('auto', t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre }));
     /* v11.41 · blending en los proyectores EPSON con 4K Enhancement: lo pierden; en la electrónica, hace falta un equipo que lo haga */
     { const hayB = pw.some(f => f.p && f.p.n > 1), q = c.proyector;
-      if (hayB && (E.proy.blendEn || 'proy') === 'proy' && q && q.marca === 'EPSON' && q.k4 && !q.k4nativo) A('blend4k', t('vBlend4k'));
+      if (hayB && (E.proy.blendEn || 'proy') === 'proy' && q && /^DU505[13]Z$/.test(q.modelo)) A('blendNo', t('vBlendNo', { m: q.modelo }));   /* v11.42 · en la serie D5000Z solo el DK5153Z trae edge blending (hoja del fabricante) */
+      else if (hayB && (E.proy.blendEn || 'proy') === 'proy' && q && q.marca === 'EPSON' && q.k4 && !q.k4nativo) A('blend4k', t('vBlend4k'));
       if (hayB && E.proy.blendEn === 'elec' && (E.elec.proyEq || 'media') === 'ninguno') A('blendElec', t('vBlendElec')); }
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));

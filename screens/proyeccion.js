@@ -273,7 +273,10 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   let mejor = null, mejorF = null;
   for (const o of ors) {
     const a = o === 'v' ? 1 / p.ar : p.ar;   // ancho / alto de la imagen sobre la superficie
-    for (let rows = 1; rows <= (una ? 1 : 8); rows++) for (let cols = 1; cols <= (una ? 1 : 12); cols++) {
+    /* v11.42 · límites de mosaico del fabricante: el EB-810E/815E solo mezcla en columnas y hasta 4 proyectores; en el resto, hasta 15 por superficie */
+    const solo1 = /^EB-81[05]E$/.test(p.modelo), maxR = una ? 1 : solo1 ? 1 : 8, maxC = una ? 1 : solo1 ? 4 : 12;
+    for (let rows = 1; rows <= maxR; rows++) for (let cols = 1; cols <= maxC; cols++) {
+      if (cols * rows > 15) continue;
       if (cols * rows > 40 || (salaPleg && rows > 1)) continue;
       const kc = 1 + (cols - 1) * (1 - sMin), kr = 1 + (rows - 1) * (1 - sMin);
       /* v11.7 · sala inmersiva con proyectores de óptica fija (EB-815E, EB-805F…): además de cubrir la pared entera, se mira una sola fila que cubre todo

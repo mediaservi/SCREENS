@@ -9,7 +9,7 @@
    Licencia GPL-3.0 · mediaservi.com */
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.46';
+const VERSION = 'v11.47';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */

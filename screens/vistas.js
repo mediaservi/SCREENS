@@ -103,7 +103,10 @@ export function svgFrontal(d, o = {}) {
   g += `<rect x="${X(L)}" y="${Y(T)}" width="${s.ancho * k}" height="${s.alto * k}" fill="none" stroke="${COL.pared}" stroke-width="2"/>`;
   // rango del desplazamiento de la óptica (primera fila, primera columna) y los proyectores
   const f0 = filas[0], yC = (f0.y0 + f0.y1) / 2, cx0 = q.centros[0];
-  if (d.lim || d.limH) g += `<rect x="${X(cx0 - d.limH * q.imgW)}" y="${Y(yC + d.lim * q.imgH)}" width="${Math.max(2, 2 * d.limH * q.imgW * k)}" height="${Math.max(2, 2 * d.lim * q.imgH * k)}" fill="${COL.rango}" stroke="${COL.rangoB}" stroke-dasharray="4 3" rx="3"/>`;
+  /* v11.47 · desplazamiento COMPARTIDO: lo que la lente se mueve en horizontal se resta del vertical (y al revés), así que la zona posible es un rombo,
+     no un rectángulo; con solo vertical (o solo horizontal), una raya */
+  if (d.lim && d.limH) { const hx = d.limH * q.imgW, vy = d.lim * q.imgH; g += `<polygon points="${X(cx0)},${Y(yC + vy)} ${X(cx0 + hx)},${Y(yC)} ${X(cx0)},${Y(yC - vy)} ${X(cx0 - hx)},${Y(yC)}" fill="${COL.rango}" stroke="${COL.rangoB}" stroke-dasharray="4 3" stroke-linejoin="round"/>`; }
+  else if (d.lim || d.limH) g += `<rect x="${X(cx0 - d.limH * q.imgW)}" y="${Y(yC + d.lim * q.imgH)}" width="${Math.max(2, 2 * d.limH * q.imgW * k)}" height="${Math.max(2, 2 * d.lim * q.imgH * k)}" fill="${COL.rango}" stroke="${COL.rangoB}" stroke-dasharray="4 3" rx="3"/>`;
   let pr = '';
   filas.forEach(f => q.centros.forEach(cx => {
     const yl = f.yL + dy, w = d.anchoCh * k, h = d.altoCh * k;
@@ -161,7 +164,7 @@ export function vistasTecnicas(c, modo = 'todas', iSup = 0) {
   // desplazamiento de la óptica: el vertical se mueve con la altura del proyector (deslizador y centrar); el horizontal, informativo
   const f0 = d.filas[0], yC = (f0.y0 + f0.y1) / 2, ih = f0.y1 - f0.y0, sv = ((f0.yL - yC) / ih) * 100;
   if (d.lim) h += `<div class="vt-shift"><label>${t('vtShiftV')}</label><input type="range" data-vt-shift="1" min="${-Math.round(d.lim * 100)}" max="${Math.round(d.lim * 100)}" step="1" value="${Math.round(sv)}"><b class="${Math.abs(sv) > d.lim * 100 + 0.5 ? 'mal' : ''}">${fmt(sv, 0)} % <small>(±${fmt(d.lim * 100, 0)} %)</small></b>` +
-    `<button type="button" class="sec-btn" data-accion="vt-centrar">${t('vtCentrar')}</button><span class="vt-h">${t('vtShiftH')}: 0 % <small>(±${fmt(d.limH * 100, 0)} %)</small></span></div>`;
+    `<button type="button" class="sec-btn" data-accion="vt-centrar">${t('vtCentrar')}</button><span class="vt-h" title="${t('vtShiftComp')}">${t('vtShiftH')}: 0 % <small>(±${fmt(d.limH * 100, 0)} %${d.lim && d.limH ? ' · ' + t('vtShiftCompC') : ''})</small></span></div>`;
   return h + `<p class="ayuda">${t('vtAyuda')}</p></section>`;
 }
 

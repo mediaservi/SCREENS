@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.49** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.50** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.49)
+## Cambios de la versión actual (v11.50)
+- **Todos los datos del cálculo, ajustables desde el panel AVHUB ADMIN:** también la ficha de cada combinación de proyector y óptica (relación de tiro, lúmenes, desplazamiento de la óptica, imagen mínima y máxima, máximo fuera de especificación y foco), los criterios de AUTO (brillo objetivo, contraste para preferir una sola imagen, blending por brillo, puntos por marca) y las capacidades de la electrónica LED (píxeles por puerto, conversores, ranuras y tarjetas). Sin dato en el panel, el de la ficha del fabricante; el resultado no cambia con los valores actuales.
+
+## Cambios de la v11.49
 - **Todo el cálculo con ajuste fino desde el panel AVHUB ADMIN:** además de los umbrales de proyección, salen del panel en vivo las reglas de LED (brillo según el sol y el entorno, distancia de visionado por defecto, encaje del cabinet, tolerancias de pitch y de formato 16:9, píxeles por puerto, líneas de alimentación y tensión, cabinets HOLO), el orden de marcas de proyección, los proyectores preferidos en salas inmersivas y el chasis y la separación de cada proyector. Sin conexión, la última copia guardada; sin dato, el valor de siempre. El resultado del cálculo no cambia con los valores actuales.
 
 ## Cambios de la v11.48

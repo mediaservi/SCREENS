@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.49';
+const VERSION = 'v11.50';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -135,7 +135,7 @@ function aplicaBrian() { fijaParamsProy(BR); fijaParamsLed(BR); RECORTE_MULTI = 
   /* v11.49 · orden de marcas y cuerpos preferidos en salas, también desde BRIAN (se cambian en su sitio: los usa todo) */
   const om = brLista(BR['proy.marcas.orden']).map((x) => x.toUpperCase()); if (om.length) ORDEN_MARCA.splice(0, ORDEN_MARCA.length, ...om);
   PRIO_SALA.splice(0, PRIO_SALA.length, ...brLista(BR['proy.sala.prioridad']));
-  MARCAS_PROY.sort((a, b) => prioMarca(a) - prioMarca(b)); }
+  MARCAS_PROY.sort((a, b) => prioMarca(a) - prioMarca(b)); if (ELEC && ELEC.fijaParams) ELEC.fijaParams(BR); }
 // v10.89 · la luz por defecto va con el tipo: sala inmersiva a oscuras 15 lx, mapping de noche 5 lx, pared 140 lx (solo si no se ha tocado)
 const LUZ_TIPO = { sala: ['oscura', 15], mapping: ['calle', 5], pared: ['reunion', 140] };
 function luzDeTipo(v) { const p = E.proy, def = Object.values(LUZ_TIPO).some(u => u[0] === p.luzUso && u[1] === Number(p.lux)); if (def && LUZ_TIPO[v]) { p.luzUso = LUZ_TIPO[v][0]; p.lux = LUZ_TIPO[v][1]; } }
@@ -217,8 +217,8 @@ function calcularBase(forzarMulti) {
     // v10.69 · rental como alternativa (regla de Josep, 21-11-2026): con un cabinet fijo que cumple, el fijo sigue siendo el principal; el de
     // alquiler solo se ofrece, con aviso, si está en stock y el fijo no. Tiene que dar lo mismo: entorno, transparente, GOLD, brillo, pitch y medida
     if (E.led.clase === 'INSTALL' && modelo.class === 'INSTALL' && !enStock(modelo) && !protegidoLed()) {
-      const encaja = (x) => sups.every(s => { const q = calcularLed(s, x, E.led.ajuste); return Math.abs(q.ancho - s.ancho) <= s.ancho * 0.15 + 1e-9 && Math.abs(q.alto - s.alto) <= s.alto * 0.15 + 1e-9; });
-      const alt = ordenar(catalogo.filter(x => x.tipo === modelo.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(modelo) && (!E.led.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nitsLed && Math.abs(x.pitch - modelo.pitch) <= 0.2 + 1e-9 && encaja(x)))[0];
+      const encaja = (x) => sups.every(s => { const q = calcularLed(s, x, E.led.ajuste); return Math.abs(q.ancho - s.ancho) <= s.ancho * BR['led.encaje'] + 1e-9 && Math.abs(q.alto - s.alto) <= s.alto * BR['led.encaje'] + 1e-9; });
+      const alt = ordenar(catalogo.filter(x => x.tipo === modelo.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(modelo) && (!E.led.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nitsLed && Math.abs(x.pitch - modelo.pitch) <= BR['led.pitch.tolerancia'] + 1e-9 && encaja(x)))[0];
       if (alt && esInterno()) avisoLed.push(t('altRental', { m: alt.crm }));   // v11.19 · habla de stock: solo lo ve el admin
     }
     const c = { esp, dist, modelo, lista, filas, tot: totales(filas), avisoLed: avisoLed.slice() };
@@ -244,7 +244,7 @@ function calcularBase(forzarMulti) {
   const enRango = (v) => Math.min(dMax > 0 ? dMax : Infinity, Math.max(dMin, v)), corta = (r) => dMin > 0 && r.tiro < dMin - 0.005;
   const sup1 = sups.find(s => s.tipo !== 'suelo');
   const tiroPared = tipoP === 'pared' && !fijaDist ? enRango(Math.max(1, dist)) : tipoP === 'mapping' && hayRango && sup1 ? enRango(TR_MAPPING * sup1.ancho) : 0;
-  const optPared = { ...opc, banda: esp.tipo === 'sala' ? 1.9 : 0, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
+  const optPared = { ...opc, banda: esp.tipo === 'sala' ? BR['proy.sala.bandaMinima'] : 0, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
   // v10.54 · sin saber desde dónde mira la gente (o en mapping con un margen de instalación), el proyector va en el punto medio de lo que permite
   // su óptica, dentro del margen si lo hay; sabiendo la distancia del público, se sigue acercando a ella
   const pubNS = tipoP === 'pared' && !fijaDist && !!E.proy.pubNS, alMedio = pubNS || (tipoP === 'mapping' && hayRango && !fijaDist);
@@ -261,7 +261,7 @@ function calcularBase(forzarMulti) {
   // v10.58 · la prioridad de marca manda en automático (EPSON > VIVITEK > CHRISTIE): 5.000 puntos por escalón, más que cualquier diferencia de
   // número de equipos o de brillo y menos que una instalación que no cabe o con sombras. Así, la siguiente marca solo sale si con la anterior
   // no hay una instalación limpia; para calcular con otra, se apagan las demás o se elige el proyector.
-  const pref = (q) => pref0(q) + prioMarca(q.marca) * 50;
+  const pref = (q) => pref0(q) + prioMarca(q.marca) * BR['proy.puntos.marca'];
   const coloc = { montaje: E.proy.montaje || 'auto', altura: Math.max(0, Number(E.proy.altura) || 0) };
   const altoEsc = esp.tipo === 'sala' ? esp.alto : Number(esp.sueltas.techo) > 0 ? Math.max(Number(esp.sueltas.techo), ...sups.map(s => s.elev + s.alto)) : Math.max(3, ...sups.map(s => s.elev + s.alto)) + 0.8;   /* v10.98 · con techo dicho, los proyectores no pueden subir por encima de él al separarlos */
   const obs = obstaculosDe(esp), haySuelo = sups.some(s => s.tipo === 'suelo');
@@ -277,7 +277,7 @@ function calcularBase(forzarMulti) {
     { const tope = esp.tipo === 'sala' ? esp.alto : (Number(esp.sueltas.techo) > 0 ? Number(esp.sueltas.techo) : Infinity); S.fueraSala = (S.haces || []).filter(h => !h.suelo && h.lente && (h.lente.y < 0.03 || h.lente.y > tope + 0.03)).length; }
     /* v11.7 · en sala inmersiva, el más vendido (EB-L695SE) va primero cuando da un contraste de 10:1 en todas las paredes: gana aunque lleve hasta dos equipos más */
     const lxS = Number(E.proy.lux), lxs = isFinite(lxS) && lxS >= 0 ? lxS : 15;
-    const prio = esp.tipo === 'sala' && PRIO_SALA.includes(pP.modelo) && filas.every(f => f.s.tipo === 'suelo' || lxs <= 0 || (f.p.lux + lxs) / lxs >= 10) ? -400 : 0;
+    const prio = esp.tipo === 'sala' && PRIO_SALA.includes(pP.modelo) && filas.every(f => f.s.tipo === 'suelo' || lxs <= 0 || (f.p.lux + lxs) / lxs >= BR['proy.contraste.auto']) ? -BR['proy.puntos.salaPrioridad'] : 0;
     const falta = opc.nitsMin ? filas.reduce((a, f) => a + (f.s.tipo !== 'suelo' && f.p.nits < opc.nitsMin ? (1 - f.p.nits / opc.nitsMin) * 2000 : 0), 0) : 0;   /* v11.11 · en el blending por brillo, lo que falta para llegar pesa más que los equipos de más */
     return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 + prio + falta };
   };
@@ -294,7 +294,7 @@ function calcularBase(forzarMulti) {
   const mAct = marcasActivas(), CAT = mAct.length === MARCAS_PROY.length ? PROYECTORES : PROYECTORES.filter(q => mAct.includes(q.marca));
   // v10.89 · lúmenes mínimos y tipo de óptica pedidos (petición o MATERIAL): solo si queda alguno que los cumpla
   const lmMin = Number(E.proy.lmMin) || 0, tOpt = E.proy.tipoOpt || '';
-  const CATf = CAT.filter(q => (!lmMin || q.lumens >= lmMin * 0.97) && (!tOpt || tipoTiro(q) === tOpt));
+  const CATf = CAT.filter(q => (!lmMin || q.lumens >= lmMin * BR['proy.lumenes.tolerancia']) && (!tOpt || tipoTiro(q) === tOpt));
   const cand = (CATf.length ? CATf : CAT).filter(q => (!E.proy.cuerpo || q.modelo === E.proy.cuerpo) && (!E.proy.optica || q.optica === E.proy.optica));
   let lista = cand.length ? cand : CAT;
   if (!cand.length && E.proy.cuerpo && E.proy.optica) { const soloC = CAT.filter(q => q.modelo === E.proy.cuerpo); if (soloC.length) { lista = soloC; E.proy.optica = ''; } }   // v10.89 · una óptica que no va con ese cuerpo: se queda el cuerpo, la óptica vuelve a AUTO
@@ -356,7 +356,7 @@ function calcularBase(forzarMulti) {
   let unaImagen = null;
   if (hayPared && inst.filas.some(f => f.s.tipo !== 'suelo' && f.p.solapeRel > SOLAPE_MAX + 1e-6)) {
     const lxN0 = Number(E.proy.lux), lxU = isFinite(lxN0) && lxN0 >= 0 ? lxN0 : 140;   // v10.63 · la propuesta también tiene que dar el contraste mínimo (7:1)
-    const una = (q) => sups.every(s => { if (s.tipo === 'suelo') return true; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) }); return r.n === 1 && (lxU <= 0 || (r.lux + lxU) / lxU >= 7) && !(r.fuera || r.noCubre || r.limite || r.chica || corta(r)) && r.recorte <= RECORTE_MAX + 1e-6 && r.recorteX <= RECORTE_MAX + 1e-6; });
+    const una = (q) => sups.every(s => { if (s.tipo === 'suelo') return true; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) }); return r.n === 1 && (lxU <= 0 || (r.lux + lxU) / lxU >= BR['proy.contraste.minimo']) && !(r.fuera || r.noCubre || r.limite || r.chica || corta(r)) && r.recorte <= RECORTE_MAX + 1e-6 && r.recorteX <= RECORTE_MAX + 1e-6; });
     const ref = proyector, k = CAT.filter(q => q !== ref && q.marca === ref.marca && una(q))   // v10.63 · NUNCA de otra marca (decidido por Josep, 16-11-2026).map(q => ({ q, k: (q.lumens < ref.lumens ? 1e6 : 0) + pref(q) * 100 + q.lumens / 1000 })).sort((a, b) => a.k - b.k)[0];
     if (k) unaImagen = k.q;
   }
@@ -407,10 +407,10 @@ function calcularBase(forzarMulti) {
   }
   /* v11.11 · con una sola imagen no se llega al brillo (contraste por debajo de 10:1 con la luz del sitio): AUTO propone blending con los proyectores
      que hagan falta para llegar (decidido por Josep, 24-11-2026), si monta limpio y mejora de verdad el contraste */
-  else if (una && hayPared && !E.proy.cuerpo && !E.proy.optica && !fijaDist && tot.contrasteMin < 10) {
+  else if (una && hayPared && !E.proy.cuerpo && !E.proy.optica && !fijaDist && tot.contrasteMin < BR['proy.contraste.auto']) {
     const alt = calcular('brillo');
     const rk = (v) => ({ V: 0, A: 1, R: 2 })[v && v.nivel] ?? 2; c.elec = electronica(c); const v0 = veredicto(c);   // solo si el veredicto mejora (no cambia un rojo por otro)
-    if (blendLimpio(alt) && alt.tot.contrasteMin > tot.contrasteMin * 1.25 && rk(alt.veredicto) < rk(v0)) { alt.multiAuto = true; alt.multiBrillo = true; alt.veredicto = veredicto(alt); return alt; }
+    if (blendLimpio(alt) && alt.tot.contrasteMin > tot.contrasteMin * BR['proy.blending.mejoraContraste'] && rk(alt.veredicto) < rk(v0)) { alt.multiAuto = true; alt.multiBrillo = true; alt.veredicto = veredicto(alt); return alt; }
   }
   c.elec = electronica(c); c.veredicto = veredicto(c); return c;
 }
@@ -419,7 +419,7 @@ function calcularBase(forzarMulti) {
    el de menos lúmenes. Llegar al objetivo vale lo mismo que antes valía llegar a 250 nits; pasarse no suma y los lúmenes de más restan un poco */
 /* v10.98 · en mapping (fachadas, que no son una pantalla blanca) el mínimo es de 80 nits. El objetivo del 15:1 tiene tope de 250 nits, pero AUTO ya no se queda en rojo
    si un equipo mayor lo evita: con mucha luz sube hasta un contraste de 10:1 (v11.5) */
-const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.max(Math.min(250, Math.max(tipoProy() === 'mapping' ? 80 : 45, 14 * lx / Math.PI)), 9 * lx / Math.PI); };   /* v11.5 · con luz ambiente, AUTO sube hasta un contraste de 10:1 (decidido por Josep, 24-11-2026; antes 7:1) */
+const nitsObjetivo = () => { const n = Number(E.proy.lux), lx = isFinite(n) && n >= 0 ? n : 140; return Math.max(Math.min(BR['proy.brillo.maximo'], Math.max(tipoProy() === 'mapping' ? BR['proy.brillo.minimoMapping'] : BR['proy.brillo.minimo'], (BR['proy.contraste.recomendado'] - 1) * lx / Math.PI)), (BR['proy.contraste.auto'] - 1) * lx / Math.PI); };   /* v11.5 · con luz ambiente, AUTO sube hasta un contraste de 10:1 (decidido por Josep, 24-11-2026; antes 7:1) */
 const valeBrillo = (nits) => { const o = nitsObjetivo(); return Math.min(nits, o) * 250 / o; };
 /* v11.5 · los lúmenes de más solo penalizan cuando sobran: si el equipo no llega al brillo buscado, la penalización baja en proporción (con mucha luz,
    al subir el objetivo, ganaba el proyector más flojo por ahorrar lúmenes) */

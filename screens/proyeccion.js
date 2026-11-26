@@ -90,7 +90,30 @@ export function fijaParamsProy(b) { SOLAPE_MIN = b['proy.solape.minimo']; SOLAPE
     const c = md(b['proy.chasis.' + sl(q.modelo)]), h = md(b['proy.separacion.' + sl(q.modelo)]);
     q.chasis = c.length === 3 && c.every((x) => x > 0) ? c : q._orig.chasis || (def.length === 3 ? def : [0.55, 0.45, 0.2]);
     if (h.length >= 1 && h[0] > 0) { q.holgEsq = h[0]; q.holgSin = h[1] > 0 ? h[1] : q._orig.holgSin; } else { q.holgEsq = q._orig.holgEsq; q.holgSin = q._orig.holgSin; }
-  }); }
+    /* v11.49 · óptica de cada combinación (proy.optica.<modelo-óptica>): «tiro 1,44–2,32 · 7000 lm · V 50/50 · H 20 · imagen 50–500″ · fuera 600″ · foco 1–20 · mecánico 0,9–25» */
+    const OK = ['trMin', 'trMax', 'lumens', 'shiftV', 'shiftVcontra', 'shiftH', 'minDiagPulg', 'maxDiagPulg', 'maxDiagPulgOOS', 'foco', 'focoMec'];
+    if (!q._origO) { q._origO = {}; OK.forEach((k) => { q._origO[k] = Array.isArray(q[k]) ? q[k].slice() : q[k]; }); }
+    OK.forEach((k) => { q[k] = Array.isArray(q._origO[k]) ? q._origO[k].slice() : q._origO[k]; });
+    const t = String(b['proy.optica.' + sl(q.id)] || ''); if (t) {
+      const n = (x) => (String(x).trim() === '∞' ? Infinity : Number(String(x).replace(',', '.'))), par = (re) => { const m = t.match(re); return m ? [n(m[1]), n(m[2])] : null; }, uno = (re) => { const m = t.match(re); return m ? n(m[1]) : NaN; };
+      const NUM = '([0-9]+(?:[.,][0-9]+)?)', INF = '([0-9]+(?:[.,][0-9]+)?|∞)', DOS = NUM + '\\s*[–-]\\s*' + NUM;
+      const tr = par(new RegExp('tiro\\s*' + DOS, 'i')); if (tr && tr.every(isFinite)) { q.trMin = Math.min(...tr); q.trMax = Math.max(...tr); }
+      const lm = t.match(/([0-9][0-9.\s]*)\s*lm/i); if (lm) { const v = Number(lm[1].replace(/[.\s]/g, '')); if (v > 0) q.lumens = v; }
+      const V = t.match(new RegExp('\\bV\\s+' + NUM + '(?:\\s*/\\s*' + NUM + ')?')); if (V && isFinite(n(V[1]))) { q.shiftV = n(V[1]); if (V[2] != null) q.shiftVcontra = n(V[2]); }
+      const H = uno(new RegExp('\\bH\\s+' + NUM)); if (isFinite(H)) q.shiftH = H;
+      const im = par(new RegExp('imagen\\s*' + NUM + '\\s*[–-]\\s*' + INF, 'i')); if (im && isFinite(im[0]) && !isNaN(im[1])) { q.minDiagPulg = im[0]; q.maxDiagPulg = im[1]; }
+      const fu = uno(new RegExp('fuera\\s*' + INF, 'i')); if (!isNaN(fu)) q.maxDiagPulgOOS = fu;
+      const fo = par(new RegExp('foco\\s*' + DOS, 'i')); if (fo && fo.every(isFinite)) q.foco = fo;
+      const fm = par(new RegExp('mec[aá]nico\\s*' + DOS, 'i')); if (fm && fm.every(isFinite)) q.focoMec = fm;
+    }
+  });
+  CUERPOS.forEach((c) => { c.lumens = Math.max(...PROYECTORES.filter((x) => x.modelo === c.modelo).map((x) => x.lumens)); }); }
+/* el texto de la óptica de una combinación, en el formato de BRIAN (para darla de alta en el panel) */
+export function textoOptica(q) { const f = (v) => (v === Infinity ? '∞' : String(Math.round(v * 1e4) / 1e4).replace('.', ',')), o = q._origO || q, p = [];
+  p.push('tiro ' + f(o.trMin) + '–' + f(o.trMax)); p.push(Math.round(o.lumens) + ' lm'); p.push('V ' + f(o.shiftV || 0) + (o.shiftVcontra != null ? '/' + f(o.shiftVcontra) : '')); p.push('H ' + f(o.shiftH || 0));
+  if (o.minDiagPulg || o.maxDiagPulg) p.push('imagen ' + f(o.minDiagPulg || 0) + '–' + f(o.maxDiagPulg || 0) + '″'); if (o.maxDiagPulgOOS) p.push('fuera ' + f(o.maxDiagPulgOOS) + '″');
+  if (Array.isArray(o.foco)) p.push('foco ' + f(o.foco[0]) + '–' + f(o.foco[1])); if (Array.isArray(o.focoMec)) p.push('mecánico ' + f(o.focoMec[0]) + '–' + f(o.focoMec[1]));
+  return p.join(' · '); }
 /* v11.14 · separación mínima entre chasis de cada modelo, la del manual del fabricante con mampara entre equipos (Josep, 24-11-2026): [con mampara, sin mampara], en m.
    EB-815E 20 cm (110 sin mampara) · EB-805F mampara a 40 cm de la salida de aire y a 20 cm de las entradas (120 sin mampara) · serie L695SE/L795SE/L695SU 20 y 40 cm
    (150 sin mampara); donde el manual da dos cifras (lado de salida y lado de entrada) se aplica la mayor, 40 cm · EB-PQ 30 cm (70 sin mampara). Los modelos que no están aquí usan la general (HOLGURA): de los EB-PU1006W/1007B/1008B/2010B el manual

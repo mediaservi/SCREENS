@@ -30,7 +30,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.49';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.50';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -244,7 +244,7 @@ const RESMIN = { HD: [1280, 720], FHD: [1920, 1080], '4K': [3840, 2160] };
 const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
 /* v11.49 · BRIAN: brillo por entorno y sol, caja de drivers HOLO, encaje, tolerancias de pitch y formato 16:9, líneas de alimentación y píxeles por puerto */
 function aplicaBrian() { fijaParamsLed(BR); SOL_DIRECTO = BR['led.nits.solDirecto']; SOL_INDIRECTO = BR['led.nits.solIndirecto']; MIN_NITS.OUTDOOR = BR['led.nits.exterior']; MIN_NITS.ESCAPARATE = BR['led.nits.escaparate'];
-  HOLO_DRIVER = BR['led.holo.cajaDriversMm']; ENCAJE = BR['led.encaje']; }
+  HOLO_DRIVER = BR['led.holo.cajaDriversMm']; ENCAJE = BR['led.encaje']; if (ELEC && ELEC.fijaParams) ELEC.fijaParams(BR); }
 /* v10.63 · ELECCIÓN DEL CABINET (decidido por Josep, 16-11-2026), en este orden:
    1) que encaje con la medida pedida: cada lado a menos de un 15 % de lo pedido (si ninguno encaja, el que menos se aparta);
    2) que esté en stock (lo que llega en uno o dos meses ya va marcado como stock en el catálogo);

@@ -10,24 +10,29 @@ export const BRIAN_DEF = {
   'proy.recorte.maximo': 0.2, 'proy.recorte.multi': 0.5,
   'proy.holgura.lado': 0.40, 'proy.holgura.vertical': 0.20, 'proy.holgura.sinMampara': 1.5,
   'proy.mosaico.maximo': 15, 'proy.mapping.relacionTiro': 2, 'proy.persona.alto': 1.85,
+  'proy.contraste.auto': 10, 'proy.brillo.minimo': 45, 'proy.brillo.minimoMapping': 80, 'proy.brillo.maximo': 250, 'proy.blending.mejoraContraste': 1.25,
+  'proy.sala.bandaMinima': 1.9, 'proy.lumenes.tolerancia': 0.97, 'proy.puntos.marca': 50, 'proy.puntos.salaPrioridad': 400,
   'proy.luz.reunion': 140, 'proy.luz.aula': 210, 'proy.luz.evento': 140, 'proy.luz.salon': 70, 'proy.luz.teatro': 14, 'proy.luz.oscura': 15, 'proy.luz.calle': 5,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,
   'led.encaje': 0.15, 'led.pitch.tolerancia': 0.2, 'led.pitch.aviso': 0.06, 'led.formato169.cerca': 0.12, 'led.formato169.exacto': 0.02,
   'led.medida.toleranciaMm': 5, 'led.pixelesPorPuerto': 650000, 'led.linea.amperios': 16, 'led.linea.tension': 230,
-  'led.holo.cajaDriversMm': 75, 'led.holo.margenAncho': 0.15
+  'led.holo.cajaDriversMm': 75, 'led.holo.margenAncho': 0.15,
+  /* electrónica LED (motor común con SYSTEMS: tema de app TODAS) */
+  'elec.pixelesPorPuerto': 650000, 'elec.conversor.puertos': 10, 'elec.mx2000.ranurasEntrada': 2, 'elec.mx2000.ranurasSalida': 2, 'elec.mx6000.ranurasEntrada': 8, 'elec.mx6000.ranurasSalida': 8,
+  'elec.mx.tarjetaSalida.fibras': 4, 'elec.h.tarjetaRJ45.puertos': 20, 'elec.h.tarjetaFibra.fibras': 2, 'elec.h.tarjetaFibra.puertosPorFibra': 8
 };
 /* textos (listas y medidas): marcas por orden, cuerpos preferidos en salas y chasis por defecto */
 export const BRIAN_TXT = { 'proy.marcas.orden': 'EPSON, VIVITEK, CHRISTIE', 'proy.sala.prioridad': 'EB-L695SE', 'proy.chasis.defecto': '0,55 × 0,45 × 0,2' };
 /* por modelo (los añade el panel): proy.chasis.<modelo> = «ancho × fondo × alto» (m) · proy.separacion.<modelo> = «con mampara / sin mampara» (m) */
-const POR_MODELO = /^proy\.(chasis|separacion)\./;
+const POR_MODELO = /^proy\.(chasis|separacion|optica)\./;
 const K = 'sc_brian_screens';
 export const num = (v) => { const n = Number(String(v == null ? '' : v).replace(',', '.').trim()); return isFinite(n) ? n : NaN; };
 export const medidas = (v) => String(v == null ? '' : v).split(/[x×*\/]/i).map(num).filter((n) => isFinite(n) && n >= 0);
 export const lista = (v) => String(v == null ? '' : v).split(/[,;]/).map((s) => s.trim()).filter(Boolean);
 export const slug = (m) => String(m || '').replace(/\+/g, 'plus').replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '');
-const vale = (k, v) => { const n = num(v), d = BRIAN_DEF[k]; if (!isFinite(n) || n < 0) return false; return d < 1 && /solape|recorte|encaje|formato169|margen/.test(k) ? n < 1 : true; };
+const vale = (k, v) => { const n = num(v), d = BRIAN_DEF[k]; if (!isFinite(n) || n < 0) return false; return d < 1 && /solape|recorte|encaje|formato169|margen/.test(k) ? n < 1 : k === 'proy.lumenes.tolerancia' ? n > 0 && n <= 1 : true; };
 export const BR = {};
 let firma = '';
 function aplica(p) {

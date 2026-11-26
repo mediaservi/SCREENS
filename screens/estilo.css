@@ -431,3 +431,19 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 .tar { container-type: inline-size; }
 .tar .t { white-space: normal; line-height: 1.2; }
 .tar .v { font-size: min(20px, 12.5cqw); }
+/* v11.39 · vista única F2: cajón MÁS AJUSTES dentro de cada paso (lo básico siempre a la vista; lo profesional, a un toque) */
+.mas { display: grid; gap: 8px; min-width: 0; border-top: 1px dashed rgba(255,255,255,.14); padding-top: 6px; }
+.mas-bt { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.16);
+  background: linear-gradient(#2a2c32, #202226); color: #c5c9d0; font: 800 11px/1.1 Inter, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.mas-bt > span { flex: 1; text-align: left; }
+.mas-bt:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+.mas-n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--verde, #00ff04); color: #0b0b0d; font: 800 11px/20px Inter, system-ui, sans-serif; letter-spacing: 0; text-align: center; }
+.mas-fl { width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+.mas.abierto .mas-fl { transform: rotate(-135deg) translate(-2px, -2px); }
+.mas.abierto .mas-bt { color: var(--verde, #00ff04); border-color: var(--verde, #00ff04); }
+.mas-cuerpo { display: grid; gap: 8px; min-width: 0; }
+.mas-cuerpo[hidden] { display: none; }
+@media (pointer: coarse) { .mas-bt { min-height: 44px; } }
+[data-tema="claro"] .mas-bt { background: linear-gradient(#f4f5f7, #e6e8ec); color: #3a3e46; border-color: rgba(0,0,0,.18); }
+[data-tema="claro"] .mas { border-top-color: rgba(0,0,0,.16); }
+[data-tema="claro"] .mas.abierto .mas-bt { color: #1d6b00; border-color: #3aa300; }

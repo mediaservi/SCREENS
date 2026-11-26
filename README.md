@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.38** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.39** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.38)
+## Cambios de la versión actual (v11.39)
+- **Vista completa · MÁS AJUSTES en cada paso:** cada uno de los cuatro pasos enseña lo básico y guarda los ajustes profesionales en un cajón «MÁS AJUSTES» dentro del propio paso, con el número de ajustes que has cambiado respecto a los de fábrica. Abrir un cajón cierra el que estuviera abierto; se recuerda cuál dejaste abierto y RESTABLECER de cada paso los devuelve a fábrica. Igual en varias pantallas LED, una proyección y varias proyecciones.
+  - LED: paso 2, alto de imagen, elevación, puertas y obstáculos; paso 3, el ajuste del cabinet.
+  - Proyección: paso 1, techo, montaje, altura, marcas y proyector; paso 2, la posición de la pantalla; paso 4, orientación, imágenes por pantalla y electrónica.
+
+## Cambios de la v11.38
 - **Proyección · regla nueva del cálculo:** cuando algo no se puede hacer de forma normal (no cabe, no cubre, choques, sombras, el proyector elegido no llega o queda una franja sin imagen), el cálculo prueba fuera de especificación:
   - si así se puede, lo muestra fuera de especificación con todas sus advertencias;
   - si no se puede de ninguna manera, el resultado dice «Configuración no realizable» y qué cambiar (medidas, paredes o colocación).

@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.38';
+const VERSION = 'v11.39';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1237,6 +1237,12 @@ function calcularPeticion() {
 let nlNoUsado = [], nProyPedidos = 0;
 
 // v8.5 · bloque de una zona: cabecera con testigo, nombre, resumen (se lee cuando está plegado) y su RESTABLECER; debajo, el cuerpo
+/* v11.39 · cajón MÁS AJUSTES de un paso: cuántos de sus ajustes no son los de fábrica y si está abierto (solo uno a la vez, se recuerda) */
+let MAS = (() => { try { return localStorage.getItem('screens_mas') || ''; } catch (e) { return ''; } })();
+const valorEn = (o, ruta) => ruta.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+const nPro = (rutas) => { const d = DEF(); return rutas.filter((r) => JSON.stringify(valorEn(E, r) ?? null) !== JSON.stringify(valorEn(d, r) ?? null)).length; };
+const mas = (id, cuerpo, rutas) => { if (!cuerpo) return ''; const n = nPro(rutas), ab = MAS === id + ':' + E.tecnologia;
+  return `<div class="mas${ab ? ' abierto' : ''}${n ? ' con' : ''}" data-mas="${id}"><button type="button" class="mas-bt" data-accion="mas" data-id="${id}" aria-expanded="${ab}"><span>${t('masAjustes')}</span>${n ? `<b class="mas-n" title="${t('masN', { n })}">${n}</b>` : ''}<i class="mas-fl" aria-hidden="true"></i></button><div class="mas-cuerpo"${ab ? '' : ' hidden'}>${cuerpo}</div></div>`; };
 const blq = (id, tit, res, cuerpo, reset) => `<section class="mod blq" data-blq="${id}"><div class="mod-tit"><button type="button" class="blq-cab" data-accion="blq" data-id="${id}" aria-expanded="true"><i class="blq-led"></i><span class="blq-nom">${tit}</span><span class="blq-res">${res || ''}</span></button>${reset ? `<button type="button" class="sec-btn reset" data-accion="${reset}">${t('restablecer')}</button>` : ''}</div><div class="blq-cuerpo">${cuerpo}</div></section>`;
 function zonas(c) {
   const led = E.tecnologia === 'led', e = partesEspacio(), q = led ? partesLed(c) : partesProy(c), x = c.elec || {};
@@ -1245,11 +1251,14 @@ function zonas(c) {
   // v10.89 · una sola columna de datos con 4 pasos numerados, iguales en todas las modalidades (24-11-2026):
   // ① sala · ② pantalla · ③ equipo / distancia · ④ avanzado. Sin CALCULAR ni RESTABLECER al pie (están en la cabecera) ni el pie «Elegido»
   const pn = (n, k) => `<i class="pn">${n}</i>${t(k)}`, junta = (...a) => a.filter(Boolean).join(' · ');
+  /* v11.39 · VISTA ÚNICA F2 (boceto aprobado por Josep, 26-11-2026): cada paso enseña lo básico y guarda lo profesional en su cajón MÁS AJUSTES,
+     con el número de ajustes cambiados respecto a los de fábrica; abrir un cajón cierra el que hubiera abierto */
+  const EL = ['elec.backup', 'elec.escalador', 'elec.conexion', 'elec.marca', 'elec.dante', 'elec.sel', 'elec.selMedia', 'elec.proyEq', 'elec.selBlend'];
   const A = led
-    ? blq('a1', pn(1, 'bSalaUso'), e.rTipo, e.tipo, 'reset-a1') + blq('a2', pn(2, 'bTamDist'), junta(e.rTam, e.rEnt), e.tam + e.ent, 'reset-a2')
-      + blq('b1', pn(3, 'bEquipo'), junta(q.rMat, q.rAj), q.mat + q.aj, 'reset-b1+b2') + blq('b3', pn(4, 'elecMod'), rElec, modElec(c), 'reset-elec')
-    : blq('a2', pn(1, 'bSalaProy'), junta(pa.rTipo, pa.rSala, q.rMat), pa.tipo + pa.salaP + q.mat, 'reset-a2+b1') + blq('a5', pn(2, 'bImagen'), junta(pa.rTam, pa.rPos), pa.tam + pa.pos, 'reset-a5')
-      + blq('a7', pn(3, 'bDistProy'), pa.rDist, pa.dist, 'reset-a7') + blq('a3', pn(4, 'bAvanz'), junta(q.rAj, pa.rAvz, rElec), q.aj + pa.avz + modElec(c), 'reset-a3+b2+elec');
+    ? blq('a1', pn(1, 'bSalaUso'), e.rTipo, e.tipo, 'reset-a1') + blq('a2', pn(2, 'bTamDist'), junta(e.rTam, e.rEnt), e.tam + mas('a2', e.ent, ['esp.altoCubierto', 'esp.elev', 'esp.obst']), 'reset-a2')
+      + blq('b1', pn(3, 'bEquipo'), junta(q.rMat, q.rAj), q.mat + mas('b1', q.aj, ['led.ajuste']), 'reset-b1+b2') + blq('b3', pn(4, 'elecMod'), rElec, modElec(c), 'reset-elec')   /* el paso de electrónica ya es el avanzado: sin cajón */
+    : blq('a2', pn(1, 'bSalaProy'), junta(pa.rTipo, pa.rSala, q.rMat), pa.tipo + mas('a2', pa.salaP + q.mat, ['proy.montaje', 'proy.altura', 'proy.marcas', 'proy.cuerpo', 'proy.optica', 'proy.idSuelo']), 'reset-a2+b1') + blq('a5', pn(2, 'bImagen'), junta(pa.rTam, pa.rPos), pa.tam + mas('a5', pa.pos, ['esp.sueltas.elev', 'esp.elev', 'esp.altoCubierto']), 'reset-a5')
+      + blq('a7', pn(3, 'bDistProy'), pa.rDist, pa.dist, 'reset-a7') + blq('a3', pn(4, 'bAvanz'), junta(q.rAj, pa.rAvz, rElec), pa.avz + mas('a3', q.aj + modElec(c), ['proy.orient', 'proy.multi', 'proy.solape'].concat(EL)), 'reset-a3+b2+elec');
   const B = '';
   const equipo = q.fichas ? `<div class="res-sec" id="det-equipo"><div class="res-tit">${led ? ICO.led : ICO.proy}${t('equipoSel')}</div>${q.fichas}</div>` : '';
   return { A, B, equipo };
@@ -1425,6 +1434,9 @@ document.addEventListener('click', (ev) => {
   }
   if (a === 'elec-dante') { E.elec.dante = !E.elec.dante; E.elec.selMedia = ''; actualizar(); return; }
   // v8.5 · bloques de las zonas: abrir uno plegado, ir a las cifras o a la ficha y restablecer cada bloque por separado
+  if (a === 'mas') { const k = b.dataset.id + ':' + E.tecnologia; MAS = MAS === k ? '' : k; try { localStorage.setItem('screens_mas', MAS); } catch (e) {}
+    document.querySelectorAll('.mas').forEach((m) => { const ab = MAS === m.dataset.mas + ':' + E.tecnologia; m.classList.toggle('abierto', ab); const bt = m.querySelector('.mas-bt'); if (bt) bt.setAttribute('aria-expanded', String(ab)); const cu = m.querySelector('.mas-cuerpo'); if (cu) cu.hidden = !ab; });
+    const zn = b.closest('.zona'), bl = b.closest('.blq'); if (zn && bl) { tocar(zn.dataset.zona, bl.dataset.blq); plegar(); } return; }
   if (a === 'blq') { const zn = b.closest('.zona'); if (zn) { tocar(zn.dataset.zona, b.dataset.id); plegar(); } return; }
   if (a === 'calc-ir') { irA('.res-tot'); return; }
   if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; encajaTablas(); } return; }

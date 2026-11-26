@@ -834,3 +834,33 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 :root[data-tema="claro"] select[data-crm] option, :root[data-tema="claro"] select[data-crm] optgroup { background: #fff; color: #15161a; }
 :root[data-tema="claro"] select[data-crm] optgroup { color: #5a5d66; }
 :root[data-tema="claro"] select[data-crm] option.stk { background: #cdeee9; color: #06463e; }
+
+/* v11.40 · VISTA ÚNICA: cajón MÁS AJUSTES de los pasos 2 y 3 (el mismo que en la consola) */
+.pz .mas { display: grid; gap: 8px; min-width: 0; border-top: 1px dashed rgba(255,255,255,.14); padding-top: 6px; }
+.pz .mas-bt { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.16);
+  background: linear-gradient(#2a2c32, #202226); color: #c5c9d0; font: 800 11px/1.1 Inter, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.pz .mas-bt > span { flex: 1; text-align: left; }
+.pz .mas-bt:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+.pz .mas-n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--verde, #00ff04); color: #0b0b0d; font: 800 11px/20px Inter, system-ui, sans-serif; letter-spacing: 0; text-align: center; }
+.pz .mas-fl { width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+.pz .mas.abierto .mas-fl { transform: rotate(-135deg) translate(-2px, -2px); }
+.pz .mas.abierto .mas-bt { color: var(--verde, #00ff04); border-color: var(--verde, #00ff04); }
+.pz .mas-cuerpo { display: grid; gap: 8px; min-width: 0; }
+.pz .mas-cuerpo[hidden] { display: none; }
+@media (pointer: coarse) { .pz .mas-bt { min-height: 44px; } }
+[data-tema="claro"] .pz .mas-bt { background: linear-gradient(#f4f5f7, #e6e8ec); color: #3a3e46; border-color: rgba(0,0,0,.18); }
+[data-tema="claro"] .pz .mas { border-top-color: rgba(0,0,0,.16); }
+[data-tema="claro"] .pz .mas.abierto .mas-bt { color: #1d6b00; border-color: #3aa300; }
+.pz .mas { margin: calc(var(--u) * 6) calc(var(--u) * 10) calc(var(--u) * 8); gap: calc(var(--u) * 8); padding-top: calc(var(--u) * 6); }
+.pz .mas-bt { min-height: calc(var(--u) * 34); padding: calc(var(--u) * 4) calc(var(--u) * 12); border-radius: calc(var(--u) * 8); font-size: max(11px, calc(var(--u) * 12)); gap: calc(var(--u) * 8); }
+.pz .mas-n { min-width: calc(var(--u) * 20); height: calc(var(--u) * 20); line-height: calc(var(--u) * 20); font-size: max(11px, calc(var(--u) * 11)); }
+.pz .mas-cuerpo > .blk { grid-area: auto !important; }
+/* apilado (móvil y móvil tumbado): los pasos no se ven y todo va en una columna, así que el cajón tampoco: su contenido, a la vista y en su sitio */
+@media (max-width: 900px), (max-height: 520px) { .pz .mas, .pz .mas-cuerpo, .pz .mas-cuerpo[hidden] { display: contents; } .pz .mas-bt { display: none; } }
+
+/* v11.40 · móvil tumbado: la página entera se desplaza (antes la rejilla quedaba en una caja de 180 px de alto) */
+@media (orientation: landscape) and (max-height: 520px) {
+  html, body { height: auto; overflow: visible; }
+  .blocks { position: static; min-height: 100dvh; grid-template-rows: auto auto auto auto; }
+  .rejilla { overflow: visible; }
+}

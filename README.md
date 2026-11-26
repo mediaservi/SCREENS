@@ -4,11 +4,11 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.39** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.40** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
-- **Dos vistas, SIMPLE y PRO** (interruptor junto al logo): las cabeceras y el pie son los mismos en las dos; SIMPLE cambia solo el cuerpo (lo que pides, la simulación en grande y el resultado en la fila de abajo) y pregunta lo justo con un asistente, tanto para una pantalla LED como para varias, una sala LED, una proyección o una sala de proyección; PRO es la vista completa de siempre. Las dos usan el mismo cálculo (`vista/simple.js`). En el dibujo de una proyección de SIMPLE, el proyector y la persona se arrastran con el dedo o el ratón, solo por donde permiten la óptica y el margen de instalación.
+- **Una sola vista para todos:** cada paso enseña lo básico y guarda lo profesional en su cajón **MÁS AJUSTES** (con el número de ajustes cambiados). Junto al logo, **AYÚDAME A ELEGIR** abre un asistente de preguntas sencillas; encima de los resultados, la frase del resultado y **COMPARTIR**. Los enlaces antiguos con `?vista=simple|pro` siguen funcionando.
 
 Desde la v10.29 **no hay versión clásica**: `led.html` y `clasica.html` solo llevan los enlaces antiguos a la portada, y cualquier parámetro antiguo (`?led`, `?clasica`, datos) se quita al entrar.
 
@@ -76,7 +76,16 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.39)
+## Cambios de la versión actual (v11.40)
+- **Vista única:** se quita el interruptor SIMPLE · PRO; todo el mundo entra en la misma vista. Lo que tenía SIMPLE pasa a esta vista:
+  - **AYÚDAME A ELEGIR** junto al logo abre el asistente de preguntas sencillas (ya no se abre solo al entrar; en el móvil y en la tableta, solo su icono).
+  - **La frase del resultado** («Tu proyección…», «Tu pantalla LED…») y **COMPARTIR**, que copia el resumen en texto, encima de RESULTADOS.
+  - La guía de tres pasos ya no salta sola: se abre desde INFORMACIÓN.
+- **Una pantalla LED · MÁS AJUSTES:** el paso 2 guarda la resolución en su cajón y el paso 3 el reparto de cabinets, con el número de ajustes cambiados. En el móvil todo sigue a la vista, en una columna.
+- **Móvil tumbado:** la página entera se desplaza (antes el contenido quedaba en una caja de 165–180 px de alto).
+- Los enlaces antiguos con `?vista=simple` o `?vista=pro` siguen funcionando y llevan a la vista única.
+
+## Cambios de la v11.39
 - **Vista completa · MÁS AJUSTES en cada paso:** cada uno de los cuatro pasos enseña lo básico y guarda los ajustes profesionales en un cajón «MÁS AJUSTES» dentro del propio paso, con el número de ajustes que has cambiado respecto a los de fábrica. Abrir un cajón cierra el que estuviera abierto; se recuerda cuál dejaste abierto y RESTABLECER de cada paso los devuelve a fábrica. Igual en varias pantallas LED, una proyección y varias proyecciones.
   - LED: paso 2, alto de imagen, elevación, puertas y obstáculos; paso 3, el ajuste del cabinet.
   - Proyección: paso 1, techo, montaje, altura, marcas y proyector; paso 2, la posición de la pantalla; paso 4, orientación, imágenes por pantalla y electrónica.

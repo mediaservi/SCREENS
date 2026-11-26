@@ -767,3 +767,9 @@ select[data-sel="led.crm"] option.stk { background: #0f5a50; color: #e4fbf7; }
 :root[data-tema="claro"] select[data-sel="led.crm"] option, :root[data-tema="claro"] select[data-sel="led.crm"] optgroup { background: #fff; color: #15161a; }
 :root[data-tema="claro"] select[data-sel="led.crm"] optgroup { color: #5a5d66; }
 :root[data-tema="claro"] select[data-sel="led.crm"] option.stk { background: #cdeee9; color: #06463e; }
+
+/* v11.40 · móvil tumbado: con 390 px de alto no cabe una caja con desplazamiento propio (quedaban 165 px útiles): la página entera se desplaza */
+@media (orientation: landscape) and (max-height: 520px) {
+  html.piel:not(.bk) body { height: auto; min-height: 100dvh; overflow: visible; }
+  html.piel:not(.bk) #app { overflow: visible; flex: none; }
+}

@@ -1,19 +1,16 @@
-/* SCREENS · modo SIMPLE (v10.50 beta)
-   Una vista sencilla de la de siempre (PRO), con el mismo estado y el mismo cálculo: la portada (una pantalla LED, vista/una-led.js → window.__blocks)
-   y la consola de proyección (screens/app.js → window.__consola). Las cabeceras y el pie son los de PRO en los dos modos (logo, familia AVHUB,
-   iconos, modo, petición y CALCULAR); el interruptor SIMPLE · PRO, junto al logo, solo cambia el cuerpo de la página:
-   - un asistente la primera vez (una pregunta por pantalla, botones grandes y siempre «No lo sé»), que se puede saltar;
-   - LO QUE PIDES: un resumen editable (cada línea abre solo su pregunta);
-   - la SIMULACIÓN A ESCALA en grande (dos tercios de alto y cuatro de las seis columnas), sin cuadros de datos encima;
-   - el RESULTADO en la fila de abajo: la línea resumen, el semáforo y unas pocas cifras muy visuales que no repiten lo que ya dice la línea.
-   El stock es un dato interno: solo su icono (caja verde = de stock; tarjeta con reloj naranja = a pedir). Un dato a cero (sin él en la tabla
-   maestra, como el peso) no se enseña. La vista elegida se guarda en el navegador (screens_vista) y se puede pedir en los enlaces (?vista=simple|pro).
-   Quien ya usaba SCREENS (ya vio la guía de PRO) entra en PRO; quien llega por primera vez, en SIMPLE con el asistente.
-   Textos propios en español, inglés y catalán. Licencia GPL-3.0 · mediaservi.com */
+/* SCREENS · asistente y frase del resultado de la VISTA ÚNICA (v11.40)
+   SCREENS ya no tiene dos vistas (SIMPLE y PRO): hay una sola, con lo básico en cada paso y lo profesional en su cajón MÁS AJUSTES.
+   Este módulo pone lo que venía de SIMPLE, con el mismo estado y el mismo cálculo de la portada (vista/una-led.js → window.__blocks)
+   y de la consola (screens/app.js → window.__consola):
+   - el botón AYÚDAME A ELEGIR junto al logo, que abre el asistente (una pregunta por pantalla, botones grandes y siempre «No lo sé»);
+     no se abre solo: solo con su botón o al llegar de la otra página a mitad de las preguntas (?asis=);
+   - encima de RESULTADOS, la frase del resultado (el equipo, la medida y cuántos) y COMPARTIR, que copia el resumen en texto.
+   Los enlaces antiguos con ?vista=simple|pro siguen funcionando: se aceptan y se ignoran. Textos en español, inglés y catalán.
+   Licencia GPL-3.0 · mediaservi.com */
 import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.39';
+const VERSION = 'v11.40';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -25,9 +22,9 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 
 /* ---------- vista: SIMPLE o PRO ---------- */
 const QS = new URLSearchParams(location.search);
-let vista = QS.get('vista');
-if (vista === 'simple' || vista === 'pro') pon(K_VISTA, vista);
-else { vista = lee(K_VISTA); if (vista !== 'simple' && vista !== 'pro') { vista = lee('screens-blocks-guia') || lee('screens-consola-guia') ? 'pro' : 'simple'; pon(K_VISTA, vista); } }
+/* v11.40 · VISTA ÚNICA: ya no hay interruptor; ?vista= y screens_vista se aceptan y se ignoran (los enlaces de antes siguen funcionando).
+   De SIMPLE quedan el asistente (botón AYÚDAME A ELEGIR junto al logo), la frase del resultado y COMPARTIR, encima de RESULTADOS. */
+const vista = 'pro'; pon(K_VISTA, null);
 const ASIS_URL = QS.get('asis');
 if (ASIS_URL) { try { QS.delete('asis'); const q = QS.toString(); history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) {} }
 document.documentElement.classList.toggle('sc-simple', vista === 'simple');
@@ -40,9 +37,9 @@ ponApila();
 /* ---------- textos ---------- */
 const T = {
   es: {
-    sw: 'Modo SIMPLE o PRO',
+    sw: 'Te hago unas preguntas sencillas y te digo qué necesitas', ayu: 'AYÚDAME A ELEGIR',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', necesitas: 'LO QUE NECESITAS', nCabs: 'Cabinets', nProc: 'Procesador LED', nMedia: 'Mediaserver', nRed: 'Cableado de datos', nRedV: (a) => a + ' líneas Ethernet + ' + a + ' de backup', nLuz: 'Electricidad', nLuzV: (k, n) => k + ' kW · ' + n + ' líneas de 16 A', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
-    pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER TODO EN PRO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
+    pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER EL RESULTADO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
     calculando: 'Calculando…', cargando: 'Cargando el catálogo…', sinCat: 'No se ha podido leer el catálogo. Revisa la conexión.', reintentar: 'REINTENTAR', vacio: 'No hay pantallas para estos datos: cambia dónde va o el tamaño.',
     sinMotor: 'No se ha podido cargar el cálculo. Vuelve a cargar la página.', recargar: 'VOLVER A CARGAR',
     ajPro: (n) => (n === 1 ? '1 ajuste de PRO activo' : n + ' ajustes de PRO activos'), ajProT: 'Hay ajustes hechos en PRO que esta vista no enseña: por eso el resultado no es el automático.', restablecer: 'RESTABLECER',
@@ -70,7 +67,7 @@ const T = {
     qPub: '¿A qué distancia mira la gente?', ayPub: 'De la gente a la imagen, más o menos.', noSe5: ['No lo sé', 'Cuento 5 m'],
     qMont: '¿Dónde puede ir el proyector?', mCol: ['Colgado del techo'], mApo: ['Encima de una mesa o en el suelo'], mAuto: ['Me da igual', 'Donde mejor vaya'],
     qTecho: '¿Qué altura tiene el techo?', noSe3: ['No lo sé', 'Cuento 3 m'],
-    finT: '¡Listo!', finS: 'Ya tienes el resultado. Toca cualquier dato de LO QUE PIDES para cambiarlo, o pasa a PRO para verlo todo.',
+    finT: '¡Listo!', finS: 'Ya tienes el resultado. Cambia lo que quieras en los pasos de la izquierda; los ajustes finos están en MÁS AJUSTES.',
     sDonde: 'Dónde', sUso: 'Uso', sTam: 'Tamaño del hueco', sDist: 'Se mira desde', sToca: 'Se puede tocar', sAlt: 'Altura del suelo',
     vIn: 'Dentro', vOut: 'En la calle', vEsc: 'Escaparate', vSolD: 'sol directo', vSolI: 'sombra', vMar: 'junto al mar', vFija: 'Fija', vRental: 'Eventos', vNormal: 'lo normal', vSuelo: 'En el suelo',
     vPared: 'Pared o pantalla', vMap: 'Fachada', vSala: 'Sala entera', sImg: 'Imagen', sSala: 'Sala', sLuz: 'Luz', sPub: 'La gente mira desde', sMont: 'Proyector', sTecho: 'Techo',
@@ -100,9 +97,9 @@ const T = {
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
   en: {
-    sw: 'SIMPLE or PRO mode',
+    sw: 'A few simple questions and I tell you what you need', ayu: 'HELP ME CHOOSE',
     rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', necesitas: 'WHAT YOU NEED', nCabs: 'Cabinets', nProc: 'LED processor', nMedia: 'Media server', nRed: 'Data cabling', nRedV: (a) => a + ' Ethernet lines + ' + a + ' backup', nLuz: 'Power', nLuzV: (k, n) => k + ' kW · ' + n + ' 16 A circuits', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
-    pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE EVERYTHING IN PRO', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
+    pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE THE RESULT', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
     calculando: 'Calculating…', cargando: 'Loading the catalogue…', sinCat: 'The catalogue could not be read. Check your connection.', reintentar: 'RETRY', vacio: 'No screens for these details: change where it goes or the size.',
     sinMotor: 'The calculation could not be loaded. Reload the page.', recargar: 'RELOAD',
     ajPro: (n) => (n === 1 ? '1 PRO setting on' : n + ' PRO settings on'), ajProT: 'There are settings made in PRO that this view does not show: that is why the result is not the automatic one.', restablecer: 'RESET',
@@ -130,7 +127,7 @@ const T = {
     qPub: 'How far away are people watching?', ayPub: 'From the audience to the image, roughly.', noSe5: ['I don’t know', 'I’ll assume 5 m'],
     qMont: 'Where can the projector go?', mCol: ['Hanging from the ceiling'], mApo: ['On a table or the floor'], mAuto: ['I don’t mind', 'Wherever works best'],
     qTecho: 'How high is the ceiling?', noSe3: ['I don’t know', 'I’ll assume 3 m'],
-    finT: 'Done!', finS: 'Your result is ready. Tap any detail in WHAT YOU ASK FOR to change it, or switch to PRO to see everything.',
+    finT: 'Done!', finS: 'Your result is ready. Change anything in the steps on the left; fine-tuning is under MORE SETTINGS.',
     sDonde: 'Where', sUso: 'Use', sTam: 'Space size', sDist: 'Viewed from', sToca: 'Can be touched', sAlt: 'Height off the floor',
     vIn: 'Indoors', vOut: 'Outdoors', vEsc: 'Shop window', vSolD: 'direct sun', vSolI: 'shade', vMar: 'by the sea', vFija: 'Fixed', vRental: 'Events', vNormal: 'the usual', vSuelo: 'On the floor',
     vPared: 'Wall or screen', vMap: 'Façade', vSala: 'Whole room', sImg: 'Image', sSala: 'Room', sLuz: 'Light', sPub: 'Audience at', sMont: 'Projector', sTecho: 'Ceiling',
@@ -158,9 +155,9 @@ const T = {
     pers: '1.75 m person', proy: 'Projector'
   },
   ca: {
-    sw: 'Mode SIMPLE o PRO',
+    sw: 'Et faig unes preguntes senzilles i et dic què necessites', ayu: 'AJUDA’M A TRIAR',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', necesitas: 'EL QUE NECESSITES', nCabs: 'Cabinets', nProc: 'Processador LED', nMedia: 'Mediaserver', nRed: 'Cablejat de dades', nRedV: (a) => a + ' línies Ethernet + ' + a + ' de backup', nLuz: 'Electricitat', nLuzV: (k, n) => k + ' kW · ' + n + ' línies de 16 A', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
-    pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE-HO TOT EN PRO', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
+    pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE EL RESULTAT', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
     calculando: 'Calculant…', cargando: 'Carregant el catàleg…', sinCat: 'No s’ha pogut llegir el catàleg. Revisa la connexió.', reintentar: 'TORNA-HO A PROVAR', vacio: 'No hi ha pantalles per a aquestes dades: canvia on va o la mida.',
     sinMotor: 'No s’ha pogut carregar el càlcul. Torna a carregar la pàgina.', recargar: 'TORNA A CARREGAR',
     ajPro: (n) => (n === 1 ? '1 ajust de PRO actiu' : n + ' ajustos de PRO actius'), ajProT: 'Hi ha ajustos fets en PRO que aquesta vista no mostra: per això el resultat no és l’automàtic.', restablecer: 'RESTABLEIX',
@@ -188,7 +185,7 @@ const T = {
     qPub: 'A quina distància mira la gent?', ayPub: 'De la gent a la imatge, més o menys.', noSe5: ['No ho sé', 'Compto 5 m'],
     qMont: 'On pot anar el projector?', mCol: ['Penjat del sostre'], mApo: ['Sobre una taula o a terra'], mAuto: ['M’és igual', 'On vagi millor'],
     qTecho: 'Quina alçada té el sostre?', noSe3: ['No ho sé', 'Compto 3 m'],
-    finT: 'Fet!', finS: 'Ja tens el resultat. Toca qualsevol dada d’EL QUE DEMANES per canviar-la, o passa a PRO per veure-ho tot.',
+    finT: 'Fet!', finS: 'Ja tens el resultat. Canvia el que vulguis als passos de l’esquerra; els ajustos fins són a MÉS AJUSTOS.',
     sDonde: 'On', sUso: 'Ús', sTam: 'Mida del lloc', sDist: 'Es mira des de', sToca: 'Es pot tocar', sAlt: 'Alçada de terra',
     vIn: 'Dins', vOut: 'Al carrer', vEsc: 'Aparador', vSolD: 'sol directe', vSolI: 'ombra', vMar: 'a prop del mar', vFija: 'Fixa', vRental: 'Esdeveniments', vNormal: 'el normal', vSuelo: 'A terra',
     vPared: 'Paret o pantalla', vMap: 'Façana', vSala: 'Sala sencera', sImg: 'Imatge', sSala: 'Sala', sLuz: 'Llum', sPub: 'La gent mira des de', sMont: 'Projector', sTecho: 'Sostre',
@@ -341,7 +338,7 @@ function raizNueva() {
   raiz.addEventListener('click', clic); raiz.addEventListener('keydown', tecla); raiz.addEventListener('input', entrada);
   return raiz;
 }
-const sw = () => { const pro = vista === 'pro'; return `<button type="button" class="ss-bur${pro ? ' pro' : ''}" data-ss-sw="${pro ? 'simple' : 'pro'}" aria-label="${esc(t('sw'))}" title="${esc(t('sw'))}"><i></i>${pro ? 'PRO' : 'SIMPLE'}</button><div class="ss-sw" role="group" aria-label="${esc(t('sw'))}" title="${esc(t('sw'))}" data-crudo><button type="button" class="ss-sw-e${pro ? '' : ' on'}" data-ss-sw="simple" aria-pressed="${!pro}">SIMPLE</button><label class="ss-sw-t"><input type="checkbox" data-ss-swc aria-label="PRO"${pro ? ' checked' : ''}><span class="ss-sw-p"><span class="ss-sw-b"></span></span></label><button type="button" class="ss-sw-e${pro ? ' on' : ''}" data-ss-sw="pro" aria-pressed="${pro}">PRO</button></div>`; };
+const sw = () => `<button type="button" class="ss-ayu" data-ss-ayu title="${esc(t('sw'))}" aria-label="${esc(t('ayu'))}">${ic('varita')}<span>${esc(t('ayu'))}</span></button>`;
 function monta() {
   montado = LG();
   cuerpo.innerHTML = '<section class="ss-blk ss-resumen" id="ss-resumen" aria-live="polite"></section><section class="ss-blk ss-sim" id="ss-sim"></section><section class="ss-blk ss-res" id="ss-res" aria-live="polite"></section>';
@@ -681,7 +678,27 @@ function pinta() {
   if (W) pintaAsis();
   if (primera && listo()) { primera = false; arranque(); }
 }
-function aviso() { if (vista !== 'simple') return; cancelAnimationFrame(tPinta); tPinta = requestAnimationFrame(pinta); }
+function aviso() { cancelAnimationFrame(tPinta); tPinta = requestAnimationFrame(vista === 'simple' ? pinta : pintaUnica); }
+/* v11.40 · VISTA ÚNICA: encima de RESULTADOS, la frase del resultado (la de SIMPLE: el equipo, la medida y cuántos) y COMPARTIR, que copia
+   el resumen en texto; el asistente se abre con su botón y sigue al día con el cálculo */
+let arrancado = false;
+function pintaUnica() {
+  document.querySelectorAll('[data-ss-ayu]').forEach((b) => { const s2 = b.querySelector('span'); if (s2) s2.textContent = t('ayu'); b.title = t('sw'); b.setAttribute('aria-label', t('ayu')); });
+  if (!listo()) return;
+  raizNueva();
+  const dest = PAG === 'portada' ? document.querySelector('#rejilla [data-blk="RES"] .blk-cu') : document.getElementById('res');
+  if (dest) {
+    TXT = ''; const tp = document.createElement('template'); tp.innerHTML = PAG === 'portada' ? resLed() : resProy();
+    const ln = tp.content.querySelector('.ss-linea'); let f = dest.querySelector(':scope > .vu-frase');
+    if (!ln || !TXT) { if (f) f.remove(); }
+    else {
+      if (!f) { f = document.createElement('div'); f.className = 'ss vu-frase'; f.setAttribute('data-crudo', ''); f.addEventListener('click', clic); dest.insertAdjacentElement('afterbegin', f); }
+      f.innerHTML = ln.outerHTML + `<button type="button" class="vu-bt" data-ss="compartir" title="${esc(t('compartir'))}">${ic('compartir')}<span>${esc(t('compartir'))}</span></button>`;
+    }
+  }
+  if (W) pintaAsis();
+  if (!arrancado) { arrancado = true; arranque(); }
+}
 let tRes = 0; addEventListener('resize', () => { ponApila(); clearTimeout(tRes); tRes = setTimeout(() => { if (vista === 'simple' && cuerpo) { pintaSim(); encaja(cuerpo); } }, 120); });
 [MQ_MOV, MQ_BK].forEach((q) => { try { q.addEventListener('change', () => { ponApila(); aviso(); }); } catch (e) {} });
 
@@ -773,7 +790,7 @@ function siguiente() {
 /* elegir rama: si la rama vive en la otra página, se va allí con el asistente abierto en su primera pregunta */
 function rama(r) {
   if (r === 'led' && PAG !== 'portada') r = 'ledc';   /* v10.55 · en la consola, la rama LED es la de varias pantallas o sala (una sola lleva a la portada) */
-  if (r === 'proy' && PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=una-proy&vista=simple&asis=proy'); return; }
+  if (r === 'proy' && PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=una-proy&asis=proy'); return; }
   if (r === 'proy') { const E = ED(); if (E.tecnologia !== 'proy' || modoCons() === 'varias') { E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; recalc(); } }
   W.rama = r; va(visibles(r)[0]);
 }
@@ -834,8 +851,8 @@ function responde(v) {
   if (p === 'calle') { if (v) { W.rec = 'led'; W.ayuda = 'calle'; va('rec'); } else va('oscuro'); return; }
   if (p === 'oscuro') { W.rec = v ? 'proy' : 'led'; W.ayuda = 'luz'; va('rec'); return; }
   if (p === 'ltipo') {   /* v10.55 · una pantalla se calcula en la portada; varias o una sala, en la consola */
-    if (v === 'una') { if (PAG === 'portada') { if (W.full) setTimeout(siguiente, 140); else cierra(); } else ir(RAIZ + 'index.html?vista=simple' + (W.full ? '&asis=led' : '')); return; }
-    if (PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=varias-led&vista=simple&asis=' + (v === 'sala' ? 'leds' : 'ledv')); return; }
+    if (v === 'una') { if (PAG === 'portada') { if (W.full) setTimeout(siguiente, 140); else cierra(); } else ir(RAIZ + 'index.html' + (W.full ? '?asis=led' : '')); return; }
+    if (PAG !== 'consola') { ir(RAIZ + 'vista/consola.html?modo=varias-led&asis=' + (v === 'sala' ? 'leds' : 'ledv')); return; }
     ponLedC(v === 'sala'); recalc(); if (W.full) { W.rama = 'ledc'; setTimeout(siguiente, 140); } else setTimeout(() => cierra(), 140); return;
   }
   const q = PREG[p]; if (!q) return;
@@ -845,40 +862,17 @@ function responde(v) {
 
 /* ---------- arranque: el asistente la primera vez (o al llegar de la otra página a mitad) ---------- */
 function arranque() {
-  if (vista !== 'simple') return;
   /* una petición escrita en la consola que resultó ser de una pantalla LED: se calcula aquí */
   if (PAG === 'portada') { const pp = lee(K_PIDE); if (pp) { pon(K_PIDE, null); const i = document.getElementById('pide'), b = document.getElementById('calcular'); if (i && b) { i.value = pp; b.click(); } } }
   if (ASIS_URL === 'led' && PAG === 'portada') { abre('donde', true, 'led'); return; }
   if (ASIS_URL === 'proy' && PAG === 'consola') { abre('ptipo', true, 'proy'); return; }
   if ((ASIS_URL === 'leds' || ASIS_URL === 'ledv') && PAG === 'consola') { ponLedC(ASIS_URL === 'leds'); C().actualizar(); abre('ltam', true, 'ledc'); return; }
-  if (!lee(K_ASIS)) abre('que', true);
-}
+}   /* v11.40 · el asistente ya no se abre solo: tiene su botón (AYÚDAME A ELEGIR) */
 
 /* ---------- acciones ---------- */
-function ponVista(v) {
-  if (v === vista) { sincroniza(); return; }
-  vista = v; pon(K_VISTA, v); document.documentElement.classList.toggle('sc-simple', v === 'simple');
-  try { const q = new URLSearchParams(location.search); if (q.has('vista')) { q.set('vista', v); history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash); } } catch (e) {}
-  if (v === 'simple') pinta();
-  else {
-    if (cuerpo) cuerpo.hidden = true; W = null; const a = document.getElementById('ss-asis'); if (a) a.innerHTML = '';
-    /* PRO estaba oculto: se vuelve a pintar a su tamaño */
-    if (PAG === 'portada' && B()) B().todo(); else if (PAG === 'consola' && C()) C().actualizar();
-    requestAnimationFrame(() => dispatchEvent(new Event('resize')));
-    /* la guía de PRO, la primera vez que se entra en PRO */
-    if (PAG === 'portada' && !lee('screens-blocks-guia') && B()) setTimeout(() => B().guia(), 300);
-    if (PAG === 'consola' && !lee('screens-consola-guia') && window.__consolaGuia) setTimeout(() => window.__consolaGuia(), 300);
-  }
-  sincroniza();
-}
-function sincroniza() {
-  document.querySelectorAll('[data-ss-swc]').forEach((c) => { c.checked = vista === 'pro'; });
-  document.querySelectorAll('.ss-bur').forEach((b) => { const pro = vista === 'pro'; b.dataset.ssSw = pro ? 'simple' : 'pro'; b.classList.toggle('pro', pro); b.innerHTML = '<i></i>' + (pro ? 'PRO' : 'SIMPLE'); });   /* v10.88 · burbuja del móvil */
-  document.querySelectorAll('.ss-sw [data-ss-sw]').forEach((b) => { const on = b.dataset.ssSw === vista; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
-  document.querySelectorAll('.ss-sw').forEach((s) => { s.title = t('sw'); s.setAttribute('aria-label', t('sw')); });
-}
-document.addEventListener('change', (e) => { const c = e.target.closest && e.target.closest('[data-ss-swc]'); if (c) ponVista(c.checked ? 'pro' : 'simple'); });
-document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-ss-sw]'); if (b) { e.preventDefault(); ponVista(b.dataset.ssSw); } });
+function ponVista() {}   /* v11.40 · ya no hay dos vistas */
+function sincroniza() {}
+document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-ss-ayu]'); if (b) { e.preventDefault(); abre('que', true); } });
 /* en la consola, una petición de una pantalla LED lleva a la portada: allí se calcula (también en SIMPLE) */
 if (PAG === 'consola') {
   const guardaPide = () => { if (vista !== 'simple') return; const i = document.getElementById('nl-texto'), s = i ? i.value.trim() : ''; if (!s) return; pon(K_PIDE, s);
@@ -903,12 +897,12 @@ function clic(e) {
   if (a === 'asis') abre('que', true);
   else if (a === 'pdf') { const x = PAG === 'portada' ? document.querySelector('[data-blk="H1R"] [data-pdf]') : document.getElementById('btn-pdf'); if (x) x.click(); }
   else if (a === 'compartir') compartir();
-  else if (a === 'pro') ponVista('pro');
+  else if (a === 'pro') cierra();
   else if (a === 'restablece') restablecePro();
   else if (a === 'oos-no') { ED().proy.oos = false; ED().proy.oosArr = false; recalc(); }
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta], [data-accion="reintentar"]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
-  else if (a === 'ir-led') { ir(RAIZ + 'index.html?vista=simple'); }
+  else if (a === 'ir-led') { ir(RAIZ + 'index.html'); }
   else if (a === 'ir-proy') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'una'; E.esp.tipo = 'sueltas'; C().actualizar(); }
   else if (a === 'ir-sala') { const E = ED(); E.tecnologia = 'proy'; E.cantidad = 'varias'; E.esp.tipo = 'sala'; C().actualizar(); }
   else if (a === 'saltar') cierra();
@@ -926,9 +920,9 @@ function tecla(e) {
 function entrada(e) { if (e.target.matches && e.target.matches('input[data-ss-n]')) { e.target.classList.remove('mal'); e.target.removeAttribute('aria-invalid'); } }
 
 /* ---------- el interruptor va junto al logo de PRO, en las dos páginas y en los dos modos ---------- */
-window.SCSIMPLE = { activo: () => vista === 'simple', sw, aviso, vista: (v) => ponVista(v) };
-if (PAG === 'consola') { const d = document.querySelector('.cab-izq'); if (d && !d.querySelector('.ss-sw')) d.insertAdjacentHTML('beforeend', sw()); }
+window.SCSIMPLE = { activo: () => false, unica: true, sw, aviso, vista: () => {}, asistente: () => abre('que', true) };
+if (PAG === 'consola') { const d = document.querySelector('.cab-izq'); if (d && !d.querySelector('.ss-ayu')) d.insertAdjacentHTML('beforeend', sw()); }
 /* en SIMPLE: la consola ya tiene su #app (el cuerpo va en su sitio); la portada lo pone al montar su plantilla (aviso desde una-led.js) */
-if (vista === 'simple') { if (PAG === 'consola') pinta(); if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aviso); else aviso(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aviso); else aviso();
 /* si el cálculo no llega (sin conexión o una copia vieja de la página en caché), se dice y se puede volver a cargar */
 setTimeout(() => { if (!listo()) { FALLO = true; aviso(); } }, 15000);

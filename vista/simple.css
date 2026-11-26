@@ -20,6 +20,33 @@
 .ss-sw-e:focus-visible { outline: 2px solid var(--verde-txt, #d4ff00); outline-offset: 2px; border-radius: 4px; }
 /* junto al logo de PRO, en la cabecera (oscura en los dos temas): portada (medida en --u) y consola */
 [data-blk="H1L"] .ss-sw { font-size: calc(var(--u) * 15); margin-left: calc(var(--u) * 14); }
+/* v11.40 · VISTA ÚNICA: el botón del asistente en el sitio del interruptor, y la frase del resultado con COMPARTIR encima de RESULTADOS */
+.ss-ayu { display: inline-flex; align-items: center; gap: .5em; flex: none; height: 2.5em; padding: 0 .9em; border-radius: 1.25em; border: 1px solid var(--verde-txt, #d4ff00);
+  background: color-mix(in srgb, var(--verde-txt, #d4ff00) 10%, #07090a); color: var(--verde-txt, #d4ff00); font: 800 1em/1 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: .1em; white-space: nowrap; cursor: pointer; }
+.ss-ayu .ss-ic { width: 1.35em; height: 1.35em; }
+.ss-ayu:hover { background: color-mix(in srgb, var(--verde-txt, #d4ff00) 22%, #07090a); }
+.ss-ayu:focus-visible { outline: 2px solid var(--verde-txt, #d4ff00); outline-offset: 2px; }
+:root[data-tema="claro"] .ss-ayu { background: color-mix(in srgb, var(--verde-txt, #5a7a00) 12%, #fff); }
+[data-blk="H1L"] .ss-ayu { font-size: calc(var(--u) * 12); margin-left: calc(var(--u) * 14); }
+html.piel .cab-izq .ss-ayu { font-size: 11px; margin-left: 4px; }
+html.bk .cab-izq .ss-ayu { font-size: 12px; margin-left: 10px; }
+@media (max-width: 559px) and (orientation: portrait) {
+  .ss-ayu { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; margin-left: 0 !important; font-size: 14px !important; }
+  .ss-ayu span { display: none; }
+}
+@media (pointer: coarse) and (min-width: 560px) { .ss-ayu { min-height: 40px; } }
+.vu-frase { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--ss-linea); background: var(--ss-blk2); }
+.vu-frase .ss-linea { flex: 1 1 auto; min-width: 0; font-size: 15px; line-height: 1.3; white-space: normal; overflow: visible; }
+.vu-frase .ss-linea > .ss-fit { display: inline; white-space: normal; overflow: visible; }
+.vu-frase .ss-l2 { color: var(--ss-tenue); font-weight: 600; }
+.vu-bt { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--ss-linea);
+  background: var(--ss-blk); color: var(--ss-txt); font: 800 11px/1 Inter, system-ui, sans-serif; letter-spacing: .08em; }
+.vu-bt .ss-ic { width: 17px; height: 17px; }
+.vu-bt:hover { border-color: var(--ss-acento); }
+@media (pointer: coarse) { .vu-bt { min-height: 44px; min-width: 44px; } }
+@media (max-width: 559px) { .vu-frase { flex-wrap: wrap; } .vu-frase .ss-linea { flex-basis: 100%; } .vu-bt { margin-left: auto; } }
 html.piel .cab-izq .ss-sw { font-size: 12px; margin-left: 4px; }
 html.bk .cab-izq .ss-sw { font-size: 15px; margin-left: 10px; }
 
@@ -274,8 +301,8 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
 /* cabecera de la portada con el interruptor junto al logo: en los anchos intermedios (tableta vertical, móvil tumbado) los logos de la familia,
    un poco más pequeños y juntos, para que quepan entre el interruptor y los botones */
 @media (max-height: 520px) and (min-width: 560px), (min-width: 560px) and (max-width: 900px) {
-  .f-h1:has(.ss-sw) > [data-blk="H1C"] { gap: calc(var(--u) * 6); }
-  .f-h1:has(.ss-sw) > [data-blk="H1C"] img { height: calc(var(--u) * 14); } .f-h1:has(.ss-sw) > [data-blk="H1C"] .av img { height: calc(var(--u) * 22); }
+  .f-h1:has(.ss-ayu) > [data-blk="H1C"] { gap: calc(var(--u) * 6); }
+  .f-h1:has(.ss-ayu) > [data-blk="H1C"] img { height: calc(var(--u) * 14); } .f-h1:has(.ss-ayu) > [data-blk="H1C"] .av img { height: calc(var(--u) * 22); }
 }
 @media (prefers-reduced-motion: reduce) { .ss-sw-b, .ss-tos, .ss-op { transition: none; } }
 
@@ -309,3 +336,12 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
 .ss-nec-f .ss-fk { text-transform: none !important; letter-spacing: 0 !important; font: 600 12.5px/1.2 Inter, system-ui, sans-serif !important; overflow: visible; }
 .ss-nec-f { grid-template-columns: 22px minmax(0, 9em) minmax(0, 1fr); }
 .ss-cd small { font-size: max(10.5px, calc(var(--s) * 12.5)); } html.ss-apila .ss-cd small { font-size: max(10.5px, calc(var(--s) * 11)); }   /* v10.83 · la etiqueta de cada cifra, nunca diminuta */
+/* consola en anchos intermedios (tableta, móvil tumbado): la cabecera no da para el rótulo; el botón del asistente queda en su icono */
+@media (max-height: 520px) and (min-width: 560px), (min-width: 560px) and (max-width: 1000px) {
+  html.piel:not(.bk) .cab-izq .ss-ayu { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; font-size: 15px; }
+  html.piel:not(.bk) .cab-izq .ss-ayu span { display: none; }
+}
+.vu-frase .ss-linea, .vu-frase .ss-linea .ss-fit { display: inline !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }
+.vu-frase .ss-linea { display: block !important; }
+.vu-frase .ss-linea .ss-l2 { display: block !important; font-size: 13px; margin-top: 2px; }
+.vu-frase .ss-lsep { display: none; }

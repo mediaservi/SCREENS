@@ -29,7 +29,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.39';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.40';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -543,6 +543,7 @@ const PZ = [[1, 'Entorno y uso', ['M1A']], [2, 'Tamaño y resolución', ['M2A', 
 const PZK = 'screens-blocks-pasos';
 let PZA = (() => { try { const a = JSON.parse(localStorage.getItem(PZK)); if (Array.isArray(a) && a.length && a.every((n) => n >= 1 && n <= 4)) return a; } catch (e) {} return [1, 2]; })();   /* pasos abiertos, del más antiguo al último tocado */
 let PZV = PZA.slice(), DET = 'res';
+let MASL = (() => { try { return +localStorage.getItem('screens_mas_led') || 0; } catch (e) { return 0; } })();   /* v11.40 · el cajón MÁS AJUSTES abierto (paso 2 o 3; 0 = ninguno) */
 /* los tres colores de la interfaz, con un solo significado en toda la app */
 const LEY = '<span class="ley" role="note"><span title="Verde: lo que tú decides y entra en el cálculo"><i class="l-e"></i><span>Entrada</span></span><span title="Blanco: lo que sale del cálculo"><i class="l-r"></i><span>Resultado</span></span><span title="Azul: solo cambia lo que se ve, no el cálculo"><i class="l-v"></i><span>Vista</span></span></span>';
 const TIPN = { INDOOR: 'Interior', OUTDOOR: 'Exterior', ESCAPARATE: 'Escaparate' };
@@ -571,7 +572,12 @@ function zonas(el, AV) {
     else { ['M3D', 'M3F'].forEach((id) => { const b = g(id); if (b) b.remove(); });
       det.innerHTML = DET === 'mat' ? tablaMaterial() : AV.length ? `<ul class="avs">${AV.map((a) => `<li class="${a[0]}"><i></i><span>${esc(a[1])}</span></li>`).join('')}</ul>` : '<div class="avs-ok"><i></i>Sin avisos: todo dentro de lo recomendado</div>'; }
   } else { const t = mk('template', ''); t.innerHTML = blk('', 'RES', 'Resultados', 'var(--linea)', '', LEY, 'res'); res = t.content.firstChild; ['M3D', 'M3F'].forEach((id) => { const b = g(id); if (b) b.remove(); }); }
-  PZ.forEach(([n, tit, ids]) => { const ab = PZV.includes(n), s = mk('section', 'pz' + (ab ? ' ab' : ''), `<header class="pz-cab"><button type="button" class="pz-bt" data-pz="${n}" aria-expanded="${ab}" title="${ab ? 'Plegar este paso' : 'Abrir este paso'}"><i class="pz-n" data-crudo>${n}</i><b>${tit}</b><span class="pz-res">${ab ? '' : pzRes(n)}</span></button>${bt('nuevo', 'Restablecer este paso', `data-rpz="${n}"`, 'rblk')}</header><div class="pz-cu"></div>`); s.dataset.pzs = n; const cu = s.lastChild; ids.forEach((id) => { const b = g(id); if (b) { b.style.gridArea = 'auto'; cu.appendChild(b); } }); A.appendChild(s); });
+  PZ.forEach(([n, tit, ids]) => { const ab = PZV.includes(n), s = mk('section', 'pz' + (ab ? ' ab' : ''), `<header class="pz-cab"><button type="button" class="pz-bt" data-pz="${n}" aria-expanded="${ab}" title="${ab ? 'Plegar este paso' : 'Abrir este paso'}"><i class="pz-n" data-crudo>${n}</i><b>${tit}</b><span class="pz-res">${ab ? '' : pzRes(n)}</span></button>${bt('nuevo', 'Restablecer este paso', `data-rpz="${n}"`, 'rblk')}</header><div class="pz-cu"></div>`); s.dataset.pzs = n; const cu = s.lastChild; ids.forEach((id, i) => { const b = g(id); if (!b) return; b.style.gridArea = 'auto';
+    /* v11.40 · VISTA ÚNICA: en los pasos 2 y 3 lo básico se ve y lo profesional (resolución; reparto de cabinets) va en su cajón MÁS AJUSTES */
+    if (i > 0 && (n === 2 || n === 3)) { const k = (RBLK[id] || []).filter((x) => JSON.stringify(E[x]) !== JSON.stringify(DEF[x])).length, abre = MASL === n;
+      const d = mk('div', 'mas' + (abre ? ' abierto' : '') + (k ? ' con' : ''), `<button type="button" class="mas-bt" data-masl="${n}" aria-expanded="${abre}"><span>Más ajustes</span>${k ? `<b class="mas-n" title="Ajustes cambiados" data-crudo>${k}</b>` : ''}<i class="mas-fl" aria-hidden="true"></i></button><div class="mas-cuerpo"${abre ? '' : ' hidden'}></div>`);
+      d.lastChild.appendChild(b); cu.appendChild(d); return; }
+    cu.appendChild(b); }); A.appendChild(s); });
   ['S1A', 'S1B'].forEach((id) => { const b = g(id); if (b) { b.style.gridArea = 'auto'; B.appendChild(b); } });
   /* controles de VISTA, rotulados como tales: no cambian el cálculo */
   { const cab = B.querySelector('[data-blk="S1B"] .blk-cab'), pe = cab && cab.querySelector('.pestanas'), pl = B.querySelector('[data-blk="S1B"] .lienzo > .cosidos.planos'); if (pe) pe.insertAdjacentHTML('beforebegin', '<span class="vis-r">Vista</span>'); if (pl) { pl.classList.add('vis'); const sp = pl.querySelector('span'); if (sp) sp.className = 'vis-r'; }
@@ -768,6 +774,7 @@ function monta() {
     if ((b = q('[data-pz]'))) { const n = +b.dataset.pz; if (PZV.includes(n)) PZA = PZA.filter((x) => PZV.includes(x) && x !== n); else PZA = PZA.filter((x) => x !== n).concat(n); PZFIT = null; try { localStorage.setItem(PZK, JSON.stringify(PZA)); } catch (x) {} pintaRejilla(); ajustaTextos(); const f = document.querySelector(`[data-pz="${n}"]`); if (f) f.focus(); return; }   /* v11.16 · abrir o plegar un paso */
     if ((b = q('.pz.pag [data-sub]')) && !q('.pz.pag [data-sub] button, .pz.pag [data-sub] select')) { const n = +b.closest('.pz').dataset.pzs; SUB[n] = b.dataset.sub; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.pz.pag [data-sub="${SUB[n]}"]`); if (f) f.focus(); return; }
     if ((b = q('[data-det]'))) { DET = b.dataset.det; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.dets [data-det="${DET}"]`); if (f) f.focus(); return; }
+    if ((b = q('[data-masl]'))) { const n = +b.dataset.masl; MASL = MASL === n ? 0 : n; try { localStorage.setItem('screens_mas_led', String(MASL)); } catch (e) {} if (MASL && !PZA.includes(n)) PZA.push(n); todo(); return; }
     if ((b = q('[data-rpz]'))) { (PZ.find((x) => x[0] === +b.dataset.rpz) || [0, 0, []])[2].forEach((id) => (RBLK[id] || []).forEach((k) => { E[k] = Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]; })); todo(); return; }
     if ((b = q('[data-rblk]'))) { (RBLK[b.dataset.rblk] || []).forEach((k) => { E[k] = Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]; }); todo(); return; }
     if ((b = q('.vent [data-reset]'))) { AJ_RESET.forEach((k) => { E[k] = DEF[k]; }); todo(); abre('ajustes'); return; }   // v10.89 · el RESTABLECER de Ajustes no hacía nada
@@ -1078,7 +1085,7 @@ function guia(n) {
   if (!lado) fl.remove(); c.style.left = x + 'px'; c.style.top = y + 'px'; const sig = c.querySelector('.calcular'); if (sig) sig.focus();
 }
 monta(); todo(); vigila(); requestAnimationFrame(ajustaTextos); if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustaTextos); { let rz = 0; addEventListener('resize', () => { ajustaTextos(); clearTimeout(rz); rz = setTimeout(() => { if (R && R.r && !document.querySelector('.rejilla :focus')) { pintaRejilla(); ajustaTextos(); } }, 250); }); }
-{ let vista = false; try { vista = !!localStorage.getItem('screens-blocks-guia'); } catch (e) {} if (!vista && !(window.SCSIMPLE && window.SCSIMPLE.activo())) setTimeout(() => guia(0), 600); }   /* v10.49 · en SIMPLE no: la guía de PRO sale la primera vez que se pasa a PRO */
+{ let vista = false; try { vista = !!localStorage.getItem('screens-blocks-guia'); } catch (e) {} /* v11.40 · vista única: la guía ya no salta sola */ }   /* v10.49 · en SIMPLE no: la guía de PRO sale la primera vez que se pasa a PRO */
 addEventListener('resize', () => { const g = $('#guia'); if (g) { const n = [...g.querySelectorAll('.guia-pie span i')].findIndex((i) => i.classList.contains('on')); guia(Math.max(0, n)); } });
 /* botones comunes de la familia: instalar y avisar de un fallo (los mismos de la versión clásica) */
 { const h = $('#hueco-comun'); if (h) { if (window.AVINSTALA) { try { h.appendChild(window.AVINSTALA.boton({ app: 'SCREENS', idioma: () => idioma(), sw: false })); } catch (e) {} } if (window.AVFALLO) { try { h.appendChild(window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() })); } catch (e) {} }

@@ -229,6 +229,7 @@ const MAPA = {
   'Avisos': ['Warnings', 'Avisos'],
   'Vista': ['View', 'Vista'],
   'Restablecer este paso': ['Reset this step', 'Restablir aquest pas'],
+  'Más ajustes': ['More settings', 'Més ajustos'], 'Ajustes cambiados': ['Settings changed', 'Ajustos canviats'],
   'Plegar este paso': ['Fold this step', 'Plegar aquest pas'],
   'Abrir este paso': ['Open this step', 'Obrir aquest pas'],
   'Ver los avisos': ['See the warnings', 'Veure els avisos'],

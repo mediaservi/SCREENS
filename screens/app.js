@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.44';
+const VERSION = 'v11.45';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -994,6 +994,15 @@ function bandaOos() {
   const b = $('#esc-oos'); if (!b) return; const o = oosDatos(calculo);
   b.hidden = !o; b.innerHTML = o ? `<b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}` : '';
 }
+/* v11.45 · CONSEJOS en el RESUMEN de proyección: cómo dejar la pared ideal y, con blending, cómo se ajusta (desplegables, en los tres idiomas) */
+function consejos(c) {
+  if (E.tecnologia === 'led' || !c || !c.filas || !c.filas.length) return '';
+  const pw = c.filas.filter(f => f.s.tipo !== 'suelo'), hayB = pw.some(f => f.p && f.p.n > 1), li = (k) => `<ul>${t(k).split('|').map(x => `<li>${x}</li>`).join('')}</ul>`;
+  let h = '';
+  if (E.proy.tipo !== 'mapping') h += `<details class="consejo"><summary>${t('cjPared')}</summary><p>${t('cjParedIntro')}</p>${li('cjParedL')}</details>`;
+  if (hayB) h += `<details class="consejo"><summary>${t('cjBlend')}</summary><p>${t('cjBlendIntro')}</p><ol>${t('cjBlendL').split('|').map(x => `<li>${x}</li>`).join('')}</ol></details>`;
+  return h ? `<div data-pz="res" class="consejos"><div class="etq">${t('cjTit')}</div>${h}</div>` : '';
+}
 function vistaResultados(c) {
   if (!c.filas.length) return `<p class="ayuda">${sinFilas(c)}</p>`;
   let h = '';
@@ -1371,7 +1380,7 @@ function actualizar(sinEscena) {
   const z = zonas(calculo), sc = {};
   ['A', 'B'].forEach(k => { const m = $('#panel' + k + ' .blq.act .blq-cuerpo'); if (m) sc[k] = [m.parentElement.dataset.blq, m.scrollTop]; });
   $('#panelA').innerHTML = z.A; $('#panelB').innerHTML = z.B;
-  $('#res').innerHTML = vistaResultados(calculo) + z.equipo + modSuperficies(calculo);
+  $('#res').innerHTML = vistaResultados(calculo) + z.equipo + modSuperficies(calculo) + consejos(calculo);
   plegar();
   ['A', 'B'].forEach(k => { if (!sc[k]) return; const m = $(`#panel${k} .blq.act[data-blq="${sc[k][0]}"] .blq-cuerpo`); if (m) m.scrollTop = sc[k][1]; });
   marcaPestanas($('#res'));

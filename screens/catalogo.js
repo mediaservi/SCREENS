@@ -55,10 +55,14 @@ export const imgDirecta = (u) => {
   } catch (e) {}
   return u;
 };
+/* v11.45 · fotos de los cabinets: solo las oficiales (traulux.net o charmex.net); cualquier otra (imágenes de «sin foto», de otras webs) se descarta
+   y la ficha enseña su dibujo de reserva */
+const fotoOficial = (u) => { const x = imgDirecta(u); return /^https?:\/\/([a-z0-9-]+\.)*(traulux\.net|charmex\.net)\//i.test(String(x || '')) ? x : ''; };
 function normalizar(data) {
   return data.map(it => ({
     ...it,
-    urlFoto: imgDirecta(it.urlFoto), urlFotoTrasera: imgDirecta(it.urlFotoTrasera), urlTrasera: imgDirecta(it.urlTrasera), urlFoto2: imgDirecta(it.urlFoto2),
+    urlFoto: fotoOficial(it.urlFoto), urlFotoTrasera: fotoOficial(it.urlFotoTrasera), urlTrasera: fotoOficial(it.urlTrasera), urlFoto2: fotoOficial(it.urlFoto2),
+    ...(Array.isArray(it.fotos) ? { fotos: it.fotos.map(fotoOficial).filter(Boolean) } : {}),
     tipo: normTipo(it.tipo), class: String(it.class || '').trim().toUpperCase(),
     cabAmp: num(it.cabAmp || it.Amp || it.amp), cabKg: num(it.cabKg || it.Kg || it.kg || it.peso),
     cabAncho: num(it.cabAncho), cabAlto: num(it.cabAlto), cabPixAncho: num(it.cabPixAncho, 1), cabPixAlto: num(it.cabPixAlto, 1),

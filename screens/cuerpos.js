@@ -3,7 +3,7 @@
 // que representa igual a los modelos blancos y negros. Ejes del cuerpo: base en y = 0, centro en x = z = 0 y +z hacia la pantalla;
 // g.userData.salida es el punto por donde sale la luz (en las ultracortas, el cristal de arriba; con la óptica ultracorta plegada, su cabezal).
 // Familias: EB-815E · EB-805F (periscopio) · L695SE/L795SE/L695SU · PU1000/PQ2000 (545 mm) · PU2200/PQ2200 (586 mm) · XQ2030B ·
-// PU/PQ con óptica ultracorta plegada · Vivitek DU7000Z · DU8000Z/DK8000Z · DU9057Z/DU9059Z · DU5000Z/DK5000Z. El resto (Christie), cuerpo genérico.
+// PU/PQ con óptica ultracorta plegada · Vivitek DU7000Z · DU8000Z/DK8000Z · DU9057Z/DU9059Z · DU5000Z/DK5000Z · Christie (v11.45, por serie).
 function construir(T, o) {
   // o: { chasis: [ancho, fondo, alto], tipo: 'ust' | 'compacto' | 'grande', color: 'blanco' | 'negro', marca: 'EPSON' | 'VIVITEK', lente: 'centro' | 'lado' }
   const PATA_XQ = .032;   // XQ2030B: patas de unos 64 mm (medido en la foto oficial); los huecos de apilado de la tapa tienen el mismo diámetro y posición
@@ -159,6 +159,10 @@ function familia(prod) {
   if (s === 'DU8000Z' || s === 'DK8000Z') return Object.assign(o, { tipo: 'vivi', ledIzq: true });
   if (s === 'DU9057Z' || s === 'DU9059Z') return Object.assign(o, { tipo: 'vivi', v9: true });
   if (s === 'DU5000Z' || s === 'DK5000Z') return Object.assign(o, { tipo: 'vivi5' });
+  /* v11.45 · CHRISTIE (de vuelta en el cálculo): cada serie con la forma más parecida de las que ya hay, a la medida real de su chasis.
+     Captiva = ultracorta de sobremesa; Inspire = compacto de instalación; GS, Jazz y Korus = cuerpo profesional de óptica intercambiable;
+     M RGB, Griffyn y Sapphire = gran formato */
+  if (o.marca === 'CHRISTIE') { if (s === 'CAPTIVA') return Object.assign(o, { tipo: 'ust' }); if (/^INSPIRE/.test(s)) return Object.assign(o, { tipo: 'media' }); if (s === 'GS' || s === 'JAZZ' || s === 'KORUS') return Object.assign(o, { tipo: 'pro' }); }
   return Object.assign(o, { tipo: 'grande' });
 }
 // los colores del cuerpo se ajustaron con la gestión de color de three r149 (sin conversión); aquí, con la de r160, se devuelven a ese mismo tono

@@ -449,3 +449,11 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 [data-tema="claro"] .mas.abierto .mas-bt { color: #1d6b00; border-color: #3aa300; }
 /* v11.43 · fuera de especificación: en escritorio y TV solo el botón en su paso; el detalle (tamaño garantizado y recomendación) va en el aviso de RESULTADOS */
 html.bk .oos-det { display: none; }
+/* v11.45 · CONSEJOS del RESUMEN de proyección (desplegables) */
+.consejos { margin-top: 12px; display: grid; gap: 6px; }
+.consejo { border: 1px solid var(--linea, #3a3d44); border-radius: 10px; padding: 8px 12px; background: rgba(255,255,255,.02); }
+.consejo summary { cursor: pointer; font-weight: 700; font-size: 13px; min-height: 28px; display: flex; align-items: center; }
+.consejo p, .consejo li { font-size: 13px; line-height: 1.45; color: var(--tenue, #abadb7); }
+.consejo ul, .consejo ol { margin: 6px 0 4px; padding-left: 20px; display: grid; gap: 4px; }
+.consejo b { color: var(--txt, #eeeef1); }
+@media (pointer: coarse) { .consejo summary { min-height: 44px; } }

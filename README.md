@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.44** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.45** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.44)
+## Cambios de la versión actual (v11.45)
+- **Cuerpos 3D de Christie** en la simulación, cada serie con su forma y la medida real de su chasis (Captiva, Inspire, GS, Jazz, Korus y gran formato).
+- **Consejos en el RESUMEN de proyección:** cómo dejar la pared ideal para proyectar y, con blending, cómo se ajusta (curva de mezcla, nivel de negro, corrección de área, brillo y tono, escala y ajuste final).
+- **Fotos de los cabinets:** solo las oficiales del fabricante; sin foto oficial, la ficha enseña su dibujo.
+
+## Cambios de la v11.44
 - **Varias pantallas LED · petición por modelo:** escribir el modelo por su nombre («UFIX-COB-1.2», «slim fix 2.6 50») lo elige, con su entorno y su uso, como ya hacía una pantalla LED.
 - **Salas inmersivas en AUTO:** si el montaje no sale bien (proyectores que chocan, fuera de la sala o franjas sin imagen), SCREENS prueba los demás proyectores de las marcas activas y se queda con el que monta mejor, con la marca preferida por delante. La búsqueda se hace aparte, sin frenar la página, y se recuerda para esa sala. Ejemplo: 8 × 6 × 3,5 m con 4 paredes y suelo pasa de «no realizable» a 10 × EB-L695SE.
 

@@ -153,6 +153,12 @@ function leer() {
 //   desplazamiento vertical asimétrico (hacia el lado normal / al contrario, %) y horizontal (±%), rendimiento de brillo en gran angular y tele
 //   (%) y «offset» (las series 5000 llevan la lente en el borde de la imagen: 100 %). Sin dato de la óptica, el del cuerpo.
 // - Las ultracortas D89-UST01 y D98-UST01 son de ángulo recto: se colocan con su desplazamiento, como las demás.
+/* v11.51 · fotos oficiales de los proyectores Vivitek (fichas de producto de charmex.net, 26-11-2026) */
+const FOTO_VIVITEK = { DU7099Z: 'serie-du7000z_2009_7_20241126133432.png', DU7199Z: 'serie-du7000z_2009_8_20241126133439.png', DU7299Z: 'serie-du7000z_2009_9_20241126133444.png',
+  DU8053Z: 'serie-z_1214_13_20170324132039.jpg', DU8055Z: 'serie-z_1214_13_20170324132039.jpg', DU8057Z: 'serie-z_1214_13_20170324132039.jpg',
+  DK8150Z: 'serie-dk8000z_3659_1_20251008121843.png', DK8155Z: 'serie-dk8000z_3659_1_20251008121843.png',
+  DU9057Z: 'serie-d9000z_2126_1_20240603112108.png', DU9059Z: 'serie-d9000z_2126_1_20240603112108.png',
+  DU5051Z: 'serie-du5000z_3399_4_20251114142627.png', DU5053Z: 'serie-du5000z_3399_3_20251114142532.png', DK5153Z: 'serie-du5000z_3399_7_20251007113559.png' };
 const VIVITEK = [
   { serie: 'DU7000Z', g: '67', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [70, 50], H: 15, chasis: [0.470, 0.517, 0.202], m: [['DU7099Z', 8000], ['DU7199Z', 9000], ['DU7299Z', 10000]] },
   { serie: 'DU8000Z', g: '8', res: 'WUXGA (1920 x 1200)', ar: '16:10', V: [60, 60], H: 20, chasis: [0.500, 0.591, 0.216], m: [['DU8053Z', 14000], ['DU8055Z', 16000], ['DU8057Z', 24000]] },
@@ -190,7 +196,7 @@ function leerVivitek() {
   const out = [];
   VIVITEK.forEach((g) => g.m.forEach(([modelo, lumens]) => {
     const [aw, ah] = g.ar.split(':').map(Number), px = g.res.match(/(\d{3,5})\s*x\s*(\d{3,5})/).slice(1).map(Number);
-    const base = { marca: 'VIVITEK', modelo, serie: g.serie, ar: aw / ah, arTxt: g.ar, resX: px[0], resY: px[1], resTxt: g.res, k4: !!g.k4, k4nativo: !!g.k4, imagen: '', chasis: g.chasis, lumens };
+    const base = { marca: 'VIVITEK', modelo, serie: g.serie, ar: aw / ah, arTxt: g.ar, resX: px[0], resY: px[1], resTxt: g.res, k4: !!g.k4, k4nativo: !!g.k4, imagen: FOTO_VIVITEK[modelo] ? 'https://charmex.net/images/' + FOTO_VIVITEK[modelo] : '', chasis: g.chasis, lumens };
     Object.entries(LENTES_VIVITEK[g.g]).forEach(([ref, d]) => {
       const [tipo, a, b, foco, focoMec, img, V, H, bri] = d, v = V || g.V, optica = ref ? (g.pref ? ref.replace('D99-', g.pref) : ref) : '';
       out.push({ ...base, id: modelo + (optica ? '|' + optica : ''), optica, nombre: modelo + (optica ? ' + ' + optica : ''), trMin: a, trMax: b, ust: false, tipoOptica: tipo,

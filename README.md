@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.47** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.48** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.47)
+## Cambios de la versión actual (v11.48)
+- **Parámetros del cálculo en vivo desde el panel AVHUB ADMIN:** los umbrales de la proyección (contraste mínimo, recomendado, analítico y de vídeo; solape mínimo, recomendado y máximo del blending; recorte; holguras entre chasis; proyectores por superficie y luz ambiente de cada uso de sala) se leen en vivo del panel y se guardan para funcionar sin conexión. Si el panel no tiene un valor, se usa el de siempre; el resultado del cálculo no cambia.
+
+## Cambios de la v11.47
 - **Desplazamiento de la óptica compartido:** en la vista técnica frontal, la zona posible de la lente es un rombo (lo que se usa en horizontal se resta del vertical), con su explicación al pasar por encima.
 
 ## Cambios de la v11.46

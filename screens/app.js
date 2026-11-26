@@ -4,7 +4,8 @@ document.addEventListener('click', (e) => { const a = e.target.closest && e.targ
 import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
 import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.13';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
-import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente } from './proyeccion.js';
+import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente, fijaParamsProy } from './proyeccion.js';
+import { BR, cargarBrian } from './brian.js';   /* v11.48 · umbrales del cálculo desde BRIAN */
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
 /* v11.7 · proyectores que se priorizan en salas inmersivas (decidido por Josep, 24-11-2026: el EB-L695SE vale para casi todo y es el más vendido) */
@@ -29,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.47';
+const VERSION = 'v11.48';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -128,6 +129,8 @@ const TR_MAPPING = 2;
 // Arranca con 140 lx y ganancia 1; escalones: Meeting room 140, Class room 210, Event hall 140,
 // Living 70 y Theatre room 14, o a mano. 0 lx es 0 (oscuridad total), no «sin dato».
 const USOS_LUZ = [['reunion', 140], ['aula', 210], ['evento', 140], ['salon', 70], ['teatro', 14], ['oscura', 15], ['calle', 5]];
+/* v11.48 · BRIAN: umbrales de contraste, solape, recorte, holguras, mosaico y luz por uso (los mismos de siempre si no hay conexión) */
+function aplicaBrian() { fijaParamsProy(BR); RECORTE_MULTI = BR['proy.recorte.multi']; USOS_LUZ.forEach((u) => { const v = BR['proy.luz.' + u[0]]; if (v != null) u[1] = v; }); }
 // v10.89 · la luz por defecto va con el tipo: sala inmersiva a oscuras 15 lx, mapping de noche 5 lx, pared 140 lx (solo si no se ha tocado)
 const LUZ_TIPO = { sala: ['oscura', 15], mapping: ['calle', 5], pared: ['reunion', 140] };
 function luzDeTipo(v) { const p = E.proy, def = Object.values(LUZ_TIPO).some(u => u[0] === p.luzUso && u[1] === Number(p.lux)); if (def && LUZ_TIPO[v]) { p.luzUso = LUZ_TIPO[v][0]; p.lux = LUZ_TIPO[v][1]; } }
@@ -143,7 +146,8 @@ function nombreSup(s) { return s.tipo === 'pantalla' ? `${t('pantalla')} ${s.num
 // las marcas activas llega con una imagen y el blending sí lo resuelve limpio: entonces se avisa (c.multiAuto). Con el proyector elegido a
 // mano que no llega, se queda en una imagen con su «no se puede» y, si con blending saldría, se ofrece (c.multiPosible).
 const blendLimpio = (c) => !!(c && c.filas && c.filas.length && c.tot && c.tot.n > 1 && c.filas.every(f => f.s.tipo === 'suelo' || !(f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica || f.p.solapeRel > SOLAPE_MAX + 1e-6)) && !(c.sombras && ((c.sombras.choques || []).length || (c.sombras.conflictos || []).length)));
-const RECORTE_MULTI = 0.5;   // con una imagen se tira más de media imagen fuera de la pantalla (formatos muy apaisados): mejor blending
+let RECORTE_MULTI = 0.5;   // con una imagen se tira más de media imagen fuera de la pantalla (formatos muy apaisados): mejor blending
+aplicaBrian();   /* v11.48 · copia guardada de BRIAN o los valores de siempre */
 /* v11.37 · REGLA DEL MOTOR (Josep, 26-11-2026): si algo no se puede hacer de forma normal (veredicto en rojo o una pared que no queda cubierta),
    1) si se puede hacer fuera de especificación, se muestra así con todas las advertencias; 2) si no se puede de ninguna manera, se avisa de que la
    configuración no es realizable. No se aplica si el fuera de especificación ya está activado a mano */
@@ -457,7 +461,7 @@ function veredicto(c) {
     if ((S.conflictos || []).length) R('conflictos', t('vConflictos'));
     if (c.esp.tipo === 'sala' && S.zona && !S.zona.ok) R('zona', t('segNo'));
     (S.obst || []).forEach(k => R('obst', t('obstSombra', { k: k.k + 1, n: k.nombres.join(' · ') })));
-    if (con < 7) R('contraste', t('vConR'));
+    if (con < BR['proy.contraste.minimo']) R('contraste', t('vConR'));
     { const L = pw.filter(f => f.p.limite); if (L.length) A('limite', t('limite') + ': ' + nom(L) + '.'); }
     pw.filter(f => f.p.solapeRel > SOLAPE_MAX + 1e-6).forEach(f => A('solape', t('vSolape', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre }) + (c.unaImagen ? ' ' + t('vSolapeUna', { b: nombreQ(c.unaImagen) }) : '')));
     // v10.69 · solape entre el recomendable (45 %) y el máximo (65 %): posible, con aviso
@@ -483,7 +487,7 @@ function veredicto(c) {
       if (hayB && E.proy.blendEn === 'elec' && (E.elec.proyEq || 'media') === 'ninguno') A('blendElec', t('vBlendElec')); }
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));
-    if (con >= 7 && con < 15) A('contraste', t('vConA'));
+    if (con >= BR['proy.contraste.minimo'] && con < BR['proy.contraste.recomendado']) A('contraste', t('vConA'));
   }
   M.sort((a, b) => (a.n === 'R' ? 0 : 1) - (b.n === 'R' ? 0 : 1));
   return { nivel: M.some(m => m.n === 'R') ? 'R' : M.length ? 'A' : 'V', motivos: M };
@@ -1050,8 +1054,8 @@ function vistaResultados(c) {
 
 // nivel de contraste alcanzado según ANSI/AVIXA (visión pasiva 7:1, decisiones básicas 15:1, analítica 50:1, vídeo 80:1)
 // v10.48 · el semáforo de la imagen: los mismos umbrales (15:1 y 7:1) con una frase que se entiende y lo que hay que hacer
-const semaforo = (v) => { v = Math.round(v * 10) / 10; return v >= 15 ? 'semV' : v >= 7 ? 'semA' : 'semR'; };   // v10.63 · con el valor que se lee (6,96 se lee 7)
-function nivelContraste(v) { return v >= 80 ? t('cVideo') : v >= 50 ? t('cAnalitica') : v >= 15 ? t('cBasica') : v >= 7 ? t('cPasiva') : t('cInsuf'); }
+const semaforo = (v) => { v = Math.round(v * 10) / 10; return v >= BR['proy.contraste.recomendado'] ? 'semV' : v >= BR['proy.contraste.minimo'] ? 'semA' : 'semR'; };   // v10.63 · con el valor que se lee (6,96 se lee 7)
+function nivelContraste(v) { return v >= BR['proy.contraste.video'] ? t('cVideo') : v >= BR['proy.contraste.analitico'] ? t('cAnalitica') : v >= BR['proy.contraste.recomendado'] ? t('cBasica') : v >= BR['proy.contraste.minimo'] ? t('cPasiva') : t('cInsuf'); }
 // v10.88 · RESULTADO DE LA SIMULACIÓN (una pantalla): posición del proyector numerada,
 // ajuste del proyector (desplazamiento de lente) y brillo y contraste
 function vistaSimulacion(c) {
@@ -1761,6 +1765,7 @@ actualizar();
 try { if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 cargarEquipos(() => { if (!unaLed()) actualizar(); });
 cargarCatalogo((lista, estado) => { catalogo = lista; estadoCat = estado; if (!unaLed()) actualizar(); });
+cargarBrian(() => { aplicaBrian(); SALA_AUTO.k = ''; if (!unaLed()) actualizar(); });   /* v11.48 · BRIAN en vivo */
 // v10.49 · lo que usa el modo SIMPLE (vista/simple.js): el mismo estado y el mismo cálculo que PRO
 window.__consola = { get escena() { return escena; }, puente: () => puenteSale(), get E() { return E; }, MARCAS: MARCAS_PROY, marcas: marcasActivas, marca: alternaMarca, DEF, actualizar: () => actualizar(), get c() { return calculo; }, get estadoCat() { return estadoCat; }, peticion: () => calcularPeticion(), mapping: () => alMapping(), USOS_LUZ, LED_MAX };
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();

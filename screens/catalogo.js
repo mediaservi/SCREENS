@@ -1,6 +1,6 @@
 // SCREENS · catálogo LED en vivo: el del panel AVHUB ADMIN (Drive), con la misma caché cifrada que led.html. Desde la v10.63 ya no lee la hoja de Google.
 // Nunca usa datos de muestra: si no hay conexión ni caché, devuelve una lista vacía y la interfaz lo avisa.
-const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';
+export const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwkc12y4LODbFe-kQidnR2MbbA6cbW1WbhU3UiqmDmshx-ncAdGYrFRy8PNjm9Wg6Mx3w/exec';
 const CLAVE = 'sc_m1';
 
 const aB64 = (u8) => btoa(String.fromCharCode(...u8));

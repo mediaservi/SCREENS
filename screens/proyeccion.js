@@ -64,10 +64,10 @@ export const OPTICAS = [
 const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255 }, 'EB-805F': { min: 65, sep: (d) => 0.0016214 * d + 0.161, desfase: 0.233 },
   'EB-L695SE': { sh: [50, 20], min: 80 }, 'EB-L795SE': { sh: [50, 20], min: 60 }, 'EB-L695SU': { sh: [50, 20], min: 60 } };
 
-export const SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
+export let SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
 // v10.69 · dos tramos (decidido por Josep, 21-11-2026): hasta el 45 % el solape es «recomendable»; del 45 al 65 %, «posible, con aviso»
-export const SOLAPE_RECO = 0.45;
-export const RECORTE_MAX = 0.2;                       // lo que puede sobresalir la imagen de la superficie (se enmascara)
+export let SOLAPE_RECO = 0.45;
+export let RECORTE_MAX = 0.2;                       // lo que puede sobresalir la imagen de la superficie (se enmascara)
 // Chasis (ancho × fondo × alto, m) según las fichas de Epson (guía 08/2026, con las patas); la serie L695SE/L795SE/L695SU comparte chasis
 const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.210], 'EB-L695SE': [0.440, 0.368, 0.151], 'EB-L795SE': [0.440, 0.368, 0.151], 'EB-L695SU': [0.440, 0.368, 0.151],
   'EB-PU1006W': [0.545, 0.436, 0.189], 'EB-PU1007B': [0.545, 0.436, 0.189], 'EB-PU1008B': [0.545, 0.436, 0.189], 'EB-PU2010B': [0.545, 0.436, 0.189],
@@ -77,6 +77,10 @@ const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.2
 // Separación mínima entre chasis por la ventilación (guía de instalación de Epson: 10–40 cm libres alrededor de las rejillas;
 // lado a lado, 150 cm sin mampara o 20–40 cm con mampara). Se aplica 40 cm en horizontal y 20 cm en vertical.
 export const HOLGURA = { h: 0.40, v: 0.20, sinMampara: 1.5 };
+export let MOSAICO_MAX = 15;   // proyectores por superficie como mucho (mosaico)
+/* v11.48 · los umbrales vienen de BRIAN (panel AVHUB ADMIN) cuando los hay: screens/brian.js */
+export function fijaParamsProy(b) { SOLAPE_MIN = b['proy.solape.minimo']; SOLAPE_RECO = b['proy.solape.recomendado']; SOLAPE_MAX = b['proy.solape.maximo']; RECORTE_MAX = b['proy.recorte.maximo'];
+  HOLGURA.h = b['proy.holgura.lado']; HOLGURA.v = b['proy.holgura.vertical']; HOLGURA.sinMampara = b['proy.holgura.sinMampara']; MOSAICO_MAX = b['proy.mosaico.maximo']; }
 /* v11.14 · separación mínima entre chasis de cada modelo, la del manual del fabricante con mampara entre equipos (Josep, 24-11-2026): [con mampara, sin mampara], en m.
    EB-815E 20 cm (110 sin mampara) · EB-805F mampara a 40 cm de la salida de aire y a 20 cm de las entradas (120 sin mampara) · serie L695SE/L795SE/L695SU 20 y 40 cm
    (150 sin mampara); donde el manual da dos cifras (lado de salida y lado de entrada) se aplica la mayor, 40 cm · EB-PQ 30 cm (70 sin mampara). Los modelos que no están aquí usan la general (HOLGURA): de los EB-PU1006W/1007B/1008B/2010B el manual
@@ -276,7 +280,7 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
     /* v11.42 · límites de mosaico del fabricante: el EB-810E/815E solo mezcla en columnas y hasta 4 proyectores; en el resto, hasta 15 por superficie */
     const solo1 = /^EB-81[05]E$/.test(p.modelo), maxR = una ? 1 : solo1 ? 1 : 8, maxC = una ? 1 : solo1 ? 4 : 12;
     for (let rows = 1; rows <= maxR; rows++) for (let cols = 1; cols <= maxC; cols++) {
-      if (cols * rows > 15) continue;
+      if (cols * rows > MOSAICO_MAX) continue;
       if (cols * rows > 40 || (salaPleg && rows > 1)) continue;
       const kc = 1 + (cols - 1) * (1 - sMin), kr = 1 + (rows - 1) * (1 - sMin);
       /* v11.7 · sala inmersiva con proyectores de óptica fija (EB-815E, EB-805F…): además de cubrir la pared entera, se mira una sola fila que cubre todo

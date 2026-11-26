@@ -290,7 +290,7 @@ export class Escena {
         }
         const altoPared = sala ? H : s.elev + s.alto + 0.2;
         const tex = this._paredProy(s, p, cont, altoPared, f.nombre);
-        if (vivo) { const wU = Math.min(s.ancho, p.anchoTot), yB = Math.max(0, s.elev + p.filas[0]), yT = Math.min(altoPared, yB + p.altoTot);
+        if (vivo) { const wU = Math.min(s.ancho, p.anchoTot), y0 = s.elev + p.filas[0], yB = Math.max(0, y0), yT = Math.min(altoPared, y0 + p.altoTot);   /* v11.37 · lo que cae por debajo del suelo se pierde: la imagen no sube (antes se dibujaba más alta de lo que es) */
           this._capaMedio(g, { x: 0, y: (yB + yT) / 2, z: 0.008, w: wU, h: yT - yB }, tramo[s.id], m); }
         const lienzo = new THREE.Mesh(new THREE.PlaneGeometry(s.ancho, altoPared), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
         lienzo.position.set(0, altoPared / 2, 0.004); g.add(lienzo);

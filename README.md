@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.35** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.36** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.35)
+## Cambios de la versión actual (v11.36)
+- **SIMULAR · transiciones nuevas entre pistas:** las pistas ya no pasan por negro; la que sale y la que entra se funden directamente, al azar en cada corte, con un fundido aditivo (la luz sube y se queda la nueva), un quemado con el borde al rojo que sube desde el zócalo o un quemado por luz (la nueva prende primero por sus zonas más claras).
+- **SIMULAR · AVHUB es un ascensor de cristal** que sube por una torre de estilo cyberpunk: una planta por cada app del rack (SCREENS, SYSTEMS, ADPOSTER, VJSHOW y MSGAME) y, arriba del todo, AVHUB. En la pared frontal, la pantalla con la captura real de la app; en las laterales, su logotipo en neón; detrás, la ciudad de noche con lluvia; en el suelo de la cabina, el isotipo de AVHUB con las apps.
+- **SIMULAR · de la Luna a la Tierra al estilo de un globo terráqueo:** se despega de la Luna, la Tierra (imágenes de la NASA, de día y con las luces de las ciudades de noche) crece delante, la sala gira hasta tenerla bajo los pies y se baja en picado sobre Australia y la Gran Barrera de Coral hasta entrar en la bruma del mar y llegar a la playa de noche.
+- **SIMULAR · Sagrada Família con la orientación real del Eixample:** la montaña con el Tibidabo detrás del ábside, el mar delante de la fachada de la Gloria y Montjuïc hacia el Llobregat; la avenida de Gaudí en diagonal desde la plaza de Gaudí hasta el Hospital de Sant Pau, cortando las manzanas; las torres de la fachada de la Gloria, aún sin construir, ya no se dibujan.
+
+## Cambios de la v11.35
 - **Proyección · luminosidad con cada óptica, revisada en toda la gama láser de ópticas intercambiables** según la información del fabricante:
   - ELPLW05 con los EB-PQ2010, EB-PQ2008 y EB-PQ2213: unos 8.750, 7.000 y 11.400 lm (antes se calculaba con la luminosidad completa del proyector).
   - ELPLM08 con los EB-PQ2213, EB-PQ2216 y EB-PQ2220: tope de 10.000 lm (antes 9.600); con el EB-PQ2008, unos 7.700 lm (antes 8.000).

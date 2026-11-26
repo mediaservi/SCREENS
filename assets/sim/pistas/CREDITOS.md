@@ -17,4 +17,7 @@ Fotografías antiguas en **dominio público**, tomadas de Wikimedia Commons (lic
 Las fotografías se guardan en blanco y negro; el color se añade en pantalla. Ajustes: bcn-06 es un fotograma de un par estereoscópico; bcn-08 está recortada a la zona de vías y se le ha retirado un pelo del negativo.
 
 ## Resto
-Logotipos e isotipos de AVHUB y sus apps, capturas de las apps, imágenes de El Misterio de Ek Chuah y WONDERWALK y vídeo de las escenas de El Misterio de Ek Chuah (ek-360.mp4), recorrido de WONDERWALK grabado del propio juego (ww-360.mp4), y recorridos de AVHUB y de la Luna a la playa generados para SCREENS (avhub-360.mp4 y volcan-360.mp4): material propio de mediaservi.com.
+Logotipos e isotipos de AVHUB y sus apps, capturas de las apps, imágenes de El Misterio de Ek Chuah y WONDERWALK y vídeo de las escenas de El Misterio de Ek Chuah (ek-360.mp4), recorrido de WONDERWALK grabado del propio juego (ww-360.mp4) y recorrido de la playa generado para SCREENS (volcan-360.mp4): material propio de mediaservi.com.
+
+## La Tierra (tierra-dia y tierra-noche)
+Imágenes de la NASA en **dominio público**: «Blue Marble» (la Tierra de día, NASA Visible Earth) y «Black Marble / Earth at Night» (las luces de las ciudades, NASA Earth Observatory). Reducidas y convertidas a WebP.

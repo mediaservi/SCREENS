@@ -68,17 +68,19 @@ export function crearSimula() {
     vertexShader: 'varying vec3 p; void main(){ p = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
     fragmentShader: 'uniform vec3 a; uniform vec3 b; uniform vec3 sd; uniform vec3 sc; uniform float est; varying vec3 p; float h1(vec3 q){ return fract(sin(dot(q, vec3(12.99, 78.23, 45.16))) * 43758.55); } void main(){ float h = clamp(p.y*1.6, 0., 1.); vec3 c = mix(b, a, pow(h, .7)); vec3 s = normalize(sd); float d = max(0., dot(p, s)); c += sc * (pow(d, 400.) * 2. + pow(d, 8.) * .25 + pow(d, 2.) * .08 * (1. - h)); vec3 q = floor(p * 420.); float st = step(.9965, h1(q)) * smoothstep(.02, .3, p.y); c += vec3(st) * est * (.6 + .4 * h1(q + 3.)); gl_FragColor = vec4(c, 1.); }' }));
   sc.add(cielo);
-  // suelo: asfalto de la ciudad, montaña al fondo (noroeste) y mar (sureste)
+  // suelo: asfalto de la ciudad · v11.36 · orientación real del Eixample: la montaña (Collserola, con el Tibidabo) detrás del ábside (−z, «muntanya»),
+  // el mar delante de la fachada de la Gloria (+z, «mar»), Montjuïc hacia el Llobregat (−x, +z) y la avenida de Gaudí en diagonal hasta Sant Pau
   const suelo = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ color: 0x77736d })); suelo.rotation.x = -Math.PI / 2; sc.add(suelo);
-  const mar = new THREE.Mesh(new THREE.PlaneGeometry(6000, 2600), new THREE.MeshStandardMaterial({ color: 0x2f6f9c, roughness: 0.25, metalness: 0.3 })); mar.rotation.x = -Math.PI / 2; mar.position.set(1800, 0.4, 1800); mar.rotation.z = Math.PI / 4; sc.add(mar);
+  const mar = new THREE.Mesh(new THREE.PlaneGeometry(6000, 2600), new THREE.MeshStandardMaterial({ color: 0x2f6f9c, roughness: 0.25, metalness: 0.3 })); mar.rotation.x = -Math.PI / 2; mar.position.set(0, 0.4, 2350); sc.add(mar);
   // cordillera al noroeste, siempre fuera de la ciudad (las zonas llanas quedan bajo el asfalto)
   const mg = new THREE.PlaneGeometry(7000, 7000, 170, 170); mg.rotateX(-Math.PI / 2); const MP = mg.attributes.position;
-  const relieve = (x, z) => { const d = -(x + z) / Math.SQRT2 - 1250, lat = (x - z) / Math.SQRT2; return d > 0 ? Math.min(1, d / 600) * (210 + 70 * Math.sin(lat * 0.0035) + 40 * Math.sin(lat * 0.011 + 2) + 15 * Math.sin(lat * 0.03)) : -2; };
+  const relieve = (x, z) => { const d = -z - 1250, lat = x; const sierra = d > 0 ? Math.min(1, d / 600) * (210 + 70 * Math.sin(lat * 0.0035) + 40 * Math.sin(lat * 0.011 + 2) + 15 * Math.sin(lat * 0.03)) : -2;
+    const mj = Math.hypot(x + 1900, z - 1500); return Math.max(sierra, mj < 650 ? 175 * Math.pow(Math.cos(mj / 650 * Math.PI / 2), 1.6) - 2 : -2); };   /* v11.36 · y Montjuïc junto al mar, hacia el Llobregat */
   for (let i = 0; i < MP.count; i++) MP.setY(i, relieve(MP.getX(i), MP.getZ(i)));
   mg.computeVertexNormals(); const monte = new THREE.Mesh(mg, new THREE.MeshLambertMaterial({ color: 0x6d8a55 })); sc.add(monte);
   // en la cumbre: el templo del monte (dorado de noche), la noria y el parque de atracciones, y a su izquierda la torre de comunicaciones
-  const enMonte = (d, lat) => { const x = (-d * Math.SQRT2 + lat * Math.SQRT2) / 2 * Math.SQRT2 / Math.SQRT2, z = (-d * Math.SQRT2 - lat * Math.SQRT2) / 2; return [(-d - 1250) * Math.SQRT2 / 2 + lat * Math.SQRT2 / 2, (-d - 1250) * Math.SQRT2 / 2 - lat * Math.SQRT2 / 2]; };
-  const cumbre = new THREE.Group(); { const [cx, cz] = enMonte(620, 60); cumbre.position.set(cx, relieve(cx, cz) - 4, cz); cumbre.rotation.y = Math.PI / 4; cumbre.scale.setScalar(2.2); sc.add(cumbre); }   // algo mayor que en la realidad para que se lea a 2 km
+  const enMonte = (d, lat) => [lat, -d - 1250];
+  const cumbre = new THREE.Group(); { const [cx, cz] = enMonte(620, 60); cumbre.position.set(cx, relieve(cx, cz) - 4, cz); cumbre.scale.setScalar(2.2); sc.add(cumbre); }   // algo mayor que en la realidad para que se lea a 2 km
   const mIg = new THREE.MeshStandardMaterial({ color: 0xcdbfa4, roughness: 0.8, emissive: 0xffb43c, emissiveIntensity: 0 });
   const ig = (g, w, h, d, x, y, z) => { const b = new THREE.Mesh(g || new THREE.BoxGeometry(w, h, d), mIg); b.position.set(x, y, z); cumbre.add(b); return b; };
   ig(null, 34, 26, 22, 0, 13, 0); ig(new THREE.CylinderGeometry(7, 8, 34, 16), 0, 0, 0, 0, 43, 0); ig(new THREE.ConeGeometry(7.5, 22, 16), 0, 0, 0, 0, 71, 0);
@@ -106,7 +108,7 @@ export function crearSimula() {
   const matM = [new THREE.MeshLambertMaterial({ color: 0xe9dfd0 }), new THREE.MeshLambertMaterial({ map: tF, color: 0xffffff, emissiveMap: tE, emissive: 0xffffff, emissiveIntensity: 0 })];
   const celdas = []; const R = 6;
   for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { if (Math.hypot(i, j) > R + 0.4) continue; celdas.push([i, j]); }
-  const especial = (i, j) => (i === 0 && j === 0) || (i === 1 && j === 0) || (i === -1 && j === 0);
+  const especial = (i, j) => (i === 0 && j === 0) || (i === 1 && j === 0) || (i === -1 && j === 0) || (i + j === 1 && i >= 2);   /* v11.36 · las manzanas que corta la avenida de Gaudí van aparte */
   const nor = celdas.filter(([i, j]) => !especial(i, j));
   const man = new THREE.InstancedMesh(gM, matM, nor.length), M4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v1 = new THREE.Vector3(), c3 = new THREE.Color();
   const tonos = [0xfff6e8, 0xf6e8d2, 0xfffaf0, 0xeedfc8, 0xfbeee0, 0xece6dc, 0xf3dcc4];
@@ -122,6 +124,26 @@ export function crearSimula() {
   sc.add(cas);
   // árboles de las calles (plátanos de sombra a los dos lados)
   for (let i = -R; i <= R + 1; i++) { const c = (i - 0.5) * PASO; for (let s = -R * PASO; s <= R * PASO; s += 15) { const lim = Math.hypot(c, s) < R * PASO; if (!lim) continue; [-6.5, 6.5].forEach(o => { pon(c + o, s, 3.2 + az() * 1.4, 9 + az() * 3); pon(s, c + o, 3.2 + az() * 1.4, 9 + az() * 3); }); } }
+  // v11.36 · AVINGUDA DE GAUDÍ: paseo en diagonal desde la esquina de la plaza de Gaudí hasta el Hospital de Sant Pau; corta las manzanas en dos
+  { const A = 26, recorta = (pts, sg) => { const out = []; for (let k = 0; k < pts.length; k++) { const a = pts[k], b = pts[(k + 1) % pts.length], fa = sg * (a[0] + a[1]) / Math.SQRT2 - A, fb = sg * (b[0] + b[1]) / Math.SQRT2 - A;
+        if (fa >= 0) out.push(a); if ((fa >= 0) !== (fb >= 0)) { const t = fa / (fa - fb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); } } return out; };
+    const octP = (h, c) => [[-h + c, -h], [h - c, -h], [h, -h + c], [h, h - c], [h - c, h], [-h + c, h], [-h, h - c], [-h, -h + c]];
+    celdas.filter(([i, j]) => i + j === 1 && i >= 2).forEach(([i, j]) => [1, -1].forEach((sg) => { const q = recorta(octP(L, CH), sg); if (q.length < 3) return; const sh = new THREE.Shape(); q.forEach(([x, y], k) => (k ? sh.lineTo(x, -y) : sh.moveTo(x, -y)));
+      const g = new THREE.ExtrudeGeometry(sh, { depth: 24 * (0.75 + az() * 0.45), bevelEnabled: false }); g.rotateX(-Math.PI / 2); const m = new THREE.Mesh(g, matM); m.position.set(i * PASO, 0, j * PASO); sc.add(m); }));
+    /* el paseo: panot claro, dos hileras de árboles y farolas, de la plaza (x + z = PASO) hacia el noreste */
+    const x0 = PASO * 1.5, z0 = -PASO * 0.5, lar = PASO * 4.6 * Math.SQRT2, dir = new THREE.Vector2(1, -1).normalize();
+    const pas = new THREE.Mesh(new THREE.PlaneGeometry(A * 2, lar), new THREE.MeshLambertMaterial({ color: 0xc9b9a3 })); pas.rotation.x = -Math.PI / 2; pas.rotation.z = -Math.PI / 4;
+    pas.position.set(x0 + dir.x * lar / 2, 0.35, z0 + dir.y * lar / 2); sc.add(pas);
+    for (let s2 = 6; s2 < lar; s2 += 11) [-14, 14].forEach((o) => pon(x0 + dir.x * s2 + o / Math.SQRT2, z0 + dir.y * s2 + o / Math.SQRT2, 3.4 + az() * 1.2, 9 + az() * 3));
+    /* HOSPITAL DE SANT PAU, al final del paseo: pabellones de ladrillo con cúpulas de cerámica y el pabellón de la Administración con su torre del reloj, girados 45° */
+    const SP = new THREE.Group(); SP.position.set(x0 + dir.x * (lar + 120), 0, z0 + dir.y * (lar + 120)); SP.rotation.y = Math.PI / 4; sc.add(SP);
+    const lad = new THREE.MeshLambertMaterial({ color: 0xa4553a }), pie = new THREE.MeshLambertMaterial({ color: 0xd8c9a8 }), cer = [0x2f8a6a, 0xd9a42a, 0x3c74b8, 0xc4483a].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.35, metalness: 0.2 }));
+    const pab = (w, h, d, x, z, k) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), lad); b.position.set(x, h / 2, z); SP.add(b); const t = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 1.5, d + 1), pie); t.position.set(x, h, z); SP.add(t);
+      const cu = new THREE.Mesh(new THREE.SphereGeometry(Math.min(w, d) * 0.32, 18, 10, 0, PI2, 0, Math.PI / 2), cer[k % 4]); cu.position.set(x, h + 0.7, z); SP.add(cu);
+      const pi = new THREE.Mesh(new THREE.ConeGeometry(1.6, 9, 10), cer[(k + 1) % 4]); pi.position.set(x, h + Math.min(w, d) * 0.32 + 4, z); SP.add(pi); };
+    pab(150, 20, 22, 0, 90, 0); const to = new THREE.Mesh(new THREE.BoxGeometry(14, 62, 14), lad); to.position.set(0, 31, 90); SP.add(to); const ag = new THREE.Mesh(new THREE.ConeGeometry(9, 22, 4), cer[0]); ag.position.set(0, 73, 90); ag.rotation.y = Math.PI / 4; SP.add(ag);
+    for (let f = 0; f < 3; f++) for (let c = 0; c < 4; c++) pab(22, 14, 40, -75 + c * 50, 30 - f * 70, f * 4 + c);
+    for (let k = 0; k < 40; k++) pon(SP.position.x + (az() - 0.5) * 260, SP.position.z + (az() - 0.5) * 260, 3 + az() * 2, 7 + az() * 4); }
   // plaza de Gaudí (estanque y jardín, delante de la fachada del Nacimiento) y plaza de la Sagrada Família (fachada de la Pasión)
   const cesped = new THREE.MeshLambertMaterial({ color: 0x6f8f4c });
   [[PASO, 0], [-PASO, 0]].forEach(([x, z], n) => { const p = new THREE.Mesh(new THREE.ShapeGeometry(oct(L, CH)), cesped); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.3, z); sc.add(p);
@@ -161,7 +183,7 @@ export function crearSimula() {
   const tNueva = new THREE.MeshStandardMaterial({ map: texTorre('#d6c9b0', 'rgba(40,32,24,.85)'), roughness: 0.85, emissive: 0xffb45a, emissiveIntensity: 0 });
   const tVieja = new THREE.MeshStandardMaterial({ map: texTorre('#a88a68', 'rgba(30,22,14,.9)'), roughness: 0.9, emissive: 0xff9a40, emissiveIntensity: 0 });
   const pon4 = (eje, fijo, signo, mat) => [-18, -6, 6, 18].forEach((s, k) => { const h = (k === 0 || k === 3) ? 98 : 110, t = torre(T, h, 5.2, mat, k + (eje === 'x' ? 0 : 1)); if (eje === 'x') t.position.set(fijo, 0, s); else t.position.set(s, 0, fijo); T.add(t); void signo; });
-  pon4('x', 50, 1, tVieja); pon4('x', -50, -1, tNueva); pon4('z', 46, 1, tNueva);
+  pon4('x', 50, 1, tVieja); pon4('x', -50, -1, tNueva);   /* v11.36 · las torres de la fachada de la Gloria aún no están construidas: no se pintan */
   [[-13, -13], [13, -13], [-13, 13], [13, 13]].forEach(([x, z], k) => { const t = torre(T, 135, 7, tNueva, k + 2); t.position.set(x, 0, z); T.add(t); });
   const maria = torre(T, 138, 7.4, tNueva, 'estrella'); maria.position.set(0, 0, -40); T.add(maria);
   const jesus = torre(T, 172, 10.5, tNueva, 'cruz'); jesus.position.set(0, 0, 0); T.add(jesus);

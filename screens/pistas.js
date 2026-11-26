@@ -1,11 +1,11 @@
-// SCREENS · SIMULAR por pistas (v11.21, pedido por Josep, 25-11-2026): seis pistas de 12 s (v11.25; antes 10) que se suceden al azar y en bucle, con una transición al azar entre doce en cada corte.
+// SCREENS · SIMULAR por pistas (v11.21, pedido por Josep, 25-11-2026): seis pistas de 12 s (v11.25; antes 10) que se suceden al azar y en bucle; desde la v11.36 se funden directamente una con otra (aditivo o quemado, al azar en cada corte).
 // Cada pista es un «mundo» visto desde el centro de la sala: las paredes lo miran en 360° continuo (la vuelta casa en la esquina)
 // y el suelo mira hacia abajo, de modo que pared y suelo casan en el zócalo. Todas pintan las 4 paredes y el suelo; la escena
 // solo enseña las superficies que tenga el proyecto. Casi todo se genera en la tarjeta gráfica (sin vídeos que descargar).
 import * as THREE from 'three';
 import { crearDron } from './simula.js';
 
-const DUR = 12, FUND = 0.8, NTRANS = 12, W = 2048, H = 512, WS = 1024;
+const DUR = 12, SOLAPE = 1.4, NMEZ = 3, W = 2048, H = 512, WS = 1024;
 const RAIZ = new URL('../assets/', import.meta.url).href;
 const azarDe = (s) => { let a = s; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; };
 
@@ -42,29 +42,26 @@ vec2 uvCapa(float z){ if(esSuelo>.5) return .5+(v-.5)/z; for(int i=0;i<4;i++){ f
 vec2 pared(){ for(int i=0;i<4;i++){ float a = i==0?pu0.x: i==1?pu0.y: i==2?pu0.z: pu0.w, b = i==0?pu1.x: i==1?pu1.y: i==2?pu1.z: pu1.w; if(a>=0. && v.x>=a && v.x<=b) return vec2(float(i), (v.x-a)/max(b-a,1e-4)); } return vec2(-1.,0.); }
 `;
 const FIN = `
-/* ---------- transiciones entre pistas: doce maneras de irse a negro y volver, una al azar en cada corte ----------
-   f = 1 pista entera · f = 0 negro. Las que deforman la imagen (pixelado, fallo de señal, onda) mueven v antes de pintar */
-void main(){ float f=clamp(fade,0.,1.), g=1.-f; int tr=int(trans+.5); vec2 q=vv; float sx=semilla*17.3;
-  if(g>0.){
-    if(tr==2){ float n=mix(1., 260., pow(f,2.2)); vec2 cel=vec2(n*(esSuelo>.5?1.:4.), n); q=(floor(vv*cel)+.5)/cel; }                       /* pixelado: bloques cada vez mayores */
-    else if(tr==7){ float b=floor(vv.y*26.), k=h2(vec2(b, floor(T*14.)+sx)); q.x=fract(vv.x+(k-.5)*g*g*.5*step(.35,k)); }                 /* fallo de señal: franjas desplazadas */
-    else if(tr==10){ q.y=clamp(vv.y+sin(vv.x*TAU*6.+T*9.)*g*g*.12, 0., 1.); q.x=fract(vv.x+sin(vv.y*TAU*3.+T*7.)*g*g*.03); } }             /* onda de calor */
-  v=q; vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, zoomCapa>0. ? uvCapa(1.+zoomCapa*t/12.) : v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
-  c=pow(max(c,0.), vec3(2.2));
-  if(g>0.){ vec2 u=vec2(vv.x*(esSuelo>.5?1.:4.), vv.y); float m=f; vec3 lz=vec3(0.);
-    if(tr==1){ float n=fbm2(u*5.+sx)*.75+n2(u*23.+sx)*.25, e=g*1.25-.12; m=smoothstep(e-.02, e+.02, n); float br=smoothstep(.03,.0,abs(n-e-.012));     /* quemado: el borde arde */
-      lz=mix(vec3(1.,.28,.02), vec3(1.,.9,.5), br)*br*1.3*step(.01,g); c=mix(c, c*vec3(.35,.2,.12), smoothstep(.16,.02,n-e)); }
-    else if(tr==2){ m=smoothstep(0.,.3,f); }
-    else if(tr==3){ c=mix(c, vec3(1.), smoothstep(0.,.7,g)); m=smoothstep(0.,.3,f); }                                                               /* destello a blanco */
-    else if(tr==4){ float a=esSuelo>.5 ? fract(atan(vv.y-.5,vv.x-.5)/TAU+.5) : fract(vv.x-uF+.5), e=f*1.2-.1; m=1.-smoothstep(e-.1,e+.1,a); }                    /* cortina que da la vuelta a la sala */
-    else if(tr==5){ float l=fract(u.x*6.); m=step(l, f*1.05); }                                                                                    /* persianas verticales */
-    else if(tr==6){ vec2 cl=fract(u*vec2(9.,9.))-.5; m=step(length(cl), f*.75); }                                                                  /* trama de puntos */
-    else if(tr==7){ m=smoothstep(0.,.35,f); c=mix(c, c.gbr, g*.5); lz=vec3(.5,.9,1.)*step(.985,h2(vec2(floor(vv.y*180.), floor(T*30.))))*g*.6; }
-    else if(tr==8){ float al=f*f; m=step(abs(vv.y-.5), al*.5+.004); lz=vec3(.9,.95,1.)*smoothstep(.012,.0,abs(vv.y-.5))*g*g*2.*step(.02,f); if(esSuelo>.5) m=step(length(vv-.5), al*.75+.004); }   /* apagado de tubo: la imagen se cierra en una raya */
-    else if(tr==9){ vec2 id=floor(u*vec2(14.,14.)); m=step(h2(id+sx), f*1.08-.04); }                                                               /* mosaico: las teselas se apagan una a una */
-    else if(tr==10){ m=smoothstep(0.,.45,f); }
-    else if(tr==11){ float col=floor(u.x*40.), cae=h2(vec2(col,sx))*.6+.4; m=step(1.-vv.y, f*1.6*cae+f*.2); if(esSuelo>.5) m=step(h2(floor(vv*24.)+sx)*.7+.3, f*1.3); lz=vec3(.0,1.,.3)*smoothstep(.04,.0,abs((1.-vv.y)-(f*1.6*cae+f*.2)))*.5*(1.-esSuelo); }   /* lluvia: la imagen cae por columnas */
-    c=c*m+lz; }
+/* v11.36 · cada pista se pinta entera; el paso de una a otra lo hace la mezcla (ver MEZCLA) */
+void main(){ v=vv; vec3 d=rayo(); vec3 c=mundo(d); if(hayCapa>.5){ vec4 k=texture2D(capa, zoomCapa>0. ? uvCapa(1.+zoomCapa*t/12.) : v); k.rgb=pow(k.rgb, vec3(1./2.2)); c=conCapa(c, k, d); }
+  gl_FragColor=vec4(pow(max(c,0.), vec3(2.2)), 1.); }`;
+/* v11.36 · transiciones (pedido de Josep, 26-11-2026: «aditivo o burn, que quede limpio pero con efecto chulo»): la pista que sale y la que entra
+   se pintan a la vez y se mezclan directamente, sin pasar por negro. 0 · aditivo: las dos se suman, la luz sube y la nueva se queda ·
+   1 · quemado: un frente de fuego con el borde al rojo sube por las paredes y abre la nueva · 2 · quemado por luz: la nueva prende primero por sus zonas más claras */
+const MEZCLA = `precision highp float; uniform sampler2D A, B; uniform float m, modo, semilla, esSuelo; varying vec2 vv;
+float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+float n2(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h2(i),h2(i+vec2(1,0)),f.x), mix(h2(i+vec2(0,1)),h2(i+vec2(1,1)),f.x), f.y); }
+float fbm2(vec2 p){ float a=.5, s=0.; for(int i=0;i<5;i++){ s+=a*n2(p); p=p*2.02+vec2(13.1,7.7); a*=.5; } return s; }
+void main(){ vec3 a=texture2D(A, vv).rgb, b=texture2D(B, vv).rgb, c; float e=clamp(m,0.,1.), sx=semilla*37.1; vec2 u=vec2(vv.x*(esSuelo>.5?1.:4.), vv.y);
+  if(modo<.5){ float sa=1.-smoothstep(.42,1.,e), sb=smoothstep(0.,.58,e), pico=sin(3.14159*e);
+    c=a*sa+b*sb; c+=(a+b)*pico*pico*.16+vec3(.9,.95,1.)*pow(pico,8.)*.05; }
+  else if(modo<1.5){ float n=(esSuelo>.5 ? 1.-length(vv-.5)*1.25 : vv.y)*.55+fbm2(u*3.2+sx)*.37+n2(u*19.+sx)*.08, fr=e*1.3-.14, d=n-fr;   /* el fuego avanza de abajo arriba (empieza en el zócalo; en el suelo, de los bordes al centro) */
+    float ab=1.-smoothstep(-.012,.012,d), borde=smoothstep(.035,.0,abs(d)), calor=smoothstep(.14,.0,d)*step(0.,d);
+    c=mix(a*(1.-.72*calor)*mix(vec3(1.),vec3(1.,.55,.3),calor), b, ab);
+    c+=mix(vec3(1.,.26,.02), vec3(1.,.92,.6), borde*borde)*borde*1.6*step(.002,e)*step(e,.998); }
+  else { float l=dot(b, vec3(.3,.59,.11)), l2=l+.25*n2(u*30.+sx), fr=1.-e*1.35+.1, d=l2-fr;
+    float ab=smoothstep(-.02,.02,d), borde=smoothstep(.05,.0,abs(d))*step(.002,e)*step(e,.998);
+    c=mix(a*(1.-.5*e), b, ab)+(normalize(b+.02)*1.2+vec3(.5,.35,.1))*borde*1.1; c=mix(c, b, smoothstep(.85,1.,e)); }
   gl_FragColor=vec4(c, 1.); }`;
 const CAPA_SIMPLE = `vec3 conCapa(vec3 c, vec4 k, vec3 d){ return mix(c, k.rgb, k.a); }`;
 
@@ -89,34 +86,68 @@ vec3 mundo(vec3 d){
   return mix(vec3(.90,.89,.85)*(.8+.2*n2(q*6.)), c, junta);
 }` + CAPA_SIMPLE;
 
-/* ---------- 2 · AVHUB (v11.28): recorrido en 360° por un túnel de rack con una pantalla por app (captura real y logotipo oficial) hasta el logotipo de AVHUB,
-   grabado en cinco caras (ver cubo()). Sin vídeo cargado, lo de antes: muro de píxeles LED con los colores de la marca, haz que da la vuelta a la sala y rótulos por pared ---------- */
+/* ---------- 2 · AVHUB (v11.36, pedido de Josep, 26-11-2026): un ascensor de cristal que sube por una torre cyberpunk. Cada planta es una app del rack
+   (SCREENS · SYSTEMS · ADPOSTER · VJSHOW · MSGAME) y arriba del todo, AVHUB: en la pared frontal, la pantalla con la captura real de la app;
+   en las laterales, su logotipo oficial en neón; detrás, la ciudad de noche con lluvia; en el suelo, la cabina con el isotipo. 2 s por planta ---------- */
 const G_AVHUB = `
-vec3 marca(float k){ vec3 A=vec3(0.,1.,.02), B=vec3(.6,0.,1.), C=vec3(0.,.70,1.); k=fract(k)*3.; return k<1.?mix(A,C,k): k<2.?mix(C,B,k-1.): mix(B,A,k-2.); }
-vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); float L=length(d.xz), an=atan(-d.x,d.z);
-  if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float r=length(p), a2=atan(-p.x,p.y);
-    float an1=fract(r*7.-t*.9), anillo=smoothstep(.06,.0,abs(an1-.5)-.0)*smoothstep(1.5,.2,r);
-    float radio=smoothstep(.035,.0,abs(fract(a2/TAU*24.)-.5)*r*.6)*smoothstep(.12,.3,r);
-    vec2 g=p*46.; float px=smoothstep(.44,.2,length(fract(g)-.5));
-    float onda=.5+.5*sin(r*16.-t*5.+sin(a2*4.)*1.2);
-    vec3 c=vec3(.012,.012,.022)+marca(a2/TAU+t*.05)*(anillo*.9+radio*.5)+marca(r*.6-t*.1)*px*onda*.34;
-    float haz=exp(-pow(dAng(a2, t*TAU/5.)*2.2,2.)); c+=marca(t*.1)*haz*px*.6*smoothstep(.1,.4,r);
-    c+=vec3(.5,.9,1.)*exp(-r*r*26.)*.9; return c; }
-  float y=d.y/L; vec2 g=vec2(an/TAU*336., y*54.); vec2 id=floor(g); float px=smoothstep(.45,.2,length(fract(g)-.5));
-  float o1=n3(vec3(cos(an)*2.2, sin(an)*2.2, y*2.4-t*.55)), o2=.5+.5*sin(an*3.-t*1.7+y*2.6);
-  float lum=pow(o1,2.2)*1.5*(.35+.65*o2);
-  /* ecualizador: columnas que suben desde el zócalo, a compás */
-  float col=floor(an/TAU*84.), alt=-.96+(.25+.45*h1(col))*(.55+.45*sin(t*TAU*1.2+h1(col+3.)*TAU))*.9;
-  float eq=step(y,alt)*step(-.96,y);
-  vec3 c=vec3(.012,.012,.022)+marca(an/TAU*2.+y*.25+t*.06)*px*(lum*.75+eq*.85);
-  /* el haz: una franja de luz que da algo más de dos vueltas a la sala en los 12 s */
-  float haz=exp(-pow(dAng(an, t*TAU/5.)*2.2,2.)); c+=mix(marca(t*.1), vec3(1.), .35)*haz*px*.95;
-  c+=vec3(.0,.7,1.)*exp(-pow((y+.965)*9.,2.))*.5;
+uniform sampler2D capa3;
+vec3 colApp(float k){ return k<.5?vec3(.85,1.,0.): k<1.5?vec3(0.,.71,1.): k<2.5?vec3(1.,.66,0.): k<3.5?vec3(0.,1.,.02): k<4.5?vec3(.9,0.,1.): vec3(.62,.25,1.); }
+float suave(float x){ x=clamp(x,0.,1.); return x<.5 ? 4.*x*x*x : 1.-pow(-2.*x+2.,3.)/2.; }
+#define PISO 1.45
+/* altura de la cabina y velocidad (0–1): cada planta, 0,6 s de viaje y parada */
+vec2 subida(){ float seg=t/2., k=floor(seg), f=fract(seg); if(k>5.) return vec2(5.*PISO, 0.);
+  return vec2((k-1.+suave(f/.6))*PISO, f<.6 ? sin(3.14159*f/.6) : 0.); }
+/* la pantalla de la planta k en el punto q (0–1) del atlas de capturas (2 columnas × 3 filas) */
+vec3 captura(float k, vec2 q){ float c=mod(k,2.), r=floor(k/2.); q=clamp(q,.002,.998); return pow(texture2D(capa, vec2((c+q.x)*.5, 1.-(r+1.-q.y)/3.)).rgb, vec3(1./2.2)); }
+vec4 rotulo(float k, vec2 q, float bias){ vec4 r=texture2D(capa3, vec2(clamp(q.x,0.,1.), 1.-(k+1.-clamp(q.y,0.,1.))/6.), bias); r.rgb=pow(r.rgb, vec3(1./2.2)); return r; }
+/* chapa de la torre: paneles oscuros con juntas, rejillas y tiras de neón */
+vec3 chapa(vec2 L, float k, float yy){ vec3 col=colApp(k); vec2 g=vec2(L.x/.42, yy/.36); vec2 f=fract(g), id=floor(g);
+  float junta=smoothstep(.0,.012,min(min(f.x,1.-f.x),min(f.y,1.-f.y))); vec3 c=vec3(.032,.036,.05)*(.75+.5*h2(id))*mix(.35,1.,junta)+col*.025*smoothstep(.5,0.,abs(f.y-.5))*step(.6,h2(id+3.));
+  float rej=step(.72,h2(id+7.))*step(.2,f.x)*step(f.x,.8)*step(.25,f.y)*step(f.y,.75)*step(.5,fract(f.y*14.)); c+=vec3(.03,.035,.05)*rej;
+  float tira=smoothstep(.006,.0,abs(fract(L.x/.84+.25)-.5)*.84-.002)*step(.3,h1(floor(L.x/.84+.25)+k*7.));
+  c+=mix(col, vec3(1.,.1,.6), step(.5,h1(floor(L.x/.84)+3.)))*tira*(.7+.3*sin(T*3.+L.x*9.))*.9; return c; }
+/* forjado entre plantas: hormigón, franjas de aviso y neón en el canto */
+vec3 forjado(vec2 L, float yy, float k){ float a=abs(yy); vec3 c=vec3(.05,.05,.06)*(.7+.3*n2(L*40.));
+  float rayas=step(.5,fract((L.x+yy)*9.))*step(.66,a)*step(a,.69); c=mix(c, vec3(.9,.7,.05)*.6, rayas);
+  c+=vec3(0.,.9,1.)*smoothstep(.01,.0,abs(a-.625))*1.3+vec3(0.,.9,1.)*exp(-pow((a-.625)*40.,2.))*.25; return c; }
+/* la ciudad tras el cristal trasero: torres con ventanas, rótulos de neón, más lejos cuanto más arriba; sube despacio (paralaje) */
+vec3 ciudad(vec2 L, float s){ float y=L.y+s*.035; vec3 c=mix(vec3(.08,.02,.14), vec3(.005,.008,.03), smoothstep(-.6,.9,y));
+  for(int j=0;j<3;j++){ float fj=float(j), es=1.6+fj*1.3, x=L.x*es+fj*17.3, col=floor(x), fx=fract(x), alt=(.1+.9*h1(col+fj*31.))*(1.1-fj*.25)-.3;
+    if(y*es*.6<alt && fx>.08 && fx<.92){ vec2 w=vec2(fx*7., y*es*9.); vec2 wi=floor(w); float luz=step(.55,h2(wi+col*3.1+fj))*step(.25,fract(w.x))*step(.3,fract(w.y));
+      c=vec3(.01,.012,.025)*(1.-fj*.2)+mix(vec3(1.,.75,.35),vec3(.4,.8,1.),h2(wi+5.))*luz*(.35+.3*fj)/(1.+fj);
+      float neon=step(.82,h1(col*7.+fj))*smoothstep(.02,.0,abs(fx-.5)-.25)*smoothstep(.03,.0,abs(y*es*.6-alt+.12)-.03);
+      c+=mix(vec3(1.,0.,.6),vec3(0.,.9,1.),h1(col+2.))*neon*(1.2+.4*sin(T*5.+col)); break; } }
   return c; }
-vec3 conCapa(vec3 c, vec4 k, vec3 d){ if(hayVid>.5) return c;   /* con vídeo, logotipos y capturas van dentro del propio recorrido */
-  float an = esSuelo>.5 ? 0. : atan(-d.x,d.z);
-  float sale=smoothstep(0.,.7, t*1.5-dAng(an,0.)*.55)*smoothstep(10.,9.4,t);
-  return mix(c, k.rgb, k.a*sale); }`;
+/* lluvia sobre el cristal: gotas que resbalan, más largas cuando la cabina sube */
+float lluvia(vec2 L, float vel){ vec2 g=vec2(L.x*60., L.y*3.+T*(1.5+vel*9.)); float col=floor(g.x); float y=fract(g.y+h1(col)*7.);
+  return step(.85,h1(col*3.7))*smoothstep(.15+vel*.5,.0,y)*smoothstep(.0,.02,y)*smoothstep(.45,.2,abs(fract(g.x)-.5)); }
+vec3 mundo(vec3 d){ vec2 sv=subida(); float s=sv.x, vel=sv.y;
+  if(esSuelo>.5){ vec2 p=d.xz/-d.y*.965; float k=clamp(floor(s/PISO+.5),0.,5.); vec3 col=colApp(k);
+    vec2 g=p*7.; vec2 f=fract(g)-.5; float dia=abs(f.x+f.y)<.08||abs(f.x-f.y)<.08 ? 1. : 0.;   /* chapa lagrimada */
+    vec3 c=vec3(.05,.055,.065)*(.8+.3*n2(p*30.))+vec3(.03)*dia;
+    float r=max(abs(p.x),abs(p.y)); c+=col*smoothstep(.03,.0,abs(r-.92))*1.2+col*exp(-pow((r-.92)*9.,2.))*.25;
+    c+=col*exp(-pow(length(p)*1.4,2.))*.12*(1.+vel); return c; }
+  vec2 w=pared(); if(w.x<0.) return vec3(.01); int i=int(w.x+.5); float A = i==0?asp.x: i==1?asp.y: i==2?asp.z: asp.w;
+  vec2 L=vec2((w.y-.5)*A, v.y-.5); float Y=s+L.y, k=floor(Y/PISO+.5), yy=Y-k*PISO; vec3 c;
+  if(i==3){ c=ciudad(L, s); c+=vec3(.6,.8,1.)*lluvia(L, vel)*.35; c*=.55+.45*smoothstep(.0,.05,w.y)*smoothstep(1.,.95,w.y);   /* montantes del cristal */
+    c+=vec3(0.,.9,1.)*smoothstep(.004,.0,abs(w.y-.5)-.004)*.8; return c; }
+  if(k<0. || k>5.){ c=vec3(.012,.012,.02)+vec3(0.,.9,1.)*smoothstep(.01,.0,abs(fract(Y*2.)-.5)-.48)*.6; return c; }
+  if(abs(yy)>.6) return forjado(L, yy, k);
+  vec3 col=colApp(k); c=chapa(L, k, yy); float pulso=.75+.25*sin(T*4.+k);
+  if(i==1){ float hs=min(.68, A*.86*9./16.), ws=hs*16./9., cy=.05; vec2 q=vec2(L.x/ws+.5, (yy-cy)/hs+.5);
+    vec2 dq=abs(q-.5)-.5; float fuera=max(dq.x*ws, dq.y*hs);
+    if(fuera<0.){ float ab=.006*vel+.0015; vec3 im=vec3(captura(k, q+vec2(ab,0.)).r, captura(k, q).g, captura(k, q-vec2(ab,0.)).b);
+      im*=.88+.12*sin(v.y*1400.); im*=1.-.6*step(.985,h1(floor(q.y*80.)+floor(T*20.)))*vel; c=im*1.08; }
+    c+=col*exp(-max(fuera,0.)*70.)*.9*pulso*step(0.,fuera)+col*smoothstep(.004,.0,abs(fuera))*1.4;
+    float wq=hs*1.15, hq=wq*.25; vec2 qt=vec2(L.x/wq+.5, (yy-(cy-hs*.5-hq*.5-.01))/hq+.5); if(k<4.5 && qt.x>0.&&qt.x<1.&&qt.y>0.&&qt.y<1.){ vec4 r=rotulo(k, qt, 0.); c=mix(c, r.rgb*1.2, r.a); } }
+  else { float wl=min(A*.86, 1.5), hl=wl*.25; vec2 q=vec2(L.x/wl+.5, yy/hl+.5); vec4 r=rotulo(k, q, 0.), gl=rotulo(k, q, 4.);
+    vec3 fl=mix(r.rgb, vec3(1.), .15)*(1.+.25*sin(T*13.+k)*step(.93,h1(floor(T*9.)+k)));
+    c+=col*gl.a*1.1*pulso; c=mix(c, fl*1.3, r.a); c+=col*smoothstep(.006,.0,abs(abs(yy)-hl*.95))*step(abs(L.x),wl*.55)*.9; }
+  c+=vec3(.6,.8,1.)*lluvia(L, vel)*.18+vec3(.5,.7,1.)*vel*.06*smoothstep(.3,.0,abs(fract(Y*1.3)-.5));   /* reflejo del cristal al subir */
+  return c; }
+vec3 conCapa(vec3 c, vec4 k, vec3 d){ if(esSuelo<.5) return c; float fl=.85+.15*step(.6,h1(floor(T*12.)));   /* el isotipo y los iconos, como un holograma en el suelo de la cabina */
+  return mix(c, k.rgb*fl*(.9+.1*sin(v.y*700.)), k.a*.92); }`;
+
 
 /* ---------- 3 · EK CHUAH (v11.26): las escenas animadas del juego, una por pared y las cuatro a la vez (un solo vídeo de 2 × 2: alux · santuario / cacao · jade),
    con la cámara entrando en cada sala; el suelo de losas recoge la luz de cada pared. Mientras el vídeo no ha cargado, la imagen fija de cada escena.
@@ -179,91 +210,44 @@ vec3 conCapa(vec3 c, vec4 k, vec3 d){ vec3 col=k.rgb;
   col+=mix(vec3(.6,1.,.5), vec3(.9,.5,1.), h2(id+5.))*ch*.9;                                 /* chispas de la varita */
   return mix(c, col, k.a); }`;
 
-/* ---------- 5 · DE LA LUNA A LA PLAYA (v11.32; el identificador sigue siendo «volcan»): recorrido 3D grabado en cinco caras (ver cubo()): despegue de la Luna
-   con la Tierra delante y vuelo en arco sobre el Pacífico hasta posarse en una playa tropical de noche, con palmeras y luna llena sobre el mar.
-   Sin vídeo cargado, lo de antes: de la Luna a la Tierra, reentrada, nubes de Hawái, cráter con tótems tiki y lago de lava ---------- */
+/* ---------- 5 · DE LA LUNA A LA PLAYA (v11.36, pedido de Josep, 26-11-2026: «de la luna a la tierra, más como Google Earth»; el identificador sigue siendo «volcan»).
+   0–6 s: trazado de rayos en la tarjeta gráfica: despegamos de la Luna, la Tierra real (imágenes de la NASA, de día y con las luces de las ciudades de noche)
+   crece delante, la sala gira hasta tenerla bajo los pies y bajamos en picado sobre el Pacífico, junto a la línea entre el día y la noche, como en Google Earth.
+   6–12 s: el tramo final del recorrido grabado (mar de noche y playa tropical con palmeras y luna llena), en cinco caras (ver cubo()) ---------- */
 const G_VOLCAN = `
-vec3 lava(vec2 p, float e){ vec2 w=vec2(fbm2(p*1.3+vec2(0.,T*.11)), fbm2(p*1.3+vec2(5.2,-T*.09))); float f=fbm2(p*2.2+w*2.2+T*.05);
-  float costra=smoothstep(.42,.60,f), gr=cresta(vec3(p*3.+w, T*.04));
-  vec3 fuego=mix(vec3(1.,.22,.0), vec3(1.,.86,.32), smoothstep(.2,.5,f)*.4+pow(1.-f,3.)*.9);
-  vec3 c=mix(fuego*(1.5+.5*sin(T*2.+f*9.)), vec3(.07,.03,.025)*(.5+gr), costra); c+=vec3(1.,.35,.05)*pow(1.-costra,2.)*.4; return c*e; }
-/* el arranque: la Tierra vista desde la Luna; caemos hacia el Pacífico, entramos en la atmósfera y bajamos al volcán */
+uniform sampler2D tierra, noche; uniform vec3 uCam, uRg, uUp, uFw, uSol, uLuna, uN0;
+float esfera(vec3 o, vec3 d, vec3 c, float r){ vec3 oc=o-c; float b=dot(oc,d), cc=dot(oc,oc)-r*r, h=b*b-cc; if(h<0.) return -1.; float s=-b-sqrt(h); return s>0. ? s : -1.; }
+vec2 geo(vec3 n){ return vec2(atan(n.x,n.z)/TAU+.5, asin(clamp(n.y,-1.,1.))/3.14159265+.5); }
+/* cráteres de la Luna: en el plano tangente del punto de partida (es el lado que se ve) */
 float crat(vec2 p){ vec2 i=floor(p), f=fract(p); float s=0.; for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 g=vec2(float(x),float(y)); vec2 o=vec2(h2(i+g),h2(i+g+17.3)); float r=.12+.34*h2(i+g+5.1);
   float dd=length(g+o-f)/r; s+=-.7*smoothstep(1.,.2,dd)+.55*exp(-pow((dd-1.)*5.,2.)); } return s; }
-float relieveLuna(vec2 p){ return crat(p)+.5*crat(p*2.7+3.)+.25*crat(p*6.3+9.)+.35*fbm2(p*2.); }
-vec3 espacio(vec3 d){ vec3 ge=d*170.; vec3 e=floor(ge); vec3 c=vec3(.004,.006,.014)+vec3(1.,.97,.92)*step(.9935,h3(e))*smoothstep(.36,.04,length(fract(ge)-.5))*(.5+h3(e+2.));
-  vec3 E=normalize(vec3(0.,.2,1.)), R=normalize(cross(vec3(0.,1.,0.),E)), U=cross(E,R); float rho=.29*exp(pow(t/2.7,2.)*2.7), S=sin(min(rho,1.4))*max(1.,rho/1.4);
-  vec2 q=vec2(dot(d,R),dot(d,U))/S; float r2=dot(q,q), delante=step(0., dot(d,E)+step(1.4,rho));
-  if(r2<1. && delante>.5){ vec3 n=vec3(q, sqrt(1.-r2)); vec3 m=n; m.xz=giro(-2.3+T*.008)*m.xz; m.xy=giro(.25)*m.xy;
-    float f=fbm(m*2.1+vec3(1.7,4.2,.3)), tierra=smoothstep(.535,.57,f);
-    vec3 mar=mix(vec3(.01,.05,.22), vec3(.03,.36,.52), smoothstep(.44,.535,f)); vec3 suelo=mix(vec3(.10,.30,.10), vec3(.52,.42,.26), fbm(m*6.+2.));
-    vec3 col=mix(mar, suelo, tierra); col=mix(col, vec3(.95), smoothstep(.8,.92,abs(m.y)));
-    float nub=smoothstep(.48,.74, fbm(m*4.6+vec3(T*.012,0.,3.))*.7+fbm(m*11.)*.3); col=mix(col, vec3(1.), nub*.92);
-    float luz=pow(clamp(dot(n, normalize(vec3(-.45,.45,.78))),0.,1.), .8)*1.25+.03; col*=luz;
-    col+=vec3(.25,.55,1.)*pow(1.-n.z,3.)*1.1*luz; c=col; }
-  else if(delante>.5) c+=vec3(.2,.5,1.)*exp(-(sqrt(r2)-1.)*14.)*.7;
-  /* la superficie lunar bajo los pies, que se queda atrás */
-  float alt=1.+t*t*1.4; if(d.y<-.03){ vec2 p=d.xz/-d.y*alt*1.7; float e2=.05; vec2 sl=normalize(vec2(-.6,.5));
-    float l=(relieveLuna(p+sl*e2)-relieveLuna(p-sl*e2))/(2.*e2); vec3 luna=vec3(.46,.49,.56)*(.6+.3*fbm2(p*.7))*clamp(.8+l*.17,.22,1.5);
-    float lejos=smoothstep(.03,.2,-d.y); luna=mix(vec3(.30,.33,.40), luna, smoothstep(.03,.35,-d.y)); c=mix(c, luna, lejos*smoothstep(2.7,2.1,t)); }
+float lejosL=0.;
+float relieve(vec3 n){ vec3 e1=normalize(cross(uN0, vec3(.31,.83,.46))), e2=cross(uN0,e1); vec2 q=vec2(dot(n,e1), dot(n,e2));
+  return crat(q*22.)*.9+crat(q*90.+3.)*.5+(crat(q*420.+7.)*.3+crat(q*1500.+9.)*.15)*(1.-lejosL)+fbm2(q*60.)*.3; }
+vec3 estrellas(vec3 d){ vec3 ge=d*190.; vec3 e=floor(ge); return vec3(.003,.005,.012)+vec3(1.,.97,.92)*step(.9935,h3(e))*smoothstep(.36,.04,length(fract(ge)-.5))*(.4+h3(e+2.)); }
+vec3 viaje(vec3 dr){ vec3 d=normalize(uRg*(-dr.x)+uUp*dr.y+uFw*dr.z), o=uCam; vec3 c=estrellas(d);
+  float te=esfera(o,d,vec3(0.),1.), tl=esfera(o,d,uLuna,.27);
+  if(te>0. && (tl<0. || te<tl)){ vec3 n=normalize(o+d*te); vec2 uv=geo(n); float l=dot(n,uSol), dia=smoothstep(-.06,.22,l);
+    float alt=length(o)-1., mip=clamp(log2(te*900.),0.,8.);
+    vec3 suelo=texture2D(tierra, uv).rgb, luces=texture2D(noche, uv).rgb;
+    float nub=smoothstep(.56,.82, fbm(n*6.+vec3(T*.004,0.,0.))*.72+fbm(n*23.)*.28)*smoothstep(.0008,.02,alt);   /* nubes que se abren al bajar */
+    float mar=smoothstep(.02,.1, suelo.b-max(suelo.r,suelo.g)*.85);                                  /* el mar: grano de oleaje y reflejo del sol al bajar */
+    suelo*=1.+mar*(fbm(n*2600.)-.5)*.5*smoothstep(.2,.005,alt);
+    vec3 dd=suelo*(.1+1.25*max(l,0.))+vec3(1.,.93,.8)*mar*pow(max(dot(reflect(d,n),uSol),0.),40.)*.8*max(l,0.), nn=suelo*vec3(.13,.17,.28)+luces*luces*vec3(1.,.78,.45)*1.6;
+    vec3 col=mix(nn, dd, dia); col=mix(col, vec3(.95,.97,1.)*(.05+1.1*max(l,0.))+vec3(.03,.04,.07), nub*.85);
+    float mu=max(dot(n,-d),0.); col+=vec3(.25,.55,1.)*pow(1.-mu,2.5)*(.15+.9*smoothstep(-.25,.3,l))*smoothstep(.0,.05,alt+.01);
+    col+=vec3(1.,.45,.15)*exp(-pow(l*9.,2.))*.12;                                                    /* el borde del atardecer */
+    c=col; }
+  else if(tl>0.){ vec3 n=normalize(o+d*tl-uLuna); vec3 sp=normalize(uSol-n*dot(uSol,n)); lejosL=smoothstep(.05,.6,tl);
+    float e=max(.00004, tl*.004); float g=(relieve(normalize(n+sp*e))-relieve(normalize(n-sp*e)))/(2.*e); float l=dot(n,uSol);
+    float alb=.62*(.72+.28*fbm(n*4.))*(.9+.12*relieve(n)); c=vec3(alb)*vec3(1.,.98,.95)*clamp(l*1.25+g*e*9.,0.,1.7)+vec3(.006); }
+  else { float b0=dot(-o,d); if(b0>0.){ vec3 cp=o+d*b0; float b=length(cp); c+=vec3(.25,.55,1.)*exp(-(b-1.)*28.)*(.15+.85*smoothstep(-.3,.4,dot(normalize(cp),uSol))); } }
   return c; }
-vec3 volcanViejo(vec3 d){ float L=length(d.xz), an=atan(-d.x,d.z); vec3 u=vec3(cos(an),sin(an),0.);
-  float k=t/12., baja=smoothstep(.36,.94,k), prof=14.*baja*baja+2.*k;            /* cuánto hemos descendido */
-  float hl=mix(7.5,.95,smoothstep(.42,1.,k));                                      /* a qué distancia queda el lago */
-  /* el cielo del atardecer de Hawái y el mar de nubes que atravesamos */
-  vec3 cielo=mix(vec3(1.,.55,.24), vec3(.12,.24,.52), smoothstep(-.3,.55,d.y)); cielo=mix(cielo, vec3(1.,.8,.5), exp(-pow(dAng(an,.8)*1.3,2.))*smoothstep(.5,-.2,d.y)*.6);
-  float nb=fbm(d*2.6+vec3(0.,t*1.5,0.))*.6+fbm(d*6.+vec3(0.,t*3.4,0.))*.4; vec3 nubes=mix(vec3(.62,.50,.56), vec3(1.,.93,.86), smoothstep(.3,.75,nb));
-  vec3 arriba=mix(cielo, nubes, smoothstep(.3,.62,nb+.42*smoothstep(.24,.36,k)));
-  if(k<.33){ vec3 esp=espacio(d); float entra=smoothstep(.2,.31,k);
-    esp+=vec3(1.,.55,.2)*pow(fbm(vec3(u.xy*3., d.y*2.-t*6.)),2.)*smoothstep(.2,.26,k)*(1.-entra)*.7*smoothstep(.0,-.8,d.y);   /* el roce de la reentrada */
-    vec3 bruma=mix(vec3(.42,.66,1.), vec3(1.), smoothstep(.3,.75,nb)); arriba=mix(esp, mix(bruma, arriba, smoothstep(.285,.33,k)), entra); }
-  /* chimenea del cráter: basalto en columnas con vetas de magma, más encendidas cuanto más abajo */
-  float y=d.y/L+prof; float glow=smoothstep(1.5,14.,prof);
-  #define RELIEVE(yy) (fbm(vec3(u.xy*5.5, (yy)*5.5))*.55+cresta(vec3(u.xy*8., (yy)*1.1))*.45)
-  float h0=RELIEVE(y), dh=(RELIEVE(y+.06)-h0)*9., roca=fbm(vec3(u.xy*14., y*14.));
-  vec3 basalto=mix(vec3(.10,.085,.09), vec3(.30,.24,.21), h0)*(.7+.5*roca);
-  float deAbajo=clamp(.5+dh,0.,1.), deArriba=clamp(.5-dh,0.,1.);
-  vec3 c=basalto*(vec3(.50,.62,.85)*deArriba*(1.-.75*glow)*1.1+vec3(1.,.42,.10)*deAbajo*(.2+1.15*glow)+.12);
-  c*=.55+.45*smoothstep(.25,.6,h0);                                               /* grietas en sombra */
-  float veta=smoothstep(.80,.95, cresta(vec3(u.xy*3.2, y*.8+7.)))*smoothstep(.3,.6,n3(vec3(u.xy*2.,y*.5)));
-  c+=mix(vec3(1.,.25,.02), vec3(1.,.85,.35), veta)*veta*(.5+1.8*glow)*(.8+.2*sin(T*3.+y));
-  c+=vec3(1.,.30,.05)*(.03+.26*glow)*smoothstep(.4,-1.,d.y/L);                      /* resplandor del fondo */
-  /* repisa con tótems tiki y antorchas: aparece al final del descenso */
-  float yr=d.y/L+(16.-prof)*.9; float ap=smoothstep(.66,.92,k);
-  float cel=an/TAU*8.; float idt=floor(cel), fx=(fract(cel)-.5)*TAU/8.; float fl=.75+.25*n2(vec2(T*8.,idt));
-  if(mod(idt,2.)<.5){ /* tótem: cuerpo de madera, ojos y boca de brasa */
-    float an2=.105*(1.-.16*yr), cu=step(abs(fx),an2)*step(-.62,yr)*step(yr,.36);
-    float pen=step(.36,yr)*step(yr,.36+.12*(.55+.45*cos(fx*38.)))*step(abs(fx),an2+.03);          /* penacho de plumas talladas */
-    float veta2=.75+.25*sin(fx*150.+n2(vec2(fx*30.,yr*8.))*4.), vol=.45+.55*sqrt(max(0.,1.-pow(fx/an2,2.)));
-    vec3 mad=vec3(.34,.18,.08)*veta2*vol*(.35+1.1*fl*ap)*mix(vec3(1.,.55,.3), vec3(1.), smoothstep(-.6,.3,yr));
-    float ceja=step(abs(fx),an2)*step(abs(yr-.27-.05*abs(fx)/an2),.028);
-    float ojo=smoothstep(.036,.024,length(vec2(abs(fx)-.05, (yr-.17)*.7))), pup=smoothstep(.014,.008,length(vec2(abs(fx)-.05, (yr-.17)*.7)));
-    float nar=step(abs(fx),.016+.02*smoothstep(.12,-.02,yr))*step(-.02,yr)*step(yr,.12);
-    float boca=step(abs(fx),.078)*step(abs(yr+.15),.06); float dient=boca*step(.45,fract(fx*40.+.25))*step(.012,abs(yr+.15))*step(abs(yr+.15),.05);
-    float franja=step(abs(fx),an2)*(step(abs(yr+.37),.018)+step(abs(yr+.5),.018)); float zig=step(abs(fx),an2)*step(abs(yr+.435-.03*abs(fract(fx*30.)-.5)*2.),.012);
-    mad=mix(mad, mad*.35, max(ceja,max(nar,franja))); mad=mix(mad, vec3(.9,.75,.5)*(.4+.6*fl), zig*.7);
-    mad=mix(mad, vec3(1.,.5,.06)*(1.2+.5*fl), max(ojo, boca)); mad=mix(mad, vec3(.15,.04,.0), pup); mad=mix(mad, vec3(.96,.88,.66)*(.6+.4*fl), dient);
-    c+=vec3(1.,.45,.08)*exp(-(pow((abs(fx)-.05)*22.,2.)+pow((yr-.17)*9.,2.)))*.35*ap;
-    c=mix(c, vec3(.36,.2,.09)*vol*(.5+.6*fl)*(.7+.3*cos(fx*38.)), pen*ap);
-    c=mix(c, mad, cu*ap);
-  } else { /* antorcha: asta de bambú y llama */
-    float asta=step(abs(fx),.012)*step(-.62,yr)*step(yr,.02); c=mix(c, vec3(.36,.26,.1)*(.5+.6*fl), asta*ap);
-    vec2 q=vec2(fx*7., (yr-.02)*3.2); float ll=smoothstep(.34,.0, length(vec2(q.x*(1.+q.y*1.6)+.08*sin(T*9.+q.y*7.+idt), q.y-.3))-.12*n2(vec2(q.x*4., q.y*4.-T*5.)))*step(0.,q.y);
-    c+=mix(vec3(1.,.3,.02), vec3(1.,.9,.5), ll)*ll*1.6*ap; c+=vec3(1.,.5,.15)*exp(-(fx*fx*60.+(yr-.1)*(yr-.1)*9.))*.5*fl*ap; }
-  c=mix(c, vec3(.03,.02,.02), step(yr,-.62)*step(-.7,yr)*ap*.8);                    /* canto de la repisa */
-  /* la boca del cráter arriba y el lago de lava abajo */
-  if(d.y>0.){ float rr=L*(.6+prof*1.1)/d.y; c=mix(c, arriba*mix(1.,.5,glow), smoothstep(1.,.9,rr)); }
-  if(d.y<0.){ vec2 p=d.xz*(hl/-d.y); float rr=length(p); float orilla=smoothstep(1.02,.9,rr);
-    vec3 lv=lava(p*1.6, 1.)+vec3(1.,.5,.1)*smoothstep(.75,1.,rr)*.5; c=mix(c, lv, orilla*smoothstep(.44,.6,k)); }
-  /* pavesas que suben y calima */
-  vec3 gp=vec3(u.xy*30., (d.y/L-T*.55)*30.); vec3 ce=floor(gp); float pv=step(.985,h3(ce))*smoothstep(.45,.65,k)*smoothstep(.32,.04,length(fract(gp)-.5-.25*(vec3(h3(ce+3.),h3(ce+4.),h3(ce+5.))-.5)));
-  c+=vec3(1.,.6,.15)*pv*(.8+.6*sin(T*9.+h3(ce+1.)*TAU))*1.6;
-  c=mix(arriba, c, smoothstep(.36,.5,k)); c+=vec3(1.,.35,.05)*.03*glow;
-  return c; }
-/* v11.33 · mientras el vídeo carga ya no se ve el volcán antiguo (quedaban restos al empezar la pista): solo un cielo de noche con estrellas */
-vec3 mundo(vec3 d){ if(hayVid>.5) return cubo(d); if(esSuelo>.5) return vec3(.015,.04,.09);
-  float y=d.y/length(d.xz); vec3 c=mix(vec3(.08,.26,.46), vec3(.01,.03,.12), smoothstep(-.4,.55,y)); vec3 g=d*150.; vec3 e=floor(g);
-  return c+vec3(1.,.97,.92)*step(.993,h3(e))*smoothstep(.4,.05,length(fract(g)-.5))*(.5+h3(e+2.)); }` + CAPA_SIMPLE;
+vec3 mundo(vec3 d){ vec3 c=viaje(d), bruma=mix(vec3(.10,.22,.42), vec3(.02,.07,.20), smoothstep(-.6,.6,d.y));
+  c=mix(c, bruma, smoothstep(5.35,6.,t));                                                              /* entramos en la bruma marina de noche */
+  if(hayVid>.5) c=mix(c, cubo(d), smoothstep(5.85,6.45,t)); else c=mix(c, bruma, smoothstep(6.,6.4,t));
+  return c; }` + CAPA_SIMPLE;
+
 
 /* ---------- 6 · BARCELONA (v11.32): las ocho fotografías antiguas a toda pared, dos por pared una tras otra, que se colorean; suelo fijo de mosaico hidráulico y panots ---------- */
 const G_BCN = `
@@ -313,13 +297,17 @@ function tarjeta(x, cx, y0, ww, app, col) { const cap = img('sim/pistas/app-' + 
   x.save(); x.translate(cx, 0); placa(x, y0 - 16, ww + 32, hh + lh + 52, 20); x.lineWidth = 3; x.strokeStyle = col; x.beginPath(); x.roundRect(-ww / 2 - 16, y0 - 16, ww + 32, hh + lh + 52, 20); x.stroke();
   if (cap) { x.save(); x.beginPath(); x.roundRect(-ww / 2, y0, ww, hh, 8); x.clip(); cubre(x, cap, -ww / 2, y0, ww, hh); x.restore(); }
   if (lg) x.drawImage(lg, -lw / 2, y0 + hh + 12, lw, lh); x.restore(); }
-function capaAvhub(x, P) { const otras = P.filter((p) => p.id !== 'frontal'), rep = {}; if (otras.length) APPS.forEach((a, i) => { const p = otras[Math.min(otras.length - 1, Math.floor(i * otras.length / APPS.length))]; (rep[p.id] = rep[p.id] || []).push(a); });
-  P.forEach((p) => enPared(x, p, (x, h, a) => { x.textAlign = 'center'; x.textBaseline = 'middle';
-    if (p.id === 'frontal' || P.length === 1) { const lg = img('sim/pistas/logo-avhub.svg'), lh = Math.min(h * .56, a * .62 / ASP.avhub), lw = lh * ASP.avhub, y0 = h * .08; placa(x, y0 - 22, lw + 90, lh + 96, 26);
-      if (lg) x.drawImage(lg, -lw / 2, y0, lw, lh); const g = x.createLinearGradient(-lw / 2, 0, lw / 2, 0); g.addColorStop(0, '#9900ff'); g.addColorStop(.55, '#00b4ff'); g.addColorStop(1, '#00ff04'); x.fillStyle = g; x.fillRect(-lw / 2, y0 + lh + 12, lw, 3);
-      encaja(x, 'TOOLS FOR AV PEOPLE', lw, 34, 500, '"Share Tech Mono", monospace'); x.fillStyle = '#e9ecf2'; x.fillText('TOOLS FOR AV PEOPLE', 0, y0 + lh + 42); return; }
-    const L = rep[p.id] || [], n = L.length; if (!n) return; const hueco = Math.min(a * .94, 1900) / n, ww = Math.min(hueco * .82, h * .58 * 16 / 9);
-    L.forEach(([app, col], i) => tarjeta(x, (i - (n - 1) / 2) * hueco, h * .5 - (ww * 9 / 16 + 96) / 2 + 8, ww, app, col)); })); }
+/* v11.36 · ascensor: atlas de las seis plantas (2 × 3 celdas de 1024 × 576): las cinco capturas reales y, arriba del todo, AVHUB con su lema */
+const CV_AT = [2048, 1728], CV_ROT = [1024, 1536];
+function capaAvhub(x) { APPS.forEach(([app], k) => { const im = img('sim/pistas/app-' + app + '.webp'), cx = (k % 2) * 1024, cy = Math.floor(k / 2) * 576;
+    x.fillStyle = '#05060a'; x.fillRect(cx, cy, 1024, 576); if (im) cubre(x, im, cx, cy, 1024, 576); });
+  const cx = 1024, cy = 1152, lg = img('sim/pistas/logo-avhub.svg'); const g0 = x.createRadialGradient(cx + 512, cy + 288, 20, cx + 512, cy + 288, 560); g0.addColorStop(0, '#1a0f33'); g0.addColorStop(1, '#030308'); x.fillStyle = g0; x.fillRect(cx, cy, 1024, 576);
+  const lh = 300, lw = lh * ASP.avhub; if (lg) x.drawImage(lg, cx + 512 - lw / 2, cy + 70, lw, lh);
+  const g = x.createLinearGradient(cx + 512 - lw / 2, 0, cx + 512 + lw / 2, 0); g.addColorStop(0, '#9900ff'); g.addColorStop(.55, '#00b4ff'); g.addColorStop(1, '#00ff04'); x.fillStyle = g; x.fillRect(cx + 512 - lw / 2, cy + 392, lw, 4);
+  x.textAlign = 'center'; x.textBaseline = 'middle'; encaja(x, 'TOOLS FOR AV PEOPLE', lw, 44, 500, '"Share Tech Mono", monospace'); x.fillStyle = '#e9ecf2'; x.fillText('TOOLS FOR AV PEOPLE', cx + 512, cy + 440);
+  x.font = '500 26px "Share Tech Mono", monospace'; x.fillStyle = '#8f96a8'; x.fillText('avhub.mediaservi.com', cx + 512, cy + 500); }
+/* rótulos de las plantas (6 filas de 1024 × 256): el logotipo oficial de cada app y, en la última, el de AVHUB */
+function capaRotulos(x) { [...APPS.map((a) => a[0]), 'avhub'].forEach((app, k) => { const lg = img('sim/pistas/logo-' + app + '.svg'); if (!lg) return; const a = ASP[app]; let w = 900, h = w / a; if (h > 190) { h = 190; w = h * a; } x.drawImage(lg, 512 - w / 2, k * 256 + 128 - h / 2, w, h); }); }
 function capaAvhubSuelo(x) { const c = WS / 2, iso = img('sim/pistas/isotipo-avhub.svg'); x.textAlign = 'center'; x.textBaseline = 'middle'; x.beginPath(); x.arc(c, c, 190, 0, 7); x.fillStyle = 'rgba(4,4,10,.92)'; x.fill();
   const g = x.createLinearGradient(c - 190, 0, c + 190, 0); g.addColorStop(0, '#9900ff'); g.addColorStop(.55, '#00b4ff'); g.addColorStop(1, '#00ff04'); x.lineWidth = 6; x.strokeStyle = g; x.stroke();
   if (iso) { const ih = 170, iw = ih * ASP.iso; x.drawImage(iso, c - iw / 2, c - ih / 2 - 22, iw, ih); } x.fillStyle = '#e9ecf2'; x.font = '500 22px "Share Tech Mono", monospace'; x.fillText('avhub.mediaservi.com', c, c + 104);
@@ -343,64 +331,111 @@ const capaBcnN = (n) => (x, P) => P.forEach((p) => enPared(x, p, (x, h, a) => { 
 /* ---------- las pistas ---------- */
 const PISTAS = [
   { id: 'sagrada', glsl: G_SAGRADA, dron: true },
-  { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, capaSuelo: capaAvhubSuelo, video: 'sim/pistas/avhub-360.mp4', vdur: 12 },
+  { id: 'avhub', glsl: G_AVHUB, capa: capaAvhub, cv: CV_AT, capaR: capaRotulos, capaSuelo: capaAvhubSuelo },
   { id: 'ekchuah', glsl: G_EK, capa: capaEk, zoom: .07, video: 'sim/pistas/ek-360.mp4', vdur: 10, vini: 1.8 },
   { id: 'wonderwalk', glsl: G_WW, capa: capaWw, capaSuelo: (x) => sueloImg(x, 'ww-suelo'), zoom: .07, video: 'sim/pistas/ww-360.mp4', vdur: 12 },
-  { id: 'volcan', glsl: G_VOLCAN, video: 'sim/pistas/volcan-360.mp4', vdur: 12 },
+  { id: 'volcan', glsl: G_VOLCAN, video: 'sim/pistas/volcan-360.mp4', vdur: 12, vini: 5.85, voff: 6, tierra: true },
   { id: 'barcelona', glsl: G_BCN, capa: capaBcnN(0), capaB: capaBcnN(1) },
 ];
 export const PISTAS_ID = PISTAS.map((p) => p.id);
 
+/* v11.36 · el viaje de la Luna a la Tierra: posición y orientación de la cámara en cada instante (la Tierra mide 1, centrada en el origen).
+   Destino: la Gran Barrera de Coral, frente a Cairns (16,6° S · 146° E), de tarde; la noche del vídeo llega al atravesar la bruma */
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const VJ = (() => { const la = -16.6 * Math.PI / 180, lo = 146.0 * Math.PI / 180, PT = V3(Math.cos(la) * Math.sin(lo), Math.sin(la), Math.cos(la) * Math.cos(lo));
+  const T1 = V3(0, 1, 0).cross(PT).normalize(), N1 = PT.clone().cross(T1).normalize();          /* este y norte en el destino */
+  const SOL = PT.clone().multiplyScalar(.4).add(T1.clone().multiplyScalar(-.92)).normalize();   /* el Sol, de tarde en el destino (la noche llega al entrar en la bruma) */
+  const md = PT.clone().multiplyScalar(.6).add(N1.clone().multiplyScalar(.35)).add(T1.clone().multiplyScalar(-.72)).normalize(), LUNA = md.clone().multiplyScalar(5);
+  const aT = md.clone().negate(), sp = SOL.clone().sub(md.clone().multiplyScalar(SOL.dot(md))).normalize();
+  const n0 = aT.clone().multiplyScalar(Math.cos(1.33)).add(sp.multiplyScalar(Math.sin(1.33))).normalize();   /* de pie en la Luna, con la Tierra a unos 14° sobre el horizonte */
+  return { PT, N1, SOL, LUNA, n0, aT }; })();
+const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+function camino(t) { const { PT, N1, LUNA, n0, aT } = VJ;
+  const sube = .0015 + .9 * Math.pow(ss(0, 2.6, t), 1.6), Pl = LUNA.clone().add(n0.clone().multiplyScalar(.27 + sube));
+  const H1 = 1.35, Pa = PT.clone().multiplyScalar(1 + H1), k = ss(.9, 3.9, t); let P = Pl.lerp(Pa, k);
+  if (t > 3.9) { const e = ss(3.9, 6.1, t), h = Math.exp(Math.log(H1) * (1 - e) + Math.log(.0012) * e); P = PT.clone().multiplyScalar(1 + h); }
+  const kU = ss(1.1, 4.4, t), U = n0.clone().multiplyScalar(1 - kU).add(PT.clone().multiplyScalar(kU)).normalize();
+  const kF = ss(2.6, 4.6, t), fRef = P.clone().negate().normalize().multiplyScalar(1 - kF).add(N1.clone().multiplyScalar(kF));   /* el frente mira a la Tierra hasta tenerla bajo los pies */ const F = fRef.sub(U.clone().multiplyScalar(fRef.dot(U))).normalize(), R = F.clone().cross(U).normalize();
+  return { P, U, F, R: R.negate() }; }
+
 export function crearPistas(renderer) {
   const dron = crearDron(renderer);
-  const rt = new THREE.WebGLRenderTarget(W, H, { generateMipmaps: false }), rtS = new THREE.WebGLRenderTarget(WS, WS, { generateMipmaps: false });
+  const opc = { generateMipmaps: false }, rt = new THREE.WebGLRenderTarget(W, H, opc), rtS = new THREE.WebGLRenderTarget(WS, WS, opc);
+  /* v11.36 · para la mezcla directa: la pista que sale y la que entra se pintan aparte y se funden en rt / rtS */
+  const rtA = new THREE.WebGLRenderTarget(W, H, opc), rtAS = new THREE.WebGLRenderTarget(WS, WS, opc), rtB = new THREE.WebGLRenderTarget(W, H, opc), rtBS = new THREE.WebGLRenderTarget(WS, WS, opc);
   const geo = new THREE.PlaneGeometry(2, 2), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), esc = new THREE.Scene(), quad = new THREE.Mesh(geo); quad.frustumCulled = false; esc.add(quad);
   const negro = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); negro.needsUpdate = true;
+  const matMez = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { A: { value: negro }, B: { value: negro }, m: { value: 0 }, modo: { value: 0 }, semilla: { value: 0 }, esSuelo: { value: 0 } },
+    vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: MEZCLA });
   let paredes = [{ id: 'izquierda', u0: 0, u1: .25, w: 5, h: 3 }, { id: 'frontal', u0: .25, u1: .5, w: 5, h: 3 }, { id: 'derecha', u0: .5, u1: .75, w: 5, h: 3 }, { id: 'trasera', u0: .75, u1: 1, w: 5, h: 3 }], firma = '', uF = .5;
   const ORD = ['izquierda', 'frontal', 'derecha', 'trasera'];
+  const lienzo = (w, h, mip) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace;
+    tx.generateMipmaps = !!mip; tx.minFilter = mip ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter; return { cv, tx }; };
   PISTAS.forEach((p) => {
     p.mat = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, hayVid: { value: 0 }, capa: { value: negro }, capa2: { value: negro }, vid: { value: negro }, asp: { value: new THREE.Vector4(1.67, 1.67, 1.67, 1.67) }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) } },
+      uniforms: { t: { value: 0 }, T: { value: 0 }, esSuelo: { value: 0 }, uF: { value: .5 }, fade: { value: 1 }, trans: { value: 0 }, semilla: { value: 0 }, hayCapa: { value: 0 }, zoomCapa: { value: p.zoom || 0 }, hayVid: { value: 0 }, capa: { value: negro }, capa2: { value: negro }, capa3: { value: negro }, vid: { value: negro }, asp: { value: new THREE.Vector4(1.67, 1.67, 1.67, 1.67) }, base: { value: dron.rt.texture }, pu0: { value: new THREE.Vector4(-1, -1, -1, -1) }, pu1: { value: new THREE.Vector4(-1, -1, -1, -1) },
+        tierra: { value: negro }, noche: { value: negro }, uCam: { value: V3(0, 0, 8) }, uRg: { value: V3(1, 0, 0) }, uUp: { value: V3(0, 1, 0) }, uFw: { value: V3(0, 0, -1) }, uSol: { value: VJ.SOL.clone() }, uLuna: { value: VJ.LUNA.clone() }, uN0: { value: VJ.n0.clone() } },
       vertexShader: 'varying vec2 vv; void main(){ vv = uv; gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: COMUN + p.glsl + FIN });
-    if (p.capa) { p.cv = document.createElement('canvas'); p.cv.width = W; p.cv.height = H; p.tx = new THREE.CanvasTexture(p.cv); p.tx.colorSpace = THREE.SRGBColorSpace; p.tx.generateMipmaps = false; p.tx.minFilter = THREE.LinearFilter; }
-    if (p.capaB) { p.cvB = document.createElement('canvas'); p.cvB.width = W; p.cvB.height = H; p.txB = new THREE.CanvasTexture(p.cvB); p.txB.colorSpace = THREE.SRGBColorSpace; p.txB.generateMipmaps = false; p.txB.minFilter = THREE.LinearFilter; }
-    if (p.capaSuelo) { p.cvS = document.createElement('canvas'); p.cvS.width = p.cvS.height = WS; p.txS = new THREE.CanvasTexture(p.cvS); p.txS.colorSpace = THREE.SRGBColorSpace; }
+    if (p.capa) { const c = p.cv || [W, H]; const l = lienzo(c[0], c[1], false); p.cv = l.cv; p.tx = l.tx; }
+    if (p.capaB) { const l = lienzo(W, H, false); p.cvB = l.cv; p.txB = l.tx; }
+    if (p.capaR) { const l = lienzo(CV_ROT[0], CV_ROT[1], true); p.cvR = l.cv; p.txR = l.tx; }
+    if (p.capaSuelo) { const l = lienzo(WS, WS, false); p.cvS = l.cv; p.txS = l.tx; p.txS.generateMipmaps = true; p.txS.minFilter = THREE.LinearMipmapLinearFilter; }
     /* v11.26 · pista con vídeo: un solo elemento, sin sonido, que se lleva al compás de la pista · v11.31: cada vídeo se descarga cuando le toca o cuando va a ser el siguiente (no los cinco al abrir SIMULAR) */
     if (p.video) { const el = document.createElement('video'); el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.setAttribute('muted', ''); el.preload = 'none'; el.crossOrigin = 'anonymous'; el.src = RAIZ + p.video;
       p.vid = el; p.txV = new THREE.VideoTexture(el); p.txV.generateMipmaps = false; p.txV.minFilter = p.txV.magFilter = THREE.LinearFilter; p.vOk = false; }
     p.hecha = '';
   });
-  /* el vídeo dura vdur y la pista DUR: va algo más lento para llenarla entera; si se descuadra (pestaña en segundo plano, equipo lento) se recoloca */
-  function carga(p) { if (p && p.vid && !p.vCarga) { p.vCarga = true; p.vid.preload = 'auto'; try { p.vid.load(); } catch (e) {} } }
+  /* v11.36 · las imágenes de la Tierra (NASA, dominio público) se descargan cuando la pista va a salir */
+  function texTierra(p) { if (!p.tierra || p.texT) return; p.texT = true; const ld = new THREE.TextureLoader();
+    [['tierra', 'sim/pistas/tierra-dia.webp'], ['noche', 'sim/pistas/tierra-noche.webp']].forEach(([u, f]) => ld.load(RAIZ + f, (tx) => { tx.colorSpace = THREE.NoColorSpace; tx.wrapS = THREE.RepeatWrapping; tx.anisotropy = 4; p.mat.uniforms[u].value = tx; })); }
+  /* el vídeo dura vdur y la pista DUR: va algo más lento para llenarla entera; si se descuadra (pestaña en segundo plano, equipo lento) se recoloca.
+     vini: hasta ese instante de la pista el vídeo espera quieto · voff: el segundo del vídeo por el que empieza (v11.36) */
+  function carga(p) { if (!p) return; texTierra(p); if (p.vid && !p.vCarga) { p.vCarga = true; p.vid.preload = 'auto'; try { p.vid.load(); } catch (e) {} } }
   function video(p, activa, tl, quieto) { const el = p.vid; if (!activa) { if (!el.paused) el.pause(); return; } carga(p);
     p.vOk = el.readyState >= 2 && !el.error; if (el.readyState < 1) return;
-    const v0 = p.vini || 0, k = p.vdur / (DUR - v0), obj = Math.min(p.vdur - .06, Math.max(0, (tl - v0) * k));   /* vini: el vídeo espera en su primer fotograma mientras entra el título */
+    const v0 = p.vini || 0, vo = p.voff || 0, k = (p.vdur - vo) / (DUR - v0), obj = Math.min(p.vdur - .06, Math.max(vo, vo + (tl - v0) * k));
     if (quieto || tl < v0) { if (!el.paused) el.pause(); if (Math.abs(el.currentTime - obj) > .03 && !el.seeking) el.currentTime = obj; return; }
     if (el.playbackRate !== k) el.playbackRate = k;
     if (Math.abs(el.currentTime - obj) > .3 && !el.seeking) el.currentTime = obj;
     if (el.paused && !p.vEsp) { p.vEsp = true; const pr = el.play(); if (pr && pr.then) pr.catch(() => {}).then(() => { p.vEsp = false; }); else p.vEsp = false; } }
   function capas(p) { const f = firma + '|' + imgV + '|' + (document.fonts ? document.fonts.status : '') + '|' + (p.vOk ? 'v' : ''); if (p.hecha === f) return; p.hecha = f;
-    if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capa(x, paredes, !!p.vOk); } catch (e) {} p.tx.needsUpdate = true; }
+    if (p.capa) { const x = p.cv.getContext('2d'); x.clearRect(0, 0, p.cv.width, p.cv.height); try { p.capa(x, paredes, !!p.vOk); } catch (e) {} p.tx.needsUpdate = true; }
     if (p.capaB) { const x = p.cvB.getContext('2d'); x.clearRect(0, 0, W, H); try { p.capaB(x, paredes); } catch (e) {} p.txB.needsUpdate = true; }
+    if (p.capaR) { const x = p.cvR.getContext('2d'); x.clearRect(0, 0, p.cvR.width, p.cvR.height); try { p.capaR(x); } catch (e) {} p.txR.needsUpdate = true; }
     if (p.capaSuelo) { const x = p.cvS.getContext('2d'); x.clearRect(0, 0, WS, WS); try { p.capaSuelo(x); } catch (e) {} p.txS.needsUpdate = true; } }
   /* orden al azar sin repetir pista seguida: se barajan las seis y se vuelve a barajar al acabar la tanda */
   const az = azarDe(Math.floor(Math.random() * 2147483000) + 1), az2 = azarDe(Math.floor(Math.random() * 2147483000) + 1), cola = []; let fija = null;
   function pistaN(n) { while (cola.length <= n) { const b = PISTAS.map((_, i) => i); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(az() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } if (cola.length && b[0] === cola[cola.length - 1]) b.push(b.shift()); cola.push(...b); } return cola[n]; }
-  /* una transición al azar por corte (el corte n separa la pista n de la n+1), sin repetir la anterior */
-  const cortes = []; function corteN(n) { if (n < 0) return { e: 0, s: 0 }; while (cortes.length <= n) { let e; do { e = Math.floor(az2() * NTRANS); } while (cortes.length && e === cortes[cortes.length - 1].e); cortes.push({ e, s: az2() }); } return cortes[n]; }
-  function pinta(T) {
-    const n = Math.floor(T / DUR), tl = fija ? fija.t != null ? fija.t : T % DUR : T - n * DUR, p = fija ? PISTAS[fija.i] : PISTAS[pistaN(n)];
-    const fade = fija ? (fija.f != null ? fija.f : 1) : Math.min(1, tl / FUND, (DUR - tl) / FUND), ct = fija ? { e: fija.e || 0, s: .37 } : corteN(tl < DUR / 2 ? n - 1 : n);
-    if (p.dron) { dron.frente(uF); dron.pinta(T); }
-    PISTAS.forEach((q) => { if (q.vid) video(q, q === p, tl, !!(fija && fija.t != null)); }); if (!fija) carga(PISTAS[pistaN(n + 1)]);
-    capas(p); const U = p.mat.uniforms; U.hayVid.value = p.vOk ? 1 : 0; U.vid.value = p.vOk ? p.txV : negro; U.zoomCapa.value = p.vOk ? 0 : (p.zoom || 0); U.t.value = tl; U.T.value = T; U.uF.value = uF; U.fade.value = Math.max(0, fade); U.trans.value = ct.e; U.semilla.value = ct.s;
+  /* una mezcla al azar por corte (el corte n separa la pista n de la n+1), sin repetir la anterior */
+  const cortes = []; function corteN(n) { while (cortes.length <= n) { let e; do { e = Math.floor(az2() * NMEZ); } while (cortes.length && e === cortes[cortes.length - 1].e); cortes.push({ e, s: az2() }); } return cortes[n]; }
+  /* pinta una pista en su instante local tl sobre los destinos dados */
+  function una(p, tl, T, dP, dS) { const U = p.mat.uniforms; capas(p);
+    if (p.tierra) { const c = camino(Math.max(0, tl)); U.uCam.value.copy(c.P); U.uRg.value.copy(c.R); U.uUp.value.copy(c.U); U.uFw.value.copy(c.F); }
+    U.hayVid.value = p.vOk ? 1 : 0; U.vid.value = p.vOk ? p.txV : negro; U.zoomCapa.value = p.vOk ? 0 : (p.zoom || 0); U.t.value = Math.max(0, tl); U.T.value = T; U.uF.value = uF; U.fade.value = 1;
     const a = [-1, -1, -1, -1], b = [-1, -1, -1, -1]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0) { a[i] = q.u0; b[i] = q.u1; } }); U.pu0.value.fromArray(a); U.pu1.value.fromArray(b); const as = [1.67, 1.67, 1.67, 1.67]; paredes.forEach((q) => { const i = ORD.indexOf(q.id); if (i >= 0 && q.w > 0 && q.h > 0) as[i] = q.w / q.h; }); U.asp.value.fromArray(as);
-    quad.material = p.mat; const prev = renderer.getRenderTarget();
-    U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; U.capa2.value = p.capaB ? p.txB : negro; renderer.setRenderTarget(rt); renderer.render(esc, cam);
-    U.esSuelo.value = 1; U.hayCapa.value = p.capaSuelo ? 1 : 0; U.capa.value = p.capaSuelo ? p.txS : negro; renderer.setRenderTarget(rtS); renderer.render(esc, cam);
+    quad.material = p.mat; U.capa3.value = p.capaR ? p.txR : negro;
+    U.esSuelo.value = 0; U.hayCapa.value = p.capa ? 1 : 0; U.capa.value = p.capa ? p.tx : negro; U.capa2.value = p.capaB ? p.txB : negro; renderer.setRenderTarget(dP); renderer.render(esc, cam);
+    U.esSuelo.value = 1; U.hayCapa.value = p.capaSuelo ? 1 : 0; U.capa.value = p.capaSuelo ? p.txS : negro; renderer.setRenderTarget(dS); renderer.render(esc, cam); }
+  function mezcla(m, modo, sem) { const M = matMez.uniforms; quad.material = matMez; M.m.value = m; M.modo.value = modo; M.semilla.value = sem;
+    M.esSuelo.value = 0; M.A.value = rtA.texture; M.B.value = rtB.texture; renderer.setRenderTarget(rt); renderer.render(esc, cam);
+    M.esSuelo.value = 1; M.A.value = rtAS.texture; M.B.value = rtBS.texture; renderer.setRenderTarget(rtS); renderer.render(esc, cam); }
+  function pinta(T) { const prev = renderer.getRenderTarget();
+    let pa, ta, pb = null, tb = 0, m = 0, ct = null;
+    if (fija && fija.b != null) { pa = PISTAS[fija.i]; ta = fija.t != null ? fija.t : DUR; pb = PISTAS[fija.b]; tb = 0; m = fija.m; ct = { e: fija.modo || 0, s: .37 }; }
+    else if (fija) { pa = PISTAS[fija.i]; ta = fija.t != null ? fija.t : T % DUR; }
+    else { const n = Math.floor(T / DUR), tl = T - n * DUR; pa = PISTAS[pistaN(n)]; ta = tl;
+      if (tl > DUR - SOLAPE / 2) { pb = PISTAS[pistaN(n + 1)]; tb = tl - DUR; m = (tl - (DUR - SOLAPE / 2)) / SOLAPE; ct = corteN(n); }
+      else if (n > 0 && tl < SOLAPE / 2) { pb = pa; tb = tl; pa = PISTAS[pistaN(n - 1)]; ta = tl + DUR; m = (tl + SOLAPE / 2) / SOLAPE; ct = corteN(n - 1); } }
+    if ((pa.dron || (pb && pb.dron))) { dron.frente(uF); dron.pinta(T); }
+    const quieto = !!(fija && fija.t != null);
+    PISTAS.forEach((q) => { if (q.vid) { if (q === pa) video(q, true, ta, quieto); else if (q === pb) video(q, true, Math.max(0, tb), quieto); else video(q, false); } });
+    if (!fija) carga(PISTAS[pistaN(Math.floor(T / DUR) + 1)]); carga(pa); if (pb) carga(pb);
+    if (!pb) una(pa, ta, T, rt, rtS);
+    else { una(pa, ta, T, rtA, rtAS); una(pb, tb, T, rtB, rtBS); mezcla(m * m * (3 - 2 * m), ct.e, ct.s); }
     renderer.setRenderTarget(prev);
   }
   return { rt, rtSuelo: rtS, pinta, dur: DUR, frente: (u) => { uF = u; },
     paredes: (L) => { if (!L || !L.length) return; const f = JSON.stringify(L); if (f !== firma) { firma = f; paredes = L; } },
-    fijar: (id, t, e, f) => { const i = PISTAS_ID.indexOf(id); fija = i < 0 ? null : { i, t, e, f }; } };   /* para pruebas y capturas: una pista (y un instante) fijos */
+    fijar: (id, t) => { const i = PISTAS_ID.indexOf(id); fija = i < 0 ? null : { i, t }; },   /* para pruebas y capturas: una pista (y un instante) fijos */
+    fijarMezcla: (a, b, m, modo, t) => { const i = PISTAS_ID.indexOf(a), j = PISTAS_ID.indexOf(b); fija = i < 0 || j < 0 ? null : { i, b: j, m, modo, t }; } };
 }

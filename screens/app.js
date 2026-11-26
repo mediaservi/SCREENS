@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.43';
+const VERSION = 'v11.44';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -150,10 +150,38 @@ const RECORTE_MULTI = 0.5;   // con una imagen se tira más de media imagen fuer
 let PROF_CALC = 0;
 const rojoMontaje = (c) => !!(c && c.veredicto && c.veredicto.motivos.some(m => m.n === 'R' && m.k !== 'contraste'));   /* el contraste bajo no impide montar: se arregla con más luz y va en su propio aviso */
 const fallaNormal = (c) => rojoMontaje(c) || !!(c && (c.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)));   /* incluye una franja sin imagen: se intenta cubrir fuera de especificación */
+const SALA_AUTO = { k: '', m: '', t: 0 };   /* v11.44 · el cuerpo elegido por la búsqueda de AUTO en salas, por si la sala no cambia */
+/* v11.44 · sala inmersiva en AUTO que no monta bien (proyectores que chocan, fuera de la sala, franjas sin imagen): se prueba cada cuerpo de las marcas
+   activas y se queda el que monta mejor: sin problemas graves, sin franjas si se puede, la marca preferida y, a igualdad, menos proyectores.
+   Por marca y, dentro de cada una, primero los de óptica fija y menor relación de proyección (las salas obligan a tirar corto); de óptica
+   intercambiable, uno por serie (el de más lúmenes: comparten ópticas y chasis). Como mucho 1,5 s; el resultado se recuerda para esa sala */
+function buscaSala(clave, forzarMulti, c0) {
+  if (JSON.stringify([E.esp, E.proy, marcasActivas(), !!forzarMulti]) !== clave) return;
+  const conCuerpo = (m) => { E.proy.cuerpo = m; PROF_CALC++; try { return calcularBase(forzarMulti); } catch (e) { return null; } finally { E.proy.cuerpo = ''; PROF_CALC--; } };
+  const nota = (k) => (rojoMontaje(k) ? 1e6 : 0) + ((k.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)) ? 1e5 : 0) + prioMarca(k.proyector ? k.proyector.marca : '') * 1e4 + (k.tot ? k.tot.n : 99) * 100;
+  const t0 = performance.now(), act = marcasActivas(), trM = {}, mk = {}, fija = {}, rep = {};
+  PROYECTORES.forEach(q => { if (!act.includes(q.marca)) return; mk[q.modelo] = q.marca; fija[q.modelo] = !q.optica; trM[q.modelo] = Math.min(trM[q.modelo] ?? 99, q.trMin || 99);
+    if (q.optica) { const s2 = q.marca + '|' + (q.serie || q.modelo); if (!rep[s2] || q.lumens > rep[s2].lumens) rep[s2] = q; } });
+  const reps = new Set(Object.values(rep).map(q => q.modelo));
+  let mejor = '', nm = nota(c0);
+  for (const m of Object.keys(trM).filter(m => fija[m] || reps.has(m)).sort((x, y) => prioMarca(mk[x]) - prioMarca(mk[y]) || fija[y] - fija[x] || trM[x] - trM[y])) {
+    if (performance.now() - t0 > 1500) break; const k = conCuerpo(m); if (!k || !k.tot) continue; const n = nota(k); if (n < nm) { nm = n; mejor = m; } }
+  SALA_AUTO.k = clave; SALA_AUTO.m = mejor;
+  if (mejor) actualizar();
+}
 function calcular(forzarMulti) {
   PROF_CALC++;
   try { const c = calcularBase(forzarMulti);
     if (PROF_CALC > 1 || E.tecnologia === 'led' || E.proy.oos || !c || !(c.filas || []).some(f => f.s.tipo !== 'suelo') || !fallaNormal(c)) return c;
+    /* v11.44 · sala inmersiva en AUTO que sale con un montaje imposible (proyectores que chocan, fuera de la sala…): antes de pasar a fuera de
+       especificación se prueba cada cuerpo de las marcas activas y se queda el que monta sin problemas graves (sin franjas sin imagen si se puede;
+       después, menos proyectores; a igualdad, la marca preferida) */
+    if (E.esp.tipo === 'sala' && !E.proy.cuerpo) {
+      const clave = JSON.stringify([E.esp, E.proy, marcasActivas(), !!forzarMulti]);
+      if (SALA_AUTO.k === clave && SALA_AUTO.m) { E.proy.cuerpo = SALA_AUTO.m; let k = null; try { k = calcularBase(forzarMulti); } catch (e) {} finally { E.proy.cuerpo = ''; } if (k) { k.buscado = true; k.veredicto = veredicto(k); return k; } }
+      /* la búsqueda tarda: se hace aparte, cuando la sala deja de cambiar, y si encuentra algo mejor se vuelve a calcular */
+      if (SALA_AUTO.k !== clave) { clearTimeout(SALA_AUTO.t); SALA_AUTO.t = setTimeout(() => buscaSala(clave, forzarMulti, c), 400); }
+    }
     let alt = null; E.proy.oos = true; try { alt = calcularBase(forzarMulti); } finally { E.proy.oos = false; }
     if (alt && !fallaNormal(alt)) { alt.oosAuto = true; alt.veredicto = veredicto(alt); return alt; }
     if (rojoMontaje(c)) { c.noRealizable = true; c.veredicto = veredicto(c); }   /* con solo una franja sin imagen sí se puede montar: queda su aviso */
@@ -1233,8 +1261,17 @@ function calcularPeticion() {
       nProyPedidos = k; } else nProyPedidos = 0;
   }
   if (c.led.tipo || c.led.clase) E.led.crm = '';
+  /* v11.44 · VARIAS · LED: el modelo por su nombre («UFIX-COB-1.2», «slim fix 2.6 50»), como en una pantalla LED; manda sobre el pitch.
+     Se toman su entorno y su uso para que el modelo entre en la lista */
+  let ledNombre = null;
+  if (E.tecnologia === 'led' && catalogo.length) {
+    const T2 = ' ' + txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ';
+    catalogo.slice().sort((x, y) => String(y.crm || '').length - String(x.crm || '').length).some((m) => { const tk = String(m.crm || '').toLowerCase().split(/[^a-z0-9.]+/).filter(Boolean); if (tk.join('').length < 4) return false;
+      const re = new RegExp('(^|[^a-z0-9])' + tk.map((x) => x.replace(/\./g, '\\.')).join('[\\s\\-_·]*') + '(?![a-z0-9])(?!\\.\\d)'); if (!re.test(T2)) return false; ledNombre = m; return true; });
+    if (ledNombre) { E.led.tipo = ledNombre.tipo; E.led.clase = ledNombre.class; E.led.crm = ledNombre.crm; r.vistos.push({ k: 'texto', v: ledNombre.crm }); }
+  }
   if (c.elec.backup || c.elec.conexion) E.elec.sel = '';
-  if (r.pitch) {   // v7.9 · «P1.5», «pitch 1,5»…: el modelo de ese pitch (si el catálogo lo tiene)
+  if (r.pitch && !ledNombre) {   // v7.9 · «P1.5», «pitch 1,5»…: el modelo de ese pitch (si el catálogo lo tiene)
     const l = listaLed(), cob = r.cob ? l.filter(m => /cob/i.test(m.tech + ' ' + m.crm)) : [];
     const m = (cob.length ? cob : l).find(x => Math.abs(x.pitch - r.pitch) < 0.07);
     const v = r.vistos.find(x => x.k === 'pitch'); if (m) { E.led.crm = m.crm; if (v) v.ok = m.crm; }

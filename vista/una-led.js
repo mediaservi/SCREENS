@@ -18,7 +18,8 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
   const alt = alts.length ? `<h5>${cabe === false || u == null ? 'Alternativas con stock suficiente' : 'Otras opciones con stock'}</h5>` + alts.map((k) => `<button type="button" class="alt" data-alt-crm="${esc(k.x.crm)}"><span><b>${esc(k.x.crm)}</b><small>P${String(k.x.pitch).replace('.', ',')} · ${k.q.cols}×${k.q.rows} = ${k.q.cab} cab · ${(k.q.ancho * 100).toFixed(0)}×${(k.q.alto * 100).toFixed(0)} cm</small></span><em class="v">${k.d} uds</em></button>`).join('') : (cabe === false ? '<h5>Alternativas</h5><p>Ningún otro modelo de este entorno tiene stock suficiente en un batch para esta medida.</p>' : '');
   return `${u == null ? '<span class="stk-int sin">Sin dato CRM</span>' : `<span class="stk-int"><b class="${col}">${u}</b>${cabe == null ? '' : ` <b class="${cabe ? 'v' : 'r'}">${cabe ? '✓' : '✗'}</b>`}</span>`}<div id="stk-pop" class="stk-pop" popover><button type="button" class="stk-x" popovertarget="stk-pop" popovertargetaction="hide" aria-label="Cerrar" title="Cerrar">✕</button><h4>Stock interno · ${esc(m.crm)}</h4>${det}${alt}<p>Un proyecto no mezcla batches. Solo tú ves estos datos.</p></div>`; }
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
-import { calcularLed, lineasCosido, PX_PUERTO } from '../screens/led.js';
+import { calcularLed, lineasCosido, PX_PUERTO, fijaParamsLed } from '../screens/led.js';
+import { BR, cargarBrian } from '../screens/brian.js';   /* v11.49 · todas las reglas del cálculo LED desde BRIAN (panel AVHUB ADMIN) */
 import { HUMAN_PATH } from '../screens/figura.js';
 import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=11.13';   /* v10.94 · planos técnicos de señal y de alimentación */
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
@@ -29,7 +30,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.48';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.49';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -228,19 +229,22 @@ function aplicaPend() { const P = PEND; PEND = null; if (!P || !R || !R.m || !R.
   if (P.cabs && (r.cols !== P.cabs[0] || r.rows !== P.cabs[1])) av.push('salen ' + r.cols + ' × ' + r.rows + ' cabinets (pedías ' + P.cabs[0] + ' × ' + P.cabs[1] + ')');
   if (P.px && (r.resW !== P.px[0] || r.resH !== P.px[1])) av.push('la resolución es ' + r.resW + ' × ' + r.resH + ' px (pedías ' + P.px[0] + ' × ' + P.px[1] + ')');
   if (P.nits && +R.m.nits < P.nits) av.push('este cabinet da ' + R.m.nits + ' nits (pedías ' + P.nits + ')');
-  if (P.pitch && Math.abs(R.m.pitch - P.pitch) >= .06) av.push('el pitch es ' + fmt(R.m.pitch, 2) + ' mm (pedías ' + fmt(P.pitch, 2) + ')');
+  if (P.pitch && Math.abs(R.m.pitch - P.pitch) >= BR['led.pitch.aviso']) av.push('el pitch es ' + fmt(R.m.pitch, 2) + ' mm (pedías ' + fmt(P.pitch, 2) + ')');
   if (!P.crm && (P.cabMm || P.cabPx)) av.push('no hay en el catálogo un cabinet de ' + (P.cabMm ? P.cabMm.join(' × ') + ' mm' : P.cabPx.join(' × ') + ' px'));
   if (P.crm && R.m.crm !== P.crm) av.push('el modelo ' + P.crm + ' no está disponible para lo pedido');
   if (av.length) tostada('Ojo: ' + av.join('; ') + '.', 8000); }
 
 /* ---------- cálculo ---------- */
 /* brillo que hace falta según el sol (decisión pendiente de confirmar por Josep): a pleno sol, 5000 nits o más; con sol indirecto o sombra, de 2500 a 5000 */
-const SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500;
-const distDef = () => (E.tipo === 'OUTDOOR' ? 8 : 3);   /* v10.48 · distancia de visionado por defecto (decidido por Josep, 15-11-2026) */
+let SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500;
+const distDef = () => (E.tipo === 'OUTDOOR' ? BR['led.distancia.exterior'] : BR['led.distancia.interior']);   /* v10.48 · distancia de visionado por defecto (decidido por Josep, 15-11-2026) */
 const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''), esHolo = (m) => famN(m).includes('holo'), esTransp = (m) => esHolo(m) || famN(m) === 'tglass' || /GLASS/i.test(String(m.crm || ''));
-const HOLO_DRIVER = 75;   /* mm de caja de drivers de cada cabinet HOLO: no lleva píxeles */
+let HOLO_DRIVER = 75;   /* mm de caja de drivers de cada cabinet HOLO: no lleva píxeles */
 const RESMIN = { HD: [1280, 720], FHD: [1920, 1080], '4K': [3840, 2160] };
 const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
+/* v11.49 · BRIAN: brillo por entorno y sol, caja de drivers HOLO, encaje, tolerancias de pitch y formato 16:9, líneas de alimentación y píxeles por puerto */
+function aplicaBrian() { fijaParamsLed(BR); SOL_DIRECTO = BR['led.nits.solDirecto']; SOL_INDIRECTO = BR['led.nits.solIndirecto']; MIN_NITS.OUTDOOR = BR['led.nits.exterior']; MIN_NITS.ESCAPARATE = BR['led.nits.escaparate'];
+  HOLO_DRIVER = BR['led.holo.cajaDriversMm']; ENCAJE = BR['led.encaje']; }
 /* v10.63 · ELECCIÓN DEL CABINET (decidido por Josep, 16-11-2026), en este orden:
    1) que encaje con la medida pedida: cada lado a menos de un 15 % de lo pedido (si ninguno encaja, el que menos se aparta);
    2) que esté en stock (lo que llega en uno o dos meses ya va marcado como stock en el catálogo);
@@ -248,19 +252,20 @@ const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
       bien desde la distancia dicha o, si no se ha dicho ni pitch ni distancia, el más grande que haya en stock;
    4) a igualdad: formato 16:9 si lo pedido está cerca de 16:9 («por poca diferencia»), el que menos se aparta de la medida y el orden del catálogo
       (prioridad del panel y familia de la casa). */
-const ENCAJE = .15;
+let ENCAJE = .15;
+aplicaBrian();
 function eligeCabinet(lista, pitches) {
   const W = E.w, H = E.h, cerca = (p) => pitches.reduce((b, x) => (Math.abs(x - p) < Math.abs(b - p) ? x : b), pitches[0]);
   const ped = [E.pitch].concat(E.pitchOtros || []).map(Number).filter((x) => x > 0);
   let vale = pitches, origen = 'stock', grande = true;
-  if (ped.length) { vale = pitches.filter((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)); if (!vale.length) vale = [...new Set(ped.map(cerca))];   /* v10.63 · a ±0,2 mm cuentan como el pedido: decide el encaje y el stock */ origen = vale.some((x) => ped.some((p) => Math.abs(x - p) <= .2 + 1e-9)) ? 'pedido' : 'cercano'; grande = false; }   /* «P4» es el 3,9; «P2», el 1,9 */
+  if (ped.length) { vale = pitches.filter((x) => ped.some((p) => Math.abs(x - p) <= BR['led.pitch.tolerancia'] + 1e-9)); if (!vale.length) vale = [...new Set(ped.map(cerca))];   /* v10.63 · a ±0,2 mm cuentan como el pedido: decide el encaje y el stock */ origen = vale.some((x) => ped.some((p) => Math.abs(x - p) <= BR['led.pitch.tolerancia'] + 1e-9)) ? 'pedido' : 'cercano'; grande = false; }   /* «P4» es el 3,9; «P2», el 1,9 */
   else if (E.resMin && RESMIN[E.resMin]) { const [tw, th] = RESMIN[E.resMin], ok = pitches.filter((x) => lista.some((m) => m.pitch === x && (() => { const q = calcularLed({ ancho: W, alto: H }, m, E.ajuste); return q.resW >= tw && q.resH >= th; })()));
     vale = ok.length ? ok : [pitches[0]]; origen = ok.length ? 'resolucion' : 'sinres'; }
-  else if (E.dist) { const c = pitches.filter((x) => x <= E.dist + 1e-9); vale = c.length ? c : [pitches[0]]; origen = 'distancia'; }
-  const c169 = Math.abs(W / H - 16 / 9) / (16 / 9) < .12;
+  else if (E.dist) { const c = pitches.filter((x) => x * BR['led.distancia.metrosPorMmPitch'] <= E.dist + 1e-9); vale = c.length ? c : [pitches[0]]; origen = 'distancia'; }
+  const c169 = Math.abs(W / H - 16 / 9) / (16 / 9) < BR['led.formato169.cerca'];
   const cand = lista.map((m, i) => ({ m, i })).filter((x) => vale.includes(x.m.pitch)).map((x) => { const q = calcularLed({ ancho: W, alto: H }, x.m, E.ajuste), ew = Math.abs(q.ancho - W) / W, eh = Math.abs(q.alto - H) / H;
-    return { ...x, e: ew + eh, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9, f169: Math.abs(q.ancho / q.alto - 16 / 9) < .02, st: enStock(x.m) }; });
-  cand.sort((a, b) => (b.ok - a.ok) || (b.st - a.st) || (grande && Math.abs(b.m.pitch - a.m.pitch) > .2 + 1e-9 ? b.m.pitch - a.m.pitch : 0) || (c169 ? b.f169 - a.f169 : 0) || (a.e - b.e) || (a.i - b.i));
+    return { ...x, e: ew + eh, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9, f169: Math.abs(q.ancho / q.alto - 16 / 9) < BR['led.formato169.exacto'], st: enStock(x.m) }; });
+  cand.sort((a, b) => (b.ok - a.ok) || (b.st - a.st) || (grande && Math.abs(b.m.pitch - a.m.pitch) > BR['led.pitch.tolerancia'] + 1e-9 ? b.m.pitch - a.m.pitch : 0) || (c169 ? b.f169 - a.f169 : 0) || (a.e - b.e) || (a.i - b.i));
   return { m: (cand[0] || { m: lista[0] }).m, origen };
 }
 function calcula() {
@@ -295,7 +300,7 @@ function calcula() {
      solo se ofrece, con aviso, si está en stock y el fijo no. Tiene que dar lo mismo: entorno, transparente, GOLD, brillo, pitch y medida */
   let alt = '', altCorto = '';
   if (E.clase === 'INSTALL' && m0.class === 'INSTALL' && !enStock(m0) && !(E.protegido && E.tipo === 'INDOOR')) {
-    const c = CAT.filter((x) => x.tipo === E.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(m0) && (!E.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nits && x.nits < tope && Math.abs(x.pitch - pitch) <= .2 + 1e-9)
+    const c = CAT.filter((x) => x.tipo === E.tipo && x.class === 'RENTAL' && enStock(x) && esTransp(x) === esTransp(m0) && (!E.gold || /gold/i.test(String(x.tech || ''))) && x.nits >= nits && x.nits < tope && Math.abs(x.pitch - pitch) <= BR['led.pitch.tolerancia'] + 1e-9)
       .map((x) => { const q = calcularLed({ ancho: E.w, alto: E.h }, x, E.ajuste), ew = Math.abs(q.ancho - E.w) / E.w, eh = Math.abs(q.alto - E.h) / E.h; return { x, e: ew + eh, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9 }; }).filter((k) => k.ok).sort((a, b) => a.e - b.e)[0];
     if (c && esInterno()) { alt = 'En stock, de alquiler: ' + c.x.crm + ' (el fijo propuesto va bajo pedido; se puede dejar instalado).'; altCorto = 'Alquiler en stock: ' + c.x.crm; }
   }
@@ -309,7 +314,7 @@ function calcula() {
     /* combinación de anchos: hermanos del mismo pitch y alto con otro ancho (por ejemplo 750 + 250 mm), dentro de un ±15 % de la medida */
     let comb = null; { const her = fam.filter((x) => +x.cabAlto === +m.cabAlto && +x.pitch === +m.pitch), an = [...new Set(her.map((x) => +x.cabAncho))].sort((a, b) => b - a);
       if (an.length >= 2) { const mA = her.find((x) => +x.cabAncho === an[0]), mE = her.find((x) => +x.cabAncho === an[1]), tope = Math.ceil(W / an[1]) + 1; let mejor = null, dif = Infinity;
-        for (let g = 0; g <= tope; g++) for (let e = 0; e <= tope; e++) { if (!g && !e) continue; const tot = g * an[0] + e * an[1], d = Math.abs(tot - W); if (tot >= W * .85 && tot <= W * 1.15 && (d < dif || (d === dif && mejor && g + e < mejor.cA + mejor.cE))) { dif = d; mejor = { mA, mE, cA: g, cE: e, total: tot }; } }
+        for (let g = 0; g <= tope; g++) for (let e = 0; e <= tope; e++) { if (!g && !e) continue; const tot = g * an[0] + e * an[1], d = Math.abs(tot - W); if (tot >= W * (1 - BR['led.holo.margenAncho']) && tot <= W * (1 + BR['led.holo.margenAncho']) && (d < dif || (d === dif && mejor && g + e < mejor.cA + mejor.cE))) { dif = d; mejor = { mA, mE, cA: g, cE: e, total: tot }; } }
         if (mejor && mejor.cA > 0 && mejor.cE > 0) comb = mejor; } }
     const porFila = comb ? comb.cA + comb.cE : Math.max(1, Math.round(W / m.cabAncho)), anchoMm = comb ? comb.total : porFila * m.cabAncho, filas = alt.bot ? 2 : 1, altoMm = alt.top + alt.bot;
     const suma = (k) => (comb ? comb.cA * (+comb.mA[k] || 0) + comb.cE * (+comb.mE[k] || 0) : porFila * (+m[k] || 0)) * filas;
@@ -332,7 +337,7 @@ function calcula() {
   const procs = ELEC.calcularElectronicas({ lines: r.lineas, totalPix: r.pix, porSup: null, resW: r.resW, resH: r.resH }, { backup: E.backup, escalador: E.escalador, conexion: E.conexion, entradas: Math.max(1, +E.entradas || 1), tipoEntrada: E.tipoEntrada === 'MIXTO' ? '' : E.tipoEntrada, resEntrada: E.resEntrada }, []);
   const medias = E.marca === 'ninguno' ? [] : ELEC.calcularMediaservers({ totalPix: Math.max(1, r.salidas4k) * ELEC.ELEC_PX_4K, resW: r.resW, resH: r.resH }, { marca: E.marca, dante: !!E.dante, entradas: Math.max(1, +E.entradas || 1) });
   const vert = cosido === 'vertical', puerto = (c, f) => dePuerto[c + '_' + f] || 0;
-  const ampCab = holo && r.amp ? r.amp / r.cab : Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cascCat = Math.floor(numCat(m.cascada || m0.cascada)), cabLinea0 = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : r.cab, cabLinea = cascCat > 0 ? Math.min(cabLinea0, cascCat) : cabLinea0;
+  const ampCab = holo && r.amp ? r.amp / r.cab : Number(m.cabAmp) || (m.wMax ? m.wMax / BR['led.linea.tension'] : 0), cascCat = Math.floor(numCat(m.cascada || m0.cascada)), cabLinea0 = ampCab > 0 ? Math.max(1, Math.floor(BR['led.linea.amperios'] / ampCab)) : r.cab, cabLinea = cascCat > 0 ? Math.min(cabLinea0, cascCat) : cabLinea0;
   /* v10.94 · máximo de cabinets en cascada por circuito: el dato del catálogo si lo trae (cascada) y, si no, los que caben en una línea de 16 A */
   /* reparto eléctrico en líneas de 16 A con el mismo criterio de cosido que la señal: columnas o filas enteras por línea */
   const colsPL = Math.floor(cabLinea / r.rows), filasPL = Math.floor(cabLinea / r.cols), eV = colsPL >= 1 ? Math.ceil(r.cols / colsPL) : 0, eH = filasPL >= 1 ? Math.ceil(r.rows / filasPL) : 0;
@@ -443,7 +448,7 @@ function svgRejilla(tipo, pdf) {
   let tubos = largo > .5 ? `<path d="M${pts.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L')}"/>` : '';
   /* caja de destino: arriba o abajo (esquinas y centros de arriba y abajo) o a un lado (centros de los laterales) */
   const nC = sen ? r.lineas * (bk ? 2 : 1) : R.nLin, dest = sen ? (E.conexion === 'fibra' ? 'Al conversor de fibra' : 'Al procesador') : 'Al cuadro eléctrico';
-  const cuenta = sen ? (bk ? `${r.lineas} + ${r.lineas} backup = ${nC} cables Cat6` : `${nC} ${nC > 1 ? 'cables' : 'cable'} Cat6`) : `${nC} ${nC > 1 ? 'líneas' : 'línea'} de 16 A`;
+  const cuenta = sen ? (bk ? `${r.lineas} + ${r.lineas} backup = ${nC} cables Cat6` : `${nC} ${nC > 1 ? 'cables' : 'cable'} Cat6`) : `${nC} ${nC > 1 ? 'líneas' : 'línea'} de ${BR['led.linea.amperios']} A`;
   let caja = '', yP = yB + 30;
   if (lado) { const bw = 200, bh = 96, xb = lado === 'r' ? xR + 30 : xL - 30 - bw, yb = Math.max(8, Math.min(H - bajo - bh, yM - bh / 2)), xt = xb + bw / 2;
     tubos += `<path d="M${P[0]} ${yM}H${lado === 'r' ? xb + 4 : xb + bw - 4}"/>`;
@@ -502,7 +507,7 @@ function planoSenal(pdf, prop) {
 }
 function planoElec(pdf, prop) {
   const { m, r } = R, a = R.ampCab, wMed = numCat(m.wMed), vert = R.cosE === 'vertical';
-  const info = [['Circuitos', R.nLin + ' × 16 A · 230 V'], ['Máx. en cascada', R.cabLinea + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', a > 0 ? fmt(a, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '—']]
+  const info = [['Circuitos', R.nLin + ' × ' + BR['led.linea.amperios'] + ' A · ' + BR['led.linea.tension'] + ' V'], ['Máx. en cascada', R.cabLinea + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', a > 0 ? fmt(a, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '—']]
     .concat(wMed > 0 ? [['Consumo medio', fmt(wMed * r.cab / 1000, 2) + ' kW']] : []).concat([['Corriente total', a > 0 ? fmt(r.cab * a, 1) + ' A' : '—'], ['Cosido', tr(R.cosE)]]);
   const notas = ['Flecha roja: entrada de corriente de cada circuito; sus cabinets van en cascada.', vert ? 'El paso del cable entre verticales (discontinua) puede requerir prolongarlo para que llegue.' : 'El paso del cable entre filas (discontinua) puede requerir prolongarlo para que llegue.', 'Protección recomendada: diferenciales superinmunizados de curva C, uno por circuito.'].concat(a > 0 ? [] : ['Sin datos de consumo en el catálogo.']);
   return svgPlanoElec({ ...geoPlano(), H: pdf ? 540 : 620, top: pdf ? 8 : 56, bottom: pdf ? 8 : 40, prop: pdf ? 0 : propPlano(prop), rutas: R.rutasE, cosido: R.cosE, colores: COLS, porCab: +m.wMax > 0 ? fmt(m.wMax) + ' W' : '', info, notas, tr });
@@ -637,7 +642,7 @@ function pintaRejilla0() {
   h += blk('m2b', 'M2B', 'Cabinets', 'var(--violeta)', `<div class="fila"><div class="rej-cab" style="grid-template-columns:repeat(${r.cols},calc(var(--u) * ${cs.toFixed(2)}));grid-auto-rows:calc(var(--u) * ${(cs * Math.min(1.6, m.cabAlto / m.cabAncho)).toFixed(2)})">${'<i></i>'.repeat(Math.min(r.cab, 400))}</div><div class="gran" style="flex:1;text-align:right">${fmt(r.cab)}<small>ud</small></div></div><div class="fila dos">${paso('Columnas', r.cols, 'data-cf="c" data-d="-1" aria-label="Una columna menos"', 'data-cf="c" data-d="1" aria-label="Una columna más"')}${paso('Filas', r.rows, 'data-cf="f" data-d="-1" aria-label="Una fila menos"', 'data-cf="f" data-d="1" aria-label="Una fila más"')}</div>`);
   /* INSTALACIÓN (M3D): peso, mantenimiento, receiving card y grosor, como la tarjeta de la clásica */
   h += blk('m3d', 'M3D', 'Instalación', 'var(--magenta)', `${r.peso > 0 ? `<div class="gran">${fmt(r.peso, 1)}<small>kg</small></div><div class="nota">peso total de la pantalla</div>` : ''}${+m.cabKg > 0 ? dato('Por cabinet', fmt(m.cabKg, 1) + ' kg') : ''}${dato('Mantenimiento', esc(m.mant || m.mantenimiento || '—'))}${dato('Receiving card', esc(m.card || '—'))}${dato('Grosor', m.thick ? fmt(m.thick) + ' mm' : '—')}`);
-  h += blk('m3f', 'M3F', 'Alimentación', 'var(--rojo)', `${r.kw > 0 ? `<div class="gran">${fmt(r.kw, 2)}<small>kW máx.</small></div>` : ''}${R.ampCab > 0 ? dato('Corriente', fmt(r.cab * R.ampCab, 1) + ' A · 230 V') + dato('Líneas de 16 A', R.nLin) : ''}${+m.wMax > 0 || R.ampCab > 0 ? dato('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · ')) : ''}${!(r.kw > 0) && !(R.ampCab > 0) ? '<div class="nota">Sin datos de consumo en el catálogo.</div>' : ''}`, bt('ojo', 'Ver el reparto eléctrico', 'data-ver="elec"'));
+  h += blk('m3f', 'M3F', 'Alimentación', 'var(--rojo)', `${r.kw > 0 ? `<div class="gran">${fmt(r.kw, 2)}<small>kW máx.</small></div>` : ''}${R.ampCab > 0 ? dato('Corriente', fmt(r.cab * R.ampCab, 1) + ' A · ' + BR['led.linea.tension'] + ' V') + dato('Líneas de 16 A', R.nLin) : ''}${+m.wMax > 0 || R.ampCab > 0 ? dato('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · ')) : ''}${!(r.kw > 0) && !(R.ampCab > 0) ? '<div class="nota">Sin datos de consumo en el catálogo.</div>' : ''}`, bt('ojo', 'Ver el reparto eléctrico', 'data-ver="elec"'));
   h += blk('m3e', 'M3E', 'Señal', 'var(--ambar)', `<div class="gran">${r.lineas}<small>línea${r.lineas > 1 ? 's' : ''} Ethernet</small></div><div class="fila dos bkp">${tog(E.backup, 'data-set="backup" data-v="1" title="Un segundo cable por puerto, que entra por el último cabinet de cada cadena: + ' + r.lineas + ' cables Cat6"', 'Con backup')}${tog(!E.backup, 'data-set="backup" data-v=""', 'Sin backup')}</div><div class="fila tres op"><span>Conexión</span>${tog(E.conexion === 'directo', 'data-set="conexion" data-v="directo" title="Del procesador a los cabinets por cable de red"', 'RJ45')}${tog(E.conexion === 'fibra', 'data-set="conexion" data-v="fibra" title="Del procesador a los cabinets por fibra óptica"', 'Fibra')}</div>${dato('Cosido', R.cosido + (E.cosido === 'auto' ? ' (auto)' : ''))}${dato('Salidas 4K', r.salidas4k)}`, bt('ojo', 'Ver el cableado de señal', 'data-ver="senal"'));
   const p = R.proc, me = R.media;
   h += blk('m3b', 'M3B', 'Electrónica', 'var(--marca)', (p ? `<div style="font-weight:800;font-size:calc(var(--u)*19);line-height:1.15">${R.procs.length > 1 ? `<select class="sel" data-proc aria-label="Procesador" title="Elegir otro procesador de los que valen para este proyecto">${R.procs.map((x, i) => `<option value="${esc(x.modelo)}"${x === p ? ' selected' : ''}>${esc(x.modelo)}${i ? '' : ' · recomendado'}</option>`).join('')}</select>` : esc(p.modelo)}<div class="nota">${esc(p.marca)} · ${p.reproductor ? 'reproductor con controladora' : p.escalador ? 'con escalador' : 'sin escalador'}</div></div>${dato('Puertos', esc(p.puertos))}` : '<div class="nota">Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.</div>') + `<div class="fila tres op"><span>Escalador</span>${tog(E.escalador === 'con', 'data-set="escalador" data-v="con"', 'Con')}${tog(E.escalador === 'sin', 'data-set="escalador" data-v="sin"', 'Sin')}${tog(E.escalador === 'indiferente', 'data-set="escalador" data-v="indiferente" title="Da igual que el procesador lleve escalador o no"', 'Igual')}</div>`, bt('ojo', 'Ver la electrónica completa', 'data-ver="equipo"'));
@@ -911,7 +916,7 @@ function material() {
   else L.push({ c: '', ref: 'Sin equipo adecuado', desc: 'Cambia backup, escalador o conexión', g: 'elec' });
   if (d.rack) { L.push({ c: d.fibras, ref: 'Fibra óptica', desc: 'Latiguillo electrónica → conversor' + (d.backup ? ' (+ backup)' : ''), g: 'fibra' }); L.push({ c: d.lines * d.mult, ref: 'Cat6 (RJ45)', desc: 'Conversor → pantalla' + (d.backup ? ' (+ backup)' : ''), g: 'eth' }); }
   else L.push({ c: d.lines * d.mult, ref: 'Cat6 (RJ45)', desc: 'Electrónica → pantalla' + (d.backup ? ' (+ backup)' : ''), g: 'eth' });
-  L.push({ c: 1, ref: 'Distribución eléctrica', desc: (+d.amps > 0 ? d.amps + ' A · ' + d.kw + ' kW máx. · ' + R.nLin + ' × 16 A + ' : '') + 'cableado de alimentación', g: 'power' });
+  L.push({ c: 1, ref: 'Distribución eléctrica', desc: (+d.amps > 0 ? d.amps + ' A · ' + d.kw + ' kW máx. · ' + R.nLin + ' × ' + BR['led.linea.amperios'] + ' A + ' : '') + 'cableado de alimentación', g: 'power' });
   L.push({ c: 1, ref: 'PC de control', desc: 'Con el software del fabricante y cable USB / Ethernet', g: 'ctrl' });
   /* v10.35 · pantalla de exterior (v10.36: y de escaparate): siempre el sensor de luz, que ajusta solo el brillo a la luz ambiente (se conecta a la electrónica) */
   if (E.tipo === 'OUTDOOR' || E.tipo === 'ESCAPARATE') L.push({ c: 1, ref: 'NS060', url: busca('NS060'), desc: 'Sensor de luz 5 m para pantalla LED (brillo automático según la luz ambiente; se conecta a la electrónica)', g: 'ctrl' });
@@ -957,7 +962,7 @@ function svgEsquema() {
   /* alimentación (rojo) */
   const pw = 250, pwX = Math.max(20, Math.min(W - 20 - pw, cx('elec') - pw / 2)), pwY = 452, ph = 58;
   g += `<rect x="${pwX}" y="${pwY}" width="${pw}" height="${ph}" rx="8" fill="${S.power}" fill-opacity=".1" stroke="${S.power}" stroke-width="2.5"/>${tx(pwX + pw / 2, pwY + 24, 'DISTRIBUCIÓN ELÉCTRICA', { w: 800, c: S.power, sz: 14, max: pw - 16 })}${tx(pwX + pw / 2, pwY + 45, d.amps + ' A · ' + d.kw + ' kW máx.', { sz: 12.5, mono: true })}`;
-  g += linea(cx('elec'), pwY, cx('elec'), by + bh + 3, 'power') + tx(cx('elec') + 9, pwY - 8, '230 V', { a: 'start', sz: 12.5, w: 800, c: S.power });
+  g += linea(cx('elec'), pwY, cx('elec'), by + bh + 3, 'power') + tx(cx('elec') + 9, pwY - 8, BR['led.linea.tension'] + ' V', { a: 'start', sz: 12.5, w: 800, c: S.power });
   g += `<path d="M${pwX + pw} ${pwY + ph / 2}H${cx('pantalla')}V${by + bh + 3}" stroke="${S.power}" stroke-width="3.2" fill="none" marker-end="url(#ar-power)"/>` + tx((pwX + pw + cx('pantalla')) / 2, pwY + ph / 2 - 9, 'Alimentación cabinets · ' + R.nLin + ' × 16 A', { sz: 12.5, w: 800, c: S.power, max: Math.max(80, cx('pantalla') - pwX - pw - 30) });
   if (E.gold) g += `<rect x="${W - 262}" y="18" width="242" height="56" rx="8" fill="#d08a00" fill-opacity=".14" stroke="#d08a00" stroke-width="2"/>${tx(W - 141, 41, 'ENTORNO MARINO / HÚMEDO', { sz: 12.5, w: 800, c: '#d08a00' })}${tx(W - 141, 61, 'Tropicalizado · contactos oro', { sz: 12 })}`;
   /* leyenda */
@@ -1011,7 +1016,7 @@ async function pdf() {
       caja('Cabinet', fila('Modelo', '<span data-crudo>' + esc(m.crm) + '</span>') + fila('Familia', '<span data-crudo>' + esc(m.family || '—') + '</span>') + fila('Pitch', String(R.pitch).replace('.', ',') + ' mm') + fila('Cabinet', m.cabAncho + '×' + m.cabAlto + (m.thick ? '×' + m.thick : '') + ' mm' + (m.girado ? ' · girado 90°' : '')) + fila('Columnas × filas', r.cols + ' × ' + r.rows + ' = ' + r.cab) + fila('Brillo', m.nits ? fmt(m.nits) + ' nits' : '') + fila('Refresco', m.hz ? fmt(m.hz) + ' Hz' : '') + fila('Disponibilidad', enStock(m) ? 'En stock' : 'Bajo pedido')) +
       caja('Resolución', fila('Píxeles', r.resW + ' × ' + r.resH) + fila('Total', fmt(r.pix / 1e6, 2) + ' Mpx' + (R.nivel[0] ? ' · ' + R.nivel[0] : '')) + fila('Salidas 4K', r.salidas4k) + fila('Distancia mínima', fmt(m.pitch * 100) + ' cm') + fila('Distancia óptima', 'desde ' + fmt(m.pitch * 300) + ' cm') + fila('Distancia de visionado', E.dist ? fmt(E.dist, 1) + ' m' : '') + fila('Entorno', TIPO + ' · ' + (E.clase === 'RENTAL' ? 'Alquiler' : 'Fija')) + fila('Opciones', [E.transp && 'Transparente', E.gold && 'Marino / tropical', E.protegido && 'Alcance público', E.sol === 'directo' && 'Sol directo', E.sol === 'indirecto' && 'Sol indirecto'].filter(Boolean).join(' · '))) +
       caja('Instalación', fila('Peso total', r.peso > 0 ? fmt(r.peso, 1) + ' kg' : '') + fila('Por cabinet', +m.cabKg > 0 ? fmt(m.cabKg, 1) + ' kg' : '') + fila('Mantenimiento', esc(m.mant || m.mantenimiento || '')) + fila('Receiving card', '<span data-crudo>' + esc(m.card || '') + '</span>') + fila('Grosor', m.thick ? fmt(m.thick) + ' mm' : '')) +
-      caja('Alimentación', fila('Consumo máximo', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '') + fila('Corriente', R.ampCab > 0 ? fmt(r.cab * R.ampCab, 1) + ' A · 230 V' : '') + fila('Líneas de 16 A', R.ampCab > 0 ? R.nLin : '') + fila('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · '))) +
+      caja('Alimentación', fila('Consumo máximo', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '') + fila('Corriente', R.ampCab > 0 ? fmt(r.cab * R.ampCab, 1) + ' A · ' + BR['led.linea.tension'] + ' V' : '') + fila('Líneas de ' + BR['led.linea.amperios'] + ' A', R.ampCab > 0 ? R.nLin : '') + fila('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · '))) +
       caja('Señal y electrónica', fila('Procesador', p ? '<span data-crudo>' + esc(p.modelo) + '</span>' : '—') + fila('Puertos', p ? esc(p.puertos) : '') + fila('Escalador', p ? (p.escalador ? 'Sí' : 'No') : '') + fila('Mediaserver', me ? '<span data-crudo>' + esc(me.modelo) + '</span>' : 'No') + fila('Líneas Ethernet', r.lineas + (E.backup ? ' + ' + r.lineas + ' de backup' : '')) + fila('Conexión', E.conexion === 'fibra' ? 'Fibra' : 'RJ45') + fila('Cosido', R.cosido) + fila('Fuentes de vídeo', Math.max(1, +E.entradas || 1) + ' × ' + (E.tipoEntrada && E.tipoEntrada !== 'MIXTO' ? E.tipoEntrada : 'HDMI/DP/SDI') + (E.resEntrada ? ' ' + E.resEntrada : ''))) + `</div>` +
       (E.obs && E.obs.trim() ? `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px">${rot('Observaciones')}<div data-crudo style="font:400 9.5px/1.45 Inter,Arial,sans-serif;white-space:pre-wrap">${esc(E.obs.trim())}</div></div>` : '');
     const p2 = cab('hoja 2 de 2') + rot('Esquema de conexión') + `<div style="margin-bottom:9px">${esq}</div>` +
@@ -1093,6 +1098,7 @@ addEventListener('resize', () => { const g = $('#guia'); if (g) { const n = [...
   const ae = document.querySelector('.admin-esq'); if (ae) h.appendChild(ae); } }
 cargarEquipos(() => { if (R) todo(); });
 cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); });
+cargarBrian(() => { aplicaBrian(); todo(); });   /* v11.49 · BRIAN en vivo */
 window.__blocks = { puente: () => puenteSale(), E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock, cabeEnBatch, AV_BATCH };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();
 /* v10.53 · COSIDO y MANGUERA (SEÑAL y ELÉCTRICO) caben siempre en su dibujo: si la fila es más ancha que el lienzo, se reduce entera (también en «Ver en grande») */

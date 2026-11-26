@@ -1,15 +1,15 @@
 // SCREENS · interfaz (consola fija con petición en lenguaje natural, panel de rack, simulación 3D y resultados)
 import { cargarCatalogo, cargarEquipos, ordenar, enStock, nivelStock, cabeEnBatch, esInterno, urlAccesoInterno, salirInterno } from './catalogo.js';
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-salir-interno]'); if (a) { e.preventDefault(); e.stopPropagation(); salirInterno(); } }, true);   /* v10.88 · candado verde: cerrar el acceso interno */
-import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO } from './led.js';
+import { superficies, distanciaPublico, elegirModelo, calcularLed, totales, aplicarPuertas, obstaculoMundo, puertaMundo, PX_PUERTO, fijaParamsLed } from './led.js';
 import { svgPlanoSenal, svgPlanoElec, planCosido } from '../vista/plano-led.js?v=11.13';   // v10.94 · planos técnicos de señal y alimentación en el PDF
 import { tr as trPlano, fijaIdioma as idiomaPlano } from '../vista/idiomas.js?v=10.71';
 import { PROYECTORES, CUERPOS, calcularPared, calcularSuelo, SOLAPE_MAX, SOLAPE_RECO, RECORTE_MAX, analizarSombras, obstaculosEnHaces, rangoLente, fijaParamsProy } from './proyeccion.js';
-import { BR, cargarBrian } from './brian.js';   /* v11.48 · umbrales del cálculo desde BRIAN */
+import { BR, cargarBrian, lista as brLista } from './brian.js';   /* v11.48 · umbrales del cálculo desde BRIAN */
 // v10.54 · marcas de proyección que hay en el catálogo, en su orden de prioridad (a igualdad de resultado: EPSON > VIVITEK > CHRISTIE)
 const ORDEN_MARCA = ['EPSON', 'VIVITEK', 'CHRISTIE'], prioMarca = (m) => { const i = ORDEN_MARCA.indexOf(m); return i < 0 ? ORDEN_MARCA.length : i; };
 /* v11.7 · proyectores que se priorizan en salas inmersivas (decidido por Josep, 24-11-2026: el EB-L695SE vale para casi todo y es el más vendido) */
-const PRIO_SALA = ['EB-L695SE'];
+const PRIO_SALA = ['EB-L695SE'];   /* v11.49 · BRIAN: proy.sala.prioridad */
 const MARCAS_PROY = [...new Set(PROYECTORES.map(q => q.marca))].sort((a, b) => prioMarca(a) - prioMarca(b));
 const marcasActivas = () => { const a = (E.proy.marcas || []).filter(m => MARCAS_PROY.includes(m)); return a.length ? a : MARCAS_PROY; };
 // enciende o apaga una marca (siempre queda una); si el proyector elegido a mano era de la que se apaga, vuelve a automático
@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.48';
+const VERSION = 'v11.49';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -98,7 +98,7 @@ const ICO = {
 // v10.34 · entorno y uso como en la portada: interior, exterior o escaparate, transparente, fija o alquiler, sol directo o indirecto,
 // marino / tropical (contactos de oro) y al alcance del público (LED protegido: UfixAvant HOB y UfixCOB). En una sala inmersiva el público
 // siempre está al alcance de las paredes: el LED protegido va siempre. Si no hay modelos que cumplan, se muestran los normales con un aviso.
-const SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500, MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
+let SOL_DIRECTO = 5000, SOL_INDIRECTO = 2500; const MIN_NITS = { OUTDOOR: 5000, ESCAPARATE: 2500, INDOOR: 0 };
 const famN = (m) => String(m.family || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''), tecN = (m) => String(m.tech || '').toUpperCase().trim();
 const esTransp = (m) => famN(m).includes('holo') || famN(m) === 'tglass' || /GLASS/i.test(String(m.crm || '')),   // v10.67 · T·Rent Glass también, como en una pantalla LED
   esProt = (m) => (tecN(m) === 'HOB' && famN(m) === 'ufixavant') || (tecN(m) === 'COB' && famN(m) === 'ufixcob');
@@ -124,13 +124,18 @@ function listaLed() {
 const nitsLista = () => [...new Set(catalogo.filter(m => m.tipo === E.led.tipo && m.nits > 0).map(m => +m.nits))].sort((a, b) => a - b);
 // v8.2 · tipo de proyección y relación de proyección preferida en mapping sin distancia (unas 2 veces el ancho de la imagen)
 const tipoProy = () => (E.cantidad === 'varias' && E.esp.tipo === 'sala' ? 'sala' : E.proy.tipo === 'mapping' ? 'mapping' : 'pared');
-const TR_MAPPING = 2;
+let TR_MAPPING = 2;
 // v10.63 · la luz es la que se elige y nunca cambia sola (antes cada tipo ponía la suya al cargar y una pared a 10 lx volvía a 140 al recargar).
 // Arranca con 140 lx y ganancia 1; escalones: Meeting room 140, Class room 210, Event hall 140,
 // Living 70 y Theatre room 14, o a mano. 0 lx es 0 (oscuridad total), no «sin dato».
 const USOS_LUZ = [['reunion', 140], ['aula', 210], ['evento', 140], ['salon', 70], ['teatro', 14], ['oscura', 15], ['calle', 5]];
 /* v11.48 · BRIAN: umbrales de contraste, solape, recorte, holguras, mosaico y luz por uso (los mismos de siempre si no hay conexión) */
-function aplicaBrian() { fijaParamsProy(BR); RECORTE_MULTI = BR['proy.recorte.multi']; USOS_LUZ.forEach((u) => { const v = BR['proy.luz.' + u[0]]; if (v != null) u[1] = v; }); }
+function aplicaBrian() { fijaParamsProy(BR); fijaParamsLed(BR); RECORTE_MULTI = BR['proy.recorte.multi']; USOS_LUZ.forEach((u) => { const v = BR['proy.luz.' + u[0]]; if (v != null) u[1] = v; });
+  TR_MAPPING = BR['proy.mapping.relacionTiro']; SOL_DIRECTO = BR['led.nits.solDirecto']; SOL_INDIRECTO = BR['led.nits.solIndirecto']; MIN_NITS.OUTDOOR = BR['led.nits.exterior']; MIN_NITS.ESCAPARATE = BR['led.nits.escaparate'];
+  /* v11.49 · orden de marcas y cuerpos preferidos en salas, también desde BRIAN (se cambian en su sitio: los usa todo) */
+  const om = brLista(BR['proy.marcas.orden']).map((x) => x.toUpperCase()); if (om.length) ORDEN_MARCA.splice(0, ORDEN_MARCA.length, ...om);
+  PRIO_SALA.splice(0, PRIO_SALA.length, ...brLista(BR['proy.sala.prioridad']));
+  MARCAS_PROY.sort((a, b) => prioMarca(a) - prioMarca(b)); }
 // v10.89 · la luz por defecto va con el tipo: sala inmersiva a oscuras 15 lx, mapping de noche 5 lx, pared 140 lx (solo si no se ha tocado)
 const LUZ_TIPO = { sala: ['oscura', 15], mapping: ['calle', 5], pared: ['reunion', 140] };
 function luzDeTipo(v) { const p = E.proy, def = Object.values(LUZ_TIPO).some(u => u[0] === p.luzUso && u[1] === Number(p.lux)); if (def && LUZ_TIPO[v]) { p.luzUso = LUZ_TIPO[v][0]; p.lux = LUZ_TIPO[v][1]; } }
@@ -1103,7 +1108,7 @@ function materialLed(c) {
   const cvt = p ? (p.equipos || []).filter(q => q.ref === (ELEC.ELEC_CVT || {}).ref || q.ref === (ELEC.ELEC_MX_CVT || {}).ref).reduce((a, q) => a + q.cant, 0) : 0, bk = backup ? t('matMasBk') : '';
   if (rack) { L.push({ c: cvt * mult, ref: t('matFibra'), desc: t('matFibraD') + bk, g: 'fibra' }); L.push({ c: T.lineas * mult, ref: 'Cat6 (RJ45)', desc: t('matCat6Cvt') + bk, g: 'eth' }); }
   else L.push({ c: T.lineas * mult, ref: 'Cat6 (RJ45)', desc: t('matCat6') + bk, g: 'eth' });
-  const ampCab = Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), cabLinea = ampCab > 0 ? Math.max(1, Math.floor(16 / ampCab)) : 0;
+  const ampCab = Number(m.cabAmp) || (m.wMax ? m.wMax / BR['led.linea.tension'] : 0), cabLinea = ampCab > 0 ? Math.max(1, Math.floor(BR['led.linea.amperios'] / ampCab)) : 0;
   const nLin = c.filas.reduce((a, f) => a + (f.r && f.r.cab ? (cabLinea ? Math.ceil(f.r.cab / cabLinea) : 1) : 0), 0);
   // v10.50 · sin consumo en la tabla maestra no salen ceros: solo el cableado (el final del mismo texto traducido)
   const dd = t('matDistD', { a: fmt(T.amp, 1), k: fmt(T.kw, 2), n: nLin }), soloCable = dd.slice(dd.lastIndexOf('+') + 1).trim();
@@ -1660,16 +1665,16 @@ function planosPdf(c) {
   const m = c.modelo, x = c.elec || {}, bk = !!E.elec.backup, T = c.tot || {}, fs = c.filas.filter(f => f.r && f.r.cols && f.r.rows).slice(0, 8); if (!fs.length || !m) return '';
   idiomaPlano(idioma());
   const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; }, f2 = (v, d = 0) => Number(v).toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
-  const pixCab = m.cabPixAncho * m.cabPixAlto, cabPuerto = Math.max(1, Math.floor(PX_PUERTO / pixCab)), amp = Number(m.cabAmp) || (m.wMax ? m.wMax / 230 : 0), casc = Math.floor(num(m.cascada)), wMed = num(m.wMed);
+  const pixCab = m.cabPixAncho * m.cabPixAlto, cabPuerto = Math.max(1, Math.floor(PX_PUERTO / pixCab)), amp = Number(m.cabAmp) || (m.wMax ? m.wMax / BR['led.linea.tension'] : 0), casc = Math.floor(num(m.cascada)), wMed = num(m.wMed);
   const hoy = new Date(), l = idioma() === 'en' ? 'en-GB' : 'es-ES', fecha = hoy.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + hoy.toLocaleTimeString(l, { hour: '2-digit', minute: '2-digit' });
   const img = (svg) => `<img class="im-plano" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace('style="color:var(--txt)"', 'color="#17181c"').replace(/currentColor/g, '#17181c'))}" alt="">`;
-  const out = fs.map(f => { const r = f.r, n = r.lineas, S = planCosido(r.cols, r.rows, cabPuerto), cabLin0 = amp > 0 ? Math.max(1, Math.floor(16 / amp)) : r.cab, cabLin = casc > 0 ? Math.min(cabLin0, casc) : cabLin0, P = planCosido(r.cols, r.rows, cabLin);
+  const out = fs.map(f => { const r = f.r, n = r.lineas, S = planCosido(r.cols, r.rows, cabPuerto), cabLin0 = amp > 0 ? Math.max(1, Math.floor(BR['led.linea.amperios'] / amp)) : r.cab, cabLin = casc > 0 ? Math.min(cabLin0, casc) : cabLin0, P = planCosido(r.cols, r.rows, cabLin);
     const acum = (a) => a.reduce((o, v, i) => (o.push(i ? o[i - 1] + a[i - 1] : 0), o), []), colsPx = Array(r.cols).fill(+m.cabPixAncho), rowsPx = Array(r.rows).fill(+m.cabPixAlto);
     const geo = { colsMm: Array(r.cols).fill(+m.cabAncho), rowsMm: Array(r.rows).fill(+m.cabAlto), colsPx, rowsPx, colsX: acum(colsPx), rowsY: acum(rowsPx), H: 540, top: 8, bottom: 8, colores: COLS_PLANO, tr: trPlano };
     const nota = r.quitados ? ['Retícula completa: no descuenta los cabinets quitados por puertas u obstáculos.'] : [];
     const sen = svgPlanoSenal({ ...geo, rutas: S.rutas, cosido: S.modo, backup: bk, puerto0: f.lin ? f.lin[0] - 1 : 0, nTotal: T.lineas || n, info: [['Tamaño de la pantalla', r.resW + ' × ' + r.resH + ' px'], ['Nombre', f.nombre], ['Modelo', m.crm], ['Cabinets', r.cols + ' × ' + r.rows + ' = ' + r.cab], ['Píxeles por cabinet', m.cabPixAncho + ' × ' + m.cabPixAlto], ['Procesador', x.proc ? x.proc.modelo : '—'], ['Puertos de datos', (f.lin ? 'P' + f.lin[0] + (f.lin[1] > f.lin[0] ? '–' + f.lin[1] : '') : n) + (bk ? ' + R' : '')], ['Máx. por puerto', cabPuerto + ' cab · ' + f2(PX_PUERTO / 1000) + 'k px'], ['Cosido', trPlano(S.modo)], ['Fecha', fecha]],
       notas: ['Cada cabinet: tarjeta-puerto-orden, posición X, Y y tamaño W, H en píxeles.', 'E: entrada del puerto · S: salida, fin de la cadena.'].concat(bk ? ['R: redundancia (backup), otro puerto que entra por el último cabinet de cada cadena.'] : []).concat(nota) });
-    const ele = svgPlanoElec({ ...geo, rutas: P.rutas, cosido: P.modo, porCab: +m.wMax > 0 ? f2(m.wMax) + ' W' : '', info: [['Circuitos', P.rutas.length + ' × 16 A · 230 V'], ['Máx. en cascada', cabLin + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? f2(m.wMax) + ' W' : '', amp > 0 ? f2(amp, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? f2(r.kw, 2) + ' kW' : '—']].concat(wMed > 0 ? [['Consumo medio', f2(wMed * r.cab / 1000, 2) + ' kW']] : []).concat([['Corriente total', amp > 0 ? f2(r.cab * amp, 1) + ' A' : '—'], ['Cosido', trPlano(P.modo)]]),
+    const ele = svgPlanoElec({ ...geo, rutas: P.rutas, cosido: P.modo, porCab: +m.wMax > 0 ? f2(m.wMax) + ' W' : '', info: [['Circuitos', P.rutas.length + ' × ' + BR['led.linea.amperios'] + ' A · ' + BR['led.linea.tension'] + ' V'], ['Máx. en cascada', cabLin + ' cabinets'], ['Por cabinet', [+m.wMax > 0 ? f2(m.wMax) + ' W' : '', amp > 0 ? f2(amp, 2) + ' A' : ''].filter(Boolean).join(' · ') || '—'], ['Consumo de pico', r.kw > 0 ? f2(r.kw, 2) + ' kW' : '—']].concat(wMed > 0 ? [['Consumo medio', f2(wMed * r.cab / 1000, 2) + ' kW']] : []).concat([['Corriente total', amp > 0 ? f2(r.cab * amp, 1) + ' A' : '—'], ['Cosido', trPlano(P.modo)]]),
       notas: ['Flecha roja: entrada de corriente de cada circuito; sus cabinets van en cascada.', P.modo === 'vertical' ? 'El paso del cable entre verticales (discontinua) puede requerir prolongarlo para que llegue.' : 'El paso del cable entre filas (discontinua) puede requerir prolongarlo para que llegue.', 'Protección recomendada: diferenciales superinmunizados de curva C, uno por circuito.'].concat(amp > 0 ? [] : ['Sin datos de consumo en el catálogo.']) });
     return `<div class="im-plano-par"><div class="im-plano-tit"><b>${f.nombre}</b> · ${trPlano('Plano de señal')}</div>${img(sen)}<div class="im-plano-tit"><b>${f.nombre}</b> · ${trPlano('Plano de alimentación')}</div>${img(ele)}</div>`; }).join('');
   return `<section class="res-sec im-planos"><div class="res-tit">${trPlano('Planos técnicos')}</div>${out}<p class="im-plano-nota">${trPlano('* Planos orientativos calculados por SCREENS: confirmar con el fabricante el cosido, la cascada y la protección antes de instalar.')}</p></section>`;

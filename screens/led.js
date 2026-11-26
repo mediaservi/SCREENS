@@ -1,5 +1,5 @@
 // SCREENS · geometría del espacio y cálculo LED por superficie (misma lógica que led.html).
-export const PX_PUERTO = 650000;            // píxeles por puerto Ethernet (8 bit, 60 Hz), igual que led.html
+export let PX_PUERTO = 650000;            // píxeles por puerto Ethernet (8 bit, 60 Hz), igual que led.html
 export const PX_SALIDA_4K = 3840 * 2160;   // una salida 4K UHD de mediaserver
 /* v9.7 · líneas de datos con el mismo cosido que el configurador (led.html → planCosido, modo automático): columnas o filas ENTERAS por puerto,
    que es como se cablea; solo si ni una columna ni una fila caben en un puerto se reparte en serpentina. Da igual o una línea más que antes, nunca menos. */
@@ -11,6 +11,10 @@ export function lineasCosido(cols, rows, pixCab) {
   if (v && h) return Math.min(v, h);
   return v || h || Math.ceil(total / cabPuerto);
 }
+
+/* v11.49 · BRIAN: píxeles por puerto, metros de distancia por mm de pitch y tolerancia de la medida (mm) */
+let M_POR_MM = 1, TOL_M = 0.005;
+export function fijaParamsLed(b) { PX_PUERTO = b['led.pixelesPorPuerto'] || 650000; M_POR_MM = b['led.distancia.metrosPorMmPitch'] || 1; TOL_M = (b['led.medida.toleranciaMm'] || 0) / 1000; }
 
 // Superficies del espacio. Sala centrada en el origen, suelo en y = 0; el público mira hacia la pared frontal (−z).
 // Cada superficie: id, ancho y alto disponibles (m), elevación, posición del centro de su base y giro (rad) en el eje Y.
@@ -87,7 +91,7 @@ export function distanciaPublico(esp) {
 // Pitch automático: el mayor pitch cuya distancia mínima de visión (1 m por mm de pitch) cabe en la distancia del público
 export function elegirModelo(lista, dist) {
   if (!lista.length) return null;
-  const validos = lista.filter(m => m.pitch <= dist + 1e-9);
+  const validos = lista.filter(m => m.pitch * M_POR_MM <= dist + 1e-9);
   if (!validos.length) return lista[0];
   const pMax = Math.max(...validos.map(m => m.pitch));
   return validos.find(m => m.pitch === pMax) || validos[validos.length - 1];
@@ -98,7 +102,7 @@ export function calcularLed(sup, m, ajuste = 'dentro') {
   const cw = m.cabAncho / 1000, ch = m.cabAlto / 1000;
   // «dentro»: los cabinets que caben en la medida, con 5 mm de tolerancia (las medidas en mm de una oferta suelen ir
   // redondeadas: 7 × 337,5 = 2362,5 mm se escribe «2362» y no debe quedarse en 6 filas)
-  const f = (lado, c) => (ajuste === 'dentro' ? Math.floor((lado + 0.005) / c + 1e-6) : Math.round(lado / c));
+  const f = (lado, c) => (ajuste === 'dentro' ? Math.floor((lado + TOL_M) / c + 1e-6) : Math.round(lado / c));
   const cols = Math.max(1, f(sup.ancho, cw)), rows = Math.max(1, f(sup.alto, ch));
   const cab = cols * rows;
   const resW = cols * m.cabPixAncho, resH = rows * m.cabPixAlto, pix = resW * resH;

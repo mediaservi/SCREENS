@@ -80,7 +80,17 @@ export const HOLGURA = { h: 0.40, v: 0.20, sinMampara: 1.5 };
 export let MOSAICO_MAX = 15;   // proyectores por superficie como mucho (mosaico)
 /* v11.48 · los umbrales vienen de BRIAN (panel AVHUB ADMIN) cuando los hay: screens/brian.js */
 export function fijaParamsProy(b) { SOLAPE_MIN = b['proy.solape.minimo']; SOLAPE_RECO = b['proy.solape.recomendado']; SOLAPE_MAX = b['proy.solape.maximo']; RECORTE_MAX = b['proy.recorte.maximo'];
-  HOLGURA.h = b['proy.holgura.lado']; HOLGURA.v = b['proy.holgura.vertical']; HOLGURA.sinMampara = b['proy.holgura.sinMampara']; MOSAICO_MAX = b['proy.mosaico.maximo']; }
+  HOLGURA.h = b['proy.holgura.lado']; HOLGURA.v = b['proy.holgura.vertical']; HOLGURA.sinMampara = b['proy.holgura.sinMampara']; MOSAICO_MAX = b['proy.mosaico.maximo']; ALTO_PERSONA = b['proy.persona.alto'];
+  /* v11.49 · cuerpos: chasis y separación de cada modelo (proy.chasis.<modelo>, proy.separacion.<modelo>); sin dato, el de la ficha o el general */
+  const md = (v) => String(v == null ? '' : v).split(/[x×*\/]/i).map((x) => Number(String(x).replace(',', '.').trim())).filter((n) => isFinite(n) && n >= 0);
+  const sl = (m) => String(m || '').replace(/\+/g, 'plus').replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '');
+  const def = md(b['proy.chasis.defecto']);
+  PROYECTORES.forEach((q) => {
+    if (!q._orig) q._orig = { chasis: q._sinChasis ? null : q.chasis, holgEsq: q.holgEsq, holgSin: q.holgSin };
+    const c = md(b['proy.chasis.' + sl(q.modelo)]), h = md(b['proy.separacion.' + sl(q.modelo)]);
+    q.chasis = c.length === 3 && c.every((x) => x > 0) ? c : q._orig.chasis || (def.length === 3 ? def : [0.55, 0.45, 0.2]);
+    if (h.length >= 1 && h[0] > 0) { q.holgEsq = h[0]; q.holgSin = h[1] > 0 ? h[1] : q._orig.holgSin; } else { q.holgEsq = q._orig.holgEsq; q.holgSin = q._orig.holgSin; }
+  }); }
 /* v11.14 · separación mínima entre chasis de cada modelo, la del manual del fabricante con mampara entre equipos (Josep, 24-11-2026): [con mampara, sin mampara], en m.
    EB-815E 20 cm (110 sin mampara) · EB-805F mampara a 40 cm de la salida de aire y a 20 cm de las entradas (120 sin mampara) · serie L695SE/L795SE/L695SU 20 y 40 cm
    (150 sin mampara); donde el manual da dos cifras (lado de salida y lado de entrada) se aplica la mayor, 40 cm · EB-PQ 30 cm (70 sin mampara). Los modelos que no están aquí usan la general (HOLGURA): de los EB-PU1006W/1007B/1008B/2010B el manual
@@ -97,7 +107,7 @@ function leer() {
     const [aw, ah] = c[5].split(':').map(Number);
     const px = (c[6].match(/(\d{3,5})\s*x\s*(\d{3,5})/) || []).slice(1).map(Number);
     const base = { marca: c[0], modelo: c[1], serie: c[2] === 'fija' ? '' : c[2], ar: aw / ah, arTxt: c[5], resX: px[0] || 1920, resY: px[1] || 1080, resTxt: c[6],
-      k4: /4K/i.test(c[7]), k4nativo: c[7] === '4K', maxDiagPulg: Number(c[8]), maxDiagPulgOOS: Number(c[9]), imagen: c[10] || '', chasis: CHASIS[c[1]] || [0.55, 0.45, 0.2], ...(HOLG_MODELO[c[1]] ? { holgEsq: HOLG_MODELO[c[1]][0], holgSin: HOLG_MODELO[c[1]][1] } : {}) };
+      k4: /4K/i.test(c[7]), k4nativo: c[7] === '4K', maxDiagPulg: Number(c[8]), maxDiagPulgOOS: Number(c[9]), imagen: c[10] || '', chasis: CHASIS[c[1]] || [0.55, 0.45, 0.2], _sinChasis: !CHASIS[c[1]], ...(HOLG_MODELO[c[1]] ? { holgEsq: HOLG_MODELO[c[1]][0], holgSin: HOLG_MODELO[c[1]][1] } : {}) };
     const combo = (optica, tr, lumens, sh, x) => ({ ...base, id: c[1] + (optica ? '|' + optica : ''), optica, nombre: c[1] + (optica ? ' + ' + optica : ''),
       trMin: Math.min(...tr), trMax: Math.max(...tr), lumens, ust: Math.min(...tr) < 0.4, shiftV: sh[0] || 0, shiftVcontra: sh[0] || 0, shiftH: sh[1] || 0, shiftSube: !!sh[2], ...(x || {}) });
     if (c[2] === 'fija') { const F = FIJA_EPSON[c[1]] || {}, tr = c[3].replace(':1', '').split('-').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
@@ -372,7 +382,7 @@ export function sugerir(sups, alcances, opc = {}) {
 }
 
 // ---------- Colocación de los proyectores y sombras del público ----------
-export const ALTO_PERSONA = 1.85;   // persona de 1,75 m con margen (cabeza y pelo)
+export let ALTO_PERSONA = 1.85;   // persona de 1,75 m con margen (cabeza y pelo)
 // pasa un punto local de la superficie (x a lo ancho, y alto, z hacia la sala) a coordenadas de la escena
 const aMundo = (s, x, y, z) => ({ x: s.x + x * Math.cos(s.rot) + z * Math.sin(s.rot), y, z: s.z - x * Math.sin(s.rot) + z * Math.cos(s.rot) });
 // Proyectores de una pared: lente a la distancia de tiro, uno por imagen de la rejilla (columnas × filas).

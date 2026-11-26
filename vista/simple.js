@@ -8,8 +8,9 @@
    Los enlaces antiguos con ?vista=simple|pro siguen funcionando: se aceptan y se ignoran. Textos en español, inglés y catalán.
    Licencia GPL-3.0 · mediaservi.com */
 import { PROYECTORES } from '../screens/proyeccion.js';
+import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.48';
+const VERSION = 'v11.49';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -275,7 +276,7 @@ const listo = () => (PAG === 'portada' ? !!B() : !!C());
 const ED = () => (PAG === 'portada' ? B().E : C().E);
 let tRe = 0;
 const recalc = () => { if (PAG === 'portada') B().todo(); else { clearTimeout(tRe); tRe = setTimeout(() => C().actualizar(), 0); } };
-const distDef = () => (ED().tipo === 'OUTDOOR' ? 8 : 3);
+const distDef = () => (ED().tipo === 'OUTDOOR' ? BR['led.distancia.exterior'] : BR['led.distancia.interior']);   /* v11.49 · BRIAN */
 /* en la consola, qué se puede enseñar en SIMPLE: una proyección (pared o fachada) o una sala entera de proyección */
 /* v10.55 · también varias pantallas LED iguales y la sala LED entera (una sola pantalla LED se calcula en la portada) */
 const modoCons = () => { const E = C().E; if (E.tecnologia === 'led') return E.cantidad === 'varias' ? (E.esp.tipo === 'sala' ? 'salaLed' : 'variasLed') : 'led'; if (E.cantidad === 'varias') return E.esp.tipo === 'sala' ? 'sala' : 'varias'; return E.proy.tipo === 'mapping' ? 'mapping' : 'pared'; };

@@ -345,3 +345,17 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
 .vu-frase .ss-linea { display: block !important; }
 .vu-frase .ss-linea .ss-l2 { display: block !important; font-size: 13px; margin-top: 2px; }
 .vu-frase .ss-lsep { display: none; }
+/* v11.43 · barra fija del móvil en vertical: DATOS · SIMULACIÓN · RESULTADO · COMPARTIR */
+.vu-barra { display: none; }
+@media (max-width: 559px) and (orientation: portrait) {
+  .vu-barra { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--ss-blk) 94%, transparent); border-top: 1px solid var(--ss-linea);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .vu-barra button { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px;
+    background: transparent; color: var(--ss-txt); font: 800 11px/1 Inter, system-ui, sans-serif; letter-spacing: .04em; padding: 0 2px; min-width: 0; }
+  .vu-barra button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vu-barra .ss-ic { width: 20px; height: 20px; }
+  .vu-barra button:active { background: var(--ss-blk2); }
+  body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+  .blocks { bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
+}

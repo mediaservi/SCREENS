@@ -7,10 +7,9 @@
    - encima de RESULTADOS, la frase del resultado (el equipo, la medida y cuántos) y COMPARTIR, que copia el resumen en texto.
    Los enlaces antiguos con ?vista=simple|pro siguen funcionando: se aceptan y se ignoran. Textos en español, inglés y catalán.
    Licencia GPL-3.0 · mediaservi.com */
-import { HUMAN_PATH } from '../screens/figura.js';
 import { PROYECTORES } from '../screens/proyeccion.js';
 
-const VERSION = 'v11.42';
+const VERSION = 'v11.43';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -37,7 +36,7 @@ ponApila();
 /* ---------- textos ---------- */
 const T = {
   es: {
-    sw: 'Te hago unas preguntas sencillas y te digo qué necesitas', ayu: 'AYÚDAME A ELEGIR',
+    sw: 'Te hago unas preguntas sencillas y te digo qué necesitas', ayu: 'AYÚDAME A ELEGIR', bDatos: 'DATOS', bSim: 'SIMULACIÓN', bRes: 'RESULTADO', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', necesitas: 'LO QUE NECESITAS', nCabs: 'Cabinets', nProc: 'Procesador LED', nMedia: 'Mediaserver', nRed: 'Cableado de datos', nRedV: (a) => a + ' líneas Ethernet + ' + a + ' de backup', nLuz: 'Electricidad', nLuzV: (k, n) => k + ' kW · ' + n + ' líneas de 16 A', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
     pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER EL RESULTADO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
     calculando: 'Calculando…', cargando: 'Cargando el catálogo…', sinCat: 'No se ha podido leer el catálogo. Revisa la conexión.', reintentar: 'REINTENTAR', vacio: 'No hay pantallas para estos datos: cambia dónde va o el tamaño.',
@@ -97,7 +96,7 @@ const T = {
     pers: 'Persona de 1,75 m', proy: 'Proyector'
   },
   en: {
-    sw: 'A few simple questions and I tell you what you need', ayu: 'HELP ME CHOOSE',
+    sw: 'A few simple questions and I tell you what you need', ayu: 'HELP ME CHOOSE', bDatos: 'INPUT', bSim: 'SIMULATION', bRes: 'RESULT', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', necesitas: 'WHAT YOU NEED', nCabs: 'Cabinets', nProc: 'LED processor', nMedia: 'Media server', nRed: 'Data cabling', nRedV: (a) => a + ' Ethernet lines + ' + a + ' backup', nLuz: 'Power', nLuzV: (k, n) => k + ' kW · ' + n + ' 16 A circuits', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
     pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE THE RESULT', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
     calculando: 'Calculating…', cargando: 'Loading the catalogue…', sinCat: 'The catalogue could not be read. Check your connection.', reintentar: 'RETRY', vacio: 'No screens for these details: change where it goes or the size.',
@@ -155,7 +154,7 @@ const T = {
     pers: '1.75 m person', proy: 'Projector'
   },
   ca: {
-    sw: 'Et faig unes preguntes senzilles i et dic què necessites', ayu: 'AJUDA’M A TRIAR',
+    sw: 'Et faig unes preguntes senzilles i et dic què necessites', ayu: 'AJUDA’M A TRIAR', bDatos: 'DADES', bSim: 'SIMULACIÓ', bRes: 'RESULTAT', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', necesitas: 'EL QUE NECESSITES', nCabs: 'Cabinets', nProc: 'Processador LED', nMedia: 'Mediaserver', nRed: 'Cablejat de dades', nRedV: (a) => a + ' línies Ethernet + ' + a + ' de backup', nLuz: 'Electricitat', nLuzV: (k, n) => k + ' kW · ' + n + ' línies de 16 A', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
     pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE EL RESULTAT', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
     calculando: 'Calculant…', cargando: 'Carregant el catàleg…', sinCat: 'No s’ha pogut llegir el catàleg. Revisa la connexió.', reintentar: 'TORNA-HO A PROVAR', vacio: 'No hi ha pantalles per a aquestes dades: canvia on va o la mida.',
@@ -302,35 +301,10 @@ const trTxt = (q) => (q.trMax - q.trMin > .005 ? fmt(q.trMin, 2) + '–' + fmt(q
 const anchoNat = () => { const c = proyC(), f = paredF(); return c && f && f.p && f.p.tMin > 0 && c.proyector.trMin > 0 ? f.p.tMin / c.proyector.trMin : 0; };
 const AJ_ELEC = ['proyEq', 'sel', 'selMedia', 'selBlend', 'marca', 'dante'];
 const AJ_LEDC = ['crm', 'ajuste', 'transp', 'gold', 'protegido', 'sol', 'nitsMin'];   /* el LED de la consola: lo que solo se toca en PRO */
-function ajustesPro() {
-  if (!listo()) return 0;
-  if (PAG === 'portada') { const E = B().E, D = B().DEF; return AJ_LED.filter((k) => JSON.stringify(E[k]) !== JSON.stringify(D[k])).length; }
-  const E = C().E, D = C().DEF();
-  if (esLedC()) return AJ_LEDC.filter((k) => JSON.stringify(E.led[k]) !== JSON.stringify(D.led[k])).length + AJ_ELEC.filter((k) => k !== 'proyEq' && k !== 'selBlend' && JSON.stringify(E.elec[k]) !== JSON.stringify(D.elec[k])).length + ((E.esp.obst || []).length ? 1 : 0);
-  return AJ_PROY.filter((k) => JSON.stringify(E.proy[k]) !== JSON.stringify(D.proy[k])).length + AJ_ELEC.filter((k) => JSON.stringify(E.elec[k]) !== JSON.stringify(D.elec[k])).length + ((E.esp.obst || []).length ? 1 : 0);
-}
-function restablecePro() {
-  if (PAG === 'portada') { const E = B().E, D = B().DEF; AJ_LED.forEach((k) => { E[k] = D[k]; }); B().todo(); return; }
-  const E = C().E, D = C().DEF();
-  if (esLedC()) { AJ_LEDC.forEach((k) => { E.led[k] = D.led[k]; }); AJ_ELEC.forEach((k) => { E.elec[k] = D.elec[k]; }); E.esp.obst = []; E.esp.sueltas.central = false; C().actualizar(); return; }
-  AJ_PROY_T.forEach((k) => { E.proy[k] = D.proy[k]; }); AJ_ELEC.forEach((k) => { E.elec[k] = D.elec[k]; }); E.esp.obst = []; C().actualizar();
-}
-
-/* ---------- el cuerpo SIMPLE (en el sitio de la rejilla de PRO) y la raíz del asistente ----------
+/* ---------- la raíz del asistente ----------
    La portada lo pone detrás de #rejilla, dentro de la plantilla de PRO (su fila del medio). La consola, detrás de #app (en el cuerpo escalado
    a 1920 de ancho en escritorio); el asistente y los avisos van fuera de esa escala, en <html>, como las ventanas de la consola. */
-let cuerpo = null, raiz = null, montado = '', W = null, tPinta = 0, primera = true, FALLO = false;
-function cuerpoNuevo() {
-  if (cuerpo && cuerpo.isConnected) return cuerpo;
-  const ref = document.getElementById(PAG === 'portada' ? 'rejilla' : 'app');
-  /* sin la plantilla de PRO (el cálculo no ha llegado a cargar), el aviso va solo en la página, para poder volver a cargarla */
-  if (!ref && !(FALLO && document.body)) return null;
-  if (!cuerpo) { cuerpo = document.createElement('main'); cuerpo.id = 'simple'; cuerpo.className = 'ss ss-cuerpo'; cuerpo.setAttribute('aria-label', 'SCREENS SIMPLE'); cuerpo.addEventListener('click', clic); cuerpo.addEventListener('keydown', tecla);
-    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'lostpointercapture'].forEach((k, i) => cuerpo.addEventListener(k, [arrIni, arrMueve, arrFin, arrFin, arrFin][i]));
-    cuerpo.addEventListener('touchmove', (e) => { if (ARR && ARR.mov) e.preventDefault(); }, { passive: false }); }   /* v10.56 · arrastrar en el dibujo */
-  cuerpo.hidden = vista !== 'simple'; if (ref) ref.insertAdjacentElement('afterend', cuerpo); else { cuerpo.classList.add('ss-solo'); document.body.appendChild(cuerpo); } montado = '';
-  return cuerpo;
-}
+let raiz = null, W = null, tPinta = 0, FALLO = false;
 function raizNueva() {
   if (raiz) return raiz;
   raiz = document.createElement('div'); raiz.id = 'ss-raiz'; raiz.className = 'ss ss-raiz'; raiz.setAttribute('data-crudo', ''); raiz.innerHTML = '<div id="ss-asis"></div>';
@@ -339,237 +313,10 @@ function raizNueva() {
   return raiz;
 }
 const sw = () => `<button type="button" class="ss-ayu" data-ss-ayu title="${esc(t('sw'))}" aria-label="${esc(t('ayu'))}">${ic('varita')}<span>${esc(t('ayu'))}</span></button>`;
-function monta() {
-  montado = LG();
-  cuerpo.innerHTML = '<section class="ss-blk ss-resumen" id="ss-resumen" aria-live="polite"></section><section class="ss-blk ss-sim" id="ss-sim"></section><section class="ss-blk ss-res" id="ss-res" aria-live="polite"></section>';
-}
 const cab = (k, txt, extra) => `<h2 class="ss-tit" data-crudo>${ic(k)}<span class="ss-fit">${esc(txt)}</span>${extra || ''}</h2>`;
 const espera = () => (FALLO ? `<p class="ss-msg" data-crudo>${esc(t('sinMotor'))}</p><button type="button" class="ss-mini ss-grande" data-ss="recarga">${esc(t('recargar'))}</button>` : `<p class="ss-espera" data-crudo>${esc(t('calculando'))}</p>`);
 
 /* LO QUE PIDES: una línea por dato, y cada una abre solo su pregunta */
-function filas() {
-  const E = ED();
-  if (PAG === 'portada') {
-    const donde = { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[E.tipo] + (E.tipo !== 'INDOOR' && E.sol ? ' · ' + (E.sol === 'directo' ? t('vSolD') : t('vSolI')) : '') + (E.gold ? ' · ' + t('vMar') : '');
-    return [['donde', 'casa', t('sDonde'), donde], ['uso', 'pin', t('sUso'), E.clase === 'RENTAL' ? t('vRental') : t('vFija')], ['medida', 'regla', t('sTam'), (() => { const u = { m: 1, cm: 100, mm: 1000 }[E.uni] ? E.uni : 'm', k = { m: 1, cm: 100, mm: 1000 }[u]; return (u === 'm' ? fm(E.w) + ' × ' + fm(E.h) : fmt(E.w * k, 0) + ' × ' + fmt(E.h * k, 0)) + ' ' + u; })()],   /* v10.63 · en la unidad en que se pidió */
-      ['dist', 'ojo', t('sDist'), E.dist ? fm(E.dist) + ' m' : +E.pitch ? t('vSinDist').split(' · ')[0] : t('vSinDist')], E.tipo === 'INDOOR' ? ['tocar', 'mano', t('sToca'), E.protegido ? t('si') : t('no')] : null,
-      ['altura', 'altura', t('sAlt'), +E.elev ? fmt(E.elev, 0) + ' cm' : t('vSuelo')],
-      /* v10.63 · el pitch pedido (en la petición o en PRO) se ve aquí, no como «ajuste de PRO» */
-      +E.pitch ? ['lpitch', 'calidad', t('sPitch'), [E.pitch].concat(E.pitchOtros || []).map((x) => 'P' + fm(x)).join(' · ')] : null].filter(Boolean);
-  }
-  if (esLedC()) {   /* v10.55 · varias pantallas LED o sala LED */
-    const mL = modoCons(), L = E.led, sL = E.esp.sueltas, o = [['ltipo', mL === 'salaLed' ? 'cubo' : 'led', t('sQue'), mL === 'salaLed' ? t('vSalaLed') : t('vVariasLed')]];
-    if (mL === 'salaLed') o.push(['ltam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => p !== 'suelo' && E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
-    else o.push(['ltam', 'regla', t('sPants'), (() => { const L = tamsDe(sL), x = tamsTxt(L); return x ? L.length + ' · ' + x : t('vPants')(L.length, fm(L[0][0]), fm(L[0][1])); })()], ['ldonde', 'casa', t('sDonde'), { INDOOR: t('vIn'), OUTDOOR: t('vOut'), ESCAPARATE: t('vEsc') }[L.tipo] || L.tipo]);
-    o.push(['luso', 'pin', t('sUso'), L.clase === 'RENTAL' ? t('vRental') : t('vFija')]);
-    if (mL === 'variasLed') o.push(['ldist', 'ojo', t('sDist'), fm(sL.dist) + ' m']);
-    return o;
-  }
-  const m = modoCons(), s = E.esp.sueltas, lux = Number(E.proy.lux), luz = luzDe(E), mont = E.proy.montaje === 'colgado' ? t('vCol') : E.proy.montaje === 'apoyado' ? t('vApo') : t('vAuto');
-  const out = [['ptipo', m === 'sala' ? 'cubo' : m === 'mapping' ? 'edificio' : 'pared', t('sDonde'), m === 'sala' ? t('vSala') : m === 'mapping' ? t('vMap') : t('vPared')]];
-  if (m === 'sala') out.push(['ptam', 'regla', t('sSala'), fm(E.esp.ancho) + ' × ' + fm(E.esp.fondo) + ' × ' + fm(E.esp.alto) + ' m · ' + PAREDES.filter((p) => E.esp.paredes[p]).map((p) => t(p)).join(', ')]);
-  else out.push(['ptam', 'regla', t('sImg'), fm(s.ancho) + ' × ' + fm(s.alto) + ' m']);
-  out.push(['luz', luz ? luz[3] : 'bombilla', t('sLuz'), (luz ? t(luz[2])[0] : t('vMano')) + ' · ' + fmt(lux, 0) + ' lx']);   /* v10.63 · también en mapping: la luz arranca en 140 lx como en Epson y se puede cambiar */
-  if (m === 'pared') out.push(['pub', 'persona', t('sPub'), E.proy.pubNS ? t('vPubNS') : fm(s.dist) + ' m']);
-  if (m !== 'mapping') out.push(['mont', E.proy.montaje === 'apoyado' ? 'mesa' : 'techo', t('sMont'), mont]);
-  if (m === 'pared' && E.proy.montaje === 'colgado') out.push(['techo', 'altura', t('sTecho'), +s.techo > 0 ? fm(s.techo) + ' m' : '—']);
-  /* v10.53 · la óptica que lleva el proyector (con su relación de proyección) y la distancia a la que va: se ven siempre y se pueden cambiar */
-  /* v10.54 · una sola pregunta para la distancia del proyector (un margen o un sitio fijo), la óptica que lleva y, si hay más de una, las marcas */
-  if (m === 'pared' || m === 'mapping') { const a = Number(E.proy.distMin) || 0, b = Number(E.proy.distMax) || 0, d = Number(E.proy.dist) || 0; out.push(['pcabe', 'regla', t('sCabe'), d ? t('vCabeE')(fm(d)) : a || b ? t('vCabe')(a ? fm(a) : '', b ? fm(b) : '') : t('vCabeN')]); }
-  const c0 = proyC();
-  if (c0 && (m === 'pared' || m === 'mapping') && c0.proyector.optica && E.proy.optica) out.push(['popt', 'proy', t('sOpt'), c0.proyector.optica + ' · ' + trTxt(c0.proyector) + (E.proy.optica ? '' : ' · ' + t('vAutoC'))]);
-  if ((C().MARCAS || []).length > 1 && C().marcas().length < C().MARCAS.length) out.push(['pmarca', 'fabrica', t('sMarca'), C().marcas().join(' · ')]);
-  return out;
-}
-function pintaResumen() {
-  const el = document.getElementById('ss-resumen'); if (!el) return; el.setAttribute('data-crudo', '');
-  if (!listo()) { el.innerHTML = cab('lista', t('pides')) + espera(); return; }
-  if (PAG === 'consola' && (modoCons() === 'led' || modoCons() === 'varias')) { el.innerHTML = cab('lista', t('pides')) + `<p class="ss-msg">${esc(modoCons() === 'led' ? t('soloLed') : t('soloVarias'))}</p><button type="button" class="ss-ancho" data-ss="asis">${ic('varita')}<span class="ss-fit">${esc(t('repetir'))}</span></button>`; return; }
-  const n = ajustesPro();
-  el.innerHTML = cab('lista', t('pides')) + `<div class="ss-filas">${filas().map((f) => `<button type="button" class="ss-fila" data-ss-q="${f[0]}" aria-label="${esc(t('cambiar') + ': ' + f[2])}">${ic(f[1])}<span class="ss-fk ss-fit">${esc(f[2])}</span><b class="ss-fv ss-fit">${esc(f[3])}</b>${ic('lapiz', 'ss-lapiz')}</button>`).join('')}</div>` +
-    (n ? `<div class="ss-ajpro" title="${esc(t('ajProT'))}"><span class="ss-fit">${ic('pro')}${esc(t('ajPro')(n))}</span><button type="button" class="ss-mini" data-ss="restablece">${esc(t('restablecer'))}</button></div>` : '') +
-    necesitasLed() + `<button type="button" class="ss-ancho" data-ss="asis">${ic('varita')}<span class="ss-fit">${esc(t('repetir'))}</span></button>`;
-}
-/* v10.88 · VARIAS LED en SIMPLE: debajo de lo que pides, lo que necesitas (el equipo principal), sin huecos vacíos y sin tecnicismos */
-function necesitasLed() {
-  if (!esLedC()) return ''; const c = C().c; if (!c || !c.modelo || !c.tot) return ''; const T2 = c.tot, x = c.elec || {}, lin = Math.max(1, Math.ceil((T2.amp || 0) / 16));
-  const f = [['led', t('nCabs'), fmt(T2.cab, 0) + ' × ' + c.modelo.crm], x.proc ? ['chip', t('nProc'), x.proc.marca + ' ' + x.proc.modelo] : null, x.media ? ['media', t('nMedia'), x.media.marca + ' ' + x.media.modelo] : null, ['red', t('nRed'), t('nRedV')(fmt(T2.lineas, 0))], T2.kw > 0 ? ['rayo', t('nLuz'), t('nLuzV')(fmt(T2.kw, 1), lin)] : null].filter(Boolean);
-  return `<div class="ss-nec"><div class="ss-nec-t">${esc(t('necesitas'))}</div>${f.map((r) => `<div class="ss-nec-f">${ic(r[0])}<span class="ss-fk">${esc(r[1])}</span><b class="ss-fv">${esc(r[2])}</b></div>`).join('')}</div>`;
-}
-
-/* simulación: la de PRO de la portada, limpia (sin los cuadros de datos ni el rótulo de abajo), o un corte lateral propio para la proyección */
-let FIG = null;
-function figBox() { if (FIG) return FIG; FIG = { x: 0, y: 0, width: 6400, height: 12800 }; try { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('style', 'position:absolute;width:0;height:0;visibility:hidden'); s.innerHTML = `<path d="${HUMAN_PATH}"/>`; document.body.appendChild(s); const q = s.firstChild.getBBox(); if (q.height > 0) FIG = q; s.remove(); } catch (e) {} return FIG; }
-const figura = (cx, suelo, k, attr) => { const F = figBox(), e = 1.75 * k / F.height; return `<g transform="translate(${(cx - (F.x + F.width / 2) * e).toFixed(1)},${(suelo + F.y * e).toFixed(1)}) scale(${e.toFixed(5)},${(-e).toFixed(5)})" ${attr || ''}><path d="${HUMAN_PATH}"/></g>`; };
-function simProy(prop, ancho, anchoPx) {
-  GEO = null;
-  const c = C().c, E = C().E; if (!c || !c.filas || !c.filas.length) return '';
-  /* rótulos que se lean también en el móvil: unos 14 px en pantalla como mínimo */
-  const m = modoCons(), fz = Math.max(28, Math.round(14 * 1000 / Math.max(200, ancho || 1000))), ft = Math.round(fz * .86), sz = (f) => ` style="font-size:${f}px"`;
-  if (m === 'variasLed') {   /* v10.55 · varias pantallas LED: alzado de frente, a escala, con la silueta de 1,75 m */
-    const fs = c.filas.filter((x) => x.r); if (!fs.length) return '';
-    const sep = Math.max(0, +E.esp.sueltas.sep || 0), el = Math.max(0, +E.esp.sueltas.elev || 0), anT = fs.reduce((a, x) => a + x.r.ancho, 0) + sep * (fs.length - 1), alT = Math.max(1.95, ...fs.map((x) => el + x.r.alto)) + .25, hueco = 1.1;
-    const VW = 1000, VH = Math.round(VW / Math.max(1.1, Math.min(2.8, prop || 1.8))), mX = 40, mT = 30, mB = Math.max(70, Math.round(fz * 2.5)), k = Math.min((VW - mX * 2) / (anT + hueco), (VH - mT - mB) / alT), suelo = VH - mB, x0 = (VW - (anT + hueco) * k) / 2 + hueco * k;
-    let g = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMax meet" role="img" aria-label="${esc(t('sim'))}"><line x1="0" y1="${suelo}" x2="${VW}" y2="${suelo}" stroke="var(--ss-linea)" stroke-width="3"/>`, x = x0;
-    g += figura(x0 - hueco * k * .5, suelo, k, 'fill="var(--ss-tenue)" fill-opacity=".85"');
-    fs.forEach((f) => { const w = f.r.ancho * k, h = f.r.alto * k, y = suelo - (el + f.r.alto) * k; g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="var(--ss-acento)" fill-opacity=".18" stroke="var(--ss-acento)" stroke-width="3"/>`; x += w + sep * k; });
-    const f0 = fs[0], yc = suelo + Math.max(48, Math.round(fz * 1.6));
-    g += `<line x1="${x0.toFixed(1)}" y1="${yc}" x2="${(x0 + anT * k).toFixed(1)}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${x0.toFixed(1)}" y1="${yc - 9}" x2="${x0.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${(x0 + anT * k).toFixed(1)}" y1="${yc - 9}" x2="${(x0 + anT * k).toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/>`;
-    const Lr = fs.map((x) => [x.r.ancho, x.r.alto]), xr = tamsTxt(Lr);
-    g += `<text x="${(x0 + anT * k / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${esc(xr || t('vPants')(fs.length, fm(f0.r.ancho), fm(f0.r.alto)))}</text></svg>`;
-    return g;
-  }
-  if (m === 'sala' || m === 'salaLed') {   /* sala entera: planta con las paredes iluminadas (de proyección o de LED) */
-    const A = Math.max(1, +E.esp.ancho || 1), F = Math.max(1, +E.esp.fondo || 1), VW = 1000, VH = Math.round(VW / Math.max(.9, Math.min(2.6, prop || 1.6))), k = Math.min((VW - 300) / A, (VH - 160) / F), x0 = (VW - A * k) / 2, y0 = (VH - F * k) / 2 - 6, P2 = m === 'salaLed' ? { ...E.esp.paredes, suelo: false } : E.esp.paredes, on = 'var(--ss-acento)', off = 'var(--ss-linea)';
-    const muro = (x1, y1, x2, y2, p) => { const v = x1 === x2, an = v ? (x1 < VW / 2 ? 'end' : 'start') : 'middle', tx = v ? x1 + (x1 < VW / 2 ? -20 : 20) : (x1 + x2) / 2, ty = v ? (y1 + y2) / 2 + 8 : y1 + (y1 < VH / 2 ? -18 : 36);
-      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P2[p] ? on : off}" stroke-width="${P2[p] ? 12 : 6}" stroke-linecap="round"/>` + (P2[p] ? (v ? `<text x="${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)}" y="${(y1 + y2) / 2}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${x1 < VW / 2 ? -90 : 90} ${x1 + (x1 < VW / 2 ? -1 : 1) * (14 + ft * .4)} ${(y1 + y2) / 2})" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>` : `<text x="${tx}" y="${ty}" text-anchor="${an}" class="ss-sv-t"${sz(ft)}>${esc(t(p))}</text>`) : ''); };   /* v10.53 · izquierda y derecha, en vertical junto a su pared: caben siempre */
-    let g = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(t('sim'))}">`;
-    g += `<rect x="${x0}" y="${y0}" width="${A * k}" height="${F * k}" fill="${P2.suelo ? 'color-mix(in srgb, var(--ss-acento) 16%, transparent)' : 'var(--ss-campo)'}" rx="4"/>`;
-    g += muro(x0, y0, x0 + A * k, y0, 'frontal') + muro(x0, y0, x0, y0 + F * k, 'izquierda') + muro(x0 + A * k, y0, x0 + A * k, y0 + F * k, 'derecha') + muro(x0, y0 + F * k, x0 + A * k, y0 + F * k, 'trasera');
-    (c.sombras && c.sombras.haces || []).forEach((h) => { if (!h.lente) return; const px = x0 + (h.lente.x + A / 2) * k, pz = y0 + (h.lente.z + F / 2) * k; if (px < x0 - 40 || px > x0 + A * k + 40 || pz < y0 - 40 || pz > y0 + F * k + 40) return; g += `<circle cx="${px.toFixed(1)}" cy="${pz.toFixed(1)}" r="9" fill="var(--ss-violeta)" stroke="#fff" stroke-width="2"/>`; });
-    g += `<text x="${VW / 2}" y="${(y0 + F * k - 22).toFixed(1)}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(A)} × ${fm(F)} m</text></svg>`;
-    return g;
-  }
-  const f = c.filas.find((x) => x.s.tipo !== 'suelo') || c.filas[0], s = f.s, pos = f.pos || {};
-  const dReal = +pos.dist || 0, dP = Math.max(.5, dReal), dPub = m === 'pared' && !E.proy.pubNS ? Math.max(0, +c.dist || 0) : 0, y0 = isFinite(pos.y0) ? pos.y0 : s.elev, y1 = isFinite(pos.y1) ? pos.y1 : s.elev + s.alto;
-  const techo = m === 'pared' && pos.techo > 0 ? +pos.techo : 0, yL = isFinite(pos.yLente) ? pos.yLente : (y0 + y1) / 2;
-  /* v10.56 · el proyector y la persona se arrastran. Mientras se arrastra, la escala del dibujo es la que había al cogerlo (o la que se va
-     abriendo al llegar al borde): así lo que se lleva no se mueve solo bajo el dedo */
-  const vf = ARR && ARR.v, D = vf ? vf.D : Math.max(dP, dPub) + Math.max(1.4, dP * .12), H = vf ? vf.H : Math.max(techo || 0, y1, yL, 2.2) + .7;
-  const zona = arrLim('proy'), arrP = zona.length > 1 || (zona.length === 1 && zona[0][1] - zona[0][0] > .04), arrU = dPub > 0 && (dPub < D || !!vf);
-  const pista = arrP && arrU ? t('arrAmbos') : arrP ? t('arrProy') : arrU ? t('arrPub') : '';
-  const VW = 1000, VH = Math.round(VW / Math.max(1.1, Math.min(2.8, prop || 1.8))), mL = 50, mR = Math.max(90, Math.round(30 + fz * 3.9)), mB = Math.max(70, Math.round(fz * 2.5));
-  /* u: lo que mide un píxel de pantalla en unidades del dibujo, contando la escala de la plantilla (las asas, las flechas y la pista se ven
-     igual de grandes en la tele que en el móvil) */
-  const aPx = anchoPx || ancho || VW, u = 1 / Math.max(.05, Math.min(aPx / VW, aPx / (prop || 1.8) / VH)), tac = 44 * u, on = (q) => (ARR && ARR.q === q ? ' on' : ''), fp = Math.round(12.5 * u), mT = 34 + (pista ? Math.round(fp * 1.7) : 0);
-  const k = Math.min((VW - mL - mR) / D, (VH - mT - mB) / H), suelo = VH - mB, muroX = mL + D * k, X = (d) => muroX - d * k, Y = (h) => suelo - h * k;
-  GEO = { k, muroX, VW, VH, D, H };
-  const fle = (x, y, d, col) => `<path class="ss-arr-f" d="M${x.toFixed(1)},${(y - 6 * u).toFixed(1)} l${(d * 6 * u).toFixed(1)},${(6 * u).toFixed(1)} l${(-d * 6 * u).toFixed(1)},${(6 * u).toFixed(1)}" fill="none" stroke="${col}" stroke-width="${(2.4 * u).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const asa = (q, lim, v) => `class="ss-arr${on(q)}" data-ss-arr="${q}" tabindex="0" role="slider" aria-orientation="horizontal" aria-label="${esc(t(q === 'proy' ? 'arrProyA' : 'arrPubA'))}" aria-valuemin="${lim[0][0]}" aria-valuemax="${lim[lim.length - 1][1]}" aria-valuenow="${Math.round(v * 100) / 100}" aria-valuetext="${esc(fm(v))} m"`;
-  let g = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMax meet" role="img" aria-label="${esc(t('sim'))}">`;
-  if (pista) { const py = 16 + fp * .62, pw2 = 20 * u, px = 22;
-    g += `<path d="M${px},${py.toFixed(1)} h${pw2.toFixed(1)} M${(px + 5 * u).toFixed(1)},${(py - 5 * u).toFixed(1)} L${px},${py.toFixed(1)} l${(5 * u).toFixed(1)},${(5 * u).toFixed(1)} M${(px + pw2 - 5 * u).toFixed(1)},${(py - 5 * u).toFixed(1)} L${(px + pw2).toFixed(1)},${py.toFixed(1)} l${(-5 * u).toFixed(1)},${(5 * u).toFixed(1)}" fill="none" stroke="var(--ss-tenue)" stroke-width="${(2 * u).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/><text x="${(px + pw2 + 8 * u).toFixed(1)}" y="${(py + fp * .35).toFixed(1)}" class="ss-sv-p"${sz(fp)}>${esc(pista)}</text>`; }
-  g += `<line x1="0" y1="${suelo}" x2="${VW}" y2="${suelo}" stroke="var(--ss-linea)" stroke-width="3"/>`;
-  if (techo) g += `<line x1="0" y1="${Y(techo).toFixed(1)}" x2="${muroX}" y2="${Y(techo).toFixed(1)}" stroke="var(--ss-linea)" stroke-width="3" stroke-dasharray="10 8"/>`;
-  g += `<rect x="${muroX}" y="${Y(techo || H).toFixed(1)}" width="16" height="${(suelo - Y(techo || H)).toFixed(1)}" fill="var(--ss-linea)"/>`;
-  const lx = X(dP), ly = Y(yL);
-  g += `<polygon points="${lx.toFixed(1)},${ly.toFixed(1)} ${muroX},${Y(y1).toFixed(1)} ${muroX},${Y(y0).toFixed(1)}" fill="var(--ss-acento)" fill-opacity=".16" stroke="var(--ss-acento)" stroke-opacity=".55" stroke-width="2"/>`;
-  g += `<rect x="${muroX - 5}" y="${Y(y1).toFixed(1)}" width="10" height="${((y1 - y0) * k).toFixed(1)}" fill="var(--ss-acento)" rx="3"/>`;
-  /* el carril: por dónde puede ir el proyector con lo que has dicho y con su óptica */
-  /* v10.64 · en ámbar y a trazos, el tramo que solo vale fuera de especificación; encima, en violeta, el garantizado */
-  const cZ = C().c || {}, rail = (l, col, op, das) => redZ(l).forEach((z) => { const a = Math.max(0, X(z[1])), b = Math.min(muroX - 8, X(z[0])); if (b >= a) g += `<line class="ss-arr-c" x1="${a.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${b.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="${col}" stroke-opacity="${op}" stroke-width="${(5 * u).toFixed(1)}" stroke-linecap="round"${das ? ` stroke-dasharray="${(10 * u).toFixed(1)} ${(8 * u).toFixed(1)}"` : ''}/>`; });
-  const resta = (A, B) => { let out = (A || []).map((z) => [z[0], z[1]]); (B || []).forEach((b) => { const n = []; out.forEach((a) => { if (b[1] <= a[0] || b[0] >= a[1]) { n.push(a); return; } if (b[0] > a[0]) n.push([a[0], b[0]]); if (b[1] < a[1]) n.push([b[1], a[1]]); }); out = n; }); return out.filter((z) => z[1] - z[0] > .02); };
-  if (arrP) { if (cZ.zonaO) rail(resta(cZ.zonaO, cZ.zonaN), 'var(--ss-ambar)', '.75', true); rail(cZ.zonaN || zona, 'var(--ss-violeta)', '.45', false); }
-  const pw = Math.max(26, .5 * k), ph = Math.max(14, .22 * k);
-  let pr = '';
-  if (pos.apoyo) { const top = ly + ph / 2; pr += `<rect x="${(lx - pw * .9).toFixed(1)}" y="${top.toFixed(1)}" width="${(pw * 1.8).toFixed(1)}" height="6" fill="var(--ss-tenue)"/><line x1="${(lx - pw * .75).toFixed(1)}" y1="${top + 6}" x2="${(lx - pw * .75).toFixed(1)}" y2="${suelo}" stroke="var(--ss-tenue)" stroke-width="5"/><line x1="${(lx + pw * .75).toFixed(1)}" y1="${top + 6}" x2="${(lx + pw * .75).toFixed(1)}" y2="${suelo}" stroke="var(--ss-tenue)" stroke-width="5"/>`; }
-  else if (techo) pr += `<line x1="${lx.toFixed(1)}" y1="${Y(techo).toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(ly - ph / 2).toFixed(1)}" stroke="var(--ss-tenue)" stroke-width="5"/>`;
-  pr += `<rect class="ss-arr-m" x="${(lx - pw / 2).toFixed(1)}" y="${(ly - ph / 2).toFixed(1)}" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}" rx="5" fill="var(--ss-violeta)"/><circle cx="${(lx + pw / 2 - ph * .45).toFixed(1)}" cy="${ly.toFixed(1)}" r="${(ph * .28).toFixed(1)}" fill="#fff" fill-opacity=".85"/>`;
-  /* primero la persona y, encima, el proyector: cuando coinciden (el proyector en una mesa, a la altura del público) se pueden coger los dos */
-  if (arrU) { const ux = X(dPub), fw = Math.max(.62 * k, tac), fh = Math.max(1.8 * k, tac), fy = suelo - .95 * k, limU = arrLim('pub');
-    g += `<g ${asa('pub', limU, dPub)}><rect x="${(ux - fw / 2).toFixed(1)}" y="${(suelo - fh).toFixed(1)}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" fill="transparent"/>${figura(ux, suelo, k, 'class="ss-arr-m" fill="var(--ss-tenue)" fill-opacity=".85"')}${fle(ux - .31 * k - 5 * u, fy, -1, 'var(--ss-tenue)')}${fle(ux + .31 * k + 5 * u, fy, 1, 'var(--ss-tenue)')}</g>`; }
-  if (arrP) { const hw = Math.max(pw + 34 * u, tac), hh = Math.max(ph, tac);
-    g += `<g ${asa('proy', zona, dP)}><rect x="${(lx - hw / 2).toFixed(1)}" y="${(ly - hh / 2).toFixed(1)}" width="${hw.toFixed(1)}" height="${hh.toFixed(1)}" fill="transparent"/>${pr}${fle(lx - pw / 2 - 5 * u, ly, -1, 'var(--ss-violeta-t)')}${fle(lx + pw / 2 + 5 * u, ly, 1, 'var(--ss-violeta-t)')}</g>`; }
-  else g += pr;
-  /* la cota de abajo: la distancia del proyector o, mientras se lleva a la persona, la suya */
-  const dC = ARR && ARR.q === 'pub' && arrU ? dPub : dP, dTxt = ARR && ARR.q === 'pub' && arrU ? dPub : dReal, cx = X(dC), yc = suelo + Math.max(48, Math.round(fz * 1.6));
-  g += `<line x1="${cx.toFixed(1)}" y1="${yc}" x2="${muroX}" y2="${yc}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${cx.toFixed(1)}" y1="${yc - 9}" x2="${cx.toFixed(1)}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><line x1="${muroX}" y1="${yc - 9}" x2="${muroX}" y2="${yc + 9}" stroke="var(--ss-azul)" stroke-width="2.5"/><text x="${((cx + muroX) / 2).toFixed(1)}" y="${yc - 10}" text-anchor="middle" class="ss-sv-c"${sz(fz)}>${fm(dTxt)} m</text>`;   /* v10.63 · la cota dice la distancia de verdad (el dibujo no baja de 0,5 m para no aplastarse) */
-  g += `<text x="${muroX + 26}" y="${((Y(y0) + Y(y1)) / 2 + 9).toFixed(1)}" class="ss-sv-c"${sz(fz)}>${fm(s.alto)} m</text></svg>`;   /* v10.63 · el alto pedido (la imagen que sobra ya se ve en el dibujo) */
-  return g;
-}
-
-/* ---------- v10.56 · arrastrar en el dibujo: el proyector (dentro de lo que da su óptica y del margen de instalación que hayas dicho) y la
-   persona (desde dónde mira la gente). Al soltar el proyector, su distancia queda fijada (se libera en «El proyector cabe» → No lo sé). ---------- */
-let GEO = null, ARR = null;
-/* los tramos por los que se puede mover cada cosa, en metros (redondeados hacia dentro al centímetro) */
-const redZ = (l) => (l || []).map((z) => [Math.ceil(z[0] * 100 - 1e-6) / 100, Math.floor(z[1] * 100 + 1e-6) / 100]).filter((z) => z[1] >= z[0]);
-/* v10.64 · el proyector puede ir también por el tramo que solo vale fuera de especificación (en ámbar en el carril) */
-function arrLim(q) { if (q === 'pub') return [[1, 100]]; const c = C().c; if (!c) return []; const u = [...(c.zonaN || c.zona || []), ...(c.zonaO || [])].sort((a, b) => a[0] - b[0]), z = [];
-  u.forEach((x) => { const l = z[z.length - 1]; if (l && x[0] <= l[1] + .005) l[1] = Math.max(l[1], x[1]); else z.push([x[0], x[1]]); }); return redZ(z); }
-const enZ = (l, d) => (l || []).some((z) => d >= z[0] - .005 && d <= z[1] + .005);
-const arrVal = (q) => { if (q === 'pub') return +ED().esp.sueltas.dist || 0; const f = paredF(); return f && f.pos ? +f.pos.dist || 0 : 0; };
-/* el punto permitido más cercano */
-function arrCerca(lim, d) { let m = null; for (const z of lim) { if (d >= z[0] && d <= z[1]) return d; const p = d < z[0] ? z[0] : z[1]; if (m == null || Math.abs(p - d) < Math.abs(m - d)) m = p; } return m == null ? d : m; }
-function arrPon(q, d) {
-  const E = ED(); d = Math.round(d * 100) / 100;
-  if (q === 'pub') { if (!E.proy.pubNS && Math.abs((+E.esp.sueltas.dist || 0) - d) < .001) return false; E.esp.sueltas.dist = d; E.proy.pubNS = false; }
-  else { if (Math.abs((+E.proy.dist || 0) - d) < .001) return false; E.proy.dist = d;
-    /* v10.64 · más allá de lo garantizado pasa solo a «fuera de especificación» (con su aviso); si vuelve al tramo garantizado, se quita */
-    const c = C().c; if (c && c.zonaN) { if (!enZ(c.zonaN, d) && enZ(c.zonaO, d)) { E.proy.oos = true; E.proy.oosArr = true; } else if (E.proy.oosArr && enZ(c.zonaN, d)) { E.proy.oos = false; E.proy.oosArr = false; } } }
-  C().actualizar(); return true;
-}
-/* de la posición del puntero a metros desde la pared */
-function arrX(cx) { const s = cuerpo && cuerpo.querySelector('.ss-lienzo > svg'); if (!s || !GEO) return null; const r = s.getBoundingClientRect(), e = Math.min(r.width / GEO.VW, r.height / GEO.VH); if (!(e > 0)) return null; return (GEO.muroX - (cx - (r.left + (r.width - GEO.VW * e) / 2)) / e) / GEO.k; }
-function arrIni(e) {
-  const h = e.target.closest && e.target.closest('[data-ss-arr]'); if (!h || !GEO || ARR || W || (e.button || 0) > 0 || PAG !== 'consola') return;
-  const q = h.dataset.ssArr, x = arrX(e.clientX), d0 = arrVal(q), cu = cuerpo.querySelector('.ss-lienzo'); if (x == null || !(d0 > 0) || !cu) return;
-  ARR = { q, id: e.pointerId, v: { D: GEO.D, H: GEO.H }, off: d0 - x, cx0: e.clientX, cx: e.clientX, d: d0, mov: false, tz: 0, raf: 0 };
-  try { cu.setPointerCapture(e.pointerId); } catch (x2) {} cu.classList.add('ss-arrastra'); e.preventDefault();
-}
-function arrMueve(e) {
-  if (!ARR || e.pointerId !== ARR.id) return; ARR.cx = e.clientX;
-  if (!ARR.mov) { if (Math.abs(e.clientX - ARR.cx0) < 4) return; ARR.mov = true; }   /* un toque sin mover no cambia nada */
-  e.preventDefault(); arrPaso();
-}
-function arrPaso() {
-  if (!ARR || !ARR.mov) return; const x = arrX(ARR.cx); if (x == null) return;
-  const lim = arrLim(ARR.q); if (!lim.length) return;
-  const quiere = arrCerca(lim, Math.round((x + ARR.off) * 20) / 20), vis = ARR.v.D - .25, tope = Math.min(lim[lim.length - 1][1], 300) + 1.5;
-  /* lo que cabe en el dibujo; al llegar al borde con sitio aún por delante, el dibujo se va abriendo */
-  const visR = Math.floor(vis * 20) / 20, dentro = lim.map((z) => [z[0], Math.min(z[1], Math.max(z[0], visR))]).filter((z) => z[0] <= vis), d = dentro.length ? arrCerca(dentro, quiere) : quiere, abre = quiere > vis + .001 && ARR.v.D < tope - .001;
-  if (abre && !ARR.tz) ARR.tz = setInterval(() => { if (!ARR) return; ARR.v.D = Math.min(ARR.v.D * 1.04, tope); pintaSim(); arrPaso(); }, 60);
-  if (!abre && ARR.tz) { clearInterval(ARR.tz); ARR.tz = 0; }
-  if (Math.abs(d - ARR.d) < .001) return;
-  ARR.d = d; if (!ARR.raf) ARR.raf = requestAnimationFrame(() => { if (!ARR) return; ARR.raf = 0; arrPon(ARR.q, ARR.d); });
-}
-function arrFin(e) {
-  if (!ARR || (e && e.pointerId !== ARR.id)) return; const a = ARR; ARR = null;
-  if (a.tz) clearInterval(a.tz); if (a.raf) cancelAnimationFrame(a.raf);
-  const cu = cuerpo && cuerpo.querySelector('.ss-lienzo'); if (cu) { cu.classList.remove('ss-arrastra'); try { cu.releasePointerCapture(a.id); } catch (x) {} }
-  if (a.mov && !arrPon(a.q, a.d)) aviso();   /* el dibujo vuelve a su escala */
-}
-/* con el teclado: flechas, de 10 en 10 cm (con mayúsculas, de 50 en 50) */
-function arrTecla(e, h) {
-  const izq = e.key === 'ArrowLeft' || e.key === 'ArrowUp', der = e.key === 'ArrowRight' || e.key === 'ArrowDown'; if (!izq && !der) return false;
-  const q = h.dataset.ssArr, lim = arrLim(q), v = arrVal(q); if (!lim.length || !(v > 0)) return true;
-  const sg = izq ? 1 : -1; let d = arrCerca(lim, Math.round((v + sg * (e.shiftKey ? .5 : .1)) * 20) / 20);
-  if (Math.abs(d - v) < .001) { const o = sg > 0 ? lim.map((z) => z[0]).filter((a) => a > v + .001)[0] : lim.map((z) => z[1]).filter((b) => b < v - .001).pop(); if (o != null) d = o; }   /* salta al tramo siguiente */
-  e.preventDefault(); arrPon(q, d); return true;
-}
-function pintaSim() {
-  const el = document.getElementById('ss-sim'); if (!el) return;
-  let cu = el.querySelector('.ss-lienzo');
-  if (!cu) { el.innerHTML = cab('sim', t('sim')) + '<div class="ss-lienzo"></div>'; cu = el.querySelector('.ss-lienzo'); }
-  const prop = cu.clientWidth > 40 && cu.clientHeight > 40 ? cu.clientWidth / cu.clientHeight : 1.6;
-  let svg = '';
-  let msg = listo() || !FALLO ? t('calculando') : '';
-  if (!listo()) svg = '';
-  else if (PAG === 'portada') {
-    const R = B().R;
-    if (R && R.r) {
-      /* v10.63 · con el cuadro de resumen de PRO; en un hueco estrecho (móvil) el cuadro dentro del dibujo no se lee: va debajo, como una tira con la letra de la interfaz */
-      const hT = (el.querySelector('.ss-resumen') || {}).offsetHeight || 0, estr = cu.clientWidth > 0 && (cu.clientWidth < 600 || cu.clientHeight + hT < 360);   /* con la altura que tendría sin la tira, para que no vaya y venga */
-      try { svg = B().sim(Math.max(.75, Math.min(3, prop)), cu.clientWidth, { limpia: true, cajas: !estr }); } catch (e) { svg = ''; }
-      let ti = el.querySelector('.ss-resumen');
-      if (estr) { const { r, m } = R, cm = (v) => fmt(v * 100, 0) + ' cm';
-        if (!ti) { ti = document.createElement('div'); ti.className = 'ss-resumen'; el.appendChild(ti); }
-        ti.innerHTML = `<span><b>${r.resW} × ${r.resH}</b>${R.nivel && R.nivel[0] ? ' · ' + esc(R.nivel[0]) : ''}${R.formato ? ' · ' + esc(R.formato) : ''}</span><span><b>${r.cols} × ${r.rows}</b> = ${r.cab} ${t('rCabs')}</span><span><b>P${fm(m.pitch)}</b> · ${cm(r.ancho)} × ${cm(r.alto)}</span><span>${esc(t('rVis')(cm(m.pitch), cm(m.pitch * 3)))}</span>`; }
-      else if (ti) ti.remove();
-      /* la rejilla de PRO (oculta) tiene su propio dibujo con los mismos id: los de aquí llevan su prefijo para no recortar con los de allí */
-      [...new Set([...svg.matchAll(/\bid="([^"]+)"/g)].map((x) => x[1]))].forEach((id) => { svg = svg.split(`id="${id}"`).join(`id="ss-${id}"`).split(`url(#${id})`).join(`url(#ss-${id})`).split(`href="#${id}"`).join(`href="#ss-${id}"`); });
-    } else if (R && R.vacio) msg = t('vacio');
-    else if (B().estado() === 'cargando') msg = t('cargando');
-    else if (B().estado() === 'error') msg = t('sinCat');
-  }
-  else if (modoCons() !== 'led' && modoCons() !== 'varias') { svg = simProy(prop, cu.clientWidth, cu.getBoundingClientRect().width); if (!svg && esLedC()) { const st = C().estadoCat; msg = st === 'cargando' ? t('cargando') : st === 'error' ? t('sinCat') : t('vacio'); } }   /* v10.55 · sin catálogo no se queda en «Calculando…» */
-  else svg = `<p class="ss-espera" data-crudo>${ic(modoCons() === 'led' ? 'led' : 'proy', 'ss-ic-xl')}</p>`;
-  cu.classList.toggle('ss-papel', PAG === 'consola');
-  const act = document.activeElement, foco = act && act.getAttribute && cu.contains(act) ? act.getAttribute('data-ss-arr') : '';   /* v10.56 · el asa que tenía el foco lo conserva */
-  cu.innerHTML = svg || (msg ? `<p class="ss-espera" data-crudo>${esc(msg)}</p>` : '');
-  if (foco) { const h = cu.querySelector('[data-ss-arr="' + foco + '"]'); if (h && h.focus) h.focus({ preventScroll: true }); }
-}
-
-/* RESULTADO: la línea resumen bajo el título, el semáforo y unas pocas cifras que no repiten la línea (las que valen cero no salen) */
 let TXT = '';
 const nb = (x) => String(x).replace(/(\d) × (\d)/g, '$1 × $2').replace(/(\d) (m|cm|kg|kW|lx|nits|lm|A)\b/g, '$1 $2');
 const cifra = (k, v, u, sub, icono, color, extra) => `<div class="ss-cifra" style="--c:${color}" data-crudo><span class="ss-ci">${ic(icono)}</span><div class="ss-cd"><small class="ss-fit">${esc(k)}</small><b class="ss-fit">${esc(v)}${u ? `<i>${esc(u)}</i>` : ''}${extra || ''}</b>${sub ? `<span class="ss-fit">${esc(sub)}</span>` : ''}</div></div>`;
@@ -664,21 +411,11 @@ function resProy() {
   TXT = (m === 'sala' ? t('lSala') : t('lProy')) + ' ' + nomb + ' · ' + t('proys')(n) + '\n' + semTxt + (AV.length > 1 ? '\n' + AV.slice(1).map((x) => '· ' + x.txt).join('\n') : '') + '\n' + t('kLum') + ': ' + fmt(lmTot, 0) + ' lm' + (n > 1 ? ' (' + lmSub + ')' : '') + '\n' + t('kCon') + ': ' + conTxt + ':1';
   return cabRes(true) + linea(l1, l2) + semHtml(sem, semTxt, semBt) + `<div class="ss-cifras" style="--n:${C5.length}">${C5.join('')}</div>`;
 }
-function pintaRes() { const el = document.getElementById('ss-res'); if (!el) return; TXT = ''; el.innerHTML = listo() ? (PAG === 'portada' ? resLed() : resProy()) : cabRes(false) + (FALLO ? '' : espera()); }   /* el aviso de fallo, una sola vez (en LO QUE PIDES) */
 
 /* el texto nunca se parte ni se corta: si no cabe, la letra se reduce */
 function encaja(r) { if (!r) return; r.querySelectorAll('.ss-fit').forEach((el) => { el.style.removeProperty('font-size'); if (!el.clientWidth) return; let fs = parseFloat(getComputedStyle(el).fontSize), k = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 7 && k++ < 40) { fs -= .5; el.style.fontSize = fs + 'px'; } }); }
 
-function pinta() {
-  if (vista !== 'simple') return;
-  if (!cuerpoNuevo()) return;   /* la portada aún no ha montado su plantilla */
-  raizNueva(); cuerpo.hidden = false;
-  if (montado !== LG() || !cuerpo.querySelector('#ss-resumen')) monta();
-  pintaResumen(); pintaSim(); pintaRes(); encaja(cuerpo);
-  if (W) pintaAsis();
-  if (primera && listo()) { primera = false; arranque(); }
-}
-function aviso() { cancelAnimationFrame(tPinta); tPinta = requestAnimationFrame(vista === 'simple' ? pinta : pintaUnica); }
+function aviso() { cancelAnimationFrame(tPinta); tPinta = requestAnimationFrame(pintaUnica); }
 /* v11.40 · VISTA ÚNICA: encima de RESULTADOS, la frase del resultado (la de SIMPLE: el equipo, la medida y cuántos) y COMPARTIR, que copia
    el resumen en texto; el asistente se abre con su botón y sigue al día con el cálculo */
 let arrancado = false;
@@ -696,10 +433,24 @@ function pintaUnica() {
       f.innerHTML = ln.outerHTML + `<button type="button" class="vu-bt" data-ss="compartir" title="${esc(t('compartir'))}">${ic('compartir')}<span>${esc(t('compartir'))}</span></button>`;
     }
   }
+  barra();
   if (W) pintaAsis();
   if (!arrancado) { arrancado = true; arranque(); }
 }
-let tRes = 0; addEventListener('resize', () => { ponApila(); clearTimeout(tRes); tRes = setTimeout(() => { if (vista === 'simple' && cuerpo) { pintaSim(); encaja(cuerpo); } }, 120); });
+/* v11.43 · móvil en vertical: barra fija abajo para saltar a cada parte (los datos, la simulación y el resultado) y compartir */
+const ZONAS = PAG === 'portada' ? { d: '#rejilla [data-blk="M1A"]', s: '#rejilla [data-blk="S1A"]', r: '#rejilla [data-blk="RES"]' } : { d: '#panelA', s: '#escena', r: '#res' };
+function barra() {
+  let b = document.getElementById('vu-barra');
+  if (!b) { b = document.createElement('nav'); b.id = 'vu-barra'; b.className = 'ss vu-barra'; b.setAttribute('data-crudo', ''); document.body.appendChild(b);
+    b.addEventListener('click', (e) => { const x = e.target.closest('button'); if (!x) return; const z = x.dataset.vz;
+      if (z) { const el = document.querySelector(ZONAS[z]); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      clic(e); }); }
+  const lg = LG(); if (b.dataset.lg === lg) return; b.dataset.lg = lg;
+  b.setAttribute('aria-label', 'SCREENS');
+  b.innerHTML = [['d', 'lista', 'bDatos'], ['s', 'cubo', 'bSim'], ['r', 'res', 'bRes']].map(([z, i, k]) => `<button type="button" data-vz="${z}">${ic(i)}<span>${esc(t(k))}</span></button>`).join('')
+    + `<button type="button" data-ss="compartir">${ic('compartir')}<span>${esc(t('compartir'))}</span></button>`;   /* el PDF ya está en la cabecera */
+}
+addEventListener('resize', ponApila);
 [MQ_MOV, MQ_BK].forEach((q) => { try { q.addEventListener('change', () => { ponApila(); aviso(); }); } catch (e) {} });
 
 /* ---------- el asistente ---------- */
@@ -779,7 +530,7 @@ const visibles = (r) => RAMA[r].filter((id) => !PREG[id].si || PREG[id].si());
 const tx = (v) => (typeof v === 'function' ? v() : v);
 
 function abre(paso, full, rama) { raizNueva(); W = { paso, full: !!full, rama: rama || (PREG[paso] && PREG[paso].rama) || null, hist: [], ayuda: '' }; pintaAsis(); }
-function cierra(hecho) { if (hecho !== false) pon(K_ASIS, '1'); W = null; const a = document.getElementById('ss-asis'); if (a) a.innerHTML = ''; if (raiz) raiz.classList.remove('ss-con-asis'); aviso(); const f = cuerpo && cuerpo.querySelector('.ss-fila'); if (f) f.focus({ preventScroll: true }); }
+function cierra(hecho) { if (hecho !== false) pon(K_ASIS, '1'); W = null; const a = document.getElementById('ss-asis'); if (a) a.innerHTML = ''; if (raiz) raiz.classList.remove('ss-con-asis'); aviso(); }
 function va(paso) { if (!W) return; W.hist.push(W.paso); W.paso = paso; pintaAsis(); }
 function siguiente() {
   if (!W) return;
@@ -898,7 +649,6 @@ function clic(e) {
   else if (a === 'pdf') { const x = PAG === 'portada' ? document.querySelector('[data-blk="H1R"] [data-pdf]') : document.getElementById('btn-pdf'); if (x) x.click(); }
   else if (a === 'compartir') compartir();
   else if (a === 'pro') cierra();
-  else if (a === 'restablece') restablecePro();
   else if (a === 'oos-no') { ED().proy.oos = false; ED().proy.oosArr = false; recalc(); }
   else if (a === 'reintenta') { const x = document.querySelector('[data-reintenta], [data-accion="reintentar"]'); if (x) x.click(); }
   else if (a === 'recarga') location.reload();
@@ -914,7 +664,6 @@ function clic(e) {
 }
 function tecla(e) {
   if (e.key === 'Escape' && W) { e.stopPropagation(); cierra(); return; }
-  { const h = !W && e.target.closest && e.target.closest('[data-ss-arr]'); if (h && arrTecla(e, h)) return; }
   if (e.key === 'Enter' && e.target.matches && e.target.matches('input[data-ss-n]')) { e.preventDefault(); const v = leeNums(); if (v) responde(Object.keys(v).length ? v : 'nose'); }
 }
 function entrada(e) { if (e.target.matches && e.target.matches('input[data-ss-n]')) { e.target.classList.remove('mal'); e.target.removeAttribute('aria-invalid'); } }

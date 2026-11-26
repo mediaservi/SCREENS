@@ -447,3 +447,5 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
 [data-tema="claro"] .mas-bt { background: linear-gradient(#f4f5f7, #e6e8ec); color: #3a3e46; border-color: rgba(0,0,0,.18); }
 [data-tema="claro"] .mas { border-top-color: rgba(0,0,0,.16); }
 [data-tema="claro"] .mas.abierto .mas-bt { color: #1d6b00; border-color: #3aa300; }
+/* v11.43 · fuera de especificación: en escritorio y TV solo el botón en su paso; el detalle (tamaño garantizado y recomendación) va en el aviso de RESULTADOS */
+html.bk .oos-det { display: none; }

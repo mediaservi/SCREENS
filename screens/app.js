@@ -29,7 +29,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.42';
+const VERSION = 'v11.43';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -445,7 +445,8 @@ function veredicto(c) {
     if (c.tipoP === 'pared' && !E.proy.pubNS) (S.franjas || []).filter(f => f.prof > c.dist).forEach(f => A('publico', t('segPublico', { d: fmt(c.dist, 1), n: f.nombre })));
     if (c.multiAuto) A('multiAuto', t(c.multiBrillo ? 'vMultiBrillo' : 'vMultiAuto', { n: c.tot.n }));
     else if (c.multi && pw.some(f => f.p.n > 1)) A('multi', t('vMulti', { n: c.tot.n }));
-    if (E.proy.oos || c.oosAuto || pw.some(f => f.p.fueraSpec)) A('oos', t('vOos'));   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
+    if (E.proy.oos || c.oosAuto || pw.some(f => f.p.fueraSpec)) { const q = c.proyector, med = (d) => { const w = d * 0.0254 * q.ar / Math.sqrt(1 + q.ar * q.ar); return fmt(w, 1) + ' × ' + fmt(w / q.ar, 1); };
+      A('oos', t('vOos') + (E.proy.oos && q && q.maxDiagPulgOOS > q.maxDiagPulg ? ' ' + t('oosCalc', { p: q.nombre, g: fmtPx(q.maxDiagPulg), gm: med(q.maxDiagPulg), o: fmtPx(q.maxDiagPulgOOS), om: med(q.maxDiagPulgOOS) }) : '')); }   /* v11.7 · también cuando la franja de una sala pequeña obliga a pasar del tamaño garantizado */
     if (c.autoPropone) A('auto', t('mejorModelo', { a: c.proyector.nombre, b: c.autoPropone.nombre }));
     /* v11.41 · blending en los proyectores EPSON con 4K Enhancement: lo pierden; en la electrónica, hace falta un equipo que lo haga */
     { const hayB = pw.some(f => f.p && f.p.n > 1), q = c.proyector;
@@ -769,10 +770,12 @@ function partesProy(c) {
     const med = (d) => { const w = d * 0.0254 * sel.ar / Math.sqrt(1 + sel.ar * sel.ar); return fmt(w, 1) + ' × ' + fmt(w / sel.ar, 1); };
     const usada = Math.max(0, ...paredes.map(f => Math.hypot(f.p.imgW, f.p.imgH) / 0.0254));
     if (p.oos) {
+      /* v11.43 · en escritorio y TV el detalle va en el aviso de RESULTADOS (el paso no se desplaza por dentro); en el móvil, aquí */
+      oos += `<div class="oos-det">`;
       oos += `<p class="aviso">${t('oosAviso')}</p>`;
       oos += `<p class="ayuda">${sel.maxDiagPulgOOS > sel.maxDiagPulg ? t('oosCalc', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg), gm: med(sel.maxDiagPulg), o: fmtPx(sel.maxDiagPulgOOS), om: med(sel.maxDiagPulgOOS) }) : t(isFinite(sel.maxDiagPulg) ? 'oosNoGana' : 'oosSinMax', { p: sel.nombre, g: fmtPx(sel.maxDiagPulg) })}</p>`;
       if (usada > sel.maxDiagPulg + 0.5) oos += `<p class="aviso">${t('oosUsa', { d: fmtPx(Math.round(usada)), g: fmtPx(sel.maxDiagPulg) })}</p>`;
-      oos += `<p class="ayuda">${t('oosReco')}</p>`;
+      oos += `<p class="ayuda">${t('oosReco')}</p></div>`;
     } else if (paredes.some(f => f.p.limite) && sel.maxDiagPulgOOS > sel.maxDiagPulg) oos += `<p class="ayuda">${t('oosSugerir', { g: fmtPx(sel.maxDiagPulg), o: fmtPx(sel.maxDiagPulgOOS) })}</p>`;
   }
   // 7) fichas de los equipos elegidos y ayudas

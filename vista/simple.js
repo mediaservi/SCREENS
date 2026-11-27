@@ -10,7 +10,7 @@
 import { PROYECTORES } from '../screens/proyeccion.js';
 import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.59';
+const VERSION = 'v11.60';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -44,7 +44,7 @@ const T = {
     sinMotor: 'No se ha podido cargar el cálculo. Vuelve a cargar la página.', recargar: 'VOLVER A CARGAR',
     ajPro: (n) => (n === 1 ? '1 ajuste de PRO activo' : n + ' ajustes de PRO activos'), ajProT: 'Hay ajustes hechos en PRO que esta vista no enseña: por eso el resultado no es el automático.', restablecer: 'RESTABLECER',
     soloLed: 'Una sola pantalla LED se calcula en su propia página.', soloVarias: 'Varias pantallas de proyección por separado solo se calculan en PRO.', verPro: 'VER EN PRO', unaLed: 'UNA PANTALLA LED', unProy: 'UNA PROYECCIÓN', salaEntera: 'UNA SALA ENTERA',
-    paso: (a, b) => 'Paso ' + a + ' de ' + b, atras: '← ATRÁS', saltar: 'SALTAR', sig: 'SIGUIENTE →', listo: 'LISTO', ver: 'VER MI RESULTADO', seguir: 'SEGUIR →', cerrar: 'Cerrar',
+    paso: (a, b) => 'Paso ' + a + ' de ' + b, fases: ['Dónde', 'Tamaño', 'Ajustes'], atras: '← ATRÁS', saltar: 'SALTAR', sig: 'SIGUIENTE →', listo: 'LISTO', ver: 'VER MI RESULTADO', seguir: 'SEGUIR →', cerrar: 'Cerrar',
     hola: 'Hola. Te hago unas preguntas muy sencillas y te digo qué necesitas.', q0: '¿Qué quieres poner?',
     o0led: ['Una pantalla LED', 'Hecha de piezas de luz: se ve bien con luz y en la calle'], o0proy: ['Un proyector', 'Ilumina una pared, una pantalla o una sala entera'], o0no: ['No lo sé, ayúdame', 'Te hago dos preguntas y te digo'],
     qCalle: '¿Va en la calle o le da el sol?', qOscuro: '¿Puedes bajar las luces del sitio?', si: 'Sí', no: 'No',
@@ -104,7 +104,7 @@ const T = {
     sinMotor: 'The calculation could not be loaded. Reload the page.', recargar: 'RELOAD',
     ajPro: (n) => (n === 1 ? '1 PRO setting on' : n + ' PRO settings on'), ajProT: 'There are settings made in PRO that this view does not show: that is why the result is not the automatic one.', restablecer: 'RESET',
     soloLed: 'A single LED screen is calculated on its own page.', soloVarias: 'Several separate projection screens are only calculated in PRO.', verPro: 'SEE IN PRO', unaLed: 'ONE LED SCREEN', unProy: 'ONE PROJECTION', salaEntera: 'A WHOLE ROOM',
-    paso: (a, b) => 'Step ' + a + ' of ' + b, atras: '← BACK', saltar: 'SKIP', sig: 'NEXT →', listo: 'DONE', ver: 'SEE MY RESULT', seguir: 'CONTINUE →', cerrar: 'Close',
+    paso: (a, b) => 'Step ' + a + ' of ' + b, fases: ['Where', 'Size', 'Settings'], atras: '← BACK', saltar: 'SKIP', sig: 'NEXT →', listo: 'DONE', ver: 'SEE MY RESULT', seguir: 'CONTINUE →', cerrar: 'Close',
     hola: 'Hi. I will ask you a few very simple questions and tell you what you need.', q0: 'What do you want to put up?',
     o0led: ['An LED screen', 'Made of light panels: looks good in bright places and outdoors'], o0proy: ['A projector', 'Lights up a wall, a screen or a whole room'], o0no: ['I don’t know, help me', 'Two questions and I’ll tell you'],
     qCalle: 'Is it outdoors or in the sun?', qOscuro: 'Can you dim the lights in the place?', si: 'Yes', no: 'No',
@@ -162,7 +162,7 @@ const T = {
     sinMotor: 'No s’ha pogut carregar el càlcul. Torna a carregar la pàgina.', recargar: 'TORNA A CARREGAR',
     ajPro: (n) => (n === 1 ? '1 ajust de PRO actiu' : n + ' ajustos de PRO actius'), ajProT: 'Hi ha ajustos fets en PRO que aquesta vista no mostra: per això el resultat no és l’automàtic.', restablecer: 'RESTABLEIX',
     soloLed: 'Una sola pantalla LED es calcula a la seva pròpia pàgina.', soloVarias: 'Diverses pantalles de projecció per separat només es calculen en PRO.', verPro: 'VEURE EN PRO', unaLed: 'UNA PANTALLA LED', unProy: 'UNA PROJECCIÓ', salaEntera: 'UNA SALA SENCERA',
-    paso: (a, b) => 'Pas ' + a + ' de ' + b, atras: '← ENRERE', saltar: 'SALTA', sig: 'SEGÜENT →', listo: 'FET', ver: 'VEURE EL MEU RESULTAT', seguir: 'CONTINUA →', cerrar: 'Tanca',
+    paso: (a, b) => 'Pas ' + a + ' de ' + b, fases: ['On', 'Mida', 'Ajustos'], atras: '← ENRERE', saltar: 'SALTA', sig: 'SEGÜENT →', listo: 'FET', ver: 'VEURE EL MEU RESULTAT', seguir: 'CONTINUA →', cerrar: 'Tanca',
     hola: 'Hola. Et faig unes preguntes molt senzilles i et dic què necessites.', q0: 'Què vols posar?',
     o0led: ['Una pantalla LED', 'Feta de peces de llum: es veu bé amb llum i al carrer'], o0proy: ['Un projector', 'Il·lumina una paret, una pantalla o una sala sencera'], o0no: ['No ho sé, ajuda’m', 'Et faig dues preguntes i t’ho dic'],
     qCalle: 'Va al carrer o hi toca el sol?', qOscuro: 'Pots abaixar els llums del lloc?', si: 'Sí', no: 'No',
@@ -455,6 +455,7 @@ addEventListener('resize', ponApila);
 [MQ_MOV, MQ_BK].forEach((q) => { try { q.addEventListener('change', () => { ponApila(); aviso(); }); } catch (e) {} });
 
 /* ---------- el asistente ---------- */
+const FASE = { donde: 1, sol: 1, mar: 1, uso: 1, ptipo: 1, ltipo: 1, medida: 2, dist: 2, lpitch: 2, ptam: 2, luz: 2, pub: 2, pcabe: 2, ltam: 2, ldonde: 2, tocar: 3, altura: 3, mont: 3, techo: 3, popt: 3, pmarca: 3, luso: 3, ldist: 3 };
 const PREG = {
   /* rama LED (portada) */
   donde: { rama: 'led', ic: 'casa', t: 'qDonde', op: () => [['INDOOR', 'oIn', 'casa'], ['OUTDOOR', 'oOut', 'calle'], ['ESCAPARATE', 'oEsc', 'escaparate']], val: () => ED().tipo,
@@ -586,7 +587,9 @@ function pintaAsis() {
     }
     if (q.marcas && q.marcas()) { const act = C().marcas(); cuerpoA += `<div class="ss-pars">${C().MARCAS.map((mm) => `<button type="button" class="ss-par${act.includes(mm) ? ' on' : ''}" data-ss-marca="${esc(mm)}" aria-pressed="${act.includes(mm)}"><span class="ss-fit">${esc(mm)}</span></button>`).join('')}</div>`; pie = `<button type="button" class="ss-sig" data-ss="fin"><span class="ss-fit">${esc(Lx.listo)}</span></button>`; }
     if (q.nose) { const k = q.nose(); cuerpoA += `<button type="button" class="ss-op ss-op-l ss-op-nose" data-ss-op='"nose"'>${ic('duda')}<span class="ss-op-t"><b class="ss-fit">${esc(k[0])}</b>${k[1] ? `<small>${esc(k[1])}</small>` : ''}</span></button>`; }
-    if (W.full && W.rama) { const lista = visibles(W.rama), i = lista.indexOf(p); if (i >= 0) cont = `<span class="ss-paso">${esc(Lx.paso(i + 1, lista.length))}</span><span class="ss-puntos">${lista.map((x, j) => `<i class="${j < i ? 'ya' : j === i ? 'on' : ''}"></i>`).join('')}</span>`; }
+    /* v11.60 · (auditoría, UX-07) tres fases fijas en lugar de «Paso X de Y», que crecía según las respuestas: DÓNDE · TAMAÑO · AJUSTES; la barra nunca retrocede ni crece */
+    if (W.full && W.rama) { const lista = visibles(W.rama), i = lista.indexOf(p); if (i >= 0) { const fz = lista.map((x, j) => Math.max(...lista.slice(0, j + 1).map((y) => FASE[y] || 1))), fa = fz[i], dela = lista.filter((x, j) => fz[j] === fa), k = dela.indexOf(p), clv = 'f' + fa; if (!W.fmax) W.fmax = {}; const anchoF = W.fmax[clv] = Math.max(W.fmax[clv] || 0, Math.round(100 * (k + 1) / Math.max(1, dela.length)));   /* la barra no retrocede; */ /* la fase de cada pregunta nunca es menor que la de las anteriores */
+      cont = `<span class="ss-fases" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${fa}">${Lx.fases.map((n, j) => `<span class="ss-fase${j + 1 < fa ? ' ya' : j + 1 === fa ? ' on' : ''}"><b class="ss-fit">${j + 1} · ${esc(n)}</b><i><em style="width:${j + 1 < fa ? 100 : j + 1 === fa ? anchoF : 0}%"></em></i></span>`).join('')}</span>`; } }
   }
   const atras = W.hist.length ? `<button type="button" class="ss-mini" data-ss="atras">${esc(Lx.atras)}</button>` : '';
   const salir = W.full ? `<button type="button" class="ss-mini ss-saltar" data-ss="saltar">${esc(Lx.saltar)}</button>` : `<button type="button" class="ss-x" data-ss="saltar" aria-label="${esc(Lx.cerrar)}">${ic('x')}</button>`;

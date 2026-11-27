@@ -359,3 +359,10 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
   body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
   .blocks { bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
 }
+/* v11.60 · asistente con tres fases fijas */
+.ss-fases { display: flex; gap: calc(var(--s) * 8); flex: 1 1 auto; min-width: 0; margin-right: calc(var(--s) * 10); }
+.ss-fase { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--s) * 5); }
+.ss-fase > b { font-size: calc(var(--s) * 12.5); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ss-tenue); white-space: nowrap; overflow: hidden; }
+.ss-fase.on > b { color: var(--ss-acento); } .ss-fase.ya > b { color: color-mix(in srgb, var(--ss-acento) 60%, var(--ss-tenue)); }
+.ss-fase > i { display: block; height: calc(var(--s) * 5); border-radius: 999px; background: var(--ss-linea); overflow: hidden; }
+.ss-fase > i > em { display: block; height: 100%; background: var(--ss-acento); border-radius: inherit; transition: width .25s; }

@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.61** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.62** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.61)
+## Cambios de la versión actual (v11.62)
+- **Proyector fuera del público:** sin distancia fijada, el proyector se coloca 1 m más cerca de la pantalla que el público (antes quedaba justo a su distancia, entre la gente y haciendo sombra).
+- **4K filtra:** pedir «4K» en la petición escrita elige solo proyectores 4K (antes se decía «no usado»).
+- **PDF más completo:** lo que SCREENS ha entendido de la petición (con los supuestos) y «Por qué este equipo», en proyección y en la pantalla LED; en LED también una alternativa de pitch más económica que sigue nítida y la misma pantalla en 16:9.
+- **Cifras limpias:** la resolución a menos del 0,1 % de la nativa sale redonda (3840, no 3839); con blending, la medida y la diagonal son las de la imagen conjunta, con dos decimales.
+- **Tablet vertical:** las tres cifras del veredicto en una fila.
+- Umbrales nuevos ajustables desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.61
 - **Por qué este equipo también en la pantalla LED de la portada:** qué cubren los cabinets, desde qué distancia se ve nítida (y a qué distancia está el público) y por qué se ha elegido ese cabinet.
 - **Reparto en trifásica:** con tres líneas o más, ALIMENTACIÓN y el PDF dan la corriente de cada fase (L1/L2/L3, 400 V) con las líneas alternadas entre fases.
 - **Estructura solo con datos oficiales:** el PDF indica que el colgado y el apilado no se calculan mientras el fabricante no publique esos datos.

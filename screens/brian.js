@@ -21,7 +21,7 @@ export const BRIAN_DEF = {
   'nl.sala.distMaxHolgura': 0.3, 'nl.luz.ventanas': 300, 'nl.luz.sol': 500, 'nl.medida.redondeo': 0.05,
   /* v11.58 · entradas validadas y blending por brillo solo en pantallas grandes */
   'proy.sala.maxLado': 60, 'proy.sala.maxAlto': 20, 'proy.pantalla.maxLado': 100, 'proy.luz.maxima': 100000, 'proy.ganancia.min': 0.3, 'proy.ganancia.max': 3,
-  'proy.blending.brilloAnchoMin': 6, 'proy.blending.brilloMaxEquipos': 6,
+  'proy.blending.brilloAnchoMin': 6, 'proy.publico.margen': 1, 'proy.blending.brilloMaxEquipos': 6,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,

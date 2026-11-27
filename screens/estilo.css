@@ -352,6 +352,8 @@ select.sel { width: 100%; background: var(--hundido); color: var(--verde); borde
   .im-oos { display: block; padding: 4pt 8pt; background: #fff4dc; border-top: 1px solid #ffb000; color: #7a4a00; font-size: 8pt; line-height: 1.4; }
   .im-oos b { color: #8a5a00; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; margin-right: 3pt; }
   .im-res { display: grid; gap: 8px; }
+  .impresion .porque { border: 1px solid #d6d6de; border-radius: 6px; padding: 5px 9px; break-inside: avoid; color: #111; } .impresion .porque .etq { font-size: 7.5pt; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #4a0a8c; margin-bottom: 2px; }
+  .impresion .porque ul { margin: 0; padding-left: 14px; font-size: 8.5pt; line-height: 1.4; } .im-recibo { margin: 0; padding: 5px 9px; border: 1px dashed #b07800; border-radius: 6px; font-size: 8.5pt; color: #333; }
   .impresion .res-tot { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .impresion .tar { background: #fff !important; border: 1px solid #d6d6de !important; border-top: 3px solid var(--ac) !important; box-shadow: none !important; break-inside: avoid; }
   .impresion .tar .t { color: #4a0a8c !important; } .impresion .tar .v { color: #111 !important; text-shadow: none !important; } .impresion .tar .s, .impresion .tar small { color: #555 !important; }

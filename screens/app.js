@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.61';
+const VERSION = 'v11.62';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -264,7 +264,8 @@ function calcularBase(forzarMulti) {
   const conRango = !fijaDist && esp.tipo !== 'sala', dMin = conRango ? Math.max(0, Number(E.proy.distMin) || 0) : 0, dMax = conRango ? Math.max(0, Number(E.proy.distMax) || 0) : 0, hayRango = dMin > 0 || dMax > 0;
   const enRango = (v) => Math.min(dMax > 0 ? dMax : Infinity, Math.max(dMin, v)), corta = (r) => dMin > 0 && r.tiro < dMin - 0.005;
   const sup1 = sups.find(s => s.tipo !== 'suelo');
-  const tiroPared = tipoP === 'pared' && !fijaDist ? enRango(Math.max(1, dist)) : tipoP === 'mapping' && hayRango && sup1 ? enRango(TR_MAPPING * sup1.ancho) : 0;
+  /* v11.62 · (auditoría, M12) sin distancia fijada, el proyector ya no va justo a la distancia del público (quedaba entre la gente y hacía sombra): por delante, «proy.publico.margen» m más cerca de la imagen */
+  const tiroPared = tipoP === 'pared' && !fijaDist ? enRango(Math.max(1, E.proy.pubNS ? dist : dist - (BR['proy.publico.margen'] ?? 1))) : tipoP === 'mapping' && hayRango && sup1 ? enRango(TR_MAPPING * sup1.ancho) : 0;
   const optPared = { ...opc, banda: esp.tipo === 'sala' ? BR['proy.sala.bandaMinima'] : 0, dist: fijaDist, orient: E.proy.orient || 'auto', trObjetivo: tipoP === 'mapping' && !fijaDist && !hayRango ? TR_MAPPING : 0, tiroObjetivo: tiroPared };
   // v10.54 · sin saber desde dónde mira la gente (o en mapping con un margen de instalación), el proyector va en el punto medio de lo que permite
   // su óptica, dentro del margen si lo hay; sabiendo la distancia del público, se sigue acercando a ella
@@ -324,7 +325,7 @@ function calcularBase(forzarMulti) {
   const mAct = marcasActivas(), CAT = mAct.length === MARCAS_PROY.length ? PROYECTORES : PROYECTORES.filter(q => mAct.includes(q.marca));
   // v10.89 · lúmenes mínimos y tipo de óptica pedidos (petición o MATERIAL): solo si queda alguno que los cumpla
   const lmMin = Number(E.proy.lmMin) || 0, tOpt = E.proy.tipoOpt || '';
-  const CATf = CAT.filter(q => (!lmMin || q.lumens >= lmMin * BR['proy.lumenes.tolerancia']) && (!tOpt || tipoTiro(q) === tOpt));
+  const CATf = CAT.filter(q => (!lmMin || q.lumens >= lmMin * BR['proy.lumenes.tolerancia']) && (!tOpt || tipoTiro(q) === tOpt) && (!E.proy.res4k || q.k4));
   const cand = (CATf.length ? CATf : CAT).filter(q => (!E.proy.cuerpo || q.modelo === E.proy.cuerpo) && (!E.proy.optica || q.optica === E.proy.optica));
   let lista = cand.length ? cand : CAT;
   if (!cand.length && E.proy.cuerpo && E.proy.optica) { const soloC = CAT.filter(q => q.modelo === E.proy.cuerpo); if (soloC.length) { lista = soloC; E.proy.optica = ''; } }   // v10.89 · una óptica que no va con ese cuerpo: se queda el cuerpo, la óptica vuelve a AUTO
@@ -409,7 +410,7 @@ function calcularBase(forzarMulti) {
     const altoCh = (x) => (x.vert ? x.prod.chasis[0] : x.prod.chasis[2]);
     const bajo = hs.reduce((a, x) => (x.lente.y < a.lente.y ? x : a), hs[0]), alto = hs.reduce((a, x) => (x.lente.y > a.lente.y ? x : a), hs[0]);
     f.pos = { dist: Math.max(...hs.map(x => x.zL)), yLente: Math.min(...hs.map(x => x.lente.y)), y0: Math.min(...hs.map(x => x.y0)), y1: Math.max(...hs.map(x => x.y1)), techo: esp.tipo === 'sala' ? esp.alto : (esp.sueltas.techo || 0),
-      shiftV: sh(h), diag: Math.hypot(q.imgW, q.imgH) / 0.0254,
+      shiftV: sh(h), diag: Math.hypot(q.anchoTot || q.imgW, q.altoTot || q.imgH) / 0.0254,   /* v11.62 · (M10) con blending, la diagonal de la imagen conjunta */
       apoyo: !!bajo.apoyo, altura: bajo.apoyo ? bajo.lente.y - altoCh(bajo) / 2 : alto.lente.y + altoCh(alto) / 2 + 0.05 }; });
   // v10.56 · por dónde puede ir el proyector (para arrastrarlo en el dibujo de SIMPLE): lo que da el zoom de cada óptica posible con la imagen
   // pedida (la elegida a mano o, en automático, las del catálogo activo), dentro del margen de instalación que se haya dicho. Tramos en metros.
@@ -498,7 +499,7 @@ function veredicto(c) {
     if (c.consejo) R('consejo', t('noValeProy', { a: c.consejo.nombre }));
     else if (c.multiPosible) A('multiPosible', t('vMultiPosible', { n: c.multiPosible.n }));
     if (SUELTO.dist) A('candadoDist', t('vCandadoDist', { d: fmt(SUELTO.dist, 2) })); if (SUELTO.altura) A('candadoAlt', t('vCandadoAlt', { d: fmt(SUELTO.altura, 2) }));
-    { const lm = Number(E.proy.lmMin) || 0, to = E.proy.tipoOpt || ''; if (lm || to) A('filtro', t('vFiltro', { s: [lm ? '≥ ' + fmtPx(lm) + ' lm' : '', to ? t('opt_' + to).toLowerCase() : ''].filter(Boolean).join(' · ') })); }   /* v10.99 · se ve lo que limita la elección */
+    { const lm = Number(E.proy.lmMin) || 0, to = E.proy.tipoOpt || '', k4 = !!E.proy.res4k; if (lm || to || k4) A('filtro', t('vFiltro', { s: [lm ? '≥ ' + fmtPx(lm) + ' lm' : '', to ? t('opt_' + to).toLowerCase() : '', k4 ? '4K' : ''].filter(Boolean).join(' · ') })); }   /* v10.99 · se ve lo que limita la elección */
     if (S.fueraSala) R('fueraSala', t('vFueraSala', { n: S.fueraSala }));
     if (pw.some(f => f.p.noCubre)) R('noCubre', t('noCubre'));
     { const L = pw.filter(f => f.p.fuera); if (L.length) R('fuera', t('fuera') + ': ' + nom(L) + '.'); }
@@ -1156,14 +1157,14 @@ function nivelContraste(v) { return v >= BR['proy.contraste.video'] ? t('cVideo'
 // ajuste del proyector (desplazamiento de lente) y brillo y contraste
 function vistaSimulacion(c) {
   const fs = c.filas.filter(f => f.pos && f.s.tipo !== 'suelo'); if (fs.length !== 1) return '';
-  const f = fs[0], o = f.pos, q = f.p, m = (v) => fmt(v, 3) + ' m', colg = !o.apoyo, li = (n, k, v) => `<li><b>(${n})</b> ${t(k)}: <span class="mono">${v}</span></li>`;
+  const f = fs[0], o = f.pos, q = f.p, m = (v) => fmt(v, 2) + ' m', colg = !o.apoyo, li = (n, k, v) => `<li><b>(${n})</b> ${t(k)}: <span class="mono">${v}</span></li>`;
   // v10.89 · numeración seguida; la distancia de proyección y la de la pantalla al centro de la óptica, en una sola línea cuando coinciden
   const lc = (c.sombras && c.sombras.haces || []).find(h => h.sup === f.s.id), d4 = lc && lc.nrm ? Math.abs((lc.lente.x - f.s.x) * lc.nrm.x + (lc.lente.z - f.s.z) * lc.nrm.z) : o.dist;
   const q0 = f.proyector || c.proyector, it = [[colg ? 'rs1c' : 'rs1', m(o.altura)], ['rs2', m(Math.abs(o.altura - o.y0))]];
   if (Math.abs(d4 - o.dist) > 0.01) it.push(['rs3', m(o.dist)]);
   it.push(q0 && q0.plegada && q0.desfase ? ['rsFrente', m(Math.max(0, o.dist - q0.desfase))] : ['rs8', m(d4)]);   // ultracortas: hasta la cara del cuerpo
   if (q0 && q0.plegada && q0.desfase) it.push(['rs8', m(d4)]);
-  it.push(['rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—'], ['rs5', m(o.y0)], ['rs6', `${fmt(q.imgW, 3)} × ${fmt(q.imgH, 3)} m`], ['rs7', fmt(o.diag, 0) + ' ″']);
+  it.push(['rs4', o.techo > 0 ? m(Math.max(0, o.techo - o.y1)) : '—'], ['rs5', m(o.y0)], ['rs6', `${fmt(q.anchoTot || q.imgW, 2)} × ${fmt(q.altoTot || q.imgH, 2)} m`], ['rs7', fmt(o.diag, 0) + ' ″']);
   const l = it.map((x, i) => li(i + 1, x[0], x[1])).join('');
   const sem = semaforo(q.contraste);
   return `<section class="res-sec res-sim"><div class="res-tit">${ICO.proy}${t('resSim')}</div><div class="sim-col"><div><div class="etq">${t('resPos')}</div><ul class="sim-l">${l}</ul></div>
@@ -1344,7 +1345,7 @@ function calcularPeticion() {
   if (E.cantidad === 'una' && !c.esp.tipo) E.esp.tipo = 'sueltas';   /* v11.1 · también cuando la petición no dice «pantalla»: en UNA no hay sala inmersiva (se quedaba con los 15 lx de la sala) */
   // v8.0 · una petición de proyección parte de la posición AUTO, salvo lo que diga (distancia, orientación, montaje)
   if (r.tecnologia === 'proy') Object.assign(E.proy, { dist: 0, orient: 'auto', montaje: 'auto', altura: 0, tipo: 'pared' });
-  E.proy.lmMin = 0; E.proy.tipoOpt = '';   /* v10.99 · cada petición empieza sin los lúmenes mínimos ni el tipo de óptica de la anterior */
+  E.proy.lmMin = 0; E.proy.tipoOpt = ''; E.proy.res4k = false;   /* v10.99 · cada petición empieza sin los lúmenes mínimos ni el tipo de óptica de la anterior */
   Object.assign(E.led, c.led); Object.assign(E.proy, c.proy); Object.assign(E.elec, c.elec);
   if (c.proy.tipo === 'mapping' && !r.vistos.some(x => x.k === 'medida')) { const d = Number(E.proy.dist) || 0; alMapping(); if (r.vistos.some(x => x.k === 'distProy')) E.proy.dist = d; }   // v10.63
   if (c.sueltas.salaFondo && !c.proy.dist) E.proy.distMax = Math.max(1, c.sueltas.salaFondo - 0.3);   // v10.89 · el proyector tiene que caber en la sala
@@ -1619,7 +1620,7 @@ document.addEventListener('click', (ev) => {
     if ((k === 'a' || k === 'a2') && (led || E.esp.tipo === 'sala')) { cp(E.esp, d.esp, ['ancho', 'fondo', 'alto']); E.esp.paredes = d.esp.paredes; cp(E.esp.sueltas, d.esp.sueltas, ['n', 'disp', 'ancho', 'alto', 'sep', 'angulo', 'central', 'cAncho', 'cAlto']); delete E.esp.sueltas.tams; }
     if ((k === 'a' || k === 'a3') && !led) { cp(E.proy, d.proy, ['lux', 'luzUso', 'ganancia']); E.proy.luzMano = false; }
     if (led && (k === 'a' || k === 'a2' || k === 'a4')) { cp(E.esp, d.esp, ['elev', 'altoCubierto']); cp(E.esp.sueltas, d.esp.sueltas, ['elev', 'dist', 'techo']); E.esp.obst = []; }
-    if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos', 'lmMin', 'tipoOpt']); }
+    if (k === 'b1') { if (led) E.led.crm = ''; else cp(E.proy, d.proy, ['cuerpo', 'optica', 'idSuelo', 'oos', 'lmMin', 'tipoOpt', 'res4k']); }
     if (k === 'b2') { if (led) E.led.ajuste = d.led.ajuste; else cp(E.proy, d.proy, ['solape', 'multi', 'orient', 'blendEn']); }
     }
     ajuste.esp = ''; ajuste.obst = ''; actualizar(); return; }
@@ -1733,7 +1734,8 @@ function imprimir() {
   let h = `<header class="im-cab"><img class="im-logo" src="assets/screens-logo-negro.svg" alt="SCREENS"><div class="im-url" style="--n:${('avhub.mediaservi.com · ' + fecha).length}"><span>avhub.mediaservi.com · ${fecha}</span></div><img class="im-avhub" src="assets/avhub-logo.svg" alt="AVHUB"></header>`;
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
-  h += `<div class="im-res">${vistaResultados(c)}</div>`;
+  /* v11.62 · (auditoría, mejora 15) el PDF lleva lo que se ha entendido de la petición (supuestos) y por qué este equipo */
+  h += `<div class="im-res">${RECIBO ? `<p class="im-recibo">${RECIBO}</p>` : ''}${vistaResultados(c)}${porQue(c)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []).concat(c.prCentral && c.prCentral !== c.proyector ? [fichaProy(c.prCentral, t('fProyCentral'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   if (E.tecnologia === 'led' && c.modelo) h += planosPdf(c);   // v10.94 · planos técnicos de cada pantalla

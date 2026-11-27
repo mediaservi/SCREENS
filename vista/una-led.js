@@ -31,7 +31,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.61';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.62';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -383,6 +383,17 @@ function fases() {
   const a = [0, 0, 0]; R.rutasE.forEach((ru, i) => { a[i % 3] += (ru ? ru.length : 0) * R.ampCab; });
   return a.map((x) => fmt(x, 1)).join('/') + '\u00a0A';
 }
+/* v11.62 · (auditoría, LED profesional) alternativas: un pitch mayor que sigue nítido a la distancia del público y la misma pantalla en 16:9 */
+function altP() {
+  const kq = BR['led.distancia.metrosPorMmPitch'] || 1, d = +E.dist || 0; if (!(d > 0) || !R || !R.pitches) return '';
+  const p2 = R.pitches.filter((p) => p > R.pitch && p * kq <= d + 1e-9).pop(); if (!p2) return '';
+  return `<li><span>Alternativa:</span> <span data-crudo>P${String(p2).replace('.', ',')}</span> <span>también es nítida a esa distancia, con menos píxeles (suele salir más económica).</span></li>`;
+}
+function alt169() {
+  const { r } = R; if (!r || !(r.rows > 0) || !(r.cols > 0) || R.formato === '16:9') return '';
+  const cH = r.alto / r.rows, f = Math.max(1, Math.round(r.ancho * 9 / 16 / cH)), h = f * cH; if (f === r.rows || Math.abs(r.ancho / h - 16 / 9) > 0.06) return '';
+  return `<li><span>En 16:9:</span> <span data-crudo>${r.cols} × ${f} = ${fmt(r.ancho, 2)} × ${fmt(h, 2)} m</span></li>`;
+}
 function avisosLed(R) {
   const { m, r } = R, A = [], av = (t) => A.push(['av', t]), pc = (x) => fmt(Math.abs(x) * 100) + ' %', mm = (x) => fmt(x, 2) + ' m';
   /* medida: cada lado a más de led.encaje.aviso (10 %) de lo pedido; con «Que quepa», lo que se pasa por el redondeo (hasta led.encaje.pasarseMax, 5 %) también se dice */
@@ -629,7 +640,7 @@ function zonas(el, AV) {
         const vered = `<button type="button" class="vered ${niv}" data-det="av" title="Ver los avisos"><i></i><span>${AV.length ? esc(AV[0][1]) : 'Sin avisos: todo dentro de lo recomendado'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>`;
         /* v11.61 · (auditoría, mejora 16) «Por qué este equipo» también en la portada: qué cubre, desde dónde se ve nítida y por qué se ha elegido */
         const kq = BR['led.distancia.metrosPorMmPitch'] || 1, dq = +E.dist || 0;
-        const porq = `<div class="porque"><div class="etq">Por qué este equipo</div><ul><li><span data-crudo>${fmt(r.cab)} × ${esc(m.crm)}</span> <span>cubren</span> <span data-crudo>${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m</span></li><li><span data-crudo>P${String(R.pitch).replace('.', ',')}</span> <span>nítida desde</span> <span data-crudo>${fmt(R.pitch * kq, 1)} m</span>${dq > 0 ? ` <span>· público a</span> <span data-crudo>${fmt(dq, 1)} m</span>` : ''}</li><li>${E.crm ? 'Elegido a mano.' : 'El cabinet que cumple el brillo del entorno y el pitch de esa distancia, con prioridad al material habitual.'}</li></ul></div>`;
+        const porq = `<div class="porque"><div class="etq">Por qué este equipo</div><ul><li><span data-crudo>${fmt(r.cab)} × ${esc(m.crm)}</span> <span>cubren</span> <span data-crudo>${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m</span></li><li><span data-crudo>P${String(R.pitch).replace('.', ',')}</span> <span>nítida desde</span> <span data-crudo>${fmt(R.pitch * kq, 1)} m</span>${dq > 0 ? ` <span>· público a</span> <span data-crudo>${fmt(dq, 1)} m</span>` : ''}</li>${altP()}${alt169()}<li>${E.crm ? 'Elegido a mano.' : 'El cabinet que cumple el brillo del entorno y el pitch de esa distancia, con prioridad al material habitual.'}</li></ul></div>`;
         if (DETT) return seis + vered;
         /* estado en 4 niveles: rojo si algo no es recomendable; ámbar discontinuo si faltan datos del catálogo; ámbar si hay avisos; verde si no hay nada */
         const nDato = AV.filter((a) => a[2] === 'dato').length, est = nMal ? 'No recomendable' : nDato ? 'Faltan datos del catálogo' : AV.length ? (AV.length === 1 ? 'Revisa 1 aviso' : `Revisa ${AV.length} avisos`) : 'Listo para ofertar';
@@ -1087,9 +1098,11 @@ async function pdf() {
       caja('Dimensiones', fila('Medida pedida', fmt(E.w * 100) + ' × ' + fmt(E.h * 100) + ' cm') + fila('Medida real', fmt(r.ancho * 100) + ' × ' + fmt(r.alto * 100) + ' cm') + fila('Ajuste', sob) + fila('Diagonal', fmt(R.diag * 100) + ' cm · ' + fmt(R.diag / .0254) + '″') + fila('Formato', R.formato) + fila('Superficie', fmt(r.ancho * r.alto, 2) + ' m²') + fila('Elevación desde el suelo', fmt(E.elev) + ' cm')) +
       caja('Cabinet', fila('Modelo', '<span data-crudo>' + esc(m.crm) + '</span>') + fila('Familia', '<span data-crudo>' + esc(m.family || '—') + '</span>') + fila('Pitch', String(R.pitch).replace('.', ',') + ' mm') + fila('Cabinet', m.cabAncho + '×' + m.cabAlto + (m.thick ? '×' + m.thick : '') + ' mm' + (m.girado ? ' · girado 90°' : '')) + fila('Columnas × filas', r.cols + ' × ' + r.rows + ' = ' + r.cab) + fila('Brillo', m.nits ? fmt(m.nits) + ' nits' : '') + fila('Refresco', m.hz ? fmt(m.hz) + ' Hz' : '') + fila('Disponibilidad', enStock(m) ? 'En stock' : 'Bajo pedido')) +
       caja('Resolución', fila('Píxeles', r.resW + ' × ' + r.resH) + fila('Total', fmt(r.pix / 1e6, 2) + ' Mpx' + (R.nivel[0] ? ' · ' + R.nivel[0] : '')) + fila('Salidas 4K', r.salidas4k) + fila('Distancia mínima', fmt(m.pitch * 100) + ' cm') + fila('Distancia óptima', 'desde ' + fmt(m.pitch * 300) + ' cm') + fila('Distancia de visionado', E.dist ? fmt(E.dist, 1) + ' m' : '') + fila('Entorno', TIPO + ' · ' + (E.clase === 'RENTAL' ? 'Alquiler' : 'Fija')) + fila('Opciones', [E.transp && 'Transparente', E.gold && 'Marino / tropical', E.protegido && 'Alcance público', E.sol === 'directo' && 'Sol directo', E.sol === 'indirecto' && 'Sol indirecto'].filter(Boolean).join(' · '))) +
-      caja('Instalación', fila('Peso total', r.peso > 0 ? fmt(r.peso, 1) + ' kg' : '') + fila('Por cabinet', +m.cabKg > 0 ? fmt(m.cabKg, 1) + ' kg' : '') + fila('Mantenimiento', esc(m.mant || m.mantenimiento || '')) + fila('Receiving card', '<span data-crudo>' + esc(m.card || '') + '</span>') + fila('Grosor', m.thick ? fmt(m.thick) + ' mm' : '') + fila('Estructura', 'Sin datos oficiales de colgado ni apilado: no se calcula')) +
+      caja('Instalación', fila('Peso total', r.peso > 0 ? fmt(r.peso, 1) + ' kg' : '') + fila('Por cabinet', +m.cabKg > 0 ? fmt(m.cabKg, 1) + ' kg' : '') + fila('Mantenimiento', esc(m.mant || m.mantenimiento || '')) + fila('Receiving card', '<span data-crudo>' + esc(m.card || '') + '</span>') + fila('Grosor', m.thick ? fmt(m.thick) + ' mm' : '') + fila('Estructura', 'Sin datos oficiales: no se calcula')) +
       caja('Alimentación', fila('Consumo máximo', r.kw > 0 ? fmt(r.kw, 2) + ' kW' : '') + fila('Corriente', R.ampCab > 0 ? fmt(r.cab * R.ampCab, 1) + ' A · ' + BR['led.linea.tension'] + ' V' : '') + fila('Líneas de ' + BR['led.linea.amperios'] + ' A', R.ampCab > 0 ? R.nLin : '') + (fases() ? fila('Fases L1/L2/L3 · ' + BR['led.trifasica.tension'] + ' V', fases()) : '') + fila('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · '))) +
       caja('Señal y electrónica', fila('Procesador', p ? '<span data-crudo>' + esc(p.modelo) + '</span>' : '—') + fila('Puertos', p ? esc(p.puertos) : '') + fila('Escalador', p ? (p.escalador ? 'Sí' : 'No') : '') + fila('Mediaserver', me ? '<span data-crudo>' + esc(me.modelo) + '</span>' : 'No') + fila('Líneas Ethernet', r.lineas + (E.backup ? ' + ' + r.lineas + ' de backup' : '')) + fila('Conexión', E.conexion === 'fibra' ? 'Fibra' : 'RJ45') + fila('Cosido', R.cosido) + fila('Fuentes de vídeo', Math.max(1, +E.entradas || 1) + ' × ' + (E.tipoEntrada && E.tipoEntrada !== 'MIXTO' ? E.tipoEntrada : 'HDMI/DP/SDI') + (E.resEntrada ? ' ' + E.resEntrada : ''))) + `</div>` +
+      /* v11.62 · (auditoría, mejora 15) el PDF dice por qué este equipo: lo pedido frente a lo propuesto ya está en DIMENSIONES */
+      (() => { const t = document.createElement('div'); t.innerHTML = '<ul>' + [...document.querySelectorAll('.porque li')].map((li) => '<li>' + li.innerHTML + '</li>').join('') + '</ul>'; return t.querySelector('li') ? `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px;margin-bottom:8px">${rot(tr('Por qué este equipo'))}<ul style="margin:0;padding-left:14px;font:400 9.5px/1.45 Inter,Arial,sans-serif">${t.querySelector('ul').innerHTML}</ul></div>` : ''; })() +
       (E.obs && E.obs.trim() ? `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px">${rot('Observaciones')}<div data-crudo style="font:400 9.5px/1.45 Inter,Arial,sans-serif;white-space:pre-wrap">${esc(E.obs.trim())}</div></div>` : '');
     const p2 = cab('hoja 2 de 2') + rot('Esquema de conexión') + `<div style="margin-bottom:9px">${esq}</div>` +
       `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px"><div>${rot('Cableado de señal')}${sen}</div><div>${rot('Cableado eléctrico')}${ele}</div></div>` +

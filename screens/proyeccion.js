@@ -371,8 +371,10 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
   /* v11.7 · en la franja de una ultracorta (va en el suelo, por debajo de la imagen) la imagen arranca a 0,3 m del suelo: lo que pase del techo se enmascara */
   const base1 = salaPleg ? mejor.disp - ih : fr && p.ust ? Math.max(-(ih - H) / 2, 0.3) : -(ih - H) / 2, recY1 = rows === 1 ? Math.max(recY, (base1 + ih - H) / ih, -base1 / ih) : recY;
   const filas = rows === 1 ? [base1] : Array.from({ length: rows }, (_, r) => r * (ih - oy));
-  const resW = cols === 1 ? Math.round(pxW * Math.min(1, W / iw)) : cols * pxW - (cols - 1) * Math.round(pxW * oxR);
-  const resH = rows === 1 ? Math.round(pxH * Math.min(1, H / ih)) : rows * pxH - (rows - 1) * Math.round(pxH * oyR);
+  /* v11.62 · (auditoría, M10) cifras limpias: a menos del 0,1 % de la resolución nativa se da la nativa (3839 → 3840) y, si no, par */
+  const limpio = (v, nat) => (Math.abs(v - nat) <= nat * 0.001 ? nat : Math.round(v / 2) * 2);
+  const resW = cols === 1 ? limpio(pxW * Math.min(1, W / iw), pxW) : cols * pxW - (cols - 1) * Math.round(pxW * oxR);
+  const resH = rows === 1 ? limpio(pxH * Math.min(1, H / ih), pxH) : rows * pxH - (rows - 1) * Math.round(pxH * oyR);
   const tiroMax = dist > 0 ? tiro : Math.max(tiro, Math.min(tMaxZ, alcance != null ? alcance : Infinity));
   return { n: cols * rows, cols, rows, vert, imgW: iw, imgH: ih, solape: ox, solapeY: oy, solapeRel: Math.max(oxR, oyR), solapeRelX: oxR, solapeRelY: oyR, solapePx: Math.round(pxW * oxR),
     tiro, tiroMax, tMin, tMaxZ, fueraZoom: dist > 0 && (noCubre || dist < tMin - 1e-6 || dist > tMaxZ + 1e-6), noCubre, ratio: tiro / nwF, fuera, limite, chica, recorte: recY1, recorteX: recX,

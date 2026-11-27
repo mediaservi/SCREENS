@@ -808,3 +808,5 @@ html.piel[data-tema="claro"] #res > .recibo { border-color: #004f85; }
 html.piel #res > .porque { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--linea); border-radius: 12px; background: var(--campo); }
 html.piel #res > .porque .etq { font: 800 12px/1.2 Inter, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); margin-bottom: 6px; }
 html.piel #res > .porque ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; font: 600 13px/1.35 Inter, system-ui, sans-serif; color: var(--txt); }
+/* v11.62 · tablet vertical: las 3 cifras del veredicto en una fila (antes 2 + 1 suelta) */
+@media (min-width: 701px) { html.piel:not(.bk) #res > .res-tot.tres { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }

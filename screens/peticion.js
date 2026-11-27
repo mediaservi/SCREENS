@@ -199,7 +199,7 @@ export function interpretar(texto, tecCtx, br) {
   /* v11.14 · lo que se pide y hoy no cambia el cálculo se dice, en vez de callarlo: «4K» y la retroproyección no tienen mando; un formato que no cuadra
      con la medida escrita tampoco se aplica. «Láser» sí se da por entendido: todos los proyectores del catálogo lo son. */
   if (tecP === 'proy') {
-    if (/\b4k\b|\buhd\b|ultra ?hd/.test(t)) noUsado.push('4K');
+    if (/\b4k\b|\buhd\b|ultra ?hd/.test(t)) { c.proy.res4k = true; vistos.push({ k: 'texto', v: '4K' }); }   /* v11.62 · (auditoría, M12) 4K ya filtra: solo proyectores 4K */
     if (/retropro[yj]ec|rear[- ]projection|pro[yj]eccion? (?:trasera|posterior)|pro[yj]eccio (?:posterior|del darrere)|(?:desde|por) detras|des de darrere|from behind/.test(t)) noUsado.push('retroproyección');
     if (/\blaser\b/.test(t)) vistos.push({ k: 'texto', v: 'láser' });
     const fm = t.match(/\b(16:9|16:10|4:3|21:9|1:1)\b/);

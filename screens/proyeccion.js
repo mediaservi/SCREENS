@@ -67,7 +67,7 @@ const FIJA_EPSON = { 'EB-815E': { min: 80, sep: () => 0.118, desfase: 0.255 }, '
 export let SOLAPE_MIN = 0.15, SOLAPE_MAX = 0.65;   // límites de blending de SCREENBOX
 // v10.69 · dos tramos (decidido por Josep, 21-11-2026): hasta el 45 % el solape es «recomendable»; del 45 al 65 %, «posible, con aviso»
 export let SOLAPE_RECO = 0.45;
-export let RECORTE_MAX = 0.2;                       // lo que puede sobresalir la imagen de la superficie (se enmascara)
+export let RECORTE_MAX = 0.2, SUELO_SOLAPE_MAX = 0.45;                       // lo que puede sobresalir la imagen de la superficie (se enmascara)
 // Chasis (ancho × fondo × alto, m) según las fichas de Epson (guía 08/2026, con las patas); la serie L695SE/L795SE/L695SU comparte chasis
 const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.210], 'EB-L695SE': [0.440, 0.368, 0.151], 'EB-L795SE': [0.440, 0.368, 0.151], 'EB-L695SU': [0.440, 0.368, 0.151],
   'EB-PU1006W': [0.545, 0.436, 0.189], 'EB-PU1007B': [0.545, 0.436, 0.189], 'EB-PU1008B': [0.545, 0.436, 0.189], 'EB-PU2010B': [0.545, 0.436, 0.189],
@@ -79,7 +79,7 @@ const CHASIS = { 'EB-815E': [0.695, 0.341, 0.156], 'EB-805F': [0.458, 0.375, 0.2
 export const HOLGURA = { h: 0.40, v: 0.20, sinMampara: 1.5 };
 export let MOSAICO_MAX = 15;   // proyectores por superficie como mucho (mosaico)
 /* v11.48 · los umbrales vienen de BRIAN (panel AVHUB ADMIN) cuando los hay: screens/brian.js */
-export function fijaParamsProy(b) { SOLAPE_MIN = b['proy.solape.minimo']; SOLAPE_RECO = b['proy.solape.recomendado']; SOLAPE_MAX = b['proy.solape.maximo']; RECORTE_MAX = b['proy.recorte.maximo'];
+export function fijaParamsProy(b) { SOLAPE_MIN = b['proy.solape.minimo']; SOLAPE_RECO = b['proy.solape.recomendado']; SOLAPE_MAX = b['proy.solape.maximo']; RECORTE_MAX = b['proy.recorte.maximo']; if (b['proy.suelo.solapeMax'] != null) SUELO_SOLAPE_MAX = b['proy.suelo.solapeMax'];
   HOLGURA.h = b['proy.holgura.lado']; HOLGURA.v = b['proy.holgura.vertical']; HOLGURA.sinMampara = b['proy.holgura.sinMampara']; MOSAICO_MAX = b['proy.mosaico.maximo']; ALTO_PERSONA = b['proy.persona.alto'];
   /* v11.49 · cuerpos: chasis y separación de cada modelo (proy.chasis.<modelo>, proy.separacion.<modelo>); sin dato, el de la ficha o el general */
   const md = (v) => String(v == null ? '' : v).split(/[x×*\/]/i).map((x) => Number(String(x).replace(',', '.').trim())).filter((n) => isFinite(n) && n >= 0);
@@ -381,18 +381,27 @@ export function calcularPared(sup, p, { alcance, solapeMin = SOLAPE_MIN, oos = f
 
 // Suelo: rejilla de proyectores cenitales (desde el techo) con blending en los dos ejes
 export function calcularSuelo(sup, p, { altoSala, solapeMin = SOLAPE_MIN, oos = false } = {}) {
+  /* v11.52 · el suelo se calcula dentro de lo que da la óptica: la imagen va entre tiro/trMax y tiro/trMin (una óptica fija no encoge ni crece),
+     sin pasar del máximo garantizado ni bajar del mínimo; las ultracortas plegadas no proyectan bajo su vertical (marcadas «fuera») */
   const tiro = Math.max(0.5, altoSala - 0.15);
-  let imgW = Math.min(tiro / p.trMin, anchoMax(p, oos)), imgH = imgW / p.ar;
+  const wGrande = tiro / p.trMin, wPeq = tiro / p.trMax, wMax = anchoMax(p, oos), wMin = anchoMin(p);
+  let imgW = Math.min(wGrande, wMax), limite = false, chica = false;
+  if (imgW < wPeq - 1e-9) { imgW = wPeq; limite = true; }            // ni con el zoom al mínimo cabe bajo el máximo: fuera de especificación
+  if (imgW < wMin - 1e-9) chica = true;                              // la imagen que da a esa altura es menor que la mínima de la óptica
+  const fuera = !!(p.ust || p.plegada);
+  let imgH = imgW / p.ar;
   const W = sup.ancho, D = sup.alto;
   const cols = imgW >= W ? 1 : 1 + Math.ceil((W - imgW) / (imgW * (1 - solapeMin)) - 1e-9);
   const rows = imgH >= D ? 1 : 1 + Math.ceil((D - imgH) / (imgH * (1 - solapeMin)) - 1e-9);
+  /* v11.52 · la imagen del suelo va con el zoom abierto (los cenitales quedan hacia el centro, fuera de los haces de las paredes); si el solape pasa del recomendable, queda avisado */
   const sx = cols > 1 ? (cols * imgW - W) / (cols - 1) : 0, sz = rows > 1 ? (rows * imgH - D) / (rows - 1) : 0;
   const pos = [];
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pos.push({ x: cols === 1 ? 0 : -W / 2 + imgW / 2 + c * (imgW - sx), z: rows === 1 ? 0 : -D / 2 + imgH / 2 + r * (imgH - sz) });
   const resW = cols * p.resX - (cols - 1) * Math.round(p.resX * (cols > 1 ? sx / imgW : 0));
   const resH = rows * p.resY - (rows - 1) * Math.round(p.resY * (rows > 1 ? sz / imgH : 0));
   const lux = p.lumens / (imgW * imgH);
-  return { n: cols * rows, cols, rows, imgW, imgH, tiro, ratio: p.trMin, solapeX: sx, solapeZ: sz, solapeRel: Math.max(cols > 1 ? sx / imgW : 0, rows > 1 ? sz / imgH : 0), pos, resW, resH, lux, nits: lux / Math.PI, fuera: false, limite: false };
+  const solapeRel = Math.max(cols > 1 ? sx / imgW : 0, rows > 1 ? sz / imgH : 0);
+  return { n: cols * rows, cols, rows, imgW, imgH, tiro, ratio: tiro / imgW, solapeX: sx, solapeZ: sz, solapeRel, pos, resW, resH, lux, nits: lux / Math.PI, fuera, limite, chica, solapeAlto: solapeRel > SUELO_SOLAPE_MAX + 1e-6 };
 }
 
 // Proyector sugerido: el que cubre cada pared con menos equipos, cabiendo en la sala y con más brillo
@@ -521,6 +530,7 @@ function problemas(h, puestos, rapido) {
 // Los cenitales del suelo van fijos junto al techo y se colocan primero.
 export function resolverChoques(haces, alto) {
   const puestos = [], movs = [], choques = [];
+  /* v11.52 · los cenitales se colocan primero; si aun así chocan entre ellos, se apartan dentro de su desplazamiento de lente (la imagen no se mueve) */
   const orden = haces.slice().sort((a, b) => (b.suelo ? 1 : 0) - (a.suelo ? 1 : 0));
   orden.forEach(h => {
     const base = { ...h.lente }, zL0 = h.zL, M = medio(h);
@@ -528,6 +538,13 @@ export function resolverChoques(haces, alto) {
     if (!inicial.n) { puestos.push(h); return; }
     const paso = M.y * 2 + HOLGURA.v, techo = alto - 0.05 - M.y, suelo = Math.min(2.3 + M.y, base.y);   // apoyados (mesa, torre): nunca por debajo de su sitio
     const dzs = [0], dys = [0], dxs = [0];
+    if (h.suelo) {
+      const pr0 = h.prodS || {}, xs = h.esquinas.map(v => v.x), zs = h.esquinas.map(v => v.z), iw = Math.max(...xs) - Math.min(...xs), id = Math.max(...zs) - Math.min(...zs);
+      const fH = (pr0.plegada ? 0 : (pr0.shiftH || 0)) / 100, fV = (pr0.plegada ? 0 : Math.min(pr0.shiftV || 0, pr0.shiftVcontra != null ? pr0.shiftVcontra : (pr0.shiftV || 0))) / 100;
+      const limX = fH * iw, limZ = fV * id;
+      for (let x = 0.1; x <= limX + 1e-6 && dxs.length < 21; x += 0.1) dxs.push(x, -x);
+      for (let z = 0.1; z <= limZ + 1e-6 && dzs.length < 11; z += 0.1) dzs.push(z, -z);
+    }
     if (!h.suelo) {
       for (let z = 0.25; zL0 + z <= (h.zMax || zL0) + 1e-6 && dzs.length < 9; z += 0.25) dzs.push(z);
       // v11.13 · solo dentro de lo que da la óptica: subir o bajar la lente sin mover la imagen exige desplazamiento vertical,
@@ -544,10 +561,10 @@ export function resolverChoques(haces, alto) {
     const rV = h.prod && h.imgH ? rangoLente(h.prod, h.vert, h.apoyo).map(f => (h.y0 + h.y1) / 2 + f * h.imgH) : null;
     const fueraV = (y) => rV ? Math.max(0, rV[0] - y, y - rV[1]) : 0, fueraV0 = fueraV(base.y);
     const cand = [];
-    dzs.forEach(dz => dys.forEach(dy => dxs.forEach(dx => { if (dz || dy || dx) cand.push({ dz, dy, dx, c: dz + Math.abs(dy) * 1.5 + Math.abs(dx) * 1.2 }); })));
+    dzs.forEach(dz => dys.forEach(dy => dxs.forEach(dx => { if (dz || dy || dx) cand.push({ dz, dy, dx, c: Math.abs(dz) + Math.abs(dy) * 1.5 + Math.abs(dx) * 1.2 }); })));
     cand.sort((a, b) => a.c - b.c);
-    const poner = (c) => { const n = h.nrm || { x: 0, z: 0 };
-      h.lente = { x: base.x + n.x * c.dz + c.dx * Math.cos(h.rot), y: base.y + c.dy, z: base.z + n.z * c.dz - c.dx * Math.sin(h.rot) }; h.zL = zL0 + c.dz; };
+    const poner = (c) => { const n = h.nrm || (h.suelo ? { x: 0, z: 1 } : { x: 0, z: 0 });
+      h.lente = { x: base.x + n.x * c.dz + c.dx * Math.cos(h.rot), y: base.y + c.dy, z: base.z + n.z * c.dz - c.dx * Math.sin(h.rot) }; if (!h.suelo) h.zL = zL0 + c.dz; };
     let ok = null, sinChoque = null;
     for (const c of cand) {
       const y = base.y + c.dy; if (y > techo + 1e-6 || y < suelo - 1e-6) continue;

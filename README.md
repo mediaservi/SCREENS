@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.51** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.52** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.51)
+## Cambios de la versión actual (v11.52)
+- **Salas inmersivas con el brillo justo:** la propuesta automática ya no elige pocos proyectores muy potentes para una sala pequeña a oscuras; prueba todos los modelos de cada marca de menos a más lúmenes y avisa si el brillo es excesivo.
+- **Suelo inmersivo posible:** el suelo ya no se calcula con ultracortas plegadas (no proyectan bajo su vertical) ni con imágenes fuera de lo que da la óptica, y entra en el veredicto (avisos de suelo y de solape alto). Si los cenitales chocan, se apartan dentro de su desplazamiento de lente.
+- **Lentes por encima de la cabeza:** en salas, ningún proyector con la lente por debajo de 2,1 m (o del margen al techo en salas de techo bajo); a la altura de las personas sale en rojo.
+- Los umbrales nuevos se ajustan desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.51
 - **Fotos de los proyectores Vivitek:** la ficha de cada proyector Vivitek enseña ya su foto oficial.
 
 ## Cambios de la v11.50

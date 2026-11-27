@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.51';
+const VERSION = 'v11.52';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -159,7 +159,13 @@ aplicaBrian();   /* v11.48 · copia guardada de BRIAN o los valores de siempre *
 let PROF_CALC = 0;
 const rojoMontaje = (c) => !!(c && c.veredicto && c.veredicto.motivos.some(m => m.n === 'R' && m.k !== 'contraste'));   /* el contraste bajo no impide montar: se arregla con más luz y va en su propio aviso */
 const fallaNormal = (c) => rojoMontaje(c) || !!(c && (c.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)));   /* incluye una franja sin imagen: se intenta cubrir fuera de especificación */
-const SALA_AUTO = { k: '', m: '', t: 0 };   /* v11.44 · el cuerpo elegido por la búsqueda de AUTO en salas, por si la sala no cambia */
+const SALA_AUTO = { k: '', m: '', t: 0 };
+/* v11.52 · altura mínima de las lentes en salas: la de BRIAN (2,1 m) o, con techo bajo, la que deja el margen al techo (proy.sala.margenTecho) */
+const hLenteMin = (esp) => Math.min(BR['proy.sala.alturaLenteMin'], Math.max(BR['proy.persona.alto'], (Number(esp && esp.alto) || 3) - BR['proy.sala.margenTecho']));
+/* v11.52 · brillo de una sala: tope = factor × objetivo (BRIAN proy.sala.nitsTopeFactor). sobreSala devuelve cuánto se pasa (0 si no) */
+const nitsParedes = (c) => { const v = (c && c.filas || []).filter(f => f.s.tipo !== 'suelo' && f.p).map(f => f.p.nits); return v.length ? Math.min(...v) : 0; };
+const sobreSala = (c) => { if (!c || !c.esp || c.esp.tipo !== 'sala') return 0; const tope = nitsObjetivo() * BR['proy.sala.nitsTopeFactor'], n = nitsParedes(c); return n > tope ? Math.min(3, n / tope - 1) : 0; };
+const rojoContraste = (c) => !!(c && c.veredicto && c.veredicto.motivos.some(m => m.n === 'R' && m.k === 'contraste'));   /* v11.44 · el cuerpo elegido por la búsqueda de AUTO en salas, por si la sala no cambia */
 /* v11.44 · sala inmersiva en AUTO que no monta bien (proyectores que chocan, fuera de la sala, franjas sin imagen): se prueba cada cuerpo de las marcas
    activas y se queda el que monta mejor: sin problemas graves, sin franjas si se puede, la marca preferida y, a igualdad, menos proyectores.
    Por marca y, dentro de cada una, primero los de óptica fija y menor relación de proyección (las salas obligan a tirar corto); de óptica
@@ -167,21 +173,24 @@ const SALA_AUTO = { k: '', m: '', t: 0 };   /* v11.44 · el cuerpo elegido por l
 function buscaSala(clave, forzarMulti, c0) {
   if (JSON.stringify([E.esp, E.proy, marcasActivas(), !!forzarMulti]) !== clave) return;
   const conCuerpo = (m) => { E.proy.cuerpo = m; PROF_CALC++; try { return calcularBase(forzarMulti); } catch (e) { return null; } finally { E.proy.cuerpo = ''; PROF_CALC--; } };
-  const nota = (k) => (rojoMontaje(k) ? 1e6 : 0) + ((k.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)) ? 1e5 : 0) + prioMarca(k.proyector ? k.proyector.marca : '') * 1e4 + (k.tot ? k.tot.n : 99) * 100;
+  const nota = (k) => (rojoMontaje(k) ? 1e6 : 0) + ((k.filas || []).some(f => f.s.tipo !== 'suelo' && f.p && (f.p.parcial > 0.01 || f.p.noCubre)) ? 1e5 : 0) + sobreSala(k) * BR['proy.sala.notaSobrebrillo'] + (nitsParedes(k) < nitsObjetivo() ? (1 - nitsParedes(k) / nitsObjetivo()) * 2e4 : 0) + (rojoContraste(k) ? 5e4 : 0) + prioMarca(k.proyector ? k.proyector.marca : '') * 1e4 + (k.tot ? k.tot.n : 99) * 100 + (k.tot ? k.tot.lumenes / 1000 : 0);   /* v11.52 · el brillo de más y el contraste en rojo cuentan más que la marca; a igualdad, menos lúmenes totales */
   const t0 = performance.now(), act = marcasActivas(), trM = {}, mk = {}, fija = {}, rep = {};
   PROYECTORES.forEach(q => { if (!act.includes(q.marca)) return; mk[q.modelo] = q.marca; fija[q.modelo] = !q.optica; trM[q.modelo] = Math.min(trM[q.modelo] ?? 99, q.trMin || 99);
-    if (q.optica) { const s2 = q.marca + '|' + (q.serie || q.modelo); if (!rep[s2] || q.lumens > rep[s2].lumens) rep[s2] = q; } });
-  const reps = new Set(Object.values(rep).map(q => q.modelo));
+    if (q.optica) { const s2 = q.marca + '|' + (q.serie || q.modelo) + '|' + q.modelo; if (!rep[s2]) rep[s2] = q; } });   /* v11.52 · todos los cuerpos de cada serie (antes solo el de más lúmenes) */
+  const reps = new Set(Object.values(rep).map(q => q.modelo)), lmC = {}; PROYECTORES.forEach(q => { lmC[q.modelo] = Math.max(lmC[q.modelo] || 0, q.lumens); });
   let mejor = '', nm = nota(c0);
-  for (const m of Object.keys(trM).filter(m => fija[m] || reps.has(m)).sort((x, y) => prioMarca(mk[x]) - prioMarca(mk[y]) || fija[y] - fija[x] || trM[x] - trM[y])) {
-    if (performance.now() - t0 > 1500) break; const k = conCuerpo(m); if (!k || !k.tot) continue; const n = nota(k); if (n < nm) { nm = n; mejor = m; } }
+  for (const m of Object.keys(trM).filter(m => fija[m] || reps.has(m)).sort((x, y) => prioMarca(mk[x]) - prioMarca(mk[y]) || fija[y] - fija[x] || lmC[x] - lmC[y] || trM[x] - trM[y])) {   /* v11.52 · dentro de cada marca, de menos a más lúmenes */
+    if (performance.now() - t0 > BR['proy.sala.busquedaMs']) break; const k = conCuerpo(m); if (!k || !k.tot) continue; const n = nota(k); if (n < nm) { nm = n; mejor = m; }
+    if (nm < 1e4) break; }   /* v11.52 · uno limpio, sin brillo de más y de la primera marca: no hace falta seguir */
   SALA_AUTO.k = clave; SALA_AUTO.m = mejor;
   if (mejor) actualizar();
 }
 function calcular(forzarMulti) {
   PROF_CALC++;
   try { const c = calcularBase(forzarMulti);
-    if (PROF_CALC > 1 || E.tecnologia === 'led' || E.proy.oos || !c || !(c.filas || []).some(f => f.s.tipo !== 'suelo') || !fallaNormal(c)) return c;
+    if (PROF_CALC > 1 || E.tecnologia === 'led' || E.proy.oos || !c || !(c.filas || []).some(f => f.s.tipo !== 'suelo')) return c;
+    const mejorable = E.esp.tipo === 'sala' && !E.proy.cuerpo && (sobreSala(c) > 0 || rojoContraste(c));   /* v11.52 · la búsqueda de sala también por brillo de más o contraste en rojo */
+    if (!fallaNormal(c) && !mejorable) return c;
     /* v11.44 · sala inmersiva en AUTO que sale con un montaje imposible (proyectores que chocan, fuera de la sala…): antes de pasar a fuera de
        especificación se prueba cada cuerpo de las marcas activas y se queda el que monta sin problemas graves (sin franjas sin imagen si se puede;
        después, menos proyectores; a igualdad, la marca preferida) */
@@ -191,6 +200,7 @@ function calcular(forzarMulti) {
       /* la búsqueda tarda: se hace aparte, cuando la sala deja de cambiar, y si encuentra algo mejor se vuelve a calcular */
       if (SALA_AUTO.k !== clave) { clearTimeout(SALA_AUTO.t); SALA_AUTO.t = setTimeout(() => buscaSala(clave, forzarMulti, c), 400); }
     }
+    if (!fallaNormal(c)) return c;
     let alt = null; E.proy.oos = true; try { alt = calcularBase(forzarMulti); } finally { E.proy.oos = false; }
     if (alt && !fallaNormal(alt)) { alt.oosAuto = true; alt.veredicto = veredicto(alt); return alt; }
     if (rojoMontaje(c)) { c.noRealizable = true; c.veredicto = veredicto(c); }   /* con solo una franja sin imagen sí se puede montar: queda su aviso */
@@ -278,8 +288,14 @@ function calcularBase(forzarMulti) {
     /* v11.7 · en sala inmersiva, el más vendido (EB-L695SE) va primero cuando da un contraste de 10:1 en todas las paredes: gana aunque lleve hasta dos equipos más */
     const lxS = Number(E.proy.lux), lxs = isFinite(lxS) && lxS >= 0 ? lxS : 15;
     const prio = esp.tipo === 'sala' && PRIO_SALA.includes(pP.modelo) && filas.every(f => f.s.tipo === 'suelo' || lxs <= 0 || (f.p.lux + lxs) / lxs >= BR['proy.contraste.auto']) ? -BR['proy.puntos.salaPrioridad'] : 0;
+    /* v11.52 · en sala: lentes por debajo de la altura mínima (BRIAN proy.sala.alturaLenteMin) y brillo por encima del tope */
+    if (esp.tipo === 'sala') { const hMin = hLenteMin(esp); S.bajas = (S.haces || []).filter(h => !h.suelo && h.lente && h.lente.y >= 0.03 && h.lente.y < hMin - 0.005); S.bajasCabeza = S.bajas.filter(h => h.lente.y < BR['proy.persona.alto']).length; }
+    const npw = filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.nits), topeS = nitsObjetivo() * BR['proy.sala.nitsTopeFactor'];
+    const sobreB = esp.tipo === 'sala' && npw.length && Math.min(...npw) > topeS ? Math.min(3, Math.min(...npw) / topeS - 1) * BR['proy.sala.puntosSobrebrillo'] : 0;
+    const bajasK = esp.tipo === 'sala' ? (S.bajasCabeza || 0) * 2e5 + ((S.bajas || []).length - (S.bajasCabeza || 0)) * 2e4 : 0;
+    const sueloK = filas.reduce((a, f) => a + (f.s.tipo === 'suelo' ? (f.p.chica ? 2e6 : 0) + (f.p.solapeAlto ? 3000 : 0) : 0), 0);
     const falta = opc.nitsMin ? filas.reduce((a, f) => a + (f.s.tipo !== 'suelo' && f.p.nits < opc.nitsMin ? (1 - f.p.nits / opc.nitsMin) * 2000 : 0), 0) : 0;   /* v11.11 · en el blending por brillo, lo que falta para llegar pesa más que los equipos de más */
-    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 + prio + falta };
+    return { filas, S, coste: costeInstalacion(filas, S) + pref(pP) * 100 + cerca * 1e9 + prio + falta + sobreB + bajasK + sueloK };
   };
   // AUTO: la instalación limpia (sin chasis que choquen ni proyectores dentro de otros haces) con menos equipos y más brillo.
   // Con el catálogo completo (cuerpos × ópticas), primero se puntúa cada combinación con el cálculo rápido de las paredes
@@ -287,7 +303,10 @@ function calcularBase(forzarMulti) {
   const rapido = (q) => { let k = pref(q) * 1000, nm = Infinity; sups.forEach(s => { if (s.tipo === 'suelo') return; const r = calcularPared(s, q, { alcance: alcanceDe(s), ...optDe(q) });
     k += (r.fuera || corta(r) ? 1e7 : 0) + (r.noCubre ? 4e6 : 0) + (r.limite || r.chica ? 2e6 : 0) + (r.solapeRel > SOLAPE_MAX + 1e-6 ? 5e6 : 0) + r.n * 1000 + (r.recorte + r.recorteX) * 300 - valeBrillo(r.nits) * 0.5 + (opc.nitsMin && r.nits < opc.nitsMin ? (1 - r.nits / opc.nitsMin) * 20000 : 0); nm = Math.min(nm, r.nits); }); return k + q.lumens / 1000 * 1.5 * pesoLm(nm); };
   const supS = sups.find(s => s.tipo === 'suelo');
-  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return r.n * 1000 - valeBrillo(r.nits) * 0.5 + q.lumens / 1000 * 1.5 * pesoLm(r.nits); };
+  const rapidoS = (q) => { const r = calcularSuelo(supS, q, { altoSala: esp.alto, ...opc }); return (r.fuera ? 1e7 : 0) + (r.chica ? 2e6 : 0) + (r.limite ? 2e4 : 0) + (r.solapeAlto ? 3000 : 0) + r.n * 1000 - valeBrillo(r.nits) * 0.5 + q.lumens / 1000 * 1.5 * pesoLm(r.nits); };
+  /* v11.52 · el suelo nunca con ultracortas plegadas (BRIAN proy.suelo.sinUltracorta) y, mientras se eligen las paredes, con el mejor cenital de su marca */
+  const sinUstS = (L) => { if (!BR['proy.suelo.sinUltracorta']) return L; const f = L.filter(q => !q.ust && !q.plegada); return f.length ? f : L; };
+  const sueloMarca = {}, sueloDe = (q) => { if (!supS) return q; if (!sueloMarca[q.marca]) { const L = sinUstS(CAT.filter(x => x.marca === q.marca)); sueloMarca[q.marca] = L.map(x => ({ x, c: rapidoS(x) })).sort((a, b) => a.c - b.c)[0].x; } return sueloMarca[q.marca]; };
   const mejores = (lista, k = 10, fc = rapido) => lista.length <= k ? lista : lista.map(q => ({ q, c: fc(q) })).sort((a, b) => a.c - b.c).slice(0, k).map(x => x.q);
   const mejorDe = (lista, fn) => lista.map(q => ({ q, r: fn(q) })).sort((x, y) => x.r.coste - y.r.coste)[0];
   // v10.54 · solo las marcas activadas (todas, si no se ha quitado ninguna)
@@ -303,19 +322,19 @@ function calcularBase(forzarMulti) {
   // v10.63 · una sola marca por proyecto: el proyector del suelo es de la misma marca que el de las paredes (uno elegido a mano de otra marca
   // no se usa). Sin paredes, el proyector del proyecto es el del suelo (antes se nombraba uno de pared que no estaba).
   const hayPared = sups.some(s => s.tipo !== 'suelo');
-  if (!hayPared && haySuelo) { proyector = fijo || (fijoS && mAct.includes(fijoS.marca) ? fijoS : null) || mejorDe(mejores(lista, 8, rapidoS), q => montar(q, q)).q; prSuelo = proyector; }
+  if (!hayPared && haySuelo) { proyector = fijo || (fijoS && mAct.includes(fijoS.marca) ? fijoS : null) || mejorDe(mejores(sinUstS(lista), 8, rapidoS), q => montar(q, q)).q; prSuelo = proyector; }
   else {
     if (fijo) { proyector = fijo; }
-    else { const fn = q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : q), orden = lista.length <= 10 ? lista : lista.map(q => ({ q, c: rapido(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
+    else { const fn = q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : sueloDe(q)), orden = lista.length <= 10 ? lista : lista.map(q => ({ q, c: rapido(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
       let m = mejorDe(orden.slice(0, 10), fn);
       /* v10.97 · si entre los diez primeros ninguno queda limpio (chasis que chocan o proyectores dentro de otro haz), se miran los treinta siguientes */
       let vistos = 10; if (orden.length > 10 && (m.r.S.conflictos.length || m.r.S.choques.length || m.r.filas.some(f => f.s.tipo !== 'suelo' && (f.p.parcial > 0.01 || f.p.fuera || f.p.noCubre || f.p.limite || f.p.chica || Math.max(f.p.recorte, f.p.recorteX) > RECORTE_MAX + 1e-6)))) {   /* v11.12 · también si lo mejor de los diez primeros no cubre bien */ vistos = 40; const m2 = mejorDe(orden.slice(10, 40), fn); if (m2 && m2.r.coste < m.r.coste) m = m2; }
       /* v11.7 · en sala inmersiva se prueban siempre los priorizados (EB-L695SE) y las ultracortas de óptica fija (EB-815E, EB-805F), que el cálculo rápido deja atrás por número de equipos */
-      if (esp.tipo === 'sala') { const ex = lista.filter(q => (PRIO_SALA.includes(q.modelo) || (q.ust && !q.optica)) && !orden.slice(0, vistos).includes(q)); if (ex.length) { const m3 = mejorDe(ex, q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : haySuelo && m.q.marca === q.marca ? m.q : q));   // con suelo, de momento el del mejor (luego se elige el suyo)
+      if (esp.tipo === 'sala') { const ex = lista.filter(q => (PRIO_SALA.includes(q.modelo) || (q.ust && !q.optica)) && !orden.slice(0, vistos).includes(q)); if (ex.length) { const m3 = mejorDe(ex, q => montar(q, fijoS && fijoS.marca === q.marca ? fijoS : haySuelo ? sueloDe(q) : q));   // con suelo, de momento el del mejor (luego se elige el suyo)
          if (m3 && m3.r.coste < m.r.coste) m = m3; } }
       proyector = m.q; }
     if (fijoS && fijoS.marca === proyector.marca) prSuelo = fijoS;
-    else if (haySuelo) { const LS = CAT.filter(q => q.marca === proyector.marca), fnS = q => montar(proyector, q), ordS = LS.length <= 8 ? LS : LS.map(q => ({ q, c: rapidoS(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
+    else if (haySuelo) { const LS = sinUstS(CAT.filter(q => q.marca === proyector.marca)), fnS = q => montar(proyector, q), ordS = LS.length <= 8 ? LS : LS.map(q => ({ q, c: rapidoS(q) })).sort((x, y) => x.c - y.c).map(x => x.q);
       let m = mejorDe(ordS.slice(0, 8), fnS); if (ordS.length > 8 && (m.r.S.conflictos.length || m.r.S.choques.length)) { const m2 = mejorDe(ordS.slice(8, 36), fnS); if (m2 && m2.r.coste < m.r.coste) m = m2; }   // v10.97 · igual que en las paredes
       prSuelo = m.q; }
     else prSuelo = proyector;
@@ -467,6 +486,14 @@ function veredicto(c) {
     if (c.esp.tipo === 'sala' && S.zona && !S.zona.ok) R('zona', t('segNo'));
     (S.obst || []).forEach(k => R('obst', t('obstSombra', { k: k.k + 1, n: k.nombres.join(' · ') })));
     if (con < BR['proy.contraste.minimo']) R('contraste', t('vConR'));
+    /* v11.52 · el suelo también entra en el veredicto; brillo excesivo a oscuras; lentes a la altura de las personas */
+    { const ps = c.filas.filter(f => f.s.tipo === 'suelo');
+      if (ps.some(f => f.p.fuera)) R('sueloUst', t('vSueloUst'));
+      if (ps.some(f => f.p.chica)) R('sueloChica', t('vSueloLim', { s: t('chica') }));
+      if (ps.some(f => f.p.limite)) A('sueloLimite', t('vSueloLim', { s: t('limite') }));
+      ps.filter(f => f.p.solapeAlto).forEach(f => A('sueloSolape', t('vSueloSolape', { p: fmt(f.p.solapeRel * 100, 0), r: fmt(BR['proy.suelo.solapeMax'] * 100, 0) }))); }
+    { const lxV = Number(E.proy.lux), nMin = Math.min(...pw.map(f => f.p.nits)); if (c.esp.tipo === 'sala' && pw.length && isFinite(lxV) && lxV <= BR['proy.brillo.luzOscura'] && nMin > BR['proy.brillo.excesivoNits']) A('sobrebrillo', t('vSobrebrillo', { b: fmt(nMin, 0), l: fmt(lxV, 0) })); }
+    if (c.esp.tipo === 'sala' && (S.bajas || []).length) (S.bajasCabeza ? R : A)('cabeza', t('vCabeza', { n: S.bajas.length, h: fmt(hLenteMin(c.esp), 2) }));
     { const L = pw.filter(f => f.p.limite); if (L.length) A('limite', t('limite') + ': ' + nom(L) + '.'); }
     pw.filter(f => f.p.solapeRel > SOLAPE_MAX + 1e-6).forEach(f => A('solape', t('vSolape', { p: fmt(f.p.solapeRel * 100, 0), n: f.nombre }) + (c.unaImagen ? ' ' + t('vSolapeUna', { b: nombreQ(c.unaImagen) }) : '')));
     // v10.69 · solape entre el recomendable (45 %) y el máximo (65 %): posible, con aviso

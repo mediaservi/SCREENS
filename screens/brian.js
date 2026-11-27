@@ -13,6 +13,9 @@ export const BRIAN_DEF = {
   'proy.contraste.auto': 10, 'proy.brillo.minimo': 45, 'proy.brillo.minimoMapping': 80, 'proy.brillo.maximo': 250, 'proy.blending.mejoraContraste': 1.25,
   'proy.sala.bandaMinima': 1.9, 'proy.lumenes.tolerancia': 0.97, 'proy.puntos.marca': 50, 'proy.puntos.salaPrioridad': 400,
   'proy.luz.reunion': 140, 'proy.luz.aula': 210, 'proy.luz.evento': 140, 'proy.luz.salon': 70, 'proy.luz.teatro': 14, 'proy.luz.oscura': 15, 'proy.luz.calle': 5,
+  /* v11.52 · salas inmersivas: brillo justo, suelo cenital y altura de lentes */
+  'proy.sala.nitsTopeFactor': 2.5, 'proy.sala.puntosSobrebrillo': 3000, 'proy.sala.notaSobrebrillo': 30000, 'proy.sala.busquedaMs': 1500,
+  'proy.sala.alturaLenteMin': 2.1, 'proy.sala.margenTecho': 0.35, 'proy.brillo.luzOscura': 15, 'proy.brillo.excesivoNits': 250, 'proy.suelo.sinUltracorta': 1, 'proy.suelo.solapeMax': 0.45,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,

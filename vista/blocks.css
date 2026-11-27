@@ -867,3 +867,19 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 /* con el cajón abierto, si el paso no cabe en portátiles bajos, se desplaza dentro del paso: nada queda cortado */
 .pz.ab .pz-cu:has(> .mas.abierto) { overflow-y: auto; overscroll-behavior: contain; }
 @media (max-width: 900px), (max-height: 520px) { .pz.ab .pz-cu:has(> .mas.abierto) { overflow: visible; } }
+
+/* v11.56 · RESULTADOS con el veredicto primero: estado en 4 niveles, 3 cifras con su criterio y botón DETALLE */
+.dets { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, .85fr); }
+.dets .dett { color: var(--vista); border-style: dashed; }
+.dets .dett[aria-pressed="true"] { color: var(--vista); border-style: solid; border-color: var(--vista); background: color-mix(in srgb, var(--vista) 12%, var(--blk)); }
+.vered4 { min-height: calc(var(--u) * 52); }
+.vered4 > span { display: flex; flex-direction: column; gap: calc(var(--u) * 2); -webkit-line-clamp: unset; }
+.vered4 > span > strong { font-size: calc(var(--u) * 14); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--verde); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vered4.av > span > strong { color: var(--ambar); } .vered4.mal > span > strong { color: var(--rojo); }
+.vered4 > span > span { font-size: calc(var(--u) * 12.5); color: var(--tenue); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vered4.dato { border-style: dashed; border-color: var(--ambar); }
+.cifs3 .cif > em { display: flex; align-items: flex-start; gap: .35em; white-space: normal; line-height: 1.2; }
+.cifs3 .cif > em > span { min-width: 0; overflow-wrap: anywhere; }
+.cifs3 .cif > em > .crit { margin-top: .05em; }
+.crit { flex: none; font-style: normal; font-weight: 900; font-size: 1.05em; line-height: 1; }
+.crit.si { color: var(--verde); } .crit.no { color: var(--rojo); }

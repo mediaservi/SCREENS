@@ -31,7 +31,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.55';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.56';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -392,9 +392,10 @@ function avisosLed(R) {
     av('P' + String(R.pitch).replace('.', ',') + ' se ve bien desde ' + fmt(R.pitch * k, 1) + ' m y el público está a ' + fmt(d, 1) + ' m: se distinguirá el píxel.');
     av(fino ? 'Hay pitch más fino en este entorno: bájalo en Resolución.' : 'No hay pitch más fino en el catálogo para este entorno.'); } }
   /* datos que faltan en el catálogo: se dice qué no se ha podido calcular */
-  if (R.sinConsumo) av('Falta el consumo de ' + m.crm + ' en el catálogo: no se calculan la corriente ni los circuitos de 16 A.');
-  if (!(+m.cabKg > 0)) av('Falta el peso de ' + m.crm + ' en el catálogo: no se da el peso total ni la carga para la estructura.');
-  if (!String(m.card || '').trim()) av('Falta la receiving card de ' + m.crm + ' en el catálogo: compruébala en la ficha antes de ofertar la electrónica.');
+  const falta = (t) => A.push(['av', t, 'dato']);
+  if (R.sinConsumo) falta('Falta el consumo de ' + m.crm + ' en el catálogo: no se calculan la corriente ni los circuitos de 16 A.');
+  if (!(+m.cabKg > 0)) falta('Falta el peso de ' + m.crm + ' en el catálogo: no se da el peso total ni la carga para la estructura.');
+  if (!String(m.card || '').trim()) falta('Falta la receiving card de ' + m.crm + ' en el catálogo: compruébala en la ficha antes de ofertar la electrónica.');
   return A;
 }
 
@@ -597,6 +598,8 @@ const PZ = [[1, 'Entorno y uso', ['M1A']], [2, 'Tamaño y resolución', ['M2A', 
 const PZK = 'screens-blocks-pasos';
 let PZA = (() => { try { const a = JSON.parse(localStorage.getItem(PZK)); if (Array.isArray(a) && a.length && a.every((n) => n >= 1 && n <= 4)) return a; } catch (e) {} return [1, 2]; })();   /* pasos abiertos, del más antiguo al último tocado */
 let PZV = PZA.slice(), DET = 'res';
+/* v11.56 · RESULTADOS con el veredicto primero: el estado y 3 cifras con su criterio; DETALLE enseña las 6 cifras de siempre (se recuerda en la sesión) */
+let DETT = (() => { try { return sessionStorage.getItem('screens_detalle') === '1'; } catch (e) { return false; } })();
 let MASL = (() => { try { return +localStorage.getItem('screens_mas_led') || 0; } catch (e) { return 0; } })();   /* v11.40 · el cajón MÁS AJUSTES abierto (paso 2 o 3; 0 = ninguno) */
 /* los tres colores de la interfaz, con un solo significado en toda la app */
 const LEY = '<span class="ley" role="note"><span title="Verde: lo que tú decides y entra en el cálculo"><i class="l-e"></i><span>Entrada</span></span><span title="Blanco: lo que sale del cálculo"><i class="l-r"></i><span>Resultado</span></span><span title="Azul: solo cambia lo que se ve, no el cálculo"><i class="l-v"></i><span>Vista</span></span></span>';
@@ -616,9 +619,18 @@ function zonas(el, AV) {
     const { m, r } = R, cif = (k, v, u, s) => `<div class="cif"><span>${k}</span><b>${v}${u ? `<small>${u}</small>` : ''}</b><em>${s || ''}</em></div>`;
     const nMal = AV.filter((a) => a[0] === 'mal').length, niv = nMal ? 'mal' : AV.length ? 'av' : 'ok';
     const t = mk('template', ''); t.innerHTML = blk('', 'RES', 'Resultados', 'var(--verde)',
-      `<div class="cifs">${cif('Cabinets', fmt(r.cab), '', `<span data-crudo>${esc(m.crm)} · ${String(R.pitch).replace('.', ',')} mm</span>`)}${cif('Lienzo de contenido', `${r.resW}×${r.resH}`, 'px', `<span data-crudo>${fmt(r.pix / 1e6, 2)} Mpx</span>`)}${cif('Peso', r.peso > 0 ? fmt(r.peso, 1) : '—', r.peso > 0 ? 'kg' : '', +m.cabKg > 0 ? `<span data-crudo>${fmt(m.cabKg, 1)} kg</span> <span>por cabinet</span>` : '')}${cif('Consumo', r.kw > 0 ? fmt(r.kw, 2) : '—', r.kw > 0 ? 'kW' : '', R.ampCab > 0 ? `<span data-crudo>${fmt(r.cab * R.ampCab, 1)} A · 230 V</span>` : '')}${cif('Líneas Ethernet', r.lineas, '', E.backup ? `<span data-crudo>+ ${r.lineas} backup</span>` : 'Sin backup')}${cif('Salidas 4K', r.salidas4k, '', R.media ? 'mediaserver' : 'electrónica')}</div>` +
-      `<button type="button" class="vered ${niv}" data-det="av" title="Ver los avisos"><i></i><span>${AV.length ? esc(AV[0][1]) : 'Sin avisos: todo dentro de lo recomendado'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>` +
-      `<div class="dets" role="tablist">${[['res', 'Resumen'], ['mat', 'Material'], ['av', 'Avisos']].map(([k, n]) => `<button type="button" role="tab" data-det="${k}" aria-selected="${DET === k}">${n}${k === 'av' && AV.length ? `<i class="n ${niv}" data-crudo>${AV.length}</i>` : ''}</button>`).join('')}</div><div class="det det-${DET}"></div>`, LEY, 'res');
+      (() => {
+        const seis = `<div class="cifs">${cif('Cabinets', fmt(r.cab), '', `<span data-crudo>${esc(m.crm)} · ${String(R.pitch).replace('.', ',')} mm</span>`)}${cif('Lienzo de contenido', `${r.resW}×${r.resH}`, 'px', `<span data-crudo>${fmt(r.pix / 1e6, 2)} Mpx</span>`)}${cif('Peso', r.peso > 0 ? fmt(r.peso, 1) : '—', r.peso > 0 ? 'kg' : '', +m.cabKg > 0 ? `<span data-crudo>${fmt(m.cabKg, 1)} kg</span> <span>por cabinet</span>` : '')}${cif('Consumo', r.kw > 0 ? fmt(r.kw, 2) : '—', r.kw > 0 ? 'kW' : '', R.ampCab > 0 ? `<span data-crudo>${fmt(r.cab * R.ampCab, 1)} A · 230 V</span>` : '')}${cif('Líneas Ethernet', r.lineas, '', E.backup ? `<span data-crudo>+ ${r.lineas} backup</span>` : 'Sin backup')}${cif('Salidas 4K', r.salidas4k, '', R.media ? 'mediaserver' : 'electrónica')}</div>`;
+        const vered = `<button type="button" class="vered ${niv}" data-det="av" title="Ver los avisos"><i></i><span>${AV.length ? esc(AV[0][1]) : 'Sin avisos: todo dentro de lo recomendado'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>`;
+        if (DETT) return seis + vered;
+        /* estado en 4 niveles: rojo si algo no es recomendable; ámbar discontinuo si faltan datos del catálogo; ámbar si hay avisos; verde si no hay nada */
+        const nDato = AV.filter((a) => a[2] === 'dato').length, est = nMal ? 'No recomendable' : nDato ? 'Faltan datos del catálogo' : AV.length ? (AV.length === 1 ? 'Revisa 1 aviso' : `Revisa ${AV.length} avisos`) : 'Listo para ofertar';
+        const k = BR['led.distancia.metrosPorMmPitch'] || 1, dMin = R.pitch * k, d = +E.dist || 0, okD = !(d > 0) || dMin <= d + 1e-9;
+        const crit = (ok, txt) => `<i class="crit ${ok ? 'si' : 'no'}" aria-label="${ok ? 'Cumple' : 'No cumple'}">${ok ? '✓' : '✗'}</i> <span>${txt}</span>`;
+        const tres = `<div class="cifs cifs3">${cif('Resolución', `${r.resW}×${r.resH}`, 'px', crit(okD, okD ? `Nítida desde ${fmt(dMin, 1)}\u00a0m` : `Se ve el píxel a ${fmt(d, 1)}\u00a0m`))}${cif('Consumo', r.kw > 0 ? fmt(r.kw, 2) : '—', r.kw > 0 ? 'kW' : '', R.sinConsumo ? crit(false, 'Sin dato de consumo') : crit(true, `${R.nLin}\u00a0×\u00a016\u00a0A al\u00a0${fmt((R.USO || 1) * 100, 0)}\u00a0%`))}${cif('Señal', r.lineas, r.lineas === 1 ? 'línea' : 'líneas', crit(!!R.proc, R.proc ? `${E.backup ? 'Con backup' : 'Sin backup'} · ${r.salidas4k}\u00a0×\u00a04K` : 'Sin procesador'))}</div>`;
+        return `<button type="button" class="vered vered4 ${niv}${nDato && !nMal ? ' dato' : ''}" data-det="av" title="Ver los avisos"><i></i><span><strong>${est}</strong>${AV.length ? `<span>${esc(AV[0][1])}</span>` : '<span>Todo dentro de lo recomendado</span>'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>` + tres;
+      })() +
+      `<div class="dets" role="tablist">${[['res', 'Resumen'], ['mat', 'Material'], ['av', 'Avisos']].map(([k, n]) => `<button type="button" role="tab" data-det="${k}" aria-selected="${DET === k}">${n}${k === 'av' && AV.length ? `<i class="n ${niv}" data-crudo>${AV.length}</i>` : ''}</button>`).join('')}<button type="button" class="dett" data-dett aria-pressed="${DETT}" title="${DETT ? 'Volver al veredicto y las 3 cifras clave' : 'Ver las 6 cifras del detalle técnico'}">${DETT ? 'Veredicto' : 'Detalle'}</button></div><div class="det det-${DET}"></div>`, LEY, 'res');
     res = t.content.firstChild; const det = res.querySelector('.det'), de = (id, s) => { const b = g(id); return b ? [...b.querySelectorAll(s)] : []; };
     const lect = [sub('RME', 'Medida real', 'var(--marca)', de('M2A', '.blk-cu > .gran, .blk-cu > .celdas')), sub('RSE', 'Señal', 'var(--ambar)', de('M3E', '.blk-cu > .dato'), bt('ojo', 'Ver el cableado de señal', 'data-ver="senal"'))];
     { const e3 = g('M3E'); if (e3) e3.querySelectorAll('.blk-cab [data-ver="senal"], .blk-cu > .gran').forEach((o) => o.remove()); }
@@ -829,6 +841,7 @@ function monta() {
     if ((b = q('[data-alt-crm]'))) { try { $('#stk-pop').hidePopover(); } catch (x) {} E.crm = b.dataset.altCrm; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); return; }   /* v10.75 · alternativa con stock elegida desde la ficha de stock */
     if ((b = q('[data-pz]'))) { const n = +b.dataset.pz; if (PZV.includes(n)) PZA = PZA.filter((x) => PZV.includes(x) && x !== n); else PZA = PZA.filter((x) => x !== n).concat(n); PZFIT = null; try { localStorage.setItem(PZK, JSON.stringify(PZA)); } catch (x) {} pintaRejilla(); ajustaTextos(); const f = document.querySelector(`[data-pz="${n}"]`); if (f) f.focus(); return; }   /* v11.16 · abrir o plegar un paso */
     if ((b = q('.pz.pag [data-sub]')) && !q('.pz.pag [data-sub] button, .pz.pag [data-sub] select')) { const n = +b.closest('.pz').dataset.pzs; SUB[n] = b.dataset.sub; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.pz.pag [data-sub="${SUB[n]}"]`); if (f) f.focus(); return; }
+    if (q('[data-dett]')) { DETT = !DETT; try { sessionStorage.setItem('screens_detalle', DETT ? '1' : '0'); } catch (er) {} pintaRejilla(); ajustaTextos(); return; }
     if ((b = q('[data-det]'))) { DET = b.dataset.det; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.dets [data-det="${DET}"]`); if (f) f.focus(); return; }
     if ((b = q('[data-masl]'))) { const n = +b.dataset.masl; MASL = MASL === n ? 0 : n; try { localStorage.setItem('screens_mas_led', String(MASL)); } catch (e) {} if (MASL && !PZA.includes(n)) PZA.push(n); todo(); return; }
     if ((b = q('[data-rpz]'))) { (PZ.find((x) => x[0] === +b.dataset.rpz) || [0, 0, []])[2].forEach((id) => (RBLK[id] || []).forEach((k) => { E[k] = Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]; })); todo(); return; }

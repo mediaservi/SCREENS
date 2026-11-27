@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.55** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.56** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.55)
+## Cambios de la versión actual (v11.56)
+- **RESULTADOS con el veredicto primero** (pantalla LED, una proyección y varias pantallas): arriba el estado en una palabra (LISTO PARA OFERTAR, REVISA N AVISOS, FALTAN DATOS DEL CATÁLOGO o NO RECOMENDABLE) con el primer aviso, y debajo solo las 3 cifras clave, cada una con su criterio (✓ / ✗): en LED, resolución frente a la distancia del público, consumo con sus líneas de 16 A y señal; en proyección, brillo frente al objetivo, contraste frente al mínimo recomendado y distancia frente al zoom.
+- El botón **DETALLE**, junto a las pestañas, enseña las 6 cifras de siempre; se recuerda mientras dura la sesión. No se ha quitado ningún dato.
+
+## Cambios de la v11.55
 - **Vídeo de prueba sin subtítulos:** el vídeo de mediaservi.com de la simulación sale siempre sin subtítulos (la traducción automática quedaba mal).
 
 ## Cambios de la v11.54

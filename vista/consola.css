@@ -773,3 +773,15 @@ select[data-sel="led.crm"] option.stk { background: #0f5a50; color: #e4fbf7; }
   html.piel:not(.bk) body { height: auto; min-height: 100dvh; overflow: visible; }
   html.piel:not(.bk) #app { overflow: visible; flex: none; }
 }
+
+/* v11.56 · RESULTADOS con el veredicto primero: estado en 4 niveles, 3 cifras con su criterio y botón DETALLE */
+html.piel #res > .res-pest { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, .85fr); }
+html.piel #res > .res-pest .tog.dett { color: var(--vista); border-style: dashed; }
+html.piel #res > .res-pest .tog.dett.on { border-style: solid; border-color: var(--vista); background: color-mix(in srgb, var(--vista) 12%, transparent); box-shadow: none; }
+html.piel #res > .vered-c.v4 > span { display: flex; flex-direction: column; gap: 2px; }
+html.piel #res > .vered-c.v4 > span > strong { font: 900 14px/1.2 Inter, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #ffb000; }
+html.piel #res > .vered-c.v4.ok > span > strong { color: #3fdc5b; } html.piel #res > .vered-c.v4.mal > span > strong { color: #ff4d5e; }
+html.piel #res > .vered-c.v4 > span > span { font: 600 13px/1.3 Inter, system-ui, sans-serif; color: var(--tenue); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html.piel #res > .vered-c.v4.dato { border-style: dashed; border-color: #ffb000; }
+#res .crit { font-style: normal; font-weight: 900; } #res .crit.si { color: #3fdc5b; } #res .crit.no { color: #ff4d5e; }
+@media (max-width: 700px) { html.piel:not(.bk) .res-tot.tres > .tar:nth-child(3) { grid-column: 1 / -1; } }

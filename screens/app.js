@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.55';
+const VERSION = 'v11.56';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -533,16 +533,26 @@ function veredicto(c) {
 }
 // la lista del veredicto en PRO: arriba de RESULTADOS (y en el PDF), con los botones para corregir donde los hay
 // v10.89 · RESULTADO con una sola estructura: veredicto en una línea · cifras · pestañas RESUMEN / TABLAS / EQUIPO / AVISOS
+/* v11.56 · RESULTADOS con el veredicto primero: estado en 4 niveles y 3 cifras con su criterio; DETALLE enseña las 6 cifras (se recuerda en la sesión, igual que en la portada LED) */
+let DETT = (() => { try { return sessionStorage.getItem('screens_detalle') === '1'; } catch (e) { return false; } })();
+const DATO_K = ['sinConsumo', 'sinPeso'];
 function veredictoCorto(c) {
   const V = c.veredicto, M = V ? V.motivos : [];
-  if (!M.length) return `<p class="vered-c ok"><i></i>${t('vOk')}</p>`;
-  const m = M[0], txt = String(m.txt).replace(/<[^>]+>/g, '');
-  return `<button type="button" class="vered-c ${m.n === 'R' ? 'mal' : 'amb'}" data-accion="pest" data-v="av"><i></i><span>${txt}</span>${M.length > 1 ? `<b>+${M.length - 1}</b>` : ''}</button>`;
+  if (DETT) {
+    if (!M.length) return `<p class="vered-c ok"><i></i>${t('vOk')}</p>`;
+    const m = M[0], txt = String(m.txt).replace(/<[^>]+>/g, '');
+    return `<button type="button" class="vered-c ${m.n === 'R' ? 'mal' : 'amb'}" data-accion="pest" data-v="av"><i></i><span>${txt}</span>${M.length > 1 ? `<b>+${M.length - 1}</b>` : ''}</button>`;
+  }
+  const nR = M.filter(m => m.n === 'R').length, nD = M.filter(m => DATO_K.includes(m.k)).length;
+  const est = nR ? t('estNo') : nD ? t('estDatos') : M.length ? t(M.length === 1 ? 'estRevisa1' : 'estRevisa', { n: M.length }) : t('estListo');
+  const cls = nR ? 'mal' : M.length ? 'amb' : 'ok', txt = M.length ? String(M[0].txt).replace(/<[^>]+>/g, '') : t('vOk');
+  return `<button type="button" class="vered-c v4 ${cls}${nD && !nR ? ' dato' : ''}" data-accion="pest" data-v="av"><i></i><span><strong>${est}</strong><span>${txt}</span></span>${M.length > 1 ? `<b>+${M.length - 1}</b>` : ''}</button>`;
 }
+const critC = (ok, txt) => `<i class="crit ${ok ? 'si' : 'no'}" aria-label="${ok ? t('cumple') : t('noCumple')}">${ok ? '✓' : '✗'}</i> <span>${txt}</span>`;
 const PESTAS = ['res', 'tab', 'eq', 'av'];
 function pestanas(c) {
   const n = c.veredicto ? c.veredicto.motivos.length : 0, v = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
-  return `<div class="res-pest" role="tablist">${PESTAS.map(k => `<button type="button" class="tog${k === v ? ' on' : ''}" role="tab" aria-selected="${k === v}" data-accion="pest" data-v="${k}">${t('pest_' + k)}${k === 'av' && n ? ` <b class="pn-av">${n}</b>` : ''}</button>`).join('')}</div>`;
+  return `<div class="res-pest" role="tablist">${PESTAS.map(k => `<button type="button" class="tog${k === v ? ' on' : ''}" role="tab" aria-selected="${k === v}" data-accion="pest" data-v="${k}">${t('pest_' + k)}${k === 'av' && n ? ` <b class="pn-av">${n}</b>` : ''}</button>`).join('')}<button type="button" class="tog dett${DETT ? ' on' : ''}" data-accion="dett" aria-pressed="${DETT}" title="${t(DETT ? 'dettVolver' : 'dettVer')}">${t(DETT ? 'dettV' : 'dettD')}</button></div>`;
 }
 // cada parte del resultado, a su pestaña (las que no llevan ninguna se ven siempre)
 /* v11.14 · tablas de resultados que no caben a lo ancho del bloque: cada fila pasa a ficha (rótulo encima de su dato), sin columnas escondidas a la derecha */
@@ -1051,33 +1061,46 @@ function vistaResultados(c) {
   let h = '';
   if (E.tecnologia === 'led' && c.tot) {
     const T = c.tot, m = c.modelo;
-    h += `<div class="res-tot">
+    if (!DETT) h += veredictoCorto(c);
+    h += `<div class="res-tot${DETT ? "" : " tres"}">
+      ${DETT ? `
       ${tarjeta(t('cabinets'), fmtPx(T.cab), '', `${m.crm} · ${m.pitch} mm`, '#b566ff')}
       ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
       ${tarjeta(t('peso'), T.peso > 0 ? fmt(T.peso, 0) : '—', T.peso > 0 ? 'kg' : '', '', '#e100ff')}
       ${tarjeta(t('consumo'), T.kw > 0 ? fmt(T.kw, 1) : '—', T.kw > 0 ? 'kW' : '', T.amp > 0 ? `${fmt(T.amp, 1)} A · 230 V` : '', '#ff4d5e')}
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', `+ ${fmtPx(T.lineas)} backup · 8 bit 60 Hz`, '#00ff04')}
       ${tarjeta(t('salidas'), fmtPx(T.salidas4k), '', 'mediaserver', '#ffb000')}
+      ` : (() => { const k = BR['led.distancia.metrosPorMmPitch'] || 1, dMin = m.pitch * k, okD = !(c.dist > 0) || dMin <= c.dist + 1e-9;
+        return `${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', critC(okD, okD ? t('critNitida', { d: fmt(dMin, 1) }) : t('critPixel', { d: fmt(c.dist, 1) })), '#00b4ff')}
+      ${tarjeta(t('consumo'), T.kw > 0 ? fmt(T.kw, 1) : '—', T.kw > 0 ? 'kW' : '', T.kw > 0 && T.amp > 0 ? critC(true, `${fmt(T.amp, 1)}\u00a0A · 230\u00a0V`) : critC(false, t('critSinConsumo')), '#ff4d5e')}
+      ${tarjeta(t('lineas'), fmtPx(T.lineas), '', critC(!!(c.elec && c.elec.proc), c.elec && c.elec.proc ? t('critSenal', { n: fmtPx(T.salidas4k) }) : t('critSinProc')), '#00ff04')}`; })()}
       ${bkSumarioLed(c, T, m)}
     </div>`;
-    h += veredictoCorto(c) + pestanas(c) + vistaVeredicto(c) + bkEsquemaLed(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + bkEsquemaLed(c);
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
   } else if (c.tot) {
     const T = c.tot, p = c.proyector;
     const tiros = c.filas.filter(f => f.pos).map(f => f.pos.dist);
-    h += `<div class="res-tot">
+    if (!DETT) h += veredictoCorto(c);
+    h += `<div class="res-tot${DETT ? "" : " tres"}">
+      ${DETT ? `
       ${tarjeta(t('proyectores'), fmtPx(T.n), '', (c.grupos.length > 1 ? c.grupos.map(g => fmtPx(g.n) + ' × ' + nombreQ(g.q)).join(' + ') : nombreQ(p)) + (c.filas.some(f => f.p.vert) ? ' · ' + t('vert') : ''), '#b566ff')}
       ${tarjeta(t('lienzo'), `${fmtPx(T.lienzoW)}×${fmtPx(T.lienzoH)}`, 'px', t(c.filas.length > 1 ? 'lienzoAyuda' : 'lienzoUna'), '#00b4ff')}
       ${tarjeta(t('brillo'), fmt(T.nitsMin === Infinity ? 0 : T.nitsMin, 0), 'nits', t('brilloAyudaG', { g: fmt(c.gan, 1) }), '#ffb000')}
       ${tarjeta(t('contraste'), fmt(T.contrasteMin, 1), ':1', `<b class="sem ${semaforo(T.contrasteMin)}">${t(semaforo(T.contrasteMin))}</b> ` + nivelContraste(T.contrasteMin) + ' · ' + fmt(c.lx, 0) + ' lx', semaforo(T.contrasteMin) === 'semV' ? '#00ff04' : semaforo(T.contrasteMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', `TR ${fmt(Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio)), 2)}:1`, '#00ff04')}
       ${tarjeta(t('lumenes'), fmtPx(T.lumenes), 'lm', c.grupos.map(g => `${fmtPx(g.n)} × ${fmtPx(g.q.lumens)}`).join(' + ') + ' lm', '#ff4d5e')}
+      ` : (() => { const obj = nitsObjetivo(), nMin = T.nitsMin === Infinity ? 0 : T.nitsMin, cMin = T.contrasteMin, malZ = c.filas.some(f => f.s.tipo !== 'suelo' && f.p && (f.p.limite || f.p.fuera || f.p.noCubre));
+        const trMax = Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio));
+        return `${tarjeta(t('brillo'), fmt(nMin, 0), 'nits', critC(nMin >= obj * BR['proy.lumenes.tolerancia'], t('critBrillo', { o: fmt(obj, 0) })), '#ffb000')}
+      ${tarjeta(t('contraste'), fmt(cMin, 1), ':1', critC(cMin >= BR['proy.contraste.recomendado'], t('critContraste', { r: fmt(BR['proy.contraste.recomendado'], 0), l: fmt(c.lx, 0) })), semaforo(cMin) === 'semV' ? '#00ff04' : semaforo(cMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
+      ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', critC(!malZ, (isFinite(trMax) ? `TR\u00a0${fmt(trMax, 2)}:1 · ` : '') + t(malZ ? 'critZoomNo' : 'critZoom')), '#00ff04')}`; })()}
       ${bkSumario(c, T, p, tiros)}
     </div>`;
     /* v10.89 · arriba, el veredicto en una línea y las pestañas; el veredicto completo va en AVISOS (y entero en el PDF) */
-    h += veredictoCorto(c) + pestanas(c) + vistaVeredicto(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c);
     h += vistaSimulacion(c);   // v10.88 · resultado de la simulación numerado (una pantalla)
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(f.pos ? f.pos.dist : q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
@@ -1542,6 +1565,7 @@ document.addEventListener('click', (ev) => {
     const zn = b.closest('.zona'), bl = b.closest('.blq'); if (zn && bl) { tocar(zn.dataset.zona, bl.dataset.blq); plegar(); } return; }
   if (a === 'blq') { const zn = b.closest('.zona'); if (zn) { tocar(zn.dataset.zona, b.dataset.id); plegar(); } return; }
   if (a === 'calc-ir') { irA('.res-tot'); return; }
+  if (a === 'dett') { DETT = !DETT; try { sessionStorage.setItem('screens_detalle', DETT ? '1' : '0'); } catch (er) {} actualizar(true); return; }
   if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; encajaTablas(); } return; }
   if (a === 'ficha-ir') { irA('#det-equipo'); return; }
   if (/^reset-(a|a\d|b\d)(\+(a\d|b\d|elec))*$/.test(a)) { const d = DEF(), cp = (o, src, ks) => ks.forEach(x => { o[x] = src[x]; }), led = E.tecnologia === 'led';

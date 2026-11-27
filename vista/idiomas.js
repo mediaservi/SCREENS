@@ -351,6 +351,12 @@ const MAPA = {
   'Medida no válida: escribe un ancho y un alto mayores que 0.': ['Invalid size: enter a width and a height greater than 0.', 'Mida no vàlida: escriu una amplada i una alçada més grans que 0.'],
   /* v11.54 · contenido de la pantalla: un solo vídeo de prueba */
   'Vídeo de prueba': ['Test video', 'Vídeo de prova'], 'mediaservi.com · en bucle': ['mediaservi.com · looped', 'mediaservi.com · en bucle'], 'Elegir el vídeo de prueba': ['Choose the test video', 'Tria el vídeo de prova'],
+  /* v11.56 · veredicto primero */
+  'Listo para ofertar': ['Ready to quote', 'Llest per ofertar'], 'Faltan datos del catálogo': ['Catalogue data missing', 'Falten dades del catàleg'], 'No recomendable': ['Not recommended', 'No recomanable'],
+  'Revisa 1 aviso': ['Check 1 warning', 'Revisa 1 avís'], 'Todo dentro de lo recomendado': ['Everything within recommendations', 'Tot dins del que es recomana'],
+  'Detalle': ['Detail', 'Detall'], 'Veredicto': ['Verdict', 'Veredicte'], 'línea': ['line', 'línia'], 'líneas': ['lines', 'línies'], 'Sin procesador': ['No processor', 'Sense processador'],
+  'Cumple': ['Meets', 'Compleix'], 'No cumple': ['Does not meet', 'No compleix'], 'Sin dato de consumo': ['No power data', 'Sense dada de consum'],
+  'Volver al veredicto y las 3 cifras clave': ['Back to the verdict and the 3 key figures', 'Torna al veredicte i les 3 xifres clau'], 'Ver las 6 cifras del detalle técnico': ['See the 6 figures of the technical detail', 'Mostra les 6 xifres del detall tècnic'],
 };
 const k = (l) => (l === 'en' ? 0 : 1);
 // textos con cifras o nombres: [expresión, (trozos, idioma) => texto]
@@ -446,6 +452,12 @@ const REGLAS = [
   [/^Pantalla repartida en (\d+) zonas: hace falta una fuente con (\d+) salidas sincronizadas \(mediaserver o splitter\)\.$/, (m, l) => [`Screen split into ${m[1]} zones: it needs a source with ${m[2]} synchronised outputs (media server or splitter).`, `Pantalla repartida en ${m[1]} zones: cal una font amb ${m[2]} sortides sincronitzades (mediaserver o splitter).`][k(l)]],
   [/^(\d+) zonas de (.+) px · cada una (.+)$/, (m, l) => [`${m[1]} zones of ${m[2]} px · each ${m[3]}`, `${m[1]} zones de ${m[2]} px · cadascuna ${m[3]}`][k(l)]],
   [/^(.+) Mpx repartidos en (\d+) equipos$/, (m, l) => [`${m[1]} Mpx split across ${m[2]} units`, `${m[1]} Mpx repartits en ${m[2]} equips`][k(l)]],
+  /* v11.56 · veredicto primero */
+  [/^Revisa (\d+) avisos$/, (m, l) => [`Check ${m[1]} warnings`, `Revisa ${m[1]} avisos`][k(l)]],
+  [/^Nítida desde (.+) m$/, (m, l) => [`Sharp from ${m[1]}\u00a0m`, `Nítida des de ${m[1]}\u00a0m`][k(l)]],
+  [/^Se ve el píxel a (.+) m$/, (m, l) => [`Pixels visible at ${m[1]}\u00a0m`, `Es veu el píxel a ${m[1]}\u00a0m`][k(l)]],
+  [/^(\d+) × 16 A al (\d+) %$/, (m, l) => [`${m[1]}\u00a0×\u00a016\u00a0A at\u00a0${m[2]}\u00a0%`, `${m[1]}\u00a0×\u00a016\u00a0A al\u00a0${m[2]}\u00a0%`][k(l)]],
+  [/^(Con|Sin) backup · (\d+) × 4K$/, (m, l) => [(m[1] === 'Con' ? 'With' : 'No') + ' backup · ' + m[2] + '\u00a0×\u00a04K', (m[1] === 'Con' ? 'Amb' : 'Sense') + ' backup · ' + m[2] + '\u00a0×\u00a04K'][k(l)]],
 ];
 /* traduce un texto suelto (para lo que no pasa por la página, como lo que se copia) */
 export function tr(es) {

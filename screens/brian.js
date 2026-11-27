@@ -16,6 +16,9 @@ export const BRIAN_DEF = {
   /* v11.52 · salas inmersivas: brillo justo, suelo cenital y altura de lentes */
   'proy.sala.nitsTopeFactor': 2.5, 'proy.sala.puntosSobrebrillo': 3000, 'proy.sala.notaSobrebrillo': 30000, 'proy.sala.busquedaMs': 1500,
   'proy.sala.alturaLenteMin': 2.1, 'proy.sala.margenTecho': 0.35, 'proy.brillo.luzOscura': 15, 'proy.brillo.excesivoNits': 250, 'proy.suelo.sinUltracorta': 1, 'proy.suelo.solapeMax': 0.45,
+  /* v11.54 · intérprete de la petición: el sitio (sala de uso diario, luz, público) antes que la pantalla (mismos valores que SITIO_DEF de sitio.js) */
+  'nl.sala.distPorAlto': 6, 'nl.sala.margenFondo': 0.6, 'nl.sala.anchoMaxPared': 0.8, 'nl.sala.techo': 2.8, 'nl.sala.bordeInferior': 0.9, 'nl.sala.margenTecho': 0.15,
+  'nl.sala.distMaxHolgura': 0.3, 'nl.luz.ventanas': 300, 'nl.luz.sol': 500, 'nl.medida.redondeo': 0.05,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,

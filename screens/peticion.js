@@ -1,10 +1,11 @@
 // SCREENS · petición en lenguaje natural (es / en / ca) para salas, varias pantallas y proyección.
 // Devuelve los cambios a aplicar en el estado y la lista de lo que se ha entendido ({ k, n, v }: la consola lo rotula en su idioma).
 // Reglas locales, sin servicios externos.
+import { leeSitio, luxDe, pantallaDeSala } from './sitio.js';   /* v11.54 · el sitio (sala, luz, público) antes que la pantalla */
 const NUM = { un: 1, una: 1, uno: 1, one: 1, dos: 2, two: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatre: 4, cinco: 5, five: 5, cinc: 5, seis: 6, six: 6, sis: 6, siete: 7, seven: 7, set: 7, ocho: 8, eight: 8, vuit: 8 };
 const n = (v) => (v == null ? NaN : NUM[v] != null ? NUM[v] : parseFloat(String(v).replace(',', '.')));
 
-export function interpretar(texto, tecCtx) {
+export function interpretar(texto, tecCtx, br) {
   let t = ' ' + String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' ';
   /* v10.95 · «8 × 8 cabinets» y «3840 × 2160 píxeles» no son medidas en metros: se apartan antes de leer las medidas */
   t = t.replace(/\d{1,3}\s*(?:x|×|\*|por|by|per)\s*\d{1,3}\s*(?:cabinets?|cabs?|modulos?|moduls?|modules?|paneles|panels|plafons|tiles|losetas)(?![a-z])/g, ' ').replace(/\d{3,5}\s*(?:x|×|\*|por|by|per)\s*\d{3,5}\s*(?:px|pix|pixeles|pixels?|puntos|punts)(?![a-z])/g, ' ');
@@ -17,10 +18,12 @@ export function interpretar(texto, tecCtx) {
     const nums = [a, b, c3].filter((q) => q != null).map(parseFloat); let u = u3 || u2 || u1; if (!u && Math.max(...nums) >= 1000) u = 'mm'; if (!u) return todo;
     const f = u === 'mm' ? 1000 : 100; return nums.map((q) => +(q / f).toFixed(4)).join(' x ') + ' m '; });
   const c = { esp: {}, sueltas: {}, paredes: null, led: {}, proy: {}, elec: {} }, vistos = [];
+  /* v11.54 · la medida de una sala de uso cotidiano («sala de reuniones de 6 x 4», «aula de 8 x 6») es la de la sala: se aparta antes de leer las medidas */
+  const SIT = leeSitio(t); if (SIT.sala) t = SIT.tRest;
   let cantidad = null, tecnologia = null;
   // tecnología
   if (/proyecc|proyector|proyectar|projecc|projector|projection|videoproyec|mapping/.test(t)) { tecnologia = 'proy'; vistos.push({ k: 'proy' }); }
-  else if (/\bled\b|cabinet|pantalla led|ecran led/.test(t)) { tecnologia = 'led'; vistos.push({ k: 'led' }); }
+  else if (/\bled\b|cabinet|pantalla led|ecran led|video ?wall|escaparate|aparador|shop ?window/.test(t)) { tecnologia = 'led'; vistos.push({ k: 'led' }); }
   const tecP = tecnologia || (tecCtx === 'proy' ? 'proy' : null);   // v10.89 · la consola ya en proyección cuenta como proyección
   // sala inmersiva o pantallas
   let nPant = t.match(/\b(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|two|three|four|five|six|seven|eight|quatre|cinc|sis|set|vuit)\s+(?:led\s+)?(pantallas|pantalles|screens|lienzos)\b/);   // «3 pantallas», «3 LED screens»
@@ -30,12 +33,13 @@ export function interpretar(texto, tecCtx) {
   else if (!nPant && /\bcentral\b|\bprincipal\b/.test(t) && /\blaterales\b|\blaterals\b|\bsides?\b/.test(t) && /(\d+(?:[.,]\d+)?)\s*(?:m|mts|metros)?\s*(?:x|×|\*|por|by)[^]*?(\d+(?:[.,]\d+)?)\s*(?:m|mts|metros)?\s*(?:x|×|\*|por|by)/.test(t)) { nPant = [0, '3']; cantidad = 'varias'; c.esp.tipo = 'sueltas'; c.sueltas.n = 3; vistos.push({ k: 'pant', n: 3 }); }   // v10.89 · «una central y dos laterales» son 3 pantallas aunque no diga «pantallas»
   else if (nPant && n(nPant[1]) > 1) { cantidad = 'varias'; c.esp.tipo = 'sueltas'; c.sueltas.n = Math.min(8, n(nPant[1])); vistos.push({ k: 'pant', n: c.sueltas.n }); }
   else if (/\buna (sola )?pantalla|\bun(a)? solo|\b1 pantalla|\ba screen\b|\bone screen\b|una pantalla/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }
+  if (!cantidad && (SIT.sala || /video ?wall|pizarra|pissarra|whiteboard|escaparate|aparador|shop ?window|\btotem\b|\blona\b/.test(t))) { cantidad = 'una'; vistos.push({ k: 'una' }); }   // v11.54 · una superficie aunque no diga «pantalla»
   if (!cantidad && /\bpantalla\b|\bscreen\b|\bpantallla\b|\bpared\b|\bparet\b|\bwall\b/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }   // v10.48 · «una pared de 4 x 2,5» es una sola superficie
   // una fachada (mapping) es una sola superficie
   if (!cantidad && /fachada|facade|facana|\bedificio\b|\bedifici\b|building/.test(t)) { cantidad = 'una'; vistos.push({ k: 'una' }); }
   // medidas: A × B (× C)
   // v10.89 · «A m de ancho por B (m) de alto» y «A metros de ancho» (como en la portada)
-  const tA = t.replace(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*de (?:ancho|amplada|ample)\s*(?:por|per|x|×|y|i)\s*(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*(?:de (?:alto|altura|alcada|alt))?/g, '$1 x $2 ')
+  const tA = t.replace(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*de (?:ancho|amplada|ample|base)\s*(?:por|per|x|×|y|i)\s*(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*(?:de (?:alto|altura|alcada|alt))?/g, '$1 x $2 ')
     .replace(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*wide\s*(?:by|x|and)\s*(\d+(?:\.\d+)?)\s*(?:m|metres|meters)?\s*(?:high|tall)?/g, '$1 x $2 ');
   const MEDG = /(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?\s*(?:x|×|\*|por|per|by)\s*(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres)?(?:\s*(?:x|×|\*|por|per|by)\s*(\d+(?:\.\d+)?))?/g;
   const todas = []; { let q; while ((q = MEDG.exec(tA))) todas.push(Object.assign(q, { antes: tA.slice(Math.max(0, q.index - 28), q.index) })); }
@@ -55,10 +59,15 @@ export function interpretar(texto, tecCtx) {
   // v10.89 · pulgadas: la diagonal de la pantalla (16:9 si no se dice otra cosa)
   const pul = t.match(/(\d+(?:\.\d+)?)\s*(?:″|"|''|pulgadas|pulgada|inches|inch|polzades|polzada)/);
   if (pul && !m) { const d = n(pul[1]), r = 16 / 9, w = d * 0.0254 * r / Math.sqrt(1 + r * r); c.sueltas.ancho = Math.round(w * 1000) / 1000; c.sueltas.alto = Math.round(w / r * 1000) / 1000; c.sueltas.formato = '16:9'; c.sueltas.medPor = 'diag'; c.sueltas.medVal = d; if (!cantidad) cantidad = 'una'; vistos.push({ k: 'pulgadas', v: d }); }
+  /* v11.54 · proyección cenital sobre el suelo: una sala sin paredes, solo suelo */
+  const cenital = tecP === 'proy' && m && m[3] == null && /cenital|(?:proyeccion|proyectar|projection|projeccio|projectar) (?:sobre|en|al|on|onto) (?:el |the )?(?:suelo|floor|terra)|sobre el suelo|sobre el terra|floor projection/.test(t);
+  if (cenital) { c.esp.tipo = 'sala'; cantidad = 'varias'; c.paredes = { frontal: false, izquierda: false, derecha: false, trasera: false, suelo: true }; }
+  /* v11.54 · dos medidas sin tercera y sin sala: una sola superficie (antes se quedaba la sala por defecto) */
+  if (!cantidad && m && m[3] == null && c.esp.tipo !== 'sala') { cantidad = 'una'; vistos.push({ k: 'una' }); }
   if (m) {
     const a = n(m[1]), b = n(m[2]), h = m[3] != null ? n(m[3]) : NaN;
     if (c.esp.tipo === 'sala' || (cantidad !== 'una' && !nPant && !isNaN(h))) { c.esp.tipo = 'sala'; cantidad = 'varias'; c.esp.ancho = a; c.esp.fondo = b; if (!isNaN(h)) c.esp.alto = h; vistos.push({ k: 'medida', v: isNaN(h) ? [a, b] : [a, b, h] }); }
-    else { c.sueltas.ancho = a; c.sueltas.alto = b; vistos.push({ k: 'medida', v: [a, b] }); }
+    else { c.sueltas.ancho = a; c.sueltas.alto = b; c.sueltas.formato = Math.abs(a / b - 16 / 9) < 0.003 ? '16:9' : 'libre'; c.sueltas.medPor = 'ancho'; c.sueltas.medVal = a; vistos.push({ k: 'medida', v: [a, b] }); }   // v11.54 · la medida dicha no se fuerza a 16:9
   }
   // v7.9 · varias pantallas de medidas distintas (auditorio): «una central de 6,6 x 3,7 y dos laterales (verticales) de 4,2 x 2,36»
   if (c.esp.tipo === 'sueltas') {
@@ -107,6 +116,8 @@ export function interpretar(texto, tecCtx) {
   else if (!lx && /sala de (?:reuniones|reunions|juntas|conferencias|conferencies|formacion|formacio)|meeting room|conference room|board ?room|oficina|office/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }   // v10.48 · la luz del sitio
   else if (!lx && /sala de estar|sala d.estar|living room|\bsalon\b(?! de actos)|\bsalo\b(?! d.actes)|de casa|home cinema|cine en casa/.test(t)) { c.proy.lux = 70; vistos.push({ k: 'lux', v: 70 }); }
   if (!lx && c.proy.lux == null && /salon de (?:bodas|banquetes|celebraciones|eventos)|banquet|boda|wedding|casament/.test(t)) { c.proy.lux = 140; vistos.push({ k: 'lux', v: 140 }); }
+  /* v11.54 · la luz del sitio: «luz ambiente 0» u «oscuridad total» mandan; ventanas o sol suben la del uso (nunca la bajan) */
+  if (!lx && SIT.lux != null) { const v = luxDe(SIT, br); if (SIT.luzMotivo === 'dicha' || SIT.luzMotivo === 'oscuridad' || v > (c.proy.lux != null ? c.proy.lux : 0)) { for (let i = vistos.length - 1; i >= 0; i--) if (vistos[i].k === 'lux') vistos.splice(i, 1); c.proy.lux = v; vistos.push({ k: 'lux', v, motivo: SIT.luzMotivo }); } }
   const g = t.match(/(?:ganancia|gain|guany)\s*(?:de\s*)?(\d+(?:\.\d+)?)/); if (g) { c.proy.ganancia = n(g[1]); vistos.push({ k: 'ganancia', v: c.proy.ganancia }); }
   const te = t.replace(/(?:colgad[oa]s?|penjats?|hung)\s*(?:del|from the|of the)?\s*(?:techo|sostre|ceiling)\s*(?:a|at)?\s*(?=\d)/g, 'colgado a ').match(/techo\s*(?:de|a)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:m|metros)?\s*de techo|ceiling\s*(?:of\s*)?(\d+(?:\.\d+)?)|sostre\s*(?:de\s*|a\s*)?(\d+(?:\.\d+)?)/);
   if (!te && /pabellon|pavello|exterior|outdoor|aire libre|aire lliure|fachada|facade|facana|\bedificio\b/.test(t.replace(/(?:\bno\b|\bnot\b|n't|\bsin\b|\bsense\b|\bwithout\b|\btampoco\b|\bni\b)[^.,;:!?\n]{0,45}?(?:exterior|outdoor|outside|intemperie|aire libre|aire lliure)/g, ' '))) c.sueltas.techo = 0;   // v10.89 · sin techo que limite
@@ -165,10 +176,25 @@ export function interpretar(texto, tecCtx) {
   // v10.0 · también la cifra delante de la p («3.9p», «exterior3.9p»), salvo 24p, 25p, 30p, 50p y 60p, que son fotogramas
   const pi = t.match(/\bp\s?(\d{1,2}(?:\.\d{1,3})?)\b|pitch\s*(?:de\s*)?(\d{1,2}(?:\.\d{1,3})?)|(\d{1,2}(?:\.\d{1,3})?)\s*mm\s*de\s*pitch/) || (() => { const m = t.match(/(?:^|[^\d.,])(\d{1,2}(?:[.,]\d{1,3})?)\s?p(?![a-z0-9])/); return m && (/[.,]/.test(m[1]) || parseFloat(m[1]) <= 20) ? [0, m[1].replace(',', '.')] : null; })();
   const pitch = pi ? n(pi[1] || pi[2] || pi[3]) : null; if (pitch) vistos.push({ k: 'pitch', v: pitch });
+  /* v11.54 · público dicho de otra forma («people sit 3 m away») y fondo de la sala suelto («room depth 6 m») */
+  if (c.sueltas.dist == null && SIT.pub) { c.sueltas.dist = SIT.pub; vistos.push({ k: 'publico', v: SIT.pub }); }
+  if (SIT.fondo && !SIT.sala) { c.sueltas.salaFondo = SIT.fondo; vistos.push({ k: 'fondoSala', v: SIT.fondo }); }
+  /* v11.54 · sala de uso cotidiano: sus medidas acotan dónde va el proyector; si no se dice la pantalla, se deduce y se enseña como supuesto */
+  if (SIT.sala && c.esp.tipo !== 'sala') {
+    const ps = pantallaDeSala(SIT.sala, c.sueltas.techo, br, c.sueltas.dist);
+    c.sueltas.salaAncho = ps.pared; c.sueltas.salaFondo = ps.fondo; if (SIT.sala[2] > 0 && c.sueltas.techo == null) c.sueltas.techo = SIT.sala[2];
+    if (!(c.sueltas.ancho > 0)) { c.sueltas.ancho = ps.w; c.sueltas.alto = ps.h; c.sueltas.formato = '16:9'; c.sueltas.medPor = 'ancho'; c.sueltas.medVal = ps.w; if (c.sueltas.dist == null) c.sueltas.dist = ps.pub;
+      vistos.push({ k: 'supSala', v: SIT.sala, uso: SIT.uso, w: ps.w, h: ps.h, pub: ps.lejos, lim: ps.limitado }); vistos.push({ k: 'medida', v: [ps.w, ps.h], oculto: true }); }
+    else vistos.push({ k: 'salaMed', v: SIT.sala });
+  }
+  /* v11.54 · el suelo de una sala LED no se calcula: se dice */
+  const sueloLedNo = (tecnologia === 'led') && /\bsuelo\b|\bterra\b|\bfloor\b/.test(t);
   // v10.89 · lo que no se ha usado: cifras con unidad de la petición que no salen en lo entendido (se avisa, nunca se calla)
-  const usados = new Set(); vistos.forEach(x => [x.v, x.n, x.h].flat().forEach(v => { if (typeof v === 'number') usados.add(Math.round(v * 100)); }));
+  const noUsado0 = []; const usados = new Set(); vistos.forEach(x => [x.v, x.n, x.h].flat().forEach(v => { if (typeof v === 'number') usados.add(Math.round(v * 100)); }));
   if (pitch) usados.add(Math.round(pitch * 100));
-  const noUsado = []; { const U = /(\d+(?:\.\d+)?)\s*(m\b|mts|metros|metres|lm\b|lumen(?:es|s)?|lx\b|lux\b|″|"|pulgadas|inches|polzades|%|personas|persones|people)/g; let q;
+  if (SIT.sala) SIT.sala.forEach(v => usados.add(Math.round(v * 100)));
+  if (sueloLedNo) noUsado0.push('suelo (LED)');
+  const noUsado = noUsado0; { const U = /(\d+(?:\.\d+)?)\s*(m\b|mts|metros|metres|lm\b|lumen(?:es|s)?|lx\b|lux\b|″|"|pulgadas|inches|polzades|%|personas|persones|people)/g; let q;
     while ((q = U.exec(t))) { const v = parseFloat(q[1]); if (/lumen|lm/.test(q[2]) && c.proy.lmMin) continue; if (!usados.has(Math.round(v * 100))) noUsado.push(q[0].trim().replace('.', ',')); } }
   /* v11.14 · lo que se pide y hoy no cambia el cálculo se dice, en vez de callarlo: «4K» y la retroproyección no tienen mando; un formato que no cuadra
      con la medida escrita tampoco se aplica. «Láser» sí se da por entendido: todos los proyectores del catálogo lo son. */

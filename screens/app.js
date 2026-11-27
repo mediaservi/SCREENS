@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.53';
+const VERSION = 'v11.54';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -1262,7 +1262,9 @@ function rotulo(x) {
     case 'pant': return t('pantN', { n: x.n }); case 'medida': return x.v.map(v => fmt(v)).join(' × ') + ' m';
     case 'alto': return t('alto') + ' ' + fmt(x.v) + ' m'; case 'paredes': return t('paredesN', { n: x.n }); case 'suelo': return t('suelo');
     case 'arco': return t('arco'); case 'linea': return t('linea'); case 'publico': return t('dist') + ' ' + fmt(x.v, 1) + ' m';
-    case 'lux': return fmt(x.v, 0) + ' lx'; case 'ganancia': return t('ganancia') + ' ' + fmt(x.v, 1); case 'techo': return t('techoAlto') + ' ' + fmt(x.v) + ' m';
+    case 'lux': return fmt(x.v, 0) + ' lx' + (x.motivo === 'ventanas' || x.motivo === 'sol' ? ' (' + t('nlLuz_' + x.motivo) + ')' : '');
+    case 'supSala': return t('nlSupSala', { s: x.v.map(v => fmt(v)).join(' × '), w: fmt(x.w), h: fmt(x.h), d: fmt(x.pub, 1) });
+    case 'fondoSala': return t('fondoSala') + ' ' + fmt(x.v) + ' m'; case 'ganancia': return t('ganancia') + ' ' + fmt(x.v, 1); case 'techo': return t('techoAlto') + ' ' + fmt(x.v) + ' m';
     case 'vertical': return t('or_vertical'); case 'horizontal': return t('or_horizontal'); case 'multi': return t('multiImg'); case 'tipo': return t('tp_' + x.v);
     case 'distProy': return t('distOpticaK') + ' ' + fmt(x.v, 1) + ' m'; case 'montaje': return t('mo_' + x.v) + (x.h ? ' ' + fmt(x.h, 1) + ' m' : '');
     case 'fibra': return t('fibra'); case 'central': return t('central') + ' ' + x.v.map(v => fmt(v)).join(' × ') + ' m';
@@ -1275,10 +1277,10 @@ function calcularPeticion() {
   if (!txt) { estadoNl(t('nlVacio')); if (i) i.focus(); return; }
   if (escuchando) { try { escuchando.stop(); } catch (e) {} escuchando = null; }
   if (i && matchMedia('(pointer: coarse)').matches) i.blur(); // en el móvil se cierra el teclado para ver el resultado
-  const r = interpretar(txt, E.tecnologia), c = r.cambios;
+  const r = interpretar(txt, E.tecnologia, BR), c = r.cambios;
   if (r.cantidad) E.cantidad = r.cantidad; if (r.tecnologia) E.tecnologia = r.tecnologia;
   // una pantalla LED: la petición la resuelve su propio cálculo, con el popup de datos del proyecto
-  if (unaLed()) { actualizar(); aIframe({ tipo: 'screens-peticion', texto: txt }); estadoNl(t('nlLed')); return; }
+  if (unaLed()) { try { localStorage.setItem('screens_peticion_led', txt); } catch (e) {} /* v11.54 · la portada LED la lee entera con su intérprete */ actualizar(); aIframe({ tipo: 'screens-peticion', texto: txt }); estadoNl(t('nlLed')); return; }
   // v10.48 · una petición nueva (con medidas, tecnología o cantidad) parte de cero: lo que no dice vuelve a su valor por defecto (antes heredaba la anterior)
   if (r.vistos.some(x => x.k === 'medida' || x.k === 'central') || r.tecnologia || r.cantidad) { const d = DEF(); E.esp = d.esp; E.led = Object.assign(d.led, {}); E.proy = d.proy; if (r.cantidad) E.cantidad = r.cantidad; }
   Object.assign(E.esp, c.esp); Object.assign(E.esp.sueltas, c.sueltas); if (c.paredes) Object.assign(E.esp.paredes, c.paredes);
@@ -1331,7 +1333,7 @@ function calcularPeticion() {
   actualizar();
   nlNoUsado = (r.noUsado || []).concat(sinLeer);
   { const hay = calculo && calculo.tot ? calculo.tot.n : 0; if (E.tecnologia === 'proy' && nProyPedidos > 1 && hay && hay !== nProyPedidos) nlNoUsado.push(nProyPedidos + ' ' + t('proyectores').toLowerCase()); }   /* v11.2 · si el cálculo no sale con los proyectores pedidos, se dice */
-  estadoNl((r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : ''), nlNoUsado.length > 0);
+  estadoNl((r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.filter(x => !x.oculto).map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : ''), nlNoUsado.length > 0);
   if (nlNoUsado.length) actualizar();
 }
 let nlNoUsado = [], nProyPedidos = 0;

@@ -105,7 +105,7 @@ const MAPA = {
   'Simulación a escala': ['Scale simulation', 'Simulació a escala'], 'Fondo de la pared': ['Wall background', 'Fons de la paret'], 'Altura': ['Height', 'Alçada'],
   'Altura del borde inferior de la pantalla sobre el suelo': ['Height of the bottom edge of the screen above the floor', 'Alçada de la vora inferior de la pantalla sobre el terra'],
   'Bajar la pantalla 10 cm': ['Lower the screen 10 cm', 'Baixa la pantalla 10 cm'], 'Subir la pantalla 10 cm': ['Raise the screen 10 cm', 'Puja la pantalla 10 cm'],
-  'Simular contenido: fuentes de prueba, un enlace o un archivo tuyo': ['Simulate content: test sources, a link or your own file', 'Simula contingut: fonts de prova, un enllaç o un arxiu teu'],
+  'Simular contenido: el vídeo de prueba, un enlace o un archivo tuyo': ['Simulate content: the test video, a link or your own file', 'Simula contingut: el vídeo de prova, un enllaç o un arxiu teu'],
   'Volver a la carta de ajuste': ['Back to the test chart', 'Torna a la carta d’ajust'], 'Copiar una captura de esta pantalla': ['Copy a capture of this view', 'Copia una captura d’aquesta pantalla'],
   'Simulación de la pantalla a escala con una persona de 1,75 m': ['Scale simulation of the screen with a 1.75 m person', 'Simulació de la pantalla a escala amb una persona d’1,75 m'],
   /* v10.38 · fondo de la pared: sin fondo y fondo propio; candado del panel */
@@ -349,6 +349,8 @@ const MAPA = {
   'No hay pitch más fino en el catálogo para este entorno.': ['There is no finer pitch in the catalogue for this environment.', 'No hi ha pitch més fi al catàleg per a aquest entorn.'],
   'Reparto eléctrico no calculado': ['Power layout not calculated', 'Repartiment elèctric no calculat'], 'Calor': ['Heat', 'Calor'],
   'Medida no válida: escribe un ancho y un alto mayores que 0.': ['Invalid size: enter a width and a height greater than 0.', 'Mida no vàlida: escriu una amplada i una alçada més grans que 0.'],
+  /* v11.54 · contenido de la pantalla: un solo vídeo de prueba */
+  'Vídeo de prueba': ['Test video', 'Vídeo de prova'], 'mediaservi.com · en bucle': ['mediaservi.com · looped', 'mediaservi.com · en bucle'], 'Elegir el vídeo de prueba': ['Choose the test video', 'Tria el vídeo de prova'],
 };
 const k = (l) => (l === 'en' ? 0 : 1);
 // textos con cifras o nombres: [expresión, (trozos, idioma) => texto]

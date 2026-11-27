@@ -19,7 +19,8 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
   return `${u == null ? '<span class="stk-int sin">Sin dato CRM</span>' : `<span class="stk-int"><b class="${col}">${u}</b>${cabe == null ? '' : ` <b class="${cabe ? 'v' : 'r'}">${cabe ? '✓' : '✗'}</b>`}</span>`}<div id="stk-pop" class="stk-pop" popover><button type="button" class="stk-x" popovertarget="stk-pop" popovertargetaction="hide" aria-label="Cerrar" title="Cerrar">✕</button><h4>Stock interno · ${esc(m.crm)}</h4>${det}${alt}<p>Un proyecto no mezcla batches. Solo tú ves estos datos.</p></div>`; }
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
 import { calcularLed, lineasCosido, PX_PUERTO, fijaParamsLed } from '../screens/led.js';
-import { BR, cargarBrian } from '../screens/brian.js';   /* v11.49 · todas las reglas del cálculo LED desde BRIAN (panel AVHUB ADMIN) */
+import { BR, cargarBrian } from '../screens/brian.js';
+import { leeSitio, pantallaDeSala } from '../screens/sitio.js';   /* v11.54 · el sitio de la petición (sala, sol, público) */   /* v11.49 · todas las reglas del cálculo LED desde BRIAN (panel AVHUB ADMIN) */
 import { HUMAN_PATH } from '../screens/figura.js';
 import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=11.13';   /* v10.94 · planos técnicos de señal y de alimentación */
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
@@ -30,7 +31,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.53';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.54';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -124,11 +125,9 @@ let USADO = false;   /* el resultado solo ocupa la casilla cuando ya se ha pedid
 let EDITA = false;   /* true mientras se escribe una petición: la casilla enseña el texto y no el resultado */
 let CAT = [], ESTADO = 'cargando', R = null;   /* R: resultado del cálculo en curso */
 const guarda = () => { try { localStorage.setItem(GUARDA, JSON.stringify(E)); } catch (e) {} };
-/* fuentes multimedia de prueba: las mismas de la versión clásica (la primera es fija; las otras cinco se editan y se guardan en este navegador, compartidas con la clásica) */
-const FUENTE_FIJA = 'https://www.youtube.com/playlist?list=PLe5oQrtGOkLA';
-const FUENTES_DEF = ['https://www.youtube.com/watch?v=ROboUHfPUrU', 'https://www.youtube.com/live/b4tE5aKhtlg', 'https://www.youtube.com/live/Qr61waJ6AZg', 'https://www.youtube.com/live/VlcwKEDOgOk', 'https://www.youtube.com/live/ewBqZHS9iG8'];
-let FU = FUENTES_DEF.slice(), FSEL = 0, URLP = '';
-try { const v = JSON.parse(localStorage.getItem('screens_fuentes_v2') || 'null'); if (Array.isArray(v) && v.length === 5) FU = v.map(String); } catch (e) {}
+/* v11.54 · fuente de prueba única: el vídeo de mediaservi, recortado (desde el primer cambio de imagen hasta antes del «Suscribirse») y en bucle. Para otro contenido: enlace propio o subir */
+const FUENTE_ID = 'vKN4AcGz7zs', FUENTE_INI = 4, FUENTE_FIN = 33.6;
+let URLP = '';
 const YT = '&autoplay=1&mute=1&playsinline=1&rel=0&controls=0&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&showinfo=0&loop=1';
 /* de un enlace cualquiera a lo que hay que pintar: imagen, vídeo o reproductor incrustado (YouTube, Vimeo u otra página) */
 function deEnlace(u) {
@@ -143,6 +142,17 @@ function deEnlace(u) {
   const vm = u.match(/vimeo\.com\/(?:.*\/)?(\d+)/); if (vm) return { url: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1&loop=1&controls=0&background=1`, tipo: 'marco' };
   return { url: u, tipo: 'marco' };
 }
+const fuenteMs = () => ({ url: `https://www.youtube.com/embed/${FUENTE_ID}?start=${FUENTE_INI}&enablejsapi=1&origin=${encodeURIComponent(location.origin)}${YT.replace('&loop=1', '')}`, tipo: 'marco', tramo: [FUENTE_INI, FUENTE_FIN] });
+/* el bucle del tramo: el reproductor de YouTube avisa del tiempo (API por mensajes); al llegar al final del tramo, o si se para, vuelve al inicio */
+window.addEventListener('message', (ev) => {
+  if (!CONT || !CONT.tramo || !/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(ev.origin)) return;
+  let d = ev.data; try { if (typeof d === 'string') d = JSON.parse(d); } catch (e) { return; }
+  if (!d || !ev.source) return;
+  const ord = (func, args) => { try { ev.source.postMessage(JSON.stringify({ event: 'command', func, args: args || [] }), ev.origin); } catch (e) {} };
+  const inf = d.info || {}, tAct = typeof inf.currentTime === 'number' ? inf.currentTime : null;
+  if ((tAct != null && tAct >= CONT.tramo[1]) || inf.playerState === 0) { ord('seekTo', [CONT.tramo[0], true]); ord('playVideo'); }
+});
+setInterval(() => { if (!CONT || !CONT.tramo) return; document.querySelectorAll('iframe[src*="' + FUENTE_ID + '"]').forEach((f) => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), 'https://www.youtube.com'); } catch (e) {} }); }, 1000);
 const sueltaCont = () => { if (CONT && /^blob:/.test(CONT.url)) URL.revokeObjectURL(CONT.url); };
 let CONT = null;   /* contenido propio que se simula en la pantalla: { url, tipo: 'img' | 'video' } */
 const SUELO = { hormigon: '#bfe6d8', madera: '#bcd9f2', marmol: '#f2c9d4', 'ladrillo-rojo': '#c7e8c0', 'ladrillo-oscuro': '#f3e3a8', 'ladrillo-claro': '#c9c6f0', ninguno: '#cfd3da', propio: '#cfd3da' };
@@ -161,6 +171,7 @@ if (E.fondo === 'propio' && !FPROP) E.fondo = DEF.fondo;
 let PEND = null;
 function interpreta(raw, nueva) {
   let t = ' ' + String(raw || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d),(\d)/g, '$1.$2') + ' '; const v = [];
+  const SIT = leeSitio(t); if (SIT.sala) t = SIT.tRest;   /* v11.54 · «videowall para una sala de juntas de 7 x 4,5»: esa medida es la sala */
   /* v10.95 · el modelo por su nombre («UFIX-COB-1.2», «slim fix 2.6 50»): manda sobre todo lo demás; el más largo que coincida */
   let mod = null; PEND = null;
   CAT.slice().sort((x, y) => String(y.crm || '').length - String(x.crm || '').length).some((m) => { const tk = String(m.crm || '').toLowerCase().split(/[^a-z0-9.]+/).filter(Boolean); if (tk.join('').length < 4) return false;
@@ -183,12 +194,15 @@ function interpreta(raw, nueva) {
   const d = t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:ancho|ample|amplada|wide|width)\\s*(?:x|×|\\*|por|by|per|y|i|and|,)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:de\\s*|d\'\\s*)?(?:alto|alt|altura|alcada|high|height)'))
     || t.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*' + U + '\\s*(?:x|×|\\*|por|by|per)\\s*(\\d+(?:\\.\\d+)?)\\s*' + U + '(?![a-z])'));
   let resto = t;
+  if (!d && SIT.sala) { const ps = pantallaDeSala(SIT.sala, 0, BR, SIT.pub); E.w = ps.w; E.h = ps.h; E.uni = 'm'; v.push('sala ' + SIT.sala.map((x) => fmt(x, 1)).join(' × ') + ' m → pantalla de ' + fmt(ps.w, 2) + ' × ' + fmt(ps.h, 2) + ' m para que se lea desde ' + fmt(ps.lejos, 1) + ' m (supuesto)'); E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0; }
   if (d) { let u = d[4] || d[2], u1 = d[2] || d[4];
     /* v10.63 · sin unidad: «3000 x 2000» son milímetros y «300 x 200», centímetros (nadie pide una pantalla de 300 m) */
     if (!u && !u1) { const mx = Math.max(parseFloat(d[1]), parseFloat(d[3])); u = u1 = mx >= 1000 ? 'mm' : mx >= 50 ? 'cm' : ''; }
     E.w = aM(d[1], u1); E.h = aM(d[3], u); resto = t.replace(d[0], ' ');
     /* v10.63 · las medidas se enseñan en la unidad en la que las ha dado el cliente (3000 × 500 mm, no 3 × 0,5 m) */
     E.uni = u === 'mm' || u1 === 'mm' ? 'mm' : u === 'cm' || u1 === 'cm' ? 'cm' : 'm'; v.push(fmt(E.w * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' × ' + fmt(E.h * UNI[E.uni], E.uni === 'm' ? 2 : 0) + ' ' + E.uni); }
+  /* v11.54 · solo el ancho («pantalla de 3 metros de ancho»): alto en 16:9, dicho como supuesto (antes se quedaba el alto de la petición anterior) */
+  if (!d && !(SIT && SIT.sala)) { const w1 = t.match(/(\d+(?:\.\d+)?)\s*(?:m|mts|metros|metres|meters)\s*(?:de |d')?(?:ancho|amplada|ample|base|wide)/); if (w1) { E.w = parseFloat(w1[1]); E.h = Math.round(E.w * 9 / 16 * 1000) / 1000; E.uni = 'm'; v.push(fmt(E.w, 2) + ' × ' + fmt(E.h, 2) + ' m (alto en 16:9, supuesto)'); } }
   /* v10.63 · una petición nueva empieza de cero en lo que se puede pedir por escrito (no hereda «transparente», el sol ni la resolución de la anterior) */
   if (d || cabs || px || mod) { E.transp = false; E.sol = ''; E.resMin = ''; E.nitsMin = 0;
     /* v11.34 · y tampoco hereda exterior ni alquiler: si el texto ha cambiado y ya no los nombra, vuelve a interior y fija (con el mismo texto, lo elegido con los botones se respeta) */
@@ -206,11 +220,12 @@ function interpreta(raw, nueva) {
     E.pitchOtros = [...resto.matchAll(/\bp\s?(\d{1,2}(?:\.\d+)?)\b|(?:pitch|paso)\s*(?:de\s*|:\s*)?(\d{1,2}(?:\.\d+)?)/g)].map((x) => parseFloat(x[1] || x[2])).filter((x) => x > 0 && x <= 20 && x !== E.pitch);
     v.push('pitch ' + [E.pitch].concat(E.pitchOtros).join(' / ')); } else if (d || v.length) { E.pitch = 0; E.pitchOtros = []; E.crm = ''; }
   const ds = resto.match(/(?:\ba|\bat|desde|des de|from|hasta|fins a|distancia(?: de)?|distance(?: of)?|visto a|vist a|seen at)\s*(?:unos\s*|uns\s*|about\s*)?(\d+(?:\.\d+)?)\s*(m|mts?|metros?|metres?|meters?)(?![a-z])(?!\s*(?:de\s*|d'\s*)?(?:altura|alto|alcada|alt\b|height|high|del suelo|del terra|from the floor))/);
-  if (ds) { E.dist = parseFloat(ds[1]); v.push('a ' + fmt(E.dist, 1) + ' m'); } else if (d) E.dist = 0;
+  if (ds) { E.dist = parseFloat(ds[1]); v.push('a ' + fmt(E.dist, 1) + ' m'); } else if (SIT.pub) { E.dist = SIT.pub; v.push('a ' + fmt(E.dist, 1) + ' m'); } else if (d || SIT.sala) E.dist = 0;
   { const rm = /\b(4k|uhd|2160p)\b/.test(t) ? '4K' : /\b(fhd|full ?hd|1080p)\b/.test(t) ? 'FHD' : /\b(hd|720p)\b/.test(t) ? 'HD' : '';
     if (rm) { E.resMin = rm; v.push(rm); } }
   if (/transparen|\bholo|t.?glass/.test(t)) { E.transp = true; v.push('transparente'); }
   if (/sol directo|sol directe|pleno sol|ple sol|direct sun/.test(t)) E.sol = 'directo'; else if (/sol indirecto|sol indirecte|sombra|ombra|indirect sun|shade/.test(t)) E.sol = 'indirecto';
+  else if (SIT.sol) E.sol = SIT.sol;   /* v11.54 · «le da el sol por la tarde» */
   if (/(sin|sense|without|no) (backup|redundanc)/.test(t)) E.backup = false; else if (/backup|redundan/.test(t)) E.backup = true;
   if (/fibra|fiber|fibre/.test(t)) E.conexion = 'fibra';
   if (/(sin|sense|without|no) (mediaserver|media server|servidor)/.test(t)) E.marca = 'ninguno'; else if (/mediaserver|media server|servidor de|content server/.test(t)) E.marca = 'todos';
@@ -659,7 +674,7 @@ function pintaRejilla0() {
 
   const foto = m.urlFoto ? `<img src="${esc(m.urlFoto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='&lt;div class=&quot;sinfoto&quot;&gt;sin foto&lt;/div&gt;'">` : '<div class="sinfoto">sin foto</div>';
   h += blk('m1b', 'M1B', 'Cabinet', 'var(--violeta)', `<select class="sel" data-crm aria-label="Modelo de cabinet" title="Elegir el cabinet a mano: todos los modelos de este entorno, agrupados por pitch">${R.pitches.map((pt) => `<optgroup label="P${String(pt).replace('.', ',')}">${R.lista.filter((x) => x.pitch === pt).map((x) => `<option value="${esc(x.crm)}"${x.crm === m.crm ? ' selected' : ''}${enStock(x) ? ' class="stk"' : ''}>${esc(x.crm)}</option>`).join('')}</optgroup>`).join('')}</select><div class="cabmini">${foto}<div style="min-width:0;flex:1">${dato('Cabinet', `${m.cabAncho}×${m.cabAlto} mm${m.girado ? ' ⟳' : ''}`)}${dato('Píxeles', `${m.cabPixAncho}×${m.cabPixAlto}`)}${dato('Brillo', m.nits ? fmt(m.nits) + ' nits' : '—')}${dato('Refresco', m.hz ? fmt(m.hz) + ' Hz' : '—')}</div></div><div class="fila envuelve">${FICHA.stockIc ? (esInterno() ? `<button type="button" class="stk-btn" popovertarget="stk-pop" aria-label="Ver el stock y alternativas" title="Ver el stock y alternativas">${FICHA.stockIc(enStock(m), nivelStock(m))}</button>` : FICHA.stockIc(enStock(m))) : ''}<span class="chip">${esc(m.family || '')}</span>${stockInterno(m, r.cab)}</div>` + (R.holo ? `<div class="nota">HOLO · ${R.holo.bot ? 'dos filas contrapuestas de ' + R.holo.top + ' + ' + R.holo.bot + ' mm' : 'una fila de ' + R.holo.top + ' mm'} · caja de drivers de ${HOLO_DRIVER} mm${R.holo.comb ? ' · ' + R.holo.comb.cA * r.rows + ' × ' + esc(R.holo.comb.mA.crm) + ' + ' + R.holo.comb.cE * r.rows + ' × ' + esc(R.holo.comb.mE.crm) : ''}</div>` : '') + (R.alt ? `<div class="nota alt" style="color:var(--ambar);white-space:nowrap;overflow:hidden;flex:none" title="${esc(R.alt)}">${esc(R.altCorto)}</div>` : ''), `<button type="button" class="tog mini" data-set="giro" data-v="${E.giro ? '' : '1'}" aria-pressed="${!!(E.giro && R.giraPosible)}"${R.giraPosible ? '' : ' disabled'} title="${R.giraPosible ? 'Girar el cabinet 90°: se monta tumbado o de pie' : 'Este cabinet es cuadrado: girarlo no cambia nada'}">${IC.gira}90°</button>` + bt('ojo', 'Ver la ficha completa del cabinet', 'data-ver="equipo"'));
-  h += blk('s1a', 'S1A', 'Simulación a escala', 'var(--marca)', `<div class="lienzo">${svgSim()}<div class="fondos" role="group" aria-label="Fondo de la pared">${FONDOS.map((f) => f === 'ninguno' ? `<button type="button" class="fo-ico" data-fondo="ninguno" aria-pressed="${E.fondo === f}" aria-label="Sin fondo" title="Sin fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M6.3 17.7 17.7 6.3"/></svg></button>` : f === 'propio' ? `<button type="button" class="fo-ico" data-fondo="propio" aria-pressed="${E.fondo === f}" aria-label="Fondo propio: sube una imagen o pega un enlace" title="Fondo propio: sube una imagen o pega un enlace"${FPROP ? ` style="background-image:url(&quot;${esc(FPROP)}&quot;)"` : ''}>${FPROP ? '' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"/><path d="m7 10 5-5 5 5"/><path d="M5 19h14"/></svg>'}</button>` : `<button type="button" data-fondo="${f}" aria-pressed="${E.fondo === f}" aria-label="Fondo ${f.replace(/-/g, ' ')}" title="${f.replace(/-/g, ' ')}" style="background-image:url(../assets/sim/${f}-mini.jpg${TEXV})"></button>`).join('')}</div><div class="elev" role="group" aria-label="Altura del borde inferior de la pantalla sobre el suelo"><span>Elevación desde el suelo</span><button type="button" data-pm="elev" data-d="-1" aria-label="Bajar la pantalla 10 cm">−</button><b>${fmt(E.elev)} cm</b><button type="button" data-pm="elev" data-d="1" aria-label="Subir la pantalla 10 cm">+</button></div></div>`, bt('contenido', 'Simular contenido: fuentes de prueba, un enlace o un archivo tuyo', 'data-ver="contenido"') + (CONT ? bt('carta', 'Volver a la carta de ajuste', 'data-carta') : '') + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1A"') + bt('ojo', 'Ver en grande', 'data-ver="sim"'), 'pant');
+  h += blk('s1a', 'S1A', 'Simulación a escala', 'var(--marca)', `<div class="lienzo">${svgSim()}<div class="fondos" role="group" aria-label="Fondo de la pared">${FONDOS.map((f) => f === 'ninguno' ? `<button type="button" class="fo-ico" data-fondo="ninguno" aria-pressed="${E.fondo === f}" aria-label="Sin fondo" title="Sin fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M6.3 17.7 17.7 6.3"/></svg></button>` : f === 'propio' ? `<button type="button" class="fo-ico" data-fondo="propio" aria-pressed="${E.fondo === f}" aria-label="Fondo propio: sube una imagen o pega un enlace" title="Fondo propio: sube una imagen o pega un enlace"${FPROP ? ` style="background-image:url(&quot;${esc(FPROP)}&quot;)"` : ''}>${FPROP ? '' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"/><path d="m7 10 5-5 5 5"/><path d="M5 19h14"/></svg>'}</button>` : `<button type="button" data-fondo="${f}" aria-pressed="${E.fondo === f}" aria-label="Fondo ${f.replace(/-/g, ' ')}" title="${f.replace(/-/g, ' ')}" style="background-image:url(../assets/sim/${f}-mini.jpg${TEXV})"></button>`).join('')}</div><div class="elev" role="group" aria-label="Altura del borde inferior de la pantalla sobre el suelo"><span>Elevación desde el suelo</span><button type="button" data-pm="elev" data-d="-1" aria-label="Bajar la pantalla 10 cm">−</button><b>${fmt(E.elev)} cm</b><button type="button" data-pm="elev" data-d="1" aria-label="Subir la pantalla 10 cm">+</button></div></div>`, bt('contenido', 'Simular contenido: el vídeo de prueba, un enlace o un archivo tuyo', 'data-ver="contenido"') + (CONT ? bt('carta', 'Volver a la carta de ajuste', 'data-carta') : '') + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1A"') + bt('ojo', 'Ver en grande', 'data-ver="sim"'), 'pant');
   const V = VISTAS[E.vista] || VISTAS[0]; ZB = true;
   h += blk('s1b', 'S1B', ['Cableado', 'Cableado', 'Visionado', 'Conexión'][VISTAS.indexOf(V)] || V[3](), 'var(--azul)', `<div class="lienzo papel">${V[2]()}${V[0] === 'senal' || V[0] === 'elec' ? cosidoCtl(V[0]) : ''}</div>`, `<div class="pestanas" role="group" aria-label="Qué se ve en esta pantalla">${VISTAS.map((v, i) => `<button type="button" data-vista="${i}" aria-pressed="${i === E.vista}">${v[1]}</button>`).join('')}</div>` + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1B"') + bt('ojo', 'Ver en grande', 'data-ver="vista"'), 'pant');
   ZB = false;
@@ -724,9 +739,8 @@ function abre(que) {
   } else if (que === 'contenido') {
     const nom = (u) => { const y = String(u).match(/(?:v=|live\/|youtu\.be\/|shorts\/)([A-Za-z0-9_-]{11})/); return y ? 'YouTube · ' + y[1] : String(u).replace(/^https?:\/\/(www\.)?/, ''); };
     v.innerHTML = `<div class="vent ajustes" role="dialog" aria-modal="true" aria-label="Contenido de la pantalla"><div class="vent-cab">${IC.contenido.replace('<svg', '<svg style="width:1.2em;height:1.2em"')} Contenido de la pantalla<span class="sep"></span>${bt('x', 'Cerrar', 'data-cierra')}</div><div class="vent-cu">
-      <div class="rot">Fuentes multimedia de prueba</div>
-      <div class="fuentes">${[FUENTE_FIJA].concat(FU).map((u, i) => `<div class="fuente" data-on="${FSEL === i && !URLP}"><button type="button" class="tog" data-fu-sel="${i}" aria-pressed="${FSEL === i && !URLP}" title="Elegir esta fuente">${i + 1}</button>${i === 0 ? '<b>mediaservi.com 24/7</b>' : `<input type="url" class="pide" data-fu="${i - 1}" value="${esc(u)}" placeholder="Vacía · pega aquí un enlace" aria-label="Enlace de la fuente ${i + 1}" title="${esc(nom(u))}">`}</div>`).join('')}</div>
-      <div class="nota">Las fuentes 2 a 6 se pueden editar; la primera es fija. Se guardan en este navegador.</div>
+      <div class="rot">Vídeo de prueba</div>
+      <div class="fuentes"><div class="fuente" data-on="${!URLP}"><button type="button" class="tog" data-fu-sel="0" aria-pressed="${!URLP}" title="Elegir el vídeo de prueba">1</button><b>mediaservi.com · en bucle</b></div></div>
       <div class="rot">O usa tu propio contenido</div>
       <div class="fila"><input type="url" class="pide" id="url-propia" value="${esc(URLP)}" placeholder="Pega un enlace de YouTube, Vimeo, imagen o vídeo" aria-label="Enlace de tu contenido"><button type="button" class="tog" data-sube style="flex:none">${IC.contenido}Subir imagen / vídeo</button></div>
       <div class="fila"><button type="button" class="calcular" data-cont-aplica style="font-size:calc(var(--u)*15)">APLICAR</button>${tog(false, 'data-cont-reinicia title="Volver a la carta de ajuste inicial"', 'Reiniciar')}${tog(false, 'data-cierra', 'Cerrar')}</div></div></div>`;
@@ -800,7 +814,10 @@ function monta() {
   /* el pie común de AVHUB (credito.js): mismo texto que el resto de apps, editable desde el panel, y con el aviso legal en su ventana */
   if (window.AVCREDITO) { const pc = $('#pie-c'), pon2 = () => { pc.setAttribute('data-crudo', ''); { const h = window.AVCREDITO.html('SCREENS', VERSION.split('SCREENS ')[1], idioma()), k = h.indexOf(' · <a href="#aviso"'); pc.innerHTML = '<span class="cred-ver">' + esc(VERSION) + '</span>' + (k > 0 ? '<span class="cred-txt">' + h.slice(0, k) + ' · </span>' + h.slice(k + 3) : h); } };   /* v10.88 · en móvil vertical la versión va al pie */ /* v10.88 · el crédito en su span: en móvil vertical solo queda el aviso legal */ pon2(); if (window.AVCREDITO.alCambiar) window.AVCREDITO.alCambiar(() => { pon2(); ajustaTextos(); }); }
   const pide = () => { E.texto = $('#pide').value;
-    if (/proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec/i.test(E.texto) && !/\bled\b/i.test(E.texto)) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); puenteSale(); location.href = 'consola.html?modo=una-proy'; return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
+    /* v11.54 · también los proyectores por marca o modelo; y una sala inmersiva (o tres medidas, o un cubo) va a la consola de VARIAS, no a una pantalla */
+    const tx = E.texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), esLed = /\bled\b|cabinet/.test(tx), esProy = /proyector|proyecci|proyectar|projector|projecci|projectar|projection|mapping|videoproyec|\bepson\b|\bvivitek\b|\bchristie\b|\beb-?[a-z]{0,3}\d{3,4}|\bdu\d{4}|\belpl/.test(tx);
+    const esSala = /inmersiv|immersiv|\bcubo\b|\bcube\b|\d\s*(?:m\s*)?(?:x|×|por|by|per)\s*\d+(?:[.,]\d+)?\s*(?:m\s*)?(?:x|×|por|by|per)\s*\d/.test(tx) && !/sala de (?:reuniones|reunions|juntas|juntes)|meeting ?room|board ?room|\baula\b|classroom|despacho|oficina|office/.test(tx);
+    if ((esProy && !esLed) || esSala) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); puenteSale(); location.href = 'consola.html?modo=' + (esSala ? 'varias-' + (esLed ? 'led' : 'proy') : 'una-proy'); return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
     const nueva = E.texto.trim() !== (E.txtAnt || ''); E.txtAnt = E.texto.trim(); const v = interpreta(E.texto, nueva); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
   const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
@@ -830,9 +847,9 @@ function monta() {
     else if (q('[data-pega]')) { (navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject()).then((t) => { t = String(t || '').replace(/\s+/g, ' ').trim(); if (!t) { tostada('No hay texto copiado que pegar.'); return; } EDITA = true; pintaPie(); const i = $('#pide'); i.value = t.slice(0, 400); i.focus(); tostada('Petición pegada: pulsa CALCULAR.'); }, () => { EDITA = true; pintaPie(); $('#pide').focus(); tostada('Este navegador no deja pegar con el botón: usa Ctrl+V en la casilla.', 5000); }); }
     else if (q('[data-guia]')) { cierra(); guia(0); }
     else if (q('[data-sube]')) $('#f-cont').click();
-    else if ((b = q('[data-fu-sel]'))) { FSEL = +b.dataset.fuSel; URLP = ''; abre('contenido'); }
-    else if (q('[data-cont-aplica]')) { const i = $('#url-propia'); if (i) URLP = i.value.trim(); const c = deEnlace(URLP || (FSEL === 0 ? FUENTE_FIJA : FU[FSEL - 1])); sueltaCont(); CONT = c; cierra(); todo(); tostada(c ? 'Contenido aplicado a la pantalla.' : 'Esa fuente está vacía: se queda la carta de ajuste.'); }
-    else if (q('[data-cont-reinicia]')) { sueltaCont(); CONT = null; FSEL = 0; URLP = ''; cierra(); todo(); tostada('Pantalla reiniciada: vuelve la carta de ajuste.'); }
+    else if ((b = q('[data-fu-sel]'))) { URLP = ''; abre('contenido'); }
+    else if (q('[data-cont-aplica]')) { const i = $('#url-propia'); if (i) URLP = i.value.trim(); const c = URLP ? deEnlace(URLP) : fuenteMs(); sueltaCont(); CONT = c; cierra(); todo(); tostada(c ? 'Contenido aplicado a la pantalla.' : 'Esa fuente está vacía: se queda la carta de ajuste.'); }
+    else if (q('[data-cont-reinicia]')) { sueltaCont(); CONT = null; URLP = ''; cierra(); todo(); tostada('Pantalla reiniciada: vuelve la carta de ajuste.'); }
     else if (q('[data-carta]')) { sueltaCont(); CONT = null; todo(); }
     else if (q('[data-audio]')) $('#f-audio').click();
     else if ((b = q('[data-mic]'))) dicta(b);
@@ -845,7 +862,7 @@ function monta() {
     else if ((b = q('[data-ver]'))) abre(b.dataset.ver);
     else if ((b = q('[data-cambiatema]'))) pon('tema', E.tema === 'oscuro' ? 'claro' : 'oscuro');
     else if ((b = q('[data-paso]'))) { VENT.i = (VENT.i + +b.dataset.paso + VENT.LISTA.length) % VENT.LISTA.length; VENT.pinta(); }
-    else if (q('[data-nuevo]')) { DESH = { E: JSON.parse(JSON.stringify(E)), usado: USADO }; const tema = E.tema; Object.assign(E, DEF, { tema }); sueltaCont(); CONT = null; FSEL = 0; URLP = ''; $('#pide').value = ''; EDITA = false; USADO = false; todo(); tostada('Nuevo cálculo: todo vuelve a como al empezar.', 6500, '<button type="button" class="calcular" data-deshacer>DESHACER</button>'); }
+    else if (q('[data-nuevo]')) { DESH = { E: JSON.parse(JSON.stringify(E)), usado: USADO }; const tema = E.tema; Object.assign(E, DEF, { tema }); sueltaCont(); CONT = null; URLP = ''; $('#pide').value = ''; EDITA = false; USADO = false; todo(); tostada('Nuevo cálculo: todo vuelve a como al empezar.', 6500, '<button type="button" class="calcular" data-deshacer>DESHACER</button>'); }
     else if (q('[data-cierra]') || e.target.id === 'velo') cierra(); });
   document.addEventListener('change', (e) => { const t = e.target; if (t.closest('.rejilla')) USADO = true;
     if (t.dataset.num) { const k = t.dataset.num, v = parseFloat(String(t.value).replace(',', '.')); if (k === 'dist') { E.dist = v > 0 ? v : 0; E.pitch = 0; E.pitchOtros = []; E.crm = ''; } else if (v >= 0) E[k] = k === 'elev' ? v : Math.max(.1, v / UNI[E.uni]); todo(); if (VENT && VENT.que === 'ajustes') abre('ajustes'); }
@@ -853,7 +870,6 @@ function monta() {
     else if (t.dataset.crm !== undefined) { E.crm = t.value; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); }
     else if (t.dataset.proc !== undefined) { E.procSel = t.value; todo(); }
     else if (t.dataset.media !== undefined) { E.mediaSel = t.value; todo(); }
-    else if (t.dataset.fu !== undefined) { FU[+t.dataset.fu] = t.value.trim(); FSEL = +t.dataset.fu + 1; URLP = ''; try { localStorage.setItem('screens_fuentes_v2', JSON.stringify(FU)); } catch (er) {} abre('contenido'); }
     else if (t.dataset.pr) { E[t.dataset.pr] = String(t.value).slice(0, 900); guarda(); }
     else if (t.id === 'url-propia') URLP = t.value.trim();
     else if (t.id === 'f-fondo' && t.files && t.files[0]) { const f = t.files[0]; t.value = ''; fondoArchivo(f); }
@@ -1128,7 +1144,9 @@ addEventListener('resize', () => { const g = $('#guia'); if (g) { const n = [...
   /* v10.42 · el candado del panel, el último del grupo de la derecha (pegado a la esquina lo recortaban las ventanas redondeadas) */
   const ae = document.querySelector('.admin-esq'); if (ae) h.appendChild(ae); } }
 cargarEquipos(() => { if (R) todo(); });
-cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); });
+cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo();
+  /* v11.54 · petición LED escrita en la consola: aquí se lee entera (escaparate, sol, distancia…), no solo las medidas del puente */
+  try { const pp = localStorage.getItem('screens_peticion_led'); if (pp && CAT.length) { localStorage.removeItem('screens_peticion_led'); const i = $('#pide'), b = $('#calcular'); if (i && b) { i.value = pp; b.click(); } } } catch (e) {} });
 cargarBrian(() => { aplicaBrian(); todo(); });   /* v11.49 · BRIAN en vivo */
 window.__blocks = { puente: () => puenteSale(), E, DEF, get R() { return R; }, todo, sim: (p, a, o) => svgSim(p, a, o), guia: () => guia(0), estado: () => ESTADO, enStock, nivelStock, cabeEnBatch, AV_BATCH };   /* v10.49 · lo que usa el modo SIMPLE (vista/simple.js) */
 if (window.SCSIMPLE) window.SCSIMPLE.aviso();

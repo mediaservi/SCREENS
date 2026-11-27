@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.60** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.61** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.60)
+## Cambios de la versión actual (v11.61)
+- **Por qué este equipo también en la pantalla LED de la portada:** qué cubren los cabinets, desde qué distancia se ve nítida (y a qué distancia está el público) y por qué se ha elegido ese cabinet.
+- **Reparto en trifásica:** con tres líneas o más, ALIMENTACIÓN y el PDF dan la corriente de cada fase (L1/L2/L3, 400 V) con las líneas alternadas entre fases.
+- **Estructura solo con datos oficiales:** el PDF indica que el colgado y el apilado no se calculan mientras el fabricante no publique esos datos.
+- Umbrales nuevos ajustables desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.60
 - **AYÚDAME A ELEGIR en tres fases fijas:** en lugar de «Paso X de Y» (que cambiaba según las respuestas), arriba se ven siempre las mismas tres fases, DÓNDE · TAMAÑO · AJUSTES, con su barra; la barra nunca retrocede.
 - **Accesibilidad:** las vistas a escala (lateral, frontal y cenital) se anuncian con su nombre en los lectores de pantalla, en los tres idiomas.
 

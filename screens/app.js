@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.57';
+const VERSION = 'v11.58';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -207,8 +207,19 @@ function calcular(forzarMulti) {
     return c;
   } finally { PROF_CALC--; }
 }
+/* v11.58 · ENTRADAS VALIDADAS (auditoría, M6): medidas finitas, mayores que 0 y dentro de los topes de BRIAN; luz y ganancia en su rango.
+   Si algo no cuadra no se calcula a ciegas (antes un ancho «abc» salía en verde y una sala de 100 m colgaba la página) */
+function validaEntradas(esp) {
+  const mal = [], num = (v) => Number(String(v == null ? '' : v).replace(',', '.')), ok = (v, max) => { const n = num(v); return isFinite(n) && n > 0 && n <= max; };
+  if (esp.tipo === 'sala') { if (!ok(esp.ancho, BR['proy.sala.maxLado'])) mal.push(t('ancho')); if (!ok(esp.fondo, BR['proy.sala.maxLado'])) mal.push(t('fondo')); if (!ok(esp.alto, BR['proy.sala.maxAlto'])) mal.push(t('alto')); }
+  else if (esp.sueltas) { if (!ok(esp.sueltas.ancho, BR['proy.pantalla.maxLado'])) mal.push(t('ancho')); if (!ok(esp.sueltas.alto, BR['proy.pantalla.maxLado'])) mal.push(t('alto')); }
+  if (E.tecnologia !== 'led') { const lx = num(E.proy.lux); if (E.proy.lux !== '' && E.proy.lux != null && !(isFinite(lx) && lx >= 0 && lx <= BR['proy.luz.maxima'])) mal.push(t('luzAmb'));
+    const g = num(E.proy.ganancia); if (E.proy.ganancia !== '' && E.proy.ganancia != null && !(isFinite(g) && g >= BR['proy.ganancia.min'] && g <= BR['proy.ganancia.max'])) mal.push(t('ganancia')); }
+  return mal;
+}
 function calcularBase(forzarMulti) {
   const esp = JSON.parse(JSON.stringify(E.esp));
+  { const mal = validaEntradas(esp); if (mal.length) return { esp, dist: 0, filas: [], invalido: mal, modelo: null, lista: [] }; }
   if (E.cantidad === 'una') { esp.tipo = 'sueltas'; esp.sueltas.n = 1; esp.sueltas.disp = 'linea'; }
   if (E.tecnologia === 'led') esp.paredes.suelo = false; // el suelo LED necesita cabinets de suelo específicos
   // v10.63 · varias pantallas LED: como mucho 4, cada una con su medida y todas del mismo cabinet (la central distinta es solo de proyección)
@@ -427,9 +438,13 @@ function calcularBase(forzarMulti) {
   /* v11.11 · con una sola imagen no se llega al brillo (contraste por debajo de 10:1 con la luz del sitio): AUTO propone blending con los proyectores
      que hagan falta para llegar (decidido por Josep, 24-11-2026), si monta limpio y mejora de verdad el contraste */
   else if (una && hayPared && !E.proy.cuerpo && !E.proy.optica && !fijaDist && tot.contrasteMin < BR['proy.contraste.auto']) {
-    const alt = calcular('brillo');
+    /* v11.58 · (auditoría, M4) el blending por brillo solo en pantallas grandes (≥ proy.blending.brilloAnchoMin) y con pocos equipos (≤ proy.blending.brilloMaxEquipos):
+       en una pantalla pequeña con mucha luz no se proponen 3 o 4 proyectores; se recomienda otra tecnología (LED, pantalla ALR o controlar la luz) */
+    const anchoMax = Math.max(...sups.filter(s => s.tipo !== 'suelo').map(s => s.ancho));
+    const alt = anchoMax >= BR['proy.blending.brilloAnchoMin'] - 0.05 ? calcular('brillo') : null;
     const rk = (v) => ({ V: 0, A: 1, R: 2 })[v && v.nivel] ?? 2; c.elec = electronica(c); const v0 = veredicto(c);   // solo si el veredicto mejora (no cambia un rojo por otro)
-    if (blendLimpio(alt) && alt.tot.contrasteMin > tot.contrasteMin * BR['proy.blending.mejoraContraste'] && rk(alt.veredicto) < rk(v0)) { alt.multiAuto = true; alt.multiBrillo = true; alt.veredicto = veredicto(alt); return alt; }
+    if (alt && blendLimpio(alt) && alt.tot.n <= BR['proy.blending.brilloMaxEquipos'] && alt.tot.contrasteMin > tot.contrasteMin * BR['proy.blending.mejoraContraste'] && rk(alt.veredicto) < rk(v0)) { alt.multiAuto = true; alt.multiBrillo = true; alt.veredicto = veredicto(alt); return alt; }
+    c.otraTec = true;
   }
   c.elec = electronica(c); c.veredicto = veredicto(c); return c;
 }
@@ -511,8 +526,10 @@ function veredicto(c) {
     if (nlNoUsado.length) A('nl', t('vNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }));
     { const L = pw.filter(pasaShift); if (L.length) R('shift', t('vShift', { s: nom(L) })); }   // v10.89 · la lente no llega: en rojo (la imagen no se puede poner ahí)
     { const L = pw.filter(f => f.p.fueraMec); if (L.length) R('foco', t('vFocoMec', { s: nom(L) })); else { const L2 = pw.filter(f => f.p.fueraFoco); if (L2.length) A('foco', t('vFoco', { s: nom(L2) })); } }
-    pw.filter(f => f.pos && f.pos.techo > 0 && f.pos.y1 > f.pos.techo + 0.005).forEach(f => A('techo', t('vTecho', { n: f.nombre, d: fmt(f.pos.y1 - f.pos.techo, 2) })));
-    pw.filter(f => f.pos && f.pos.y0 < -0.005).forEach(f => A('suelo', t('vSuelo', { n: f.nombre, d: fmt(-f.pos.y0, 2) })));
+    /* v11.58 · (auditoría, M5) en una sala inmersiva, lo que sobra arriba o abajo dentro del recorte admitido se enmascara: no es un aviso */
+    const enmascara = (f) => c.esp.tipo === 'sala' && f.p && Math.max(f.p.recorte || 0, 0) <= RECORTE_MAX + 1e-6;
+    pw.filter(f => f.pos && f.pos.techo > 0 && f.pos.y1 > f.pos.techo + 0.005 && !enmascara(f)).forEach(f => A('techo', t('vTecho', { n: f.nombre, d: fmt(f.pos.y1 - f.pos.techo, 2) })));
+    pw.filter(f => f.pos && f.pos.y0 < -0.005 && !enmascara(f)).forEach(f => A('suelo', t('vSuelo', { n: f.nombre, d: fmt(-f.pos.y0, 2) })));
     if (c.tipoP === 'pared' && !E.proy.pubNS) (S.franjas || []).filter(f => f.prof > c.dist).forEach(f => A('publico', t('segPublico', { d: fmt(c.dist, 1), n: f.nombre })));
     if (c.multiAuto) A('multiAuto', t(c.multiBrillo ? 'vMultiBrillo' : 'vMultiAuto', { n: c.tot.n }));
     else if (c.multi && pw.some(f => f.p.n > 1)) A('multi', t('vMulti', { n: c.tot.n }));
@@ -526,7 +543,9 @@ function veredicto(c) {
       if (hayB && E.proy.blendEn === 'elec' && (E.elec.proyEq || 'media') === 'ninguno') A('blendElec', t('vBlendElec')); }
     const x = c.elec || {}, eq = E.elec.proyEq || 'media';
     if (eq === 'media' && !x.media) A('sinMedia', t('sinMedia')); else if (eq === 'blend' && !x.blend) A('sinBlend', t('sinBlend', { n: x.need || 0 }));
-    if (con >= BR['proy.contraste.minimo'] && con < BR['proy.contraste.recomendado']) A('contraste', t('vConA'));
+    /* v11.58 · (auditoría, M8) entre el contraste de AUTO (10:1) y el recomendado (15:1) es válido para presentaciones y visión pasiva: ya no es un aviso (se ve en su cifra) */
+    if (con >= BR['proy.contraste.minimo'] && con < BR['proy.contraste.auto']) A('contraste', t('vConA'));
+    if (c.otraTec) A('otraTec', t('vOtraTec', { l: fmt(c.lx, 0) }));
   }
   M.sort((a, b) => (a.n === 'R' ? 0 : 1) - (b.n === 'R' ? 0 : 1));
   return { nivel: M.some(m => m.n === 'R') ? 'R' : M.length ? 'A' : 'V', motivos: M };
@@ -562,7 +581,7 @@ function encajaTablas() { document.querySelectorAll('#res .tabla-caja').forEach(
 function marcaPestanas(r) {
   if (!r) return;
   [...r.children].forEach(x => { if (x.dataset.pz) return; const cl = x.classList;
-    if (cl.contains('res-tot') || cl.contains('vered-c') || cl.contains('res-pest')) return;
+    if (cl.contains('res-tot') || cl.contains('vered-c') || cl.contains('res-pest') || cl.contains('ayuda')) return;
     x.dataset.pz = cl.contains('veredicto') ? 'av' : cl.contains('res-sim') || cl.contains('tabla-caja') ? 'res' : x.id === 'det-equipo' || cl.contains('mat') || x.querySelector('.fichas') ? 'eq' : 'tab'; });
   r.dataset.pest = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
 }
@@ -974,7 +993,7 @@ function modSuperficies(c) {
   return h + '</div></section>';
 }
 // sin filas: o falta el catálogo LED (cargando / sin conexión) o no hay ninguna superficie activa
-function sinFilas(c) { if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat') + ` <button type="button" class="sec-btn" data-accion="reintentar">${t('reintentar')}</button>`; return t('nada'); }
+function sinFilas(c) { if (c.invalido && c.invalido.length) return `<span class="inval">${t('vInvalido', { c: c.invalido.join(', ') })}</span>`; if (E.tecnologia === 'led' && !c.modelo) return estadoCat === 'cargando' ? t('cargando') : t('sinCat') + ` <button type="button" class="sec-btn" data-accion="reintentar">${t('reintentar')}</button>`; return t('nada'); }
 /* v10.88 · consola de escritorio, PROYECCIÓN: la fila de abajo pasa a sumario técnico (azul) · vistas técnicas (verde) · observaciones y avisos (rosa).
    Solo se ven en la consola de escritorio (html.bk); en móvil siguen las seis cifras */
 function bkSumario(c, T, p, tiros) {
@@ -1095,7 +1114,7 @@ function vistaResultados(c) {
       ` : (() => { const obj = nitsObjetivo(), nMin = T.nitsMin === Infinity ? 0 : T.nitsMin, cMin = T.contrasteMin, malZ = c.filas.some(f => f.s.tipo !== 'suelo' && f.p && (f.p.limite || f.p.fuera || f.p.noCubre));
         const trMax = Math.max(...c.filas.filter(f => f.s.tipo !== 'suelo').map(f => f.p.ratio));
         return `${tarjeta(t('brillo'), fmt(nMin, 0), 'nits', critC(nMin >= obj * BR['proy.lumenes.tolerancia'], t('critBrillo', { o: fmt(obj, 0) })), '#ffb000')}
-      ${tarjeta(t('contraste'), fmt(cMin, 1), ':1', critC(cMin >= BR['proy.contraste.recomendado'], t('critContraste', { r: fmt(BR['proy.contraste.recomendado'], 0), l: fmt(c.lx, 0) })), semaforo(cMin) === 'semV' ? '#00ff04' : semaforo(cMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
+      ${tarjeta(t('contraste'), fmt(cMin, 1), ':1', critC(cMin >= BR['proy.contraste.auto'], t('critContraste', { r: fmt(BR['proy.contraste.auto'], 0), l: fmt(c.lx, 0) })), semaforo(cMin) === 'semV' ? '#00ff04' : semaforo(cMin) === 'semA' ? '#ffb000' : '#ff4d5e')}
       ${tarjeta(t('distOpticaK'), tiros.length ? fmt(Math.max(...tiros), 2) : '—', 'm', critC(!malZ, (isFinite(trMax) ? `TR\u00a0${fmt(trMax, 2)}:1 · ` : '') + t(malZ ? 'critZoomNo' : 'critZoom')), '#00ff04')}`; })()}
       ${bkSumario(c, T, p, tiros)}
     </div>`;

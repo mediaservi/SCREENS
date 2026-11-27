@@ -19,6 +19,9 @@ export const BRIAN_DEF = {
   /* v11.54 · intérprete de la petición: el sitio (sala de uso diario, luz, público) antes que la pantalla (mismos valores que SITIO_DEF de sitio.js) */
   'nl.sala.distPorAlto': 6, 'nl.sala.margenFondo': 0.6, 'nl.sala.anchoMaxPared': 0.8, 'nl.sala.techo': 2.8, 'nl.sala.bordeInferior': 0.9, 'nl.sala.margenTecho': 0.15,
   'nl.sala.distMaxHolgura': 0.3, 'nl.luz.ventanas': 300, 'nl.luz.sol': 500, 'nl.medida.redondeo': 0.05,
+  /* v11.58 · entradas validadas y blending por brillo solo en pantallas grandes */
+  'proy.sala.maxLado': 60, 'proy.sala.maxAlto': 20, 'proy.pantalla.maxLado': 100, 'proy.luz.maxima': 100000, 'proy.ganancia.min': 0.3, 'proy.ganancia.max': 3,
+  'proy.blending.brilloAnchoMin': 6, 'proy.blending.brilloMaxEquipos': 6,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,

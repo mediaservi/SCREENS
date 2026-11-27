@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.57** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.58** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,15 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.57)
+## Cambios de la versión actual (v11.58)
+- **Sin blending absurdo en pantallas pequeñas:** con mucha luz, una pantalla de menos de 6 m ya no se resuelve con 3 o 4 proyectores; SCREENS recomienda LED o monitor de gran formato, pantalla ALR o controlar la luz.
+- **Contraste por uso:** entre 10:1 y 15:1 la imagen es válida para presentaciones y visión pasiva y ya no sale como aviso (sigue en su cifra); por debajo de 10:1, aviso.
+- **Salas inmersivas más limpias:** lo que sobra de imagen arriba o abajo dentro del recorte admitido se enmascara y ya no es un aviso.
+- **Entradas validadas:** una medida vacía, cero, negativa o desorbitada (sala de más de 60 m, alto de más de 20 m, pantalla de más de 100 m), una luz negativa o una ganancia fuera de rango ya no se calculan: SCREENS dice qué dato revisar (antes podía salir en verde o colgar la página).
+- Vivitek DU7099Z y DU7199Z con los lúmenes de la hoja del fabricante también sin conexión (7.600 y 8.600).
+- Umbrales nuevos ajustables desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.57
 - **Modo claro legible:** el botón AYÚDAME A ELEGIR, el icono de la simulación, el veredicto (estado, punto y texto), el contador de AVISOS, las pestañas en azul, los criterios ✓ / ✗, el aviso de contraste y las referencias de las fichas de equipo ya se leen bien sobre fondo claro.
 
 ## Cambios de la v11.56

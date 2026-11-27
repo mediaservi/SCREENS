@@ -798,3 +798,4 @@ html.piel[data-tema="claro"] #res .crit.si { color: #1d7a1d; } html.piel[data-te
 html.piel[data-tema="claro"] #res > .res-pest .tog.on, html.piel[data-tema="claro"] #res > .res-pest .tog.dett { color: #003a63; border-color: #004f85; }
 html.piel[data-tema="claro"] .tar .s .sem.semA { color: #5c3500; } html.piel[data-tema="claro"] .tar .s .sem.semR, html.piel[data-tema="claro"] .sem.semR { color: #8a0d1c; }
 html.piel[data-tema="claro"] .sem.semA { color: #5c3500; }
+#res .ayuda .inval { display: block; padding: 10px 12px; border: 1px solid #ff4d5e; border-radius: 12px; color: var(--txt); font-weight: 700; }

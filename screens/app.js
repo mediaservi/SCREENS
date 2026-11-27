@@ -23,6 +23,7 @@ function alternaMarca(v) {
 import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: antes que el motor
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
+import '../comun/software.js';   /* v11.63 · VNNOX y ViPlex con los reproductores NovaStar */
 globalThis.SC_INTERNO = esInterno;   // v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin
 import '../comun/ficha.js?v=11.35';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
@@ -30,7 +31,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.62';
+const VERSION = 'v11.63';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -587,6 +588,8 @@ function marcaPestanas(r) {
   r.dataset.pest = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
 }
 /* v11.59 · «POR QUÉ ESTE EQUIPO» (auditoría, cliente M4): tres razones sacadas del propio cálculo, en RESUMEN */
+/* v11.63 · con un reproductor NovaStar, VNNOX y ViPlex: aviso, recomendación, resumen y enlace oficial (comun/software.js) */
+function softNova(c, pdf) { const p = c && c.elec && c.elec.proc; return p && globalThis.SC_SOFT ? globalThis.SC_SOFT.html(p, idioma(), !!pdf) : ''; }
 function porQue(c) {
   if (!c || !c.tot || !c.filas || !c.filas.length) return '';
   const T = c.tot, L = [];
@@ -1111,7 +1114,7 @@ function vistaResultados(c) {
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', critC(!!(c.elec && c.elec.proc), c.elec && c.elec.proc ? t('critSenal', { n: fmtPx(T.salidas4k) }) : t('critSinProc')), '#00ff04')}`; })()}
       ${bkSumarioLed(c, T, m)}
     </div>`;
-    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c) + bkEsquemaLed(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c) + softNova(c) + bkEsquemaLed(c);
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
@@ -1735,7 +1738,7 @@ function imprimir() {
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   /* v11.62 · (auditoría, mejora 15) el PDF lleva lo que se ha entendido de la petición (supuestos) y por qué este equipo */
-  h += `<div class="im-res">${RECIBO ? `<p class="im-recibo">${RECIBO}</p>` : ''}${vistaResultados(c)}${porQue(c)}</div>`;
+  h += `<div class="im-res">${RECIBO ? `<p class="im-recibo">${RECIBO}</p>` : ''}${vistaResultados(c)}${porQue(c)}${softNova(c, true)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []).concat(c.prCentral && c.prCentral !== c.proyector ? [fichaProy(c.prCentral, t('fProyCentral'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   if (E.tecnologia === 'led' && c.modelo) h += planosPdf(c);   // v10.94 · planos técnicos de cada pantalla

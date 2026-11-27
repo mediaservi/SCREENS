@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.62** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.63** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -47,6 +47,8 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 - **PDF** con la captura 3D, los resultados, la electrónica y los equipos.
 - **Proyectores:** Epson, Vivitek y Christie, cada cuerpo con sus ópticas compatibles (relación de proyección, desplazamiento, tamaño de imagen y chasis de cada combinación), dentro de la app y sin conexión. Las marcas se encienden y se apagan; en automático manda la prioridad EPSON > VIVITEK > CHRISTIE: la siguiente marca solo sale si con la anterior no hay una instalación limpia.
 
+**Software de los reproductores NovaStar:** con un Taurus (TB, TU) o un TCC en el proyecto, RESULTADOS y el PDF recomiendan VNNOX (nube) y ViPlex (Express y Handy, red local), con su resumen y el enlace a su página oficial (`comun/software.js`, logotipos en `comun/img/soft/`).
+
 **Fichas y motor común:** cabinets, proyectores, electrónicas y mediaservers se muestran con la misma ficha (`comun/ficha.js`, `comun/ficha.css`); el motor de electrónica es común (`comun/electronica.js`: NovaStar MCTRL, VX Pro, NovaPro, COEX MX, MBOX, reproductores Taurus TB y TU y H Series, con tarjetas de salida y de entrada, backup, escalador y fibra con CVT10 Pro; mediaservers NovaStar ET y PIXELHUE X400; switchers PIXELHUE). Los equipos salen de **una lista por marca** (`comun/equipos.js` de fábrica) que se gestiona desde el panel AVHUB ADMIN (EQUIPOS): lo guardado allí sustituye a la de fábrica sin publicar la app.
 
 **Otras páginas:** `admin/anuncios.html` (AVHUB ADMIN: firmas, newsletter y catálogo) y `configuradores/` (compara SCREENS con el configurador oficial de TRAULUX).
@@ -76,7 +78,10 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.62)
+## Cambios de la versión actual (v11.63)
+- **Software NovaStar (VNNOX y ViPlex):** si el proyecto lleva un reproductor NovaStar (Taurus TB y TU, TCC), RESULTADOS y el PDF avisan y recomiendan sus aplicaciones oficiales, con un resumen de lo que permiten en control y en gestión de contenido. Pulsando en el logotipo de cada una se abre su página oficial; en el PDF va además su dirección escrita. En la portada LED y en varias pantallas LED, en los tres idiomas.
+
+## Cambios de la v11.62
 - **Proyector fuera del público:** sin distancia fijada, el proyector se coloca 1 m más cerca de la pantalla que el público (antes quedaba justo a su distancia, entre la gente y haciendo sombra).
 - **4K filtra:** pedir «4K» en la petición escrita elige solo proyectores 4K (antes se decía «no usado»).
 - **PDF más completo:** lo que SCREENS ha entendido de la petición (con los supuestos) y «Por qué este equipo», en proyección y en la pantalla LED; en LED también una alternativa de pitch más económica que sigue nítida y la misma pantalla en 16:9.

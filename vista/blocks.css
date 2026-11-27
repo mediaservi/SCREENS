@@ -906,3 +906,13 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 .porque { margin-top: calc(var(--u) * 8); padding: calc(var(--u) * 7) calc(var(--u) * 10); border: 1px solid var(--linea); border-radius: calc(var(--u) * 10); background: var(--campo, transparent); }
 .porque .etq { font-size: calc(var(--u) * 11); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); margin-bottom: calc(var(--u) * 3); }
 .porque ul { margin: 0; padding-left: 1.1em; display: grid; gap: calc(var(--u) * 2); font-size: calc(var(--u) * 12); font-weight: 600; line-height: 1.3; color: var(--txt); }
+/* v11.63 · reproductor NovaStar: VNNOX y ViPlex (aviso, resumen y enlace oficial) */
+.soft { margin-top: calc(var(--u) * 8); padding: calc(var(--u) * 7) calc(var(--u) * 10); border: 1px solid var(--linea); border-left: 3px solid var(--vista); border-radius: calc(var(--u) * 10); background: var(--campo, transparent); }
+.soft .etq { font-size: calc(var(--u) * 11); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); margin-bottom: calc(var(--u) * 3); }
+.soft .soft-av { margin: 0 0 calc(var(--u) * 4); font-size: calc(var(--u) * 12); font-weight: 700; line-height: 1.35; color: var(--txt); }
+.soft .soft-a { display: grid; grid-template-columns: calc(var(--u) * 92) minmax(0, 1fr); gap: calc(var(--u) * 9); align-items: center; padding: calc(var(--u) * 4) 0; text-decoration: none; color: var(--txt); border-top: 1px dashed var(--linea); }
+.soft .soft-a:hover .soft-t b, .soft .soft-a:focus-visible .soft-t b { color: var(--vista); text-decoration: underline; }
+.soft .soft-l { display: flex; align-items: center; justify-content: center; height: calc(var(--u) * 32); border-radius: calc(var(--u) * 6); background: #14181f; padding: calc(var(--u) * 3) calc(var(--u) * 6); }
+.soft .soft-l img { max-height: calc(var(--u) * 26); max-width: 100%; display: block; }
+.soft .soft-t { font-size: calc(var(--u) * 11.5); line-height: 1.35; color: var(--tenue); } .soft .soft-t b { color: var(--txt); font-weight: 800; }
+.soft .soft-pie { margin: calc(var(--u) * 3) 0 0; font-size: calc(var(--u) * 10.5); color: var(--tenue); }

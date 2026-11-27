@@ -26,12 +26,13 @@ import { svgPlanoSenal, svgPlanoElec } from './plano-led.js?v=11.13';   /* v10.9
 import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: antes que el motor */
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
+import '../comun/software.js';   /* v11.63 · VNNOX y ViPlex con los reproductores NovaStar */
 globalThis.SC_INTERNO = esInterno;   /* v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin */
 import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.62';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.63';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -641,13 +642,14 @@ function zonas(el, AV) {
         /* v11.61 · (auditoría, mejora 16) «Por qué este equipo» también en la portada: qué cubre, desde dónde se ve nítida y por qué se ha elegido */
         const kq = BR['led.distancia.metrosPorMmPitch'] || 1, dq = +E.dist || 0;
         const porq = `<div class="porque"><div class="etq">Por qué este equipo</div><ul><li><span data-crudo>${fmt(r.cab)} × ${esc(m.crm)}</span> <span>cubren</span> <span data-crudo>${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m</span></li><li><span data-crudo>P${String(R.pitch).replace('.', ',')}</span> <span>nítida desde</span> <span data-crudo>${fmt(R.pitch * kq, 1)} m</span>${dq > 0 ? ` <span>· público a</span> <span data-crudo>${fmt(dq, 1)} m</span>` : ''}</li>${altP()}${alt169()}<li>${E.crm ? 'Elegido a mano.' : 'El cabinet que cumple el brillo del entorno y el pitch de esa distancia, con prioridad al material habitual.'}</li></ul></div>`;
-        if (DETT) return seis + vered;
+        const soft = globalThis.SC_SOFT ? globalThis.SC_SOFT.html(R.proc, idioma()) : '';
+        if (DETT) return seis + vered + soft;
         /* estado en 4 niveles: rojo si algo no es recomendable; ámbar discontinuo si faltan datos del catálogo; ámbar si hay avisos; verde si no hay nada */
         const nDato = AV.filter((a) => a[2] === 'dato').length, est = nMal ? 'No recomendable' : nDato ? 'Faltan datos del catálogo' : AV.length ? (AV.length === 1 ? 'Revisa 1 aviso' : `Revisa ${AV.length} avisos`) : 'Listo para ofertar';
         const k = BR['led.distancia.metrosPorMmPitch'] || 1, dMin = R.pitch * k, d = +E.dist || 0, okD = !(d > 0) || dMin <= d + 1e-9;
         const crit = (ok, txt) => `<i class="crit ${ok ? 'si' : 'no'}" aria-label="${ok ? 'Cumple' : 'No cumple'}">${ok ? '✓' : '✗'}</i> <span>${txt}</span>`;
         const tres = `<div class="cifs cifs3">${cif('Resolución', `${r.resW}×${r.resH}`, 'px', crit(okD, okD ? `Nítida desde ${fmt(dMin, 1)}\u00a0m` : `Se ve el píxel a ${fmt(d, 1)}\u00a0m`))}${cif('Consumo', r.kw > 0 ? fmt(r.kw, 2) : '—', r.kw > 0 ? 'kW' : '', R.sinConsumo ? crit(false, 'Sin dato de consumo') : crit(true, `${R.nLin}\u00a0×\u00a016\u00a0A al\u00a0${fmt((R.USO || 1) * 100, 0)}\u00a0%`))}${cif('Señal', r.lineas, r.lineas === 1 ? 'línea' : 'líneas', crit(!!R.proc, R.proc ? `${E.backup ? 'Con backup' : 'Sin backup'} · ${r.salidas4k}\u00a0×\u00a04K` : 'Sin procesador'))}</div>`;
-        return `<button type="button" class="vered vered4 ${niv}${nDato && !nMal ? ' dato' : ''}" data-det="av" title="Ver los avisos"><i></i><span><strong>${est}</strong>${AV.length ? `<span>${esc(AV[0][1])}</span>` : '<span>Todo dentro de lo recomendado</span>'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>` + tres + porq;
+        return `<button type="button" class="vered vered4 ${niv}${nDato && !nMal ? ' dato' : ''}" data-det="av" title="Ver los avisos"><i></i><span><strong>${est}</strong>${AV.length ? `<span>${esc(AV[0][1])}</span>` : '<span>Todo dentro de lo recomendado</span>'}</span>${AV.length > 1 ? `<b data-crudo>+${AV.length - 1}</b>` : ''}</button>` + tres + porq + soft;
       })() +
       `<div class="dets" role="tablist">${[['res', 'Resumen'], ['mat', 'Material'], ['av', 'Avisos']].map(([k, n]) => `<button type="button" role="tab" data-det="${k}" aria-selected="${DET === k}">${n}${k === 'av' && AV.length ? `<i class="n ${niv}" data-crudo>${AV.length}</i>` : ''}</button>`).join('')}<button type="button" class="dett" data-dett aria-pressed="${DETT}" title="${DETT ? 'Volver al veredicto y las 3 cifras clave' : 'Ver las 6 cifras del detalle técnico'}">${DETT ? 'Veredicto' : 'Detalle'}</button></div><div class="det det-${DET}"></div>`, LEY, 'res');
     res = t.content.firstChild; const det = res.querySelector('.det'), de = (id, s) => { const b = g(id); return b ? [...b.querySelectorAll(s)] : []; };
@@ -1103,6 +1105,7 @@ async function pdf() {
       caja('Señal y electrónica', fila('Procesador', p ? '<span data-crudo>' + esc(p.modelo) + '</span>' : '—') + fila('Puertos', p ? esc(p.puertos) : '') + fila('Escalador', p ? (p.escalador ? 'Sí' : 'No') : '') + fila('Mediaserver', me ? '<span data-crudo>' + esc(me.modelo) + '</span>' : 'No') + fila('Líneas Ethernet', r.lineas + (E.backup ? ' + ' + r.lineas + ' de backup' : '')) + fila('Conexión', E.conexion === 'fibra' ? 'Fibra' : 'RJ45') + fila('Cosido', R.cosido) + fila('Fuentes de vídeo', Math.max(1, +E.entradas || 1) + ' × ' + (E.tipoEntrada && E.tipoEntrada !== 'MIXTO' ? E.tipoEntrada : 'HDMI/DP/SDI') + (E.resEntrada ? ' ' + E.resEntrada : ''))) + `</div>` +
       /* v11.62 · (auditoría, mejora 15) el PDF dice por qué este equipo: lo pedido frente a lo propuesto ya está en DIMENSIONES */
       (() => { const t = document.createElement('div'); t.innerHTML = '<ul>' + [...document.querySelectorAll('.porque li')].map((li) => '<li>' + li.innerHTML + '</li>').join('') + '</ul>'; return t.querySelector('li') ? `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px;margin-bottom:8px">${rot(tr('Por qué este equipo'))}<ul style="margin:0;padding-left:14px;font:400 9.5px/1.45 Inter,Arial,sans-serif">${t.querySelector('ul').innerHTML}</ul></div>` : ''; })() +
+      (globalThis.SC_SOFT ? globalThis.SC_SOFT.html(R.proc, idioma(), true) : '') +
       (E.obs && E.obs.trim() ? `<div style="border:1px solid ${G};border-radius:6px;padding:6px 9px">${rot('Observaciones')}<div data-crudo style="font:400 9.5px/1.45 Inter,Arial,sans-serif;white-space:pre-wrap">${esc(E.obs.trim())}</div></div>` : '');
     const p2 = cab('hoja 2 de 2') + rot('Esquema de conexión') + `<div style="margin-bottom:9px">${esq}</div>` +
       `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px"><div>${rot('Cableado de señal')}${sen}</div><div>${rot('Cableado eléctrico')}${ele}</div></div>` +

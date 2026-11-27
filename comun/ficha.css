@@ -92,3 +92,6 @@ html.vf-abierto, html.vf-abierto body { overflow: hidden !important; }
 .sc-sem.n1 i:nth-child(-n+1) { background: #ff4b3e; } .sc-sem.n2 i:nth-child(-n+2) { background: #ffb000; } .sc-sem.n3 i { background: #3fdc5b; }
 :root[data-tema="claro"] .sc-sem.n3 i { background: #17842f; } :root[data-tema="claro"] .sc-sem.n2 i:nth-child(-n+2) { background: #b86e00; }
 .fi-cab .sc-sem { font-size: 11px; }
+/* v11.57 · MODO CLARO: referencias, piezas, categoría y enlaces legibles sobre fondo claro */
+:root[data-tema="claro"] .fi-ref { color: #17181c; } :root[data-tema="claro"] .fi-piezas li { color: #3c3f47; } :root[data-tema="claro"] .fi-piezas { border-top-color: rgba(0,0,0,.15); }
+:root[data-tema="claro"] .fi-piezas b, :root[data-tema="claro"] .fi-cat, :root[data-tema="claro"] .fi-enlace { filter: brightness(.5) saturate(1.6); }

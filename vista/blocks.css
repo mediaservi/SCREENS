@@ -883,3 +883,22 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 .cifs3 .cif > em > .crit { margin-top: .05em; }
 .crit { flex: none; font-style: normal; font-weight: 900; font-size: 1.05em; line-height: 1; }
 .crit.si { color: var(--verde); } .crit.no { color: var(--rojo); }
+
+/* v11.57 · MODO CLARO: colores que se perdían sobre fondo claro (Josep, 27-11-2026) */
+:root[data-tema="claro"] .ss-ayu, :root[data-tema="claro"] [data-blk="H1L"] .ss-ayu { background: #d4ff00; color: #1c2200; border-color: #3d4a00; }
+:root[data-tema="claro"] .ss-ayu:hover { background: #c3ec00; }
+:root[data-tema="claro"] .blk[style*="--marca"] .blk-ic, :root[data-tema="claro"] .blk-ic { color: #4a5a00; }
+:root[data-tema="claro"] .vered > i, :root[data-tema="claro"] .avs li > i { box-shadow: 0 0 0 calc(var(--u) * 1.5) rgba(0, 0, 0, .55); }
+:root[data-tema="claro"] .vered.av > i, :root[data-tema="claro"] .avs li.av > i { background: #ffb000; }
+:root[data-tema="claro"] .vered.mal > i, :root[data-tema="claro"] .avs li.mal > i { background: #ff3b4e; }
+:root[data-tema="claro"] .vered > i, :root[data-tema="claro"] .avs-ok > i { background: #22c33a; }
+:root[data-tema="claro"] .vered4 > span > strong { color: #1d6b12; }
+:root[data-tema="claro"] .vered4.av > span > strong { color: #7a3d00; }
+:root[data-tema="claro"] .vered4.mal > span > strong { color: #9a0f20; }
+:root[data-tema="claro"] .vered4 > span > span { color: #2c2f36; }
+:root[data-tema="claro"] .vered4.dato { border-color: #a86a00; background: color-mix(in srgb, #ffb000 10%, var(--campo)); }
+:root[data-tema="claro"] .dets .n { background: #ffb000; color: #14110a; box-shadow: 0 0 0 1px rgba(0, 0, 0, .45); }
+:root[data-tema="claro"] .dets .n.mal { background: #d7192d; color: #fff; }
+:root[data-tema="claro"] .crit.si { color: #1d7a1d; } :root[data-tema="claro"] .crit.no { color: #b3121f; }
+:root[data-tema="claro"] .dets .dett, :root[data-tema="claro"] .dets button[aria-selected="true"] { color: #003a63; }
+:root[data-tema="claro"] .dets .dett { border-color: #004f85; }

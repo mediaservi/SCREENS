@@ -785,3 +785,16 @@ html.piel #res > .vered-c.v4 > span > span { font: 600 13px/1.3 Inter, system-ui
 html.piel #res > .vered-c.v4.dato { border-style: dashed; border-color: #ffb000; }
 #res .crit { font-style: normal; font-weight: 900; } #res .crit.si { color: #3fdc5b; } #res .crit.no { color: #ff4d5e; }
 @media (max-width: 700px) { html.piel:not(.bk) .res-tot.tres > .tar:nth-child(3) { grid-column: 1 / -1; } }
+
+/* v11.57 · MODO CLARO: colores que se perdían sobre fondo claro (Josep, 27-11-2026) */
+html.piel[data-tema="claro"] .ss-ayu { background: #d4ff00; color: #1c2200; border-color: #3d4a00; }
+html.piel[data-tema="claro"] #res > .vered-c > i { background: #ffb000; color: #ffb000; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .55); }
+html.piel[data-tema="claro"] #res > .vered-c.mal > i { background: #ff3b4e; } html.piel[data-tema="claro"] #res > .vered-c.ok > i { background: #22c33a; }
+html.piel[data-tema="claro"] #res > .vered-c.v4 > span > strong { color: #7a3d00; }
+html.piel[data-tema="claro"] #res > .vered-c.v4.ok > span > strong { color: #1d6b12; } html.piel[data-tema="claro"] #res > .vered-c.v4.mal > span > strong { color: #9a0f20; }
+html.piel[data-tema="claro"] #res > .vered-c.v4 > span > span { color: #2c2f36; }
+html.piel[data-tema="claro"] #res > .res-pest .pn-av { background: #ffb000; color: #14110a; box-shadow: 0 0 0 1px rgba(0, 0, 0, .45); }
+html.piel[data-tema="claro"] #res .crit.si { color: #1d7a1d; } html.piel[data-tema="claro"] #res .crit.no { color: #b3121f; }
+html.piel[data-tema="claro"] #res > .res-pest .tog.on, html.piel[data-tema="claro"] #res > .res-pest .tog.dett { color: #003a63; border-color: #004f85; }
+html.piel[data-tema="claro"] .tar .s .sem.semA { color: #5c3500; } html.piel[data-tema="claro"] .tar .s .sem.semR, html.piel[data-tema="claro"] .sem.semR { color: #8a0d1c; }
+html.piel[data-tema="claro"] .sem.semA { color: #5c3500; }

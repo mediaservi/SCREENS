@@ -9,6 +9,7 @@
 <head>
 <meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script>(function(){try{var q=new URLSearchParams(location.search),m=q.get('modo');var vi=q.get('vista');if(m){var ex='';['vista','asis','lang'].forEach(function(n){var x=q.get(n);if(x)ex+='&'+n+'='+encodeURIComponent(x);});location.replace('vista/consola.html?modo='+encodeURIComponent(m)+ex+location.hash);return;}var k=[],G=['lang','vista','asis'];q.forEach(function(v,n){if(G.indexOf(n)<0)k.push(n);});if(k.length){var o=new URLSearchParams();G.forEach(function(n){if(q.get(n))o.set(n,q.get(n));});var t=o.toString();history.replaceState(null,'',location.pathname+(t?'?'+t:'')+location.hash);}}catch(e){}})();</script>
+<script>/* v11.59 · enlace de COMPARTIR (#c=…): abre el mismo cálculo; se guarda como estado de esta página y se quita de la dirección */(function(){try{var m=/[#&]c=([\w-]+)/.exec(location.hash);if(!m)return;var s=m[1].replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var j=decodeURIComponent(escape(atob(s))),o=JSON.parse(j);if(!o||typeof o!=='object')return;var k=/consola\.html/.test(location.pathname)?'screens_estado':'screens-blocks-1';if(k==='screens-blocks-1'){var p={};try{p=JSON.parse(localStorage.getItem(k)||'{}')||{};}catch(e){}if(p.tema)o.tema=p.tema;}localStorage.setItem(k,JSON.stringify(o));history.replaceState(null,'',location.href.split('#')[0]);}catch(e){}})();</script>
 <base href="vista/">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script>/* tableta en horizontal (táctil, de 901 a 1280 px de ancho): se maqueta a 900 px, como la tableta en vertical, para que ninguna letra quede ilegible */(function(){var m=document.querySelector('meta[name=viewport]');if(!m)return;var f=function(){var w=Math.max(screen.width,screen.height),c=matchMedia('(pointer: coarse)').matches,l=matchMedia('(orientation: landscape)').matches;m.setAttribute('content',c&&l&&w>900&&w<=1280?'width=900, viewport-fit=cover':'width=device-width, initial-scale=1, viewport-fit=cover');};f();addEventListener('orientationchange',function(){setTimeout(f,60);});})();</script>
@@ -18,20 +19,20 @@
 <link rel="icon" href="../assets/screens-icono-placa.svg?v=placa" type="image/svg+xml">
 <link rel="icon" href="../assets/screens-icono-32.png?v=placa" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../assets/screens-icono-180.png?v=placa">
-<link rel="manifest" href="../manifest.json?v=11.58">
-<link rel="stylesheet" href="../comun/ficha.css?v=11.58">
-<link rel="stylesheet" href="iconos.css?v=11.58">
-<link rel="stylesheet" href="blocks.css?v=11.58">
-<link rel="stylesheet" href="simple.css?v=11.58">
+<link rel="manifest" href="../manifest.json?v=11.59">
+<link rel="stylesheet" href="../comun/ficha.css?v=11.59">
+<link rel="stylesheet" href="iconos.css?v=11.59">
+<link rel="stylesheet" href="blocks.css?v=11.59">
+<link rel="stylesheet" href="simple.css?v=11.59">
 </head>
 <body>
 <div id="app"></div>
 <noscript>SCREENS necesita JavaScript.</noscript>
-<script src="../credito.js?v=11.58"></script>
-<script src="../fallo.js?v=11.58"></script>
-<script src="../instalar.js?v=11.58"></script>
-<script src="../pdf.js?v=11.58"></script>
-<script type="module" src="simple.js?v=11.58"></script>
-<script type="module" src="una-led.js?v=11.58"></script>
+<script src="../credito.js?v=11.59"></script>
+<script src="../fallo.js?v=11.59"></script>
+<script src="../instalar.js?v=11.59"></script>
+<script src="../pdf.js?v=11.59"></script>
+<script type="module" src="simple.js?v=11.59"></script>
+<script type="module" src="una-led.js?v=11.59"></script>
 </body>
 </html>

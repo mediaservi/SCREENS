@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.58';
+const VERSION = 'v11.59';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -581,9 +581,24 @@ function encajaTablas() { document.querySelectorAll('#res .tabla-caja').forEach(
 function marcaPestanas(r) {
   if (!r) return;
   [...r.children].forEach(x => { if (x.dataset.pz) return; const cl = x.classList;
-    if (cl.contains('res-tot') || cl.contains('vered-c') || cl.contains('res-pest') || cl.contains('ayuda')) return;
+    if (cl.contains('res-tot') || cl.contains('vered-c') || cl.contains('res-pest') || cl.contains('ayuda') || cl.contains('recibo')) return;
     x.dataset.pz = cl.contains('veredicto') ? 'av' : cl.contains('res-sim') || cl.contains('tabla-caja') ? 'res' : x.id === 'det-equipo' || cl.contains('mat') || x.querySelector('.fichas') ? 'eq' : 'tab'; });
   r.dataset.pest = PESTAS.includes(E.vista.pest) ? E.vista.pest : 'res';
+}
+/* v11.59 · «POR QUÉ ESTE EQUIPO» (auditoría, cliente M4): tres razones sacadas del propio cálculo, en RESUMEN */
+function porQue(c) {
+  if (!c || !c.tot || !c.filas || !c.filas.length) return '';
+  const T = c.tot, L = [];
+  if (E.tecnologia === 'led') { const m = c.modelo; if (!m) return ''; const k = BR['led.distancia.metrosPorMmPitch'] || 1;
+    L.push(t('pqLedEncaje', { n: fmtPx(T.cab), m: m.crm, s: c.filas.map(f => fmt(f.r.ancho, 2) + ' × ' + fmt(f.r.alto, 2) + ' m').join(' + ') }));
+    L.push(t('pqLedPitch', { p: fmt(m.pitch, 1), d: fmt(m.pitch * k, 1), a: fmt(c.dist, 1) }));
+    L.push(E.led.crm ? t('pqMano') : t('pqLedAuto'));
+  } else { const p = c.proyector; if (!p) return ''; const pw = c.filas.filter(f => f.s.tipo !== 'suelo');
+    L.push(t('pqEncaje', { n: fmtPx(T.n), q: nombreQ(p), s: pw.map(f => fmt(f.s.ancho, 2) + ' × ' + fmt(f.s.alto, 2) + ' m').join(' + ') }));
+    L.push(t('pqLuz', { lm: fmtPx(T.lumenes), nt: fmt(T.nitsMin === Infinity ? 0 : T.nitsMin, 0), c: fmt(T.contrasteMin, 1), lx: fmt(c.lx, 0), o: fmt(BR['proy.contraste.auto'], 0) }));
+    L.push(E.proy.cuerpo || E.proy.optica ? t('pqMano') : c.multiBrillo ? t('pqBlend') : T.contrasteMin >= BR['proy.contraste.auto'] ? t('pqAuto', { m: p.marca }) : t('pqAutoNo', { m: p.marca }));
+  }
+  return `<div class="porque" data-pz="res"><div class="etq">${t('pqTit')}</div><ul>${L.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
 }
 function vistaVeredicto(c) {
   const V = c.veredicto; if (!V || !V.motivos.length) return '';
@@ -1095,7 +1110,7 @@ function vistaResultados(c) {
       ${tarjeta(t('lineas'), fmtPx(T.lineas), '', critC(!!(c.elec && c.elec.proc), c.elec && c.elec.proc ? t('critSenal', { n: fmtPx(T.salidas4k) }) : t('critSinProc')), '#00ff04')}`; })()}
       ${bkSumarioLed(c, T, m)}
     </div>`;
-    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + bkEsquemaLed(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c) + bkEsquemaLed(c);
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('cabCol')}</th><th>${t('resol')}</th><th>${t('pesoCol')}</th><th>${t('potCol')}</th><th>${t('linCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => `<tr><td>${f.nombre}</td><td>${fmt(f.r.ancho)} × ${fmt(f.r.alto)} m</td><td>${f.r.cols}×${f.r.rows} = ${f.r.cab}${f.r.quitados ? ` <span class="tenue">(−${f.r.quitados})</span>` : ''}</td><td>${f.r.resW}×${f.r.resH}</td><td>${f.r.peso > 0 ? fmt(f.r.peso, 0) + ' kg' : ''}</td><td>${f.r.kw > 0 ? fmt(f.r.kw, 2) + ' kW' : ''}</td><td>${f.r.lineas}${f.lin ? ` <span class="tenue">L${f.lin[0]}${f.lin[1] > f.lin[0] ? '–' + f.lin[1] : ''}</span>` : ''}</td></tr>`).join('')}
     </tbody></table></div>`;
@@ -1119,7 +1134,7 @@ function vistaResultados(c) {
       ${bkSumario(c, T, p, tiros)}
     </div>`;
     /* v10.89 · arriba, el veredicto en una línea y las pestañas; el veredicto completo va en AVISOS (y entero en el PDF) */
-    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c);
     h += vistaSimulacion(c);   // v10.88 · resultado de la simulación numerado (una pantalla)
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(f.pos ? f.pos.dist : q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
@@ -1375,10 +1390,14 @@ function calcularPeticion() {
   actualizar();
   nlNoUsado = (r.noUsado || []).concat(sinLeer);
   { const hay = calculo && calculo.tot ? calculo.tot.n : 0; if (E.tecnologia === 'proy' && nProyPedidos > 1 && hay && hay !== nProyPedidos) nlNoUsado.push(nProyPedidos + ' ' + t('proyectores').toLowerCase()); }   /* v11.2 · si el cálculo no sale con los proyectores pedidos, se dice */
-  estadoNl((r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.filter(x => !x.oculto).map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : ''), nlNoUsado.length > 0);
-  if (nlNoUsado.length) actualizar();
+  /* v11.59 · lo entendido queda como RECIBO fijo arriba de RESULTADOS (antes flotaba 6 s y tapaba los títulos); se cierra con × o con otra petición */
+  RECIBO = (r.vistos.length ? t('nlEntendido') + ' ' + r.vistos.filter(x => !x.oculto).map(rotulo).join(' · ') : t('nlNada')) + (nlNoUsado.length ? ' · ' + t('nlNoUsado', { s: nlNoUsado.map(x => '«' + x + '»').join(', ') }) : '');
+  estadoNl(''); actualizar();
 }
-let nlNoUsado = [], nProyPedidos = 0;
+let nlNoUsado = [], nProyPedidos = 0, RECIBO = '';
+/* el recibo de la petición se retira en cuanto se toca a mano un dato de los paneles (ya no describiría el cálculo) */
+document.addEventListener('change', (e) => { if (RECIBO && e.target && e.target.closest && e.target.closest('#panelA, #panelB')) { RECIBO = ''; const x = document.querySelector('#res .recibo'); if (x) x.remove(); } }, true);
+document.addEventListener('click', (e) => { if (RECIBO && e.target && e.target.closest && e.target.closest('#panelA button, #panelB button')) { RECIBO = ''; const x = document.querySelector('#res .recibo'); if (x) x.remove(); } }, true);
 
 // v8.5 · bloque de una zona: cabecera con testigo, nombre, resumen (se lee cuando está plegado) y su RESTABLECER; debajo, el cuerpo
 /* v11.39 · cajón MÁS AJUSTES de un paso: cuántos de sus ajustes no son los de fábrica y si está abierto (solo uno a la vez, se recuerda) */
@@ -1467,7 +1486,7 @@ function actualizar(sinEscena) {
   const z = zonas(calculo), sc = {};
   ['A', 'B'].forEach(k => { const m = $('#panel' + k + ' .blq.act .blq-cuerpo'); if (m) sc[k] = [m.parentElement.dataset.blq, m.scrollTop]; });
   $('#panelA').innerHTML = z.A; $('#panelB').innerHTML = z.B;
-  $('#res').innerHTML = vistaResultados(calculo) + z.equipo + modSuperficies(calculo) + consejos(calculo);
+  $('#res').innerHTML = (RECIBO ? `<div class="recibo" role="status"><span>${RECIBO}</span><button type="button" class="recibo-x" data-accion="recibo-x" aria-label="${t('cerrar')}" title="${t('cerrar')}">×</button></div>` : '') + vistaResultados(calculo) + z.equipo + modSuperficies(calculo) + consejos(calculo);
   plegar();
   ['A', 'B'].forEach(k => { if (!sc[k]) return; const m = $(`#panel${k} .blq.act[data-blq="${sc[k][0]}"] .blq-cuerpo`); if (m) m.scrollTop = sc[k][1]; });
   marcaPestanas($('#res'));
@@ -1584,6 +1603,7 @@ document.addEventListener('click', (ev) => {
     const zn = b.closest('.zona'), bl = b.closest('.blq'); if (zn && bl) { tocar(zn.dataset.zona, bl.dataset.blq); plegar(); } return; }
   if (a === 'blq') { const zn = b.closest('.zona'); if (zn) { tocar(zn.dataset.zona, b.dataset.id); plegar(); } return; }
   if (a === 'calc-ir') { irA('.res-tot'); return; }
+  if (a === 'recibo-x') { RECIBO = ''; const x = $('#res .recibo'); if (x) x.remove(); return; }
   if (a === 'dett') { DETT = !DETT; try { sessionStorage.setItem('screens_detalle', DETT ? '1' : '0'); } catch (er) {} actualizar(true); return; }
   if (a === 'pest') { E.vista.pest = b.dataset.v; guardar(); const r = $('#res'); if (r) { r.dataset.pest = E.vista.pest; r.querySelectorAll('.res-pest .tog').forEach(x => { const on = x.dataset.v === E.vista.pest; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); r.scrollTop = 0; encajaTablas(); } return; }
   if (a === 'ficha-ir') { irA('#det-equipo'); return; }

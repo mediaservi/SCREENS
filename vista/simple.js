@@ -10,7 +10,7 @@
 import { PROYECTORES } from '../screens/proyeccion.js';
 import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.58';
+const VERSION = 'v11.59';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -39,7 +39,7 @@ const T = {
   es: {
     sw: 'Te hago unas preguntas sencillas y te digo qué necesitas', ayu: 'AYÚDAME A ELEGIR', bDatos: 'DATOS', bSim: 'SIMULACIÓN', bRes: 'RESULTADO', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionado: mín. ' + a + ' · ópt. ' + b,     pides: 'LO QUE PIDES', necesitas: 'LO QUE NECESITAS', nCabs: 'Cabinets', nProc: 'Procesador LED', nMedia: 'Mediaserver', nRed: 'Cableado de datos', nRedV: (a) => a + ' líneas Ethernet + ' + a + ' de backup', nLuz: 'Electricidad', nLuzV: (k, n) => k + ' kW · ' + n + ' líneas de 16 A', sim: 'SIMULACIÓN A ESCALA', arrAmbos: 'ARRASTRA EL PROYECTOR O LA PERSONA', arrProy: 'ARRASTRA EL PROYECTOR', arrPub: 'ARRASTRA LA PERSONA', arrProyA: 'Distancia del proyector a la imagen', arrPubA: 'Distancia desde la que mira la gente', res: 'RESULTADO', cambiar: 'Cambiar', repetir: 'REPETIR LAS PREGUNTAS',
-    pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER EL RESULTADO', copiado: 'Resumen copiado: pégalo donde quieras.', noCopia: 'No se ha podido copiar.',
+    pdf: 'VER PDF', compartir: 'COMPARTIR', enPro: 'VER EL RESULTADO', copiado: 'Resumen copiado: pégalo donde quieras.', copiadoEnlace: 'Resumen y enlace copiados: quien lo abra verá este mismo cálculo.', noCopia: 'No se ha podido copiar.',
     calculando: 'Calculando…', cargando: 'Cargando el catálogo…', sinCat: 'No se ha podido leer el catálogo. Revisa la conexión.', reintentar: 'REINTENTAR', vacio: 'No hay pantallas para estos datos: cambia dónde va o el tamaño.',
     sinMotor: 'No se ha podido cargar el cálculo. Vuelve a cargar la página.', recargar: 'VOLVER A CARGAR',
     ajPro: (n) => (n === 1 ? '1 ajuste de PRO activo' : n + ' ajustes de PRO activos'), ajProT: 'Hay ajustes hechos en PRO que esta vista no enseña: por eso el resultado no es el automático.', restablecer: 'RESTABLECER',
@@ -99,7 +99,7 @@ const T = {
   en: {
     sw: 'A few simple questions and I tell you what you need', ayu: 'HELP ME CHOOSE', bDatos: 'INPUT', bSim: 'SIMULATION', bRes: 'RESULT', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Viewing: min. ' + a + ' · best ' + b,     pides: 'WHAT YOU ASK FOR', necesitas: 'WHAT YOU NEED', nCabs: 'Cabinets', nProc: 'LED processor', nMedia: 'Media server', nRed: 'Data cabling', nRedV: (a) => a + ' Ethernet lines + ' + a + ' backup', nLuz: 'Power', nLuzV: (k, n) => k + ' kW · ' + n + ' 16 A circuits', sim: 'SCALE SIMULATION', arrAmbos: 'DRAG THE PROJECTOR OR THE PERSON', arrProy: 'DRAG THE PROJECTOR', arrPub: 'DRAG THE PERSON', arrProyA: 'Distance from the projector to the image', arrPubA: 'Distance people watch from', res: 'RESULT', cambiar: 'Change', repetir: 'ASK THE QUESTIONS AGAIN',
-    pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE THE RESULT', copiado: 'Summary copied: paste it anywhere.', noCopia: 'Could not copy.',
+    pdf: 'SEE PDF', compartir: 'SHARE', enPro: 'SEE THE RESULT', copiado: 'Summary copied: paste it anywhere.', copiadoEnlace: 'Summary and link copied: whoever opens it will see this same calculation.', noCopia: 'Could not copy.',
     calculando: 'Calculating…', cargando: 'Loading the catalogue…', sinCat: 'The catalogue could not be read. Check your connection.', reintentar: 'RETRY', vacio: 'No screens for these details: change where it goes or the size.',
     sinMotor: 'The calculation could not be loaded. Reload the page.', recargar: 'RELOAD',
     ajPro: (n) => (n === 1 ? '1 PRO setting on' : n + ' PRO settings on'), ajProT: 'There are settings made in PRO that this view does not show: that is why the result is not the automatic one.', restablecer: 'RESET',
@@ -157,7 +157,7 @@ const T = {
   ca: {
     sw: 'Et faig unes preguntes senzilles i et dic què necessites', ayu: 'AJUDA’M A TRIAR', bDatos: 'DADES', bSim: 'SIMULACIÓ', bRes: 'RESULTAT', bPdf: 'PDF',
     rCabs: 'cabinets', rVis: (a, b) => 'Visionat: mín. ' + a + ' · òpt. ' + b,     pides: 'EL QUE DEMANES', necesitas: 'EL QUE NECESSITES', nCabs: 'Cabinets', nProc: 'Processador LED', nMedia: 'Mediaserver', nRed: 'Cablejat de dades', nRedV: (a) => a + ' línies Ethernet + ' + a + ' de backup', nLuz: 'Electricitat', nLuzV: (k, n) => k + ' kW · ' + n + ' línies de 16 A', sim: 'SIMULACIÓ A ESCALA', arrAmbos: 'ARROSSEGA EL PROJECTOR O LA PERSONA', arrProy: 'ARROSSEGA EL PROJECTOR', arrPub: 'ARROSSEGA LA PERSONA', arrProyA: 'Distància del projector a la imatge', arrPubA: 'Distància des d’on mira la gent', res: 'RESULTAT', cambiar: 'Canvia', repetir: 'TORNA A FER LES PREGUNTES',
-    pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE EL RESULTAT', copiado: 'Resum copiat: enganxa’l on vulguis.', noCopia: 'No s’ha pogut copiar.',
+    pdf: 'VEURE PDF', compartir: 'COMPARTEIX', enPro: 'VEURE EL RESULTAT', copiado: 'Resum copiat: enganxa’l on vulguis.', copiadoEnlace: 'Resum i enllaç copiats: qui l’obri veurà aquest mateix càlcul.', noCopia: 'No s’ha pogut copiar.',
     calculando: 'Calculant…', cargando: 'Carregant el catàleg…', sinCat: 'No s’ha pogut llegir el catàleg. Revisa la connexió.', reintentar: 'TORNA-HO A PROVAR', vacio: 'No hi ha pantalles per a aquestes dades: canvia on va o la mida.',
     sinMotor: 'No s’ha pogut carregar el càlcul. Torna a carregar la pàgina.', recargar: 'TORNA A CARREGAR',
     ajPro: (n) => (n === 1 ? '1 ajust de PRO actiu' : n + ' ajustos de PRO actius'), ajProT: 'Hi ha ajustos fets en PRO que aquesta vista no mostra: per això el resultat no és l’automàtic.', restablecer: 'RESTABLEIX',
@@ -632,9 +632,17 @@ if (PAG === 'consola') {
   document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-accion="nl-calcular"]')) guardaPide(); }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target && e.target.id === 'nl-texto') guardaPide(); }, true);
 }
+/* v11.59 · COMPARTIR con enlace que reabre el mismo cálculo (#c= con el estado de la página; sin imágenes propias ni textos largos) */
+function enlaceCalculo() {
+  try { const k = PAG === 'portada' ? 'screens-blocks-1' : 'screens_estado', o = JSON.parse(localStorage.getItem(k) || 'null'); if (!o) return '';
+    const limpia = (x) => { if (Array.isArray(x)) return x.map(limpia); if (x && typeof x === 'object') { const r = {}; Object.keys(x).forEach((n) => { const v = x[n]; if (typeof v === 'string' && (v.length > 600 || /^(data|blob):/.test(v))) return; r[n] = limpia(v); }); return r; } return x; };
+    const j = JSON.stringify(limpia(o)), b = btoa(unescape(encodeURIComponent(j))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return location.origin + location.pathname + location.search + '#c=' + b; } catch (e) { return ''; }
+}
 function compartir() {
-  if (!TXT) return; const ok = () => tostada(t('copiado')), mal = () => tostada(t('noCopia'));
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(TXT).then(ok, mal); else mal();
+  if (!TXT) return; const url = enlaceCalculo(), txt = TXT + (url ? '\n' + url : ''), ok = () => tostada(t(url ? 'copiadoEnlace' : 'copiado')), mal = () => tostada(t('noCopia'));
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) { navigator.share({ title: 'SCREENS', text: TXT, url: url || undefined }).catch(() => {}); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, mal); else mal();
 }
 let tTos = 0;
 function tostada(s) { raizNueva(); let d = raiz.querySelector('.ss-tos'); if (!d) { d = document.createElement('div'); d.className = 'ss-tos'; d.setAttribute('role', 'status'); raiz.appendChild(d); } d.textContent = s; d.classList.add('on'); clearTimeout(tTos); tTos = setTimeout(() => d.classList.remove('on'), 3200); }

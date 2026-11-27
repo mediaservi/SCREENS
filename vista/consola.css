@@ -799,3 +799,12 @@ html.piel[data-tema="claro"] #res > .res-pest .tog.on, html.piel[data-tema="clar
 html.piel[data-tema="claro"] .tar .s .sem.semA { color: #5c3500; } html.piel[data-tema="claro"] .tar .s .sem.semR, html.piel[data-tema="claro"] .sem.semR { color: #8a0d1c; }
 html.piel[data-tema="claro"] .sem.semA { color: #5c3500; }
 #res .ayuda .inval { display: block; padding: 10px 12px; border: 1px solid #ff4d5e; border-radius: 12px; color: var(--txt); font-weight: 700; }
+/* v11.59 · recibo de la petición, fijo arriba de RESULTADOS */
+html.piel #res > .recibo { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10px; padding: 9px 10px 9px 12px; border: 1px dashed var(--vista); border-radius: 12px; background: color-mix(in srgb, var(--vista) 8%, var(--campo)); color: var(--txt); font: 600 13px/1.35 Inter, system-ui, sans-serif; }
+html.piel #res > .recibo > span { flex: 1; min-width: 0; }
+html.piel #res > .recibo > .recibo-x { flex: none; width: 26px; height: 26px; border: 1px solid var(--linea); border-radius: 50%; background: transparent; color: var(--txt); font: 700 16px/1 Inter, sans-serif; cursor: pointer; }
+html.piel[data-tema="claro"] #res > .recibo { border-color: #004f85; }
+/* v11.59 · por qué este equipo */
+html.piel #res > .porque { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--linea); border-radius: 12px; background: var(--campo); }
+html.piel #res > .porque .etq { font: 800 12px/1.2 Inter, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); margin-bottom: 6px; }
+html.piel #res > .porque ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; font: 600 13px/1.35 Inter, system-ui, sans-serif; color: var(--txt); }

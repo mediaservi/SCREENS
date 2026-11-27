@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.58** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.59** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.58)
+## Cambios de la versión actual (v11.59)
+- **COMPARTIR con enlace:** además del resumen en texto, copia un enlace que abre el mismo cálculo (en el móvil, abre el menú de compartir del teléfono). El estado va en el propio enlace, tras el «#»: no pasa por ningún servidor.
+- **Recibo de la petición:** lo que SCREENS ha entendido de la petición escrita queda fijo arriba de RESULTADOS (antes flotaba unos segundos y tapaba títulos); se cierra con × o al tocar cualquier dato a mano.
+- **Por qué este equipo:** en RESUMEN, tres razones sacadas del cálculo (qué cubre, qué brillo y contraste da con la luz del sitio y por qué se ha elegido).
+
+## Cambios de la v11.58
 - **Sin blending absurdo en pantallas pequeñas:** con mucha luz, una pantalla de menos de 6 m ya no se resuelve con 3 o 4 proyectores; SCREENS recomienda LED o monitor de gran formato, pantalla ALR o controlar la luz.
 - **Contraste por uso:** entre 10:1 y 15:1 la imagen es válida para presentaciones y visión pasiva y ya no sale como aviso (sigue en su cifra); por debajo de 10:1, aviso.
 - **Salas inmersivas más limpias:** lo que sobra de imagen arriba o abajo dentro del recorte admitido se enmascara y ya no es un aviso.

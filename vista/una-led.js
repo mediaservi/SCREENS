@@ -31,7 +31,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.54';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.55';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -142,13 +142,16 @@ function deEnlace(u) {
   const vm = u.match(/vimeo\.com\/(?:.*\/)?(\d+)/); if (vm) return { url: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1&loop=1&controls=0&background=1`, tipo: 'marco' };
   return { url: u, tipo: 'marco' };
 }
-const fuenteMs = () => ({ url: `https://www.youtube.com/embed/${FUENTE_ID}?start=${FUENTE_INI}&enablejsapi=1&origin=${encodeURIComponent(location.origin)}${YT.replace('&loop=1', '')}`, tipo: 'marco', tramo: [FUENTE_INI, FUENTE_FIN] });
+const fuenteMs = () => ({ url: `https://www.youtube.com/embed/${FUENTE_ID}?start=${FUENTE_INI}&enablejsapi=1&cc_lang_pref=es&hl=es&origin=${encodeURIComponent(location.origin)}${YT.replace('&loop=1', '')}`, tipo: 'marco', tramo: [FUENTE_INI, FUENTE_FIN] });
 /* el bucle del tramo: el reproductor de YouTube avisa del tiempo (API por mensajes); al llegar al final del tramo, o si se para, vuelve al inicio */
+const SIN_SUBS = new WeakMap();
 window.addEventListener('message', (ev) => {
   if (!CONT || !CONT.tramo || !/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(ev.origin)) return;
   let d = ev.data; try { if (typeof d === 'string') d = JSON.parse(d); } catch (e) { return; }
   if (!d || !ev.source) return;
   const ord = (func, args) => { try { ev.source.postMessage(JSON.stringify({ event: 'command', func, args: args || [] }), ev.origin); } catch (e) {} };
+  /* sin subtítulos: la traducción automática queda mal (Josep, 27-11-2026); se quitan en cuanto el reproductor responde y se insiste unas veces */
+  const n = SIN_SUBS.get(ev.source) || 0; if (n < 6) { SIN_SUBS.set(ev.source, n + 1); ord('unloadModule', ['captions']); ord('unloadModule', ['cc']); ord('setOption', ['captions', 'track', {}]); }
   const inf = d.info || {}, tAct = typeof inf.currentTime === 'number' ? inf.currentTime : null;
   if ((tAct != null && tAct >= CONT.tramo[1]) || inf.playerState === 0) { ord('seekTo', [CONT.tramo[0], true]); ord('playVideo'); }
 });

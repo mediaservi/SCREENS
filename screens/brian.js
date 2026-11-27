@@ -22,9 +22,11 @@ export const BRIAN_DEF = {
   'led.encaje': 0.15, 'led.pitch.tolerancia': 0.2, 'led.pitch.aviso': 0.06, 'led.formato169.cerca': 0.12, 'led.formato169.exacto': 0.02,
   'led.medida.toleranciaMm': 5, 'led.pixelesPorPuerto': 650000, 'led.linea.amperios': 16, 'led.linea.tension': 230,
   'led.holo.cajaDriversMm': 75, 'led.holo.margenAncho': 0.15,
+  /* v11.53 · avisos de medida, redondeo, alimentación, HOLO y límites de entrada */
+  'led.encaje.aviso': 0.10, 'led.encaje.pasarseMax': 0.05, 'led.linea.factorPotencia': 0.8, 'led.linea.usoMaximo': 0.8, 'led.holo.filasMax': 2, 'led.medida.maxM': 200, 'led.cabinets.max': 20000, 'led.calor.btuPorW': 3.412,
   /* electrónica LED (motor común con SYSTEMS: tema de app TODAS) */
   'elec.pixelesPorPuerto': 650000, 'elec.conversor.puertos': 10, 'elec.mx2000.ranurasEntrada': 2, 'elec.mx2000.ranurasSalida': 2, 'elec.mx6000.ranurasEntrada': 8, 'elec.mx6000.ranurasSalida': 8,
-  'elec.mx.tarjetaSalida.fibras': 4, 'elec.h.tarjetaRJ45.puertos': 20, 'elec.h.tarjetaFibra.fibras': 2, 'elec.h.tarjetaFibra.puertosPorFibra': 8
+  'elec.mx.tarjetaSalida.fibras': 4, 'elec.h.tarjetaRJ45.puertos': 20, 'elec.h.tarjetaFibra.fibras': 2, 'elec.h.tarjetaFibra.puertosPorFibra': 8, 'elec.reparto.maxEquipos': 4
 };
 /* textos (listas y medidas): marcas por orden, cuerpos preferidos en salas y chasis por defecto */
 export const BRIAN_TXT = { 'proy.marcas.orden': 'EPSON, VIVITEK, CHRISTIE', 'proy.sala.prioridad': 'EB-L695SE', 'proy.chasis.defecto': '0,55 × 0,45 × 0,2' };

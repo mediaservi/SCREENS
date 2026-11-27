@@ -30,7 +30,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.52';
+const VERSION = 'v11.53';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -466,6 +466,13 @@ function veredicto(c) {
   const M = [], R = (k, txt, x) => M.push({ n: 'R', k, txt, ...(x || {}) }), A = (k, txt, x) => M.push({ n: 'A', k, txt, ...(x || {}) });
   if (E.tecnologia === 'led') {
     (c.avisoLed || []).forEach(a => A('catalogo', a));
+    /* v11.53 · lo que falta o no se ha podido hacer, siempre en el veredicto (nunca verde con datos ausentes) */
+    { const m = c.modelo; if (m) { const k = BR['led.distancia.metrosPorMmPitch'] || 1, lim = BR['led.encaje.aviso'] || 0.1;
+      if (!(+m.wMax > 0) && !(+m.cabAmp > 0)) A('sinConsumo', t('vlSinConsumo', { m: m.crm }));
+      if (!(+m.cabKg > 0)) A('sinPeso', t('vlSinPeso', { m: m.crm }));
+      if (m.pitch * k > c.dist + 1e-9) A('pitch', t('vlPitch', { p: fmt(m.pitch, 1), d: fmt(m.pitch * k, 1), a: fmt(c.dist, 1) }));
+      c.filas.filter(f => f.r && (Math.abs(f.r.ancho - f.s.ancho) > f.s.ancho * lim || Math.abs(f.r.alto - f.s.alto) > f.s.alto * lim)).forEach(f => A('medida', t('vlMedida', { n: f.nombre, a: fmt(f.s.ancho, 2), b: fmt(f.s.alto, 2), c: fmt(f.r.ancho, 2), d: fmt(f.r.alto, 2) }))); }
+      if (E.esp.tipo === 'sala' && E.esp.paredes && E.esp.paredes.suelo) A('sueloLed', t('vlSueloNo')); }
     if (c.tot && c.elec && !c.elec.proc) A('sinProc', t('sinProc'));
     if (c.tot && E.elec.marca !== 'ninguno' && c.elec && !c.elec.media) A('sinMedia', t('sinMedia'));
     c.filas.filter(f => f.r && f.r.quitados).forEach(f => A('puerta', t('puertaLed', { n: f.nombre, c: f.r.quitados, w: fmt(f.r.huecos.reduce((a, x) => a + x.w, 0), 2), h: fmt(Math.max(...f.r.huecos.map(x => x.h)), 2) })));

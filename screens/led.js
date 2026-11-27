@@ -13,8 +13,8 @@ export function lineasCosido(cols, rows, pixCab) {
 }
 
 /* v11.49 · BRIAN: píxeles por puerto, metros de distancia por mm de pitch y tolerancia de la medida (mm) */
-let M_POR_MM = 1, TOL_M = 0.005;
-export function fijaParamsLed(b) { PX_PUERTO = b['led.pixelesPorPuerto'] || 650000; M_POR_MM = b['led.distancia.metrosPorMmPitch'] || 1; TOL_M = (b['led.medida.toleranciaMm'] || 0) / 1000; }
+let M_POR_MM = 1, TOL_M = 0.005, PASA = 0;
+export function fijaParamsLed(b) { PX_PUERTO = b['led.pixelesPorPuerto'] || 650000; M_POR_MM = b['led.distancia.metrosPorMmPitch'] || 1; TOL_M = (b['led.medida.toleranciaMm'] || 0) / 1000; PASA = b['led.encaje.pasarseMax'] || 0; }
 
 // Superficies del espacio. Sala centrada en el origen, suelo en y = 0; el público mira hacia la pared frontal (−z).
 // Cada superficie: id, ancho y alto disponibles (m), elevación, posición del centro de su base y giro (rad) en el eje Y.
@@ -102,7 +102,8 @@ export function calcularLed(sup, m, ajuste = 'dentro') {
   const cw = m.cabAncho / 1000, ch = m.cabAlto / 1000;
   // «dentro»: los cabinets que caben en la medida, con 5 mm de tolerancia (las medidas en mm de una oferta suelen ir
   // redondeadas: 7 × 337,5 = 2362,5 mm se escribe «2362» y no debe quedarse en 6 filas)
-  const f = (lado, c) => (ajuste === 'dentro' ? Math.floor((lado + TOL_M) / c + 1e-6) : Math.round(lado / c));
+  /* v11.53 · «dentro» con redondeo: si una fila o columna más solo se pasa de la medida como mucho un PASA (BRIAN led.encaje.pasarseMax, 5 %), se pone */
+  const f = (lado, c) => { if (ajuste !== 'dentro') return Math.round(lado / c); const n = Math.floor((lado + TOL_M) / c + 1e-6); return PASA > 0 && (n + 1) * c <= lado * (1 + PASA) + 1e-9 ? n + 1 : n; };
   const cols = Math.max(1, f(sup.ancho, cw)), rows = Math.max(1, f(sup.alto, ch));
   const cab = cols * rows;
   const resW = cols * m.cabPixAncho, resH = rows * m.cabPixAlto, pix = resW * resH;

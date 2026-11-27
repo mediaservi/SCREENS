@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.52** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.53** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -76,7 +76,16 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.52)
+## Cambios de la versión actual (v11.53)
+- **LED: nunca «Sin avisos» con datos que faltan.** Si al cabinet le falta el consumo, el peso o la receiving card en el catálogo, se dice qué no se ha podido calcular; sin consumo, no se dibuja un reparto eléctrico inventado.
+- **Medida pedida:** aviso cuando la pantalla con cabinets enteros se aparta más de un 10 % de lo pedido (con la alternativa de «Lo más cercano» y el límite de filas del HOLO). «Que quepa» admite pasarse hasta un 5 % para no perder una fila o columna entera, y lo avisa.
+- **Alimentación:** la corriente dice de dónde sale (dato del fabricante o cálculo con factor de potencia 0,8), cada línea de 16 A se carga como mucho al 80 % y se da el calor en BTU/h.
+- **Electrónica:** con el escalador en «Igual» también se ofrece la serie H; una pantalla que no cabe en un solo procesador se reparte entre varios, con su aviso de fuente sincronizada.
+- **Pitch frente a distancia:** aviso cuando el público está más cerca de lo que permite el pitch.
+- **Entradas validadas:** una medida vacía, negativa o desorbitada ya no se calcula a ciegas.
+- Textos nuevos en castellano, inglés y catalán; umbrales ajustables desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.52
 - **Salas inmersivas con el brillo justo:** la propuesta automática ya no elige pocos proyectores muy potentes para una sala pequeña a oscuras; prueba todos los modelos de cada marca de menos a más lúmenes y avisa si el brillo es excesivo.
 - **Suelo inmersivo posible:** el suelo ya no se calcula con ultracortas plegadas (no proyectan bajo su vertical) ni con imágenes fuera de lo que da la óptica, y entra en el veredicto (avisos de suelo y de solape alto). Si los cenitales chocan, se apartan dentro de su desplazamiento de lente.
 - **Lentes por encima de la cabeza:** en salas, ningún proyector con la lente por debajo de 2,1 m (o del margen al techo en salas de techo bajo); a la altura de las personas sale en rojo.

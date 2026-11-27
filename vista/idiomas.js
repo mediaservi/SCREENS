@@ -344,6 +344,11 @@ const MAPA = {
   'Cable de vídeo 4K del mediaserver al procesador': ['4K video cable from the media server to the processor', 'Cable de vídeo 4K del mediaserver al processador'],
   'Línea de datos Ethernet (Cat 6) del procesador a la pantalla': ['Ethernet data line (Cat 6) from the processor to the screen', 'Línia de dades Ethernet (Cat 6) del processador a la pantalla'],
   'Línea de fibra óptica del procesador a la pantalla': ['Fibre-optic line from the processor to the screen', 'Línia de fibra òptica del processador a la pantalla'],
+  /* v11.53 · avisos y datos nuevos de LED */
+  'Hay pitch más fino en este entorno: bájalo en Resolución.': ['There is a finer pitch for this environment: lower it in Resolution.', 'Hi ha pitch més fi en aquest entorn: abaixa’l a Resolució.'],
+  'No hay pitch más fino en el catálogo para este entorno.': ['There is no finer pitch in the catalogue for this environment.', 'No hi ha pitch més fi al catàleg per a aquest entorn.'],
+  'Reparto eléctrico no calculado': ['Power layout not calculated', 'Repartiment elèctric no calculat'], 'Calor': ['Heat', 'Calor'],
+  'Medida no válida: escribe un ancho y un alto mayores que 0.': ['Invalid size: enter a width and a height greater than 0.', 'Mida no vàlida: escriu una amplada i una alçada més grans que 0.'],
 };
 const k = (l) => (l === 'en' ? 0 : 1);
 // textos con cifras o nombres: [expresión, (trozos, idioma) => texto]
@@ -423,7 +428,22 @@ const REGLAS = [
   [/^Enlace de la fuente (\d+)$/, (m, l) => ['Link for source ', 'Enllaç de la font '][k(l)] + m[1]],
   [/^es la nueva interfaz de AVHUB: la pantalla no se desplaza y cada dato tiene siempre su sitio\. Esta es una beta de prueba \((.+)\)\.$/, (m, l) => [`is the new AVHUB interface: the page does not scroll and every figure always has its place. This is a test beta (${m[1]}).`, `és la nova interfície d’AVHUB: la pantalla no es desplaça i cada dada té sempre el seu lloc. Aquesta és una beta de prova (${m[1]}).`][k(l)]],
   [/^SCREENS (v[\d.]+) 2026 forma parte del proyecto AVHUB ideado por el fundador de$/, (m, l) => [`SCREENS ${m[1]} 2026 is part of the AVHUB project, conceived by the founder of`, `SCREENS ${m[1]} 2026 forma part del projecte AVHUB ideat pel fundador de`][k(l)]],
-  [/^SCREENS (v[\d.]+) · 2026 · es un proyecto hecho con ♥ by mediaservi\.com ·$/, (m, l) => [`SCREENS ${m[1]} · 2026 · is a project made with ♥ by mediaservi.com ·`, `SCREENS ${m[1]} · 2026 · és un projecte fet amb ♥ by mediaservi.com ·`][k(l)]]
+  [/^SCREENS (v[\d.]+) · 2026 · es un proyecto hecho con ♥ by mediaservi\.com ·$/, (m, l) => [`SCREENS ${m[1]} · 2026 · is a project made with ♥ by mediaservi.com ·`, `SCREENS ${m[1]} · 2026 · és un projecte fet amb ♥ by mediaservi.com ·`][k(l)]],
+  /* v11.53 · avisos y datos nuevos de LED */
+  [/^La pantalla no se ajusta a la medida pedida: (.+) → (.+) \((.+)\)\.$/, (m, l) => [`The screen does not match the requested size: ${m[1]} → ${m[2]} (${m[3]}).`, `La pantalla no s’ajusta a la mida demanada: ${m[1]} → ${m[2]} (${m[3]}).`][k(l)]],
+  [/^El HOLO admite como mucho (\d+) filas \((.+) de alto\)\.$/, (m, l) => [`HOLO allows at most ${m[1]} rows (${m[2]} high).`, `L’HOLO admet com a màxim ${m[1]} files (${m[2]} d’alt).`][k(l)]],
+  [/^Con «Lo más cercano»: (.+) cabinets = (.+)\.$/, (m, l) => [`With «Closest»: ${m[1]} cabinets = ${m[2]}.`, `Amb «El més proper»: ${m[1]} cabinets = ${m[2]}.`][k(l)]],
+  [/^Redondeo de «Que quepa»: la pantalla se pasa (.+) de la medida pedida \((.+)\)\. Comprueba que hay sitio\.$/, (m, l) => [`«Must fit» rounding: the screen is ${m[1]} over the requested size (${m[2]}). Check there is room.`, `Arrodoniment de «Que hi càpiga»: la pantalla passa ${m[1]} de la mida demanada (${m[2]}). Comprova que hi ha lloc.`][k(l)]],
+  [/^P(.+) se ve bien desde (.+) m y el público está a (.+) m: se distinguirá el píxel\.$/, (m, l) => [`P${m[1]} looks good from ${m[2]} m and the audience is at ${m[3]} m: the pixels will be visible.`, `P${m[1]} es veu bé des de ${m[2]} m i el públic és a ${m[3]} m: es distingirà el píxel.`][k(l)]],
+  [/^Falta el consumo de (.+) en el catálogo: no se calculan la corriente ni los circuitos de 16 A\.$/, (m, l) => [`The power consumption of ${m[1]} is missing in the catalogue: current and 16 A circuits are not calculated.`, `Falta el consum de ${m[1]} al catàleg: no es calculen el corrent ni els circuits de 16 A.`][k(l)]],
+  [/^Falta el consumo de (.+) en el catálogo$/, (m, l) => [`The power consumption of ${m[1]} is missing in the catalogue`, `Falta el consum de ${m[1]} al catàleg`][k(l)]],
+  [/^Falta el peso de (.+) en el catálogo: no se da el peso total ni la carga para la estructura\.$/, (m, l) => [`The weight of ${m[1]} is missing in the catalogue: total weight and structural load are not given.`, `Falta el pes de ${m[1]} al catàleg: no es dona el pes total ni la càrrega per a l’estructura.`][k(l)]],
+  [/^Falta la receiving card de (.+) en el catálogo: compruébala en la ficha antes de ofertar la electrónica\.$/, (m, l) => [`The receiving card of ${m[1]} is missing in the catalogue: check it on the datasheet before quoting the electronics.`, `Falta la receiving card de ${m[1]} al catàleg: comprova-la a la fitxa abans d’ofertar l’electrònica.`][k(l)]],
+  [/^Medida fuera de rango: como mucho (.+) m por lado\. Para más, divide el proyecto en varias pantallas\.$/, (m, l) => [`Size out of range: at most ${m[1]} m per side. For more, split the project into several screens.`, `Mida fora de rang: com a màxim ${m[1]} m per costat. Per a més, divideix el projecte en diverses pantalles.`][k(l)]],
+  [/^(.+) A · (\d+) V \((fabricante|FP (.+))\)$/, (m, l) => `${m[1]} A · ${m[2]} V (` + (m[3] === 'fabricante' ? ['manufacturer', 'fabricant'][k(l)] : ['PF ', 'FP '][k(l)] + m[4]) + ')'],
+  [/^Pantalla repartida en (\d+) zonas: hace falta una fuente con (\d+) salidas sincronizadas \(mediaserver o splitter\)\.$/, (m, l) => [`Screen split into ${m[1]} zones: it needs a source with ${m[2]} synchronised outputs (media server or splitter).`, `Pantalla repartida en ${m[1]} zones: cal una font amb ${m[2]} sortides sincronitzades (mediaserver o splitter).`][k(l)]],
+  [/^(\d+) zonas de (.+) px · cada una (.+)$/, (m, l) => [`${m[1]} zones of ${m[2]} px · each ${m[3]}`, `${m[1]} zones de ${m[2]} px · cadascuna ${m[3]}`][k(l)]],
+  [/^(.+) Mpx repartidos en (\d+) equipos$/, (m, l) => [`${m[1]} Mpx split across ${m[2]} units`, `${m[1]} Mpx repartits en ${m[2]} equips`][k(l)]],
 ];
 /* traduce un texto suelto (para lo que no pasa por la página, como lo que se copia) */
 export function tr(es) {

@@ -58,6 +58,10 @@ export const imgDirecta = (u) => {
 /* v11.45 · fotos de los cabinets: solo las oficiales (traulux.net o charmex.net); cualquier otra (imágenes de «sin foto», de otras webs) se descarta
    y la ficha enseña su dibujo de reserva */
 const fotoOficial = (u) => { const x = imgDirecta(u); return /^https?:\/\/([a-z0-9-]+\.)*(traulux\.net|charmex\.net)\//i.test(String(x || '')) ? x : ''; };
+/* v11.66 · (bloque 0, error 4) receiving card legible: del texto del catálogo se quedan solo los modelos de tarjeta reconocibles
+   (NovaStar A5s/A7s/A8s/A10s Plus/Pro/-N, MRV, Colorlight i5/5A, Linsn, Huidu…); si no hay ninguno, el texto tal cual */
+const CARD_RX = /\b(?:A\d{1,2}s?(?:[ -]?(?:Plus|Pro|N|Max))*|MRV\d{3}(?:-\d)?|5A-?\d{2,3}\w*|i\d{1,2}[A-Z]?(?:[ -]?(?:Pro|Plus))?|RV\d{3,4}\w*|RV9\w*|HD-R\d{3}\w*|E\d{3}(?:[ -]?Pro)?|DH\d{4}\w*|ArmorCard\w*)\b/gi;
+function cardLimpia(t) { const s = String(t || '').trim(); if (!s) return ''; const m = [...new Set((s.match(CARD_RX) || []).map((x) => x.trim().toUpperCase().replace(/\s+/g, '-')))]; return m.length ? m.join(' / ') : s; }
 function normalizar(data) {
   return data.map(it => ({
     ...it,
@@ -66,7 +70,7 @@ function normalizar(data) {
     tipo: normTipo(it.tipo), class: String(it.class || '').trim().toUpperCase(),
     cabAmp: num(it.cabAmp || it.Amp || it.amp), cabKg: num(it.cabKg || it.Kg || it.kg || it.peso),
     cabAncho: num(it.cabAncho), cabAlto: num(it.cabAlto), cabPixAncho: num(it.cabPixAncho, 1), cabPixAlto: num(it.cabPixAlto, 1),
-    pitch: num(it.pitch), nits: num(it.nits, 1), hz: num(it.hz, 1), wMax: num(it.wMax || it.wmax), thick: num(it.thick || it.profundidad)
+    card: cardLimpia(it.card), pitch: num(it.pitch), nits: num(it.nits, 1), hz: num(it.hz, 1), wMax: num(it.wMax || it.wmax), thick: num(it.thick || it.profundidad)
   })).filter(it => String(it.obs || '').trim().toUpperCase() !== 'NOSHOW' && String(it.crm || '').trim() !== ''
     && ['INSTALL', 'RENTAL'].includes(it.class) && ['INDOOR', 'OUTDOOR', 'ESCAPARATE'].includes(it.tipo)
     && it.cabAncho > 0 && it.cabAlto > 0 && it.cabPixAncho > 0 && it.cabPixAlto > 0);

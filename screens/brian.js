@@ -21,7 +21,7 @@ export const BRIAN_DEF = {
   'nl.sala.distMaxHolgura': 0.3, 'nl.luz.ventanas': 300, 'nl.luz.sol': 500, 'nl.medida.redondeo': 0.05,
   /* v11.58 · entradas validadas y blending por brillo solo en pantallas grandes */
   'proy.sala.maxLado': 60, 'proy.sala.maxAlto': 20, 'proy.pantalla.maxLado': 100, 'proy.luz.maxima': 100000, 'proy.ganancia.min': 0.3, 'proy.ganancia.max': 3,
-  'proy.blending.brilloAnchoMin': 6, 'proy.publico.margen': 1, 'proy.blending.brilloMaxEquipos': 6,
+  'proy.blending.brilloAnchoMin': 6, 'proy.publico.margen': 1, 'proy.pantallaReal.tolFormato': 0.04, 'proy.blending.brilloMaxEquipos': 6,
   /* LED */
   'led.distancia.interior': 3, 'led.distancia.exterior': 8, 'led.distancia.metrosPorMmPitch': 1,
   'led.nits.solDirecto': 5000, 'led.nits.solIndirecto': 2500, 'led.nits.exterior': 5000, 'led.nits.escaparate': 2500,
@@ -29,7 +29,7 @@ export const BRIAN_DEF = {
   'led.medida.toleranciaMm': 5, 'led.pixelesPorPuerto': 650000, 'led.linea.amperios': 16, 'led.linea.tension': 230,
   'led.holo.cajaDriversMm': 75, 'led.holo.margenAncho': 0.15,
   /* v11.53 · avisos de medida, redondeo, alimentación, HOLO y límites de entrada */
-  'led.encaje.aviso': 0.10, 'led.encaje.pasarseMax': 0.05, 'led.linea.factorPotencia': 0.8, 'led.linea.usoMaximo': 0.8, 'led.holo.filasMax': 2, 'led.medida.maxM': 200, 'led.cabinets.max': 20000, 'led.calor.btuPorW': 3.412, 'led.trifasica.desdeLineas': 3, 'led.trifasica.tension': 400,
+  'led.encaje.aviso': 0.10, 'led.encaje.pasarseMax': 0.05, 'led.linea.factorPotencia': 0.8, 'led.linea.usoMaximo': 0.8, 'led.holo.filasMax': 2, 'led.medida.maxM': 200, 'led.cabinets.max': 20000, 'led.calor.btuPorW': 3.412, 'led.trifasica.desdeLineas': 3, 'led.fuente.pxSalida': 8847360, 'led.fuente.anchoMax': 4096, 'led.formato.tolerancia': 0.03, 'led.trifasica.tension': 400,
   /* electrónica LED (motor común con SYSTEMS: tema de app TODAS) */
   'elec.pixelesPorPuerto': 650000, 'elec.conversor.puertos': 10, 'elec.mx2000.ranurasEntrada': 2, 'elec.mx2000.ranurasSalida': 2, 'elec.mx6000.ranurasEntrada': 8, 'elec.mx6000.ranurasSalida': 8,
   'elec.mx.tarjetaSalida.fibras': 4, 'elec.h.tarjetaRJ45.puertos': 20, 'elec.h.tarjetaFibra.fibras': 2, 'elec.h.tarjetaFibra.puertosPorFibra': 8, 'elec.reparto.maxEquipos': 4

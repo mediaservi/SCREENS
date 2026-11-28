@@ -10,7 +10,7 @@
 import { PROYECTORES } from '../screens/proyeccion.js';
 import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.65';
+const VERSION = 'v11.67';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -577,7 +577,10 @@ function pintaAsis() {
       pie = `<button type="button" class="ss-sig" data-ss="num-ok"><span class="ss-fit">${esc(W.full ? Lx.sig : Lx.listo)}</span></button>`; }
     /* v10.57 · con más de 12 opciones (un proyector con muchas ópticas), en lista de tres columnas: caben todas sin desplazar la ventana
        (con las fichas grandes, cuatro filas ya no cabían en pantallas de 720 de alto ni en la tableta) */
-    if (ops.length) cuerpoA += `<div class="ss-ops ${ops.length > 12 ? 'ss-ops3 ss-ops-lista' : mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0]))).join('')}</div>`;
+    /* v11.67 · (encargo de SYSTEMS, punto 2) en «¿Qué hago?», cada solución con el semáforo en su lateral: verde = cumple (otro equipo, una
+       sola imagen, varios proyectores, AUTO), ámbar = se puede pero fuera de especificación, sin color = deshacer una opción */
+    const SEM = p === 'pconsejo' ? { alt: 'v', una: 'v', multi: 'v', auto: 'v', oos: 'a' } : {};
+    if (ops.length) cuerpoA += `<div class="ss-ops ${ops.length > 12 ? 'ss-ops3 ss-ops-lista' : mucho ? 'ss-ops4' : ops.length === 2 ? 'ss-ops2' : 'ss-ops3'}">${ops.map((o) => { const h = opcion(o[0], o[1], o[2], vals !== null && JSON.stringify(vals) === JSON.stringify(o[0])), sm = SEM[o[0]]; return sm ? h.replace('class="ss-op', `class="ss-op sem-${sm}`) : h; }).join('')}</div>`;
     if (nums.length) {
       const solo = nums.length === 1 && nums[0][6];
       cuerpoA += `<div class="ss-nums${solo ? ' ss-nums-o' : ''}">${nums.map((n) => `<label class="ss-num"><span class="ss-fit">${esc(n[1])}</span><span class="ss-num-c"><input type="text" inputmode="decimal" data-ss-n="${n[0]}" value="${n[2] === '' || n[2] == null ? '' : esc(fm(n[2]))}" data-min="${n[3]}" data-max="${n[4]}" aria-label="${esc(n[1])}"><i>${esc(n[5])}</i></span></label>`).join('')}${solo ? `<button type="button" class="ss-mini ss-grande" data-ss="num-ok">${esc(Lx.sig)}</button>` : ''}</div>`;

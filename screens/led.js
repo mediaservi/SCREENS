@@ -13,8 +13,14 @@ export function lineasCosido(cols, rows, pixCab) {
 }
 
 /* v11.49 · BRIAN: píxeles por puerto, metros de distancia por mm de pitch y tolerancia de la medida (mm) */
-let M_POR_MM = 1, TOL_M = 0.005, PASA = 0;
-export function fijaParamsLed(b) { PX_PUERTO = b['led.pixelesPorPuerto'] || 650000; M_POR_MM = b['led.distancia.metrosPorMmPitch'] || 1; TOL_M = (b['led.medida.toleranciaMm'] || 0) / 1000; PASA = b['led.encaje.pasarseMax'] || 0; }
+let M_POR_MM = 1, TOL_M = 0.005, PASA = 0, PX_SALIDA = 8847360, ANCHO_SALIDA = 4096;
+/* v11.66 · (bloque 0, error 5) salidas de la fuente por ancho de banda y no por ancho/alto: HDMI 2.0 / DP 1.2 llevan unos 8,85 Mpx a 60 Hz
+   (4096 × 2160, BRIAN led.fuente.pxSalida) y la imagen se puede plegar en tiras (una tira de 7680 × 540 cabe en una salida); se respeta
+   el ancho máximo de una salida (led.fuente.anchoMax) para el número de tiras */
+export function salidasFuente(resW, resH) { const altoMax = Math.max(1, Math.floor(PX_SALIDA / ANCHO_SALIDA)), tiras = Math.ceil(resW / ANCHO_SALIDA);
+  const porEmpaque = resH <= altoMax ? Math.ceil(tiras / Math.max(1, Math.floor(altoMax / resH))) : tiras * Math.ceil(resH / altoMax);
+  return Math.max(1, Math.ceil(resW * resH / PX_SALIDA), porEmpaque); }
+export function fijaParamsLed(b) { PX_SALIDA = b['led.fuente.pxSalida'] || 8847360; ANCHO_SALIDA = b['led.fuente.anchoMax'] || 4096; PX_PUERTO = b['led.pixelesPorPuerto'] || 650000; M_POR_MM = b['led.distancia.metrosPorMmPitch'] || 1; TOL_M = (b['led.medida.toleranciaMm'] || 0) / 1000; PASA = b['led.encaje.pasarseMax'] || 0; }
 
 // Superficies del espacio. Sala centrada en el origen, suelo en y = 0; el público mira hacia la pared frontal (−z).
 // Cada superficie: id, ancho y alto disponibles (m), elevación, posición del centro de su base y giro (rad) en el eje Y.
@@ -103,17 +109,21 @@ export function calcularLed(sup, m, ajuste = 'dentro') {
   // «dentro»: los cabinets que caben en la medida, con 5 mm de tolerancia (las medidas en mm de una oferta suelen ir
   // redondeadas: 7 × 337,5 = 2362,5 mm se escribe «2362» y no debe quedarse en 6 filas)
   /* v11.53 · «dentro» con redondeo: si una fila o columna más solo se pasa de la medida como mucho un PASA (BRIAN led.encaje.pasarseMax, 5 %), se pone */
-  const f = (lado, c) => { if (ajuste !== 'dentro') return Math.round(lado / c); const n = Math.floor((lado + TOL_M) / c + 1e-6); return PASA > 0 && (n + 1) * c <= lado * (1 + PASA) + 1e-9 ? n + 1 : n; };
-  const cols = Math.max(1, f(sup.ancho, cw)), rows = Math.max(1, f(sup.alto, ch));
+  /* v11.66 · (bloque 0, error 1) «Que quepa» ('dentro') ya no se pasa nunca de la medida; el margen (BRIAN led.encaje.pasarseMax, 5 %) es una opción
+     aparte ('margen') y se avisa. Si no cabe ni un cabinet, se devuelve uno y noCabe = true para avisar y proponer otro modelo */
+  const dentro = ajuste === 'dentro' || ajuste === 'margen', pasa = ajuste === 'margen' ? PASA : 0;
+  const f = (lado, c) => { if (!dentro) return Math.round(lado / c); const n = Math.floor((lado + TOL_M) / c + 1e-6); return pasa > 0 && n * c < lado - TOL_M - 1e-9 && (n + 1) * c <= lado * (1 + pasa) + 1e-9 ? n + 1 : n; };
+  const c0 = f(sup.ancho, cw), r0 = f(sup.alto, ch), noCabe = dentro && (c0 < 1 || r0 < 1);
+  const cols = Math.max(1, c0), rows = Math.max(1, r0);
   const cab = cols * rows;
   const resW = cols * m.cabPixAncho, resH = rows * m.cabPixAlto, pix = resW * resH;
   const pixCab = m.cabPixAncho * m.cabPixAlto;
   const cabPuerto = Math.floor(PX_PUERTO / pixCab);
   const lineas = lineasCosido(cols, rows, pixCab);
   return {
-    cols, rows, cab, ancho: cols * cw, alto: rows * ch, resW, resH, pix, lineas,
+    cols, rows, cab, ancho: cols * cw, alto: rows * ch, resW, resH, pix, lineas, noCabe,
     peso: cab * (m.cabKg || 0), kw: m.wMax ? cab * m.wMax / 1000 : 0, amp: cab * (Number(m.cabAmp) || 0),
-    salidas4k: Math.ceil(resW / 3840) * Math.ceil(resH / 2160),
+    salidas4k: salidasFuente(resW, resH),
     sobra: { w: sup.ancho - cols * cw, h: sup.alto - rows * ch }
   };
 }

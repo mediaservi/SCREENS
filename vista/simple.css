@@ -366,3 +366,7 @@ html.ss-apila .ss-cd > span { font-size: calc(var(--s) * 12.5); }
 .ss-fase.on > b { color: var(--ss-acento); } .ss-fase.ya > b { color: color-mix(in srgb, var(--ss-acento) 60%, var(--ss-tenue)); }
 .ss-fase > i { display: block; height: calc(var(--s) * 5); border-radius: 999px; background: var(--ss-linea); overflow: hidden; }
 .ss-fase > i > em { display: block; height: 100%; background: var(--ss-acento); border-radius: inherit; transition: width .25s; }
+/* v11.67 · semáforo de las soluciones en «¿Qué hago?» (como SYSTEMS): borde izquierdo verde, ámbar o rojo */
+.ss-op.sem-v { box-shadow: inset calc(var(--s) * 5) 0 0 var(--ss-verde, #2bd16a); }
+.ss-op.sem-a { box-shadow: inset calc(var(--s) * 5) 0 0 var(--ss-ambar, #ffb000); }
+.ss-op.sem-r { box-shadow: inset calc(var(--s) * 5) 0 0 var(--ss-rojo, #ff4d5e); }

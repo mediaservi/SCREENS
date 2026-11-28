@@ -24,6 +24,8 @@ import '../comun/equipos.js';   // v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';
 import '../comun/electronica.js';
 import '../comun/software.js';   /* v11.63 · VNNOX y ViPlex con los reproductores NovaStar */
+import '../comun/pantallas.js';   /* v11.67 · pantallas de proyección reales de charmex.net (la misma lista que SYSTEMS) */
+import '../comun/web.js';
 globalThis.SC_INTERNO = esInterno;   // v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin
 import '../comun/ficha.js?v=11.35';   // v10.50 · con versión: el icono de stock es nuevo
 import '../comun/voz.js';
@@ -31,7 +33,7 @@ import { interpretar } from './peticion.js';
 import { vistasTecnicas, activarVistas } from './vistas.js';
 import { t, idiomaInicial, fijarIdioma, idioma, IDIOMAS } from './i18n.js';
 
-const VERSION = 'v11.65';
+const VERSION = 'v11.67';
 // v8.9 · crédito común de AVHUB (credito.js) y seta de aviso de fallos (fallo.js), los mismos en toda la familia
 if (window.AVCREDITO) window.AVCREDITO.alCambiar(() => { try { pintarCabecera(); } catch (e) {} });
 if (window.AVFALLO) { const bi = document.querySelector('#btn-idioma'); if (bi) { const bf = window.AVFALLO.boton({ app: 'SCREENS', version: VERSION, idioma: () => idioma() }); bf.id = 'btn-fallo'; bi.before(bf);
@@ -70,7 +72,7 @@ const puenteSale = () => { try { const s = E.esp.sueltas, d = DEF(), suel = !!mo
 try { const p = JSON.parse(sessionStorage.getItem(PUENTE) || 'null'); sessionStorage.removeItem(PUENTE);
   if (p && p.de === 'una-led' && Date.now() - p.t < 120000) { const num = (v) => typeof v === 'number' && isFinite(v), en = (v, l) => l.includes(v), s = E.esp.sueltas, K = Array.isArray(p.k) ? p.k : [], va = (x) => K.includes(x);
     if (p.tam) { if (num(p.tam.w) && p.tam.w > 0) s.ancho = p.tam.w; if (num(p.tam.h) && p.tam.h > 0) s.alto = p.tam.h; if (va('elev') && num(p.tam.elev) && p.tam.elev >= 0) s.elev = Math.min(10, p.tam.elev); if (va('dist') && num(p.tam.dist) && p.tam.dist >= 0.5) { s.dist = p.tam.dist; E.proy.pubNS = false; } }
-    const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.led.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.led.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.led.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano'])) E.led.ajuste = l.ajuste;
+    const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.led.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.led.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.led.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano', 'margen'])) E.led.ajuste = l.ajuste;
     ['transp', 'gold', 'protegido'].forEach((x) => { if (va(x) && typeof l[x] === 'boolean') E.led[x] = l[x]; }); if (va('sol') && typeof l.sol === 'string') E.led.sol = l.sol; if (va('nitsMin') && num(l.nitsMin) && l.nitsMin >= 0) E.led.nitsMin = l.nitsMin;
     const c = p.elec || {}; if (va('backup') && typeof c.backup === 'boolean') E.elec.backup = c.backup; if (va('escalador') && en(c.escalador, ['con', 'sin', 'indiferente'])) E.elec.escalador = c.escalador; if (va('conexion') && en(c.conexion, ['directo', 'fibra'])) E.elec.conexion = c.conexion; if (va('dante') && typeof c.dante === 'boolean') E.elec.dante = c.dante;
     if (va('marca') && en(c.marca, ['ninguno', 'todos', 'novastar', 'pixelhue'])) E.elec.marca = c.marca; if (va('sel') && typeof c.sel === 'string') E.elec.sel = c.sel; if (va('selMedia') && typeof c.selMedia === 'string') E.elec.selMedia = c.selMedia;
@@ -590,6 +592,22 @@ function marcaPestanas(r) {
 /* v11.59 · «POR QUÉ ESTE EQUIPO» (auditoría, cliente M4): tres razones sacadas del propio cálculo, en RESUMEN */
 /* v11.63 · con un reproductor NovaStar, VNNOX y ViPlex: aviso, recomendación, resumen y enlace oficial (comun/software.js) */
 function softNova(c, pdf) { const p = c && c.elec && c.elec.proc; return p && globalThis.SC_SOFT ? globalThis.SC_SOFT.html(p, idioma(), !!pdf) : ''; }
+/* v11.67 · (encargo de SYSTEMS, punto 3) con proyección en pantalla (no en sala ni en mapping), un modelo real de pantalla de proyección
+   de charmex.net: misma proporción (±4 %, BRIAN proy.pantallaReal.tolFormato) y la medida de imagen más cercana; si no hay, se dice */
+const escP = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+function pantallasReales() { const M = (globalThis.SC_SISTEMAS && globalThis.SC_SISTEMAS.marcas) || {}; return Object.keys(M).flatMap((mk) => (M[mk] || []).filter((x) => x.tipo === 'pantalla-proy').map((x) => ({ ...x, marca: mk }))); }
+function pantProy(c, pdf) {
+  if (!c || E.tecnologia === 'led' || tipoProy() !== 'pared' || !c.filas) return ''; const L = pantallasReales(); if (!L.length) return '';
+  const tol = BR['proy.pantallaReal.tolFormato'] ?? 0.04, MONT = { electrica: t('ppElec'), marco: t('ppMarco'), techo: t('ppTecho'), manual: t('ppManual'), tension: t('ppTension') };
+  const filas = c.filas.filter((f) => f.s.tipo !== 'suelo'); if (!filas.length) return '';
+  const li = filas.map((f) => { const w = f.s.ancho, h = f.s.alto, r = w / h;
+    const q = L.filter((x) => Math.abs(x.anchoImg / x.altoImg - r) / r <= tol).sort((a, b) => (Math.abs(a.anchoImg - w) + Math.abs(a.altoImg - h)) - (Math.abs(b.anchoImg - w) + Math.abs(b.altoImg - h)) || (a.montaje === 'electrica' ? -1 : 0) - (b.montaje === 'electrica' ? -1 : 0))[0];
+    const pre = filas.length > 1 ? `<b>${escP(nombreSup(f.s))}:</b> ` : '';
+    if (!q || Math.abs(q.anchoImg - w) / w > 0.25) return `<li>${pre}${escP(t('ppNinguna', { s: fmt(w, 2) + ' × ' + fmt(h, 2) + ' m' }))}</li>`;
+    const ln = [q.pdf ? `<a href="${escP(q.pdf)}" target="_blank" rel="noopener">PDF ↗</a>` : '', q.url ? `<a href="${escP(q.url)}" target="_blank" rel="noopener">charmex.net ↗</a>` : ''].filter(Boolean).join(' ');
+    return `<li>${pre}<b>${escP(q.marca + ' ' + q.modelo)}</b> · ${escP(MONT[q.montaje] || q.montaje || '')} · ${escP(q.fmt || '')}${Math.abs(q.anchoImg - w) > 0.05 ? ' · ' + escP(t('ppImagen', { s: fmt(q.anchoImg, 2) + ' × ' + fmt(q.altoImg, 2) + ' m' })) : ''}${pdf ? ` <small>(${escP(String(q.url || '').replace(/^https:\/\//, ''))})</small>` : ln ? ' ' + ln : ''}</li>`; }).join('');
+  return `<div class="porque pantproy" data-pz="res"><div class="etq">${escP(t('ppTit'))}</div><ul>${li}</ul></div>`;
+}
 function porQue(c) {
   if (!c || !c.tot || !c.filas || !c.filas.length) return '';
   const T = c.tot, L = [];
@@ -847,9 +865,9 @@ function partesLed(c) {
   mat += campo(t('modelo'), `<select class="sel" data-sel="led.crm"><option value="">${t('auto')}${c.modelo && !l.crm ? ' · [' + c.modelo.pitch + 'p] ' + c.modelo.crm : ''}</option>${opts}</select>`);
   mat += `<p class="ayuda">${t('autoAyudaLed', { d: fmt(c.dist, 1) })}</p>`;
   if (c.modelo) mat += stockAdmin(c.modelo, totalCab(c));   /* v10.88 · stock interno solo con la llave del admin, en su bloque (nunca en la ficha ni en el PDF) */
-  const aj = `<div class="fila c2">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
+  const aj = `<div class="fila c3">${tog(l.ajuste === 'dentro', 'data-set="led.ajuste" data-v="dentro"', t('dentro'))}${tog(l.ajuste === 'margen', 'data-set="led.ajuste" data-v="margen"', t('margenLed', { p: fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100, 0) }))}${tog(l.ajuste === 'cercano', 'data-set="led.ajuste" data-v="cercano"', t('cercano'))}</div><p class="ayuda">${t('ajusteAyuda')}</p>`;
   const m = c.modelo;
-  return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
+  return { mat, aj, fichas: m ? fichaCab(m, totalCab(c)) : '', rMat: m ? (l.crm ? '' : 'AUTO · ') + m.crm : t('auto'), rAj: l.ajuste === 'margen' ? t('margenLed', { p: fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100, 0) }) : t(l.ajuste === 'cercano' ? 'cercano' : 'dentro'),
     eleg: m ? { nom: m.crm, dat: [m.pitch + ' mm', `${m.cabAncho}×${m.cabAlto} mm`, m.nits ? m.nits + ' nits' : ''].filter(Boolean).join(' · ') } : null };
 }
 function partesProy(c) {
@@ -1138,7 +1156,7 @@ function vistaResultados(c) {
       ${bkSumario(c, T, p, tiros)}
     </div>`;
     /* v10.89 · arriba, el veredicto en una línea y las pestañas; el veredicto completo va en AVISOS (y entero en el PDF) */
-    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c);
+    h += (DETT ? veredictoCorto(c) : '') + pestanas(c) + vistaVeredicto(c) + porQue(c) + pantProy(c);
     h += vistaSimulacion(c);   // v10.88 · resultado de la simulación numerado (una pantalla)
     h += `<div class="tabla-caja"><table class="tabla"><thead><tr><th>${t('supCol')}</th><th>${t('medida')}</th><th>${t('proyCol')}</th><th>${t('resol')}</th><th>${t('solCol')}</th><th>${t('tiroCol')}</th><th>${t('brCol')}</th></tr></thead><tbody>
       ${c.filas.map(f => { const q = f.p; return `<tr><td>${f.nombre}</td><td>${fmt(f.s.ancho)} × ${fmt(f.s.alto)} m</td><td>${q.cols ? q.cols + '×' + q.rows + ' = ' : ''}${q.n}${q.vert ? ' · ' + t('vert') : ''}</td><td>${q.resW}×${q.resH}</td><td>${fmt(q.solapeRel * 100, 0)} %</td><td>${fmt(f.pos ? f.pos.dist : q.tiro, 2)} m${q.fuera ? ' ⚠' : ''}</td><td>${fmt(q.nits, 0)} nits</td></tr>`; }).join('')}
@@ -1738,7 +1756,7 @@ function imprimir() {
   h += `<div class="im-titulo">${tituloPdf(c)}</div>`;
   { const o = oosDatos(c); if (escena) h += `<figure class="im-captura"><img src="${escena.captura(true, true)}" alt="">${o ? `<figcaption class="im-oos"><b>⚠ ${t('oos')}</b> ${oosUsaTxt(o)} ${t('oosCorto')}</figcaption>` : ''}</figure>`; }
   /* v11.62 · (auditoría, mejora 15) el PDF lleva lo que se ha entendido de la petición (supuestos) y por qué este equipo */
-  h += `<div class="im-res">${RECIBO ? `<p class="im-recibo">${RECIBO}</p>` : ''}${vistaResultados(c)}${porQue(c)}${softNova(c, true)}</div>`;
+  h += `<div class="im-res">${RECIBO ? `<p class="im-recibo">${RECIBO}</p>` : ''}${vistaResultados(c)}${porQue(c)}${pantProy(c, true)}${softNova(c, true)}</div>`;
   const fichas = E.tecnologia === 'led' ? (c.modelo ? [fichaCab(c.modelo, totalCab(c))] : []) : [fichaProy(c.proyector, t('fProy'))].concat(c.prSuelo && c.prSuelo !== c.proyector && c.filas.some(f => f.s.tipo === 'suelo') ? [fichaProy(c.prSuelo, t('fProySuelo'))] : []).concat(c.prCentral && c.prCentral !== c.proyector ? [fichaProy(c.prCentral, t('fProyCentral'))] : []);
   if (fichas.length) h += `<section class="res-sec im-equipos"><div class="res-tit">${t('equipos')}</div><div class="fichas">${fichas.join('')}</div></section>`;
   if (E.tecnologia === 'led' && c.modelo) h += planosPdf(c);   // v10.94 · planos técnicos de cada pantalla

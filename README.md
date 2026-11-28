@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.65** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.67** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -78,7 +78,21 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.65)
+## Cambios de la versión actual (v11.67)
+- **Producto en RESULTADOS:** en los bloques que nombran un equipo (Instalación = el cabinet; Señal = el procesador), si hay sitio, su foto oficial (el ojo abre las fichas en grande) y los enlaces a su PDF y a su página (charmex.net, traulux.net o el fabricante). Si no cabe, primero se quita la foto y después la tira.
+- **Pantalla de proyección real:** al proyectar sobre una pantalla, SCREENS propone un modelo real de charmex.net (ORAY, Da-Lite, Stumpfl…) de la misma proporción y la medida más cercana, con su PDF y su página; si no hay ninguno, lo dice (pantalla a medida o pared preparada). También en el PDF.
+- **Semáforo en «¿Qué hago?»:** cada solución lleva en su lateral el verde (cumple) o el ámbar (fuera de especificación).
+
+## Cambios de la v11.66
+- **«Que quepa» nunca se pasa de la medida.** El margen del 5 % es una opción aparte, «Hasta +5 %», con su aviso. Si en el hueco no cabe ni un cabinet, se avisa en rojo, se dicen los modelos que sí caben y la elección automática prefiere los que caben.
+- **Etiqueta de formato exacta:** FHD, 4K, QHD, HD u 8K solo si el lienzo es ese estándar en ancho y alto (±3 %); si no, se enseña la proporción (3840 × 2112 ya no es «FHD»).
+- **Lo que sobra o se pasa, por eje:** «sobran 50 cm de ancho · se pasa 31 cm de alto».
+- **Receiving card legible:** del texto del catálogo se quedan los modelos de tarjeta reconocibles (por ejemplo, «A8S-N»).
+- **Salidas de la fuente por ancho de banda:** unos 8,85 Mpx por salida HDMI 2.0 / DP 1.2 a 60 Hz, plegando la imagen en tiras (una tira de 7680 × 540 cabe en una salida).
+- La alternativa en 16:9 solo se propone si la pantalla ya se parece a un 16:9.
+- Umbrales nuevos ajustables desde el panel AVHUB ADMIN.
+
+## Cambios de la v11.65
 - **Controles de la simulación, pulidos:** icono de subir archivo nuevo y centrado; la elevación se sube y se baja con flechas técnicas (flecha con su cota). Las variantes de los ladrillos salen dentro del propio grupo PARED, en círculos.
 - **Nunca pisan el dibujo:** los controles prueban tres disposiciones (en fila, en dos filas, compacta) y se quedan con la primera que no toca los cuadros de datos, las cotas ni la pantalla; si ninguna cabe, se reducen un poco.
 

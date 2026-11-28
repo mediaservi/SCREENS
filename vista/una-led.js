@@ -18,7 +18,7 @@ function stockInterno(m, nCab) { if (!esInterno()) return ''; const b = stkNum(m
   const alt = alts.length ? `<h5>${cabe === false || u == null ? 'Alternativas con stock suficiente' : 'Otras opciones con stock'}</h5>` + alts.map((k) => `<button type="button" class="alt" data-alt-crm="${esc(k.x.crm)}"><span><b>${esc(k.x.crm)}</b><small>P${String(k.x.pitch).replace('.', ',')} · ${k.q.cols}×${k.q.rows} = ${k.q.cab} cab · ${(k.q.ancho * 100).toFixed(0)}×${(k.q.alto * 100).toFixed(0)} cm</small></span><em class="v">${k.d} uds</em></button>`).join('') : (cabe === false ? '<h5>Alternativas</h5><p>Ningún otro modelo de este entorno tiene stock suficiente en un batch para esta medida.</p>' : '');
   return `${u == null ? '<span class="stk-int sin">Sin dato CRM</span>' : `<span class="stk-int"><b class="${col}">${u}</b>${cabe == null ? '' : ` <b class="${cabe ? 'v' : 'r'}">${cabe ? '✓' : '✗'}</b>`}</span>`}<div id="stk-pop" class="stk-pop" popover><button type="button" class="stk-x" popovertarget="stk-pop" popovertargetaction="hide" aria-label="Cerrar" title="Cerrar">✕</button><h4>Stock interno · ${esc(m.crm)}</h4>${det}${alt}<p>Un proyecto no mezcla batches. Solo tú ves estos datos.</p></div>`; }
 const AV_BATCH = () => ({ en: 'This screen and its spare cabinet need more pieces than are left in a single production batch: check availability before quoting it.', ca: 'Aquesta pantalla i el seu cabinet de reserva necessiten més peces de les que queden en un mateix lot de fabricació: consulta la disponibilitat abans d’oferir-la.' })[document.documentElement.lang] || 'Esta pantalla y su cabinet de reserva necesitan más piezas de las que quedan en un mismo lote de fabricación: consulta la disponibilidad antes de ofertarla.';   /* v10.70 · un proyecto nunca mezcla batches */
-import { calcularLed, lineasCosido, PX_PUERTO, fijaParamsLed } from '../screens/led.js';
+import { calcularLed, lineasCosido, PX_PUERTO, fijaParamsLed, salidasFuente } from '../screens/led.js';
 import { BR, cargarBrian } from '../screens/brian.js';
 import { leeSitio, pantallaDeSala } from '../screens/sitio.js';   /* v11.54 · el sitio de la petición (sala, sol, público) */   /* v11.49 · todas las reglas del cálculo LED desde BRIAN (panel AVHUB ADMIN) */
 import { HUMAN_PATH } from '../screens/figura.js';
@@ -27,12 +27,13 @@ import '../comun/equipos.js';   /* v10.45 · listas de equipos de fábrica: ante
 import '../comun/motor-i18n.js';   /* v10.45 · traducción de los textos del motor (resúmenes de los equipos), la misma de la consola */
 import '../comun/electronica.js';
 import '../comun/software.js';   /* v11.63 · VNNOX y ViPlex con los reproductores NovaStar */
+import '../comun/web.js';   /* v11.67 · página y PDF de cada equipo en charmex.net (los mismos datos que SYSTEMS) */
 globalThis.SC_INTERNO = esInterno;   /* v11.19 · los iconos de stock de ficha.js solo se pintan con la llave del admin */
 import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de stock es nuevo y una copia vieja en caché no lo tendría */
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.65';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.67';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -112,12 +113,12 @@ const PUENTE_M = { clase: 'clase', tipo: 'tipo', crm: 'crm', ajuste: 'ajuste', t
 const puenteSale = () => { try { const lig = puenteLig(), k = Object.keys(PUENTE_M).filter((x) => lig.includes(x) || E[PUENTE_M[x]] !== DEF[PUENTE_M[x]]);
   localStorage.setItem(PUENTE_K, JSON.stringify([...new Set(lig.concat(k))]));
   sessionStorage.setItem(PUENTE, JSON.stringify({ t: Date.now(), de: 'una-led', k, tam: { w: E.w, h: E.h, elev: E.elev / 100, dist: E.dist },
-    led: { clase: E.clase, tipo: E.tipo, crm: E.crm, ajuste: E.ajuste === 'cerca' ? 'cercano' : 'dentro', transp: !!E.transp, gold: !!E.gold, protegido: !!E.protegido, sol: E.sol, nitsMin: E.nitsMin },
+    led: { clase: E.clase, tipo: E.tipo, crm: E.crm, ajuste: E.ajuste === 'cerca' ? 'cercano' : E.ajuste === 'margen' ? 'margen' : 'dentro', transp: !!E.transp, gold: !!E.gold, protegido: !!E.protegido, sol: E.sol, nitsMin: E.nitsMin },
     elec: { backup: !!E.backup, escalador: E.escalador, conexion: E.conexion, dante: !!E.dante, marca: E.marca, sel: E.procSel, selMedia: E.mediaSel } })); } catch (e) {} };
 (() => { try { const p = JSON.parse(sessionStorage.getItem(PUENTE) || 'null'); sessionStorage.removeItem(PUENTE); if (!p || p.de !== 'consola' || !(Date.now() - p.t < 120000)) return;
   const num = (v) => typeof v === 'number' && isFinite(v), en = (v, l) => l.includes(v), K = Array.isArray(p.k) ? p.k : [], va = (x) => K.includes(x);
   if (p.tam) { if (num(p.tam.w) && p.tam.w > 0) E.w = p.tam.w; if (num(p.tam.h) && p.tam.h > 0) E.h = p.tam.h; if (va('elev') && num(p.tam.elev) && p.tam.elev >= 0) E.elev = Math.round(p.tam.elev * 100); if (va('dist') && num(p.tam.dist) && p.tam.dist >= 0) E.dist = p.tam.dist; }
-  const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano'])) E.ajuste = l.ajuste === 'cercano' ? 'cerca' : 'dentro';
+  const l = p.led || {}; if (va('clase') && en(l.clase, ['INSTALL', 'RENTAL'])) E.clase = l.clase; if (va('tipo') && en(l.tipo, ['INDOOR', 'OUTDOOR', 'ESCAPARATE'])) E.tipo = l.tipo; if (va('crm') && typeof l.crm === 'string') E.crm = l.crm; if (va('ajuste') && en(l.ajuste, ['dentro', 'cercano', 'margen'])) E.ajuste = l.ajuste === 'cercano' ? 'cerca' : l.ajuste;
   ['transp', 'gold', 'protegido'].forEach((x) => { if (va(x) && typeof l[x] === 'boolean') E[x] = l[x]; }); if (va('sol') && typeof l.sol === 'string') E.sol = l.sol; if (va('nitsMin') && num(l.nitsMin) && l.nitsMin >= 0) E.nitsMin = l.nitsMin;
   const c = p.elec || {}; if (va('backup') && typeof c.backup === 'boolean') E.backup = c.backup; if (va('escalador') && en(c.escalador, ['con', 'sin', 'indiferente'])) E.escalador = c.escalador; if (va('conexion') && en(c.conexion, ['directo', 'fibra'])) E.conexion = c.conexion; if (va('dante') && typeof c.dante === 'boolean') E.dante = c.dante;
   if (va('marca') && en(c.marca, ['ninguno', 'todos', 'novastar', 'pixelhue'])) E.marca = c.marca; if (va('sel') && typeof c.sel === 'string') E.procSel = c.sel; if (va('selMedia') && typeof c.selMedia === 'string') E.mediaSel = c.selMedia;
@@ -283,8 +284,9 @@ function eligeCabinet(lista, pitches) {
   else if (E.dist) { const c = pitches.filter((x) => x * BR['led.distancia.metrosPorMmPitch'] <= E.dist + 1e-9); vale = c.length ? c : [pitches[0]]; origen = 'distancia'; }
   const c169 = Math.abs(W / H - 16 / 9) / (16 / 9) < BR['led.formato169.cerca'];
   const cand = lista.map((m, i) => ({ m, i })).filter((x) => vale.includes(x.m.pitch)).map((x) => { const q = calcularLed({ ancho: W, alto: H }, x.m, E.ajuste), ew = Math.abs(q.ancho - W) / W, eh = Math.abs(q.alto - H) / H;
-    return { ...x, e: ew + eh, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9, f169: Math.abs(q.ancho / q.alto - 16 / 9) < BR['led.formato169.exacto'], st: enStock(x.m) }; });
-  cand.sort((a, b) => (b.ok - a.ok) || (b.st - a.st) || (grande && Math.abs(b.m.pitch - a.m.pitch) > BR['led.pitch.tolerancia'] + 1e-9 ? b.m.pitch - a.m.pitch : 0) || (c169 ? b.f169 - a.f169 : 0) || (a.e - b.e) || (a.i - b.i));
+    return { ...x, e: ew + eh, cabe: !q.noCabe, ok: ew <= ENCAJE + 1e-9 && eh <= ENCAJE + 1e-9, f169: Math.abs(q.ancho / q.alto - 16 / 9) < BR['led.formato169.exacto'], st: enStock(x.m) }; });
+  cand.sort((a, b) => (b.cabe - a.cabe) || (b.ok - a.ok) ||   /* v11.66 · primero los modelos de los que cabe al menos un cabinet */
+    (b.st - a.st) || (grande && Math.abs(b.m.pitch - a.m.pitch) > BR['led.pitch.tolerancia'] + 1e-9 ? b.m.pitch - a.m.pitch : 0) || (c169 ? b.f169 - a.f169 : 0) || (a.e - b.e) || (a.i - b.i));
   return { m: (cand[0] || { m: lista[0] }).m, origen };
 }
 function calcula() {
@@ -342,7 +344,7 @@ function calcula() {
     const porFila = comb ? comb.cA + comb.cE : Math.max(1, Math.round(W / m.cabAncho)), anchoMm = comb ? comb.total : porFila * m.cabAncho, filas = alt.bot ? 2 : 1, altoMm = alt.top + alt.bot;
     const suma = (k) => (comb ? comb.cA * (+comb.mA[k] || 0) + comb.cE * (+comb.mE[k] || 0) : porFila * (+m[k] || 0)) * filas;
     const ppm = m.cabAlto - HOLO_DRIVER > 0 ? m.cabPixAlto / (m.cabAlto - HOLO_DRIVER) : 0, resW = comb ? comb.cA * comb.mA.cabPixAncho + comb.cE * comb.mE.cabPixAncho : porFila * m.cabPixAncho, resH = Math.round((alt.top - HOLO_DRIVER) * ppm) + (alt.bot ? Math.round((alt.bot - HOLO_DRIVER) * ppm) : 0);
-    r = { cols: porFila, rows: filas, cab: porFila * filas, ancho: anchoMm / 1000, alto: altoMm / 1000, resW, resH, pix: resW * resH, lineas: 1, peso: suma('cabKg'), kw: suma('wMax') / 1000, amp: suma('cabAmp'), salidas4k: Math.ceil(resW / 3840) * Math.ceil(resH / 2160), sobra: { w: E.w - anchoMm / 1000, h: E.h - altoMm / 1000 } };
+    r = { cols: porFila, rows: filas, cab: porFila * filas, ancho: anchoMm / 1000, alto: altoMm / 1000, resW, resH, pix: resW * resH, lineas: 1, peso: suma('cabKg'), kw: suma('wMax') / 1000, amp: suma('cabAmp'), salidas4k: salidasFuente(resW, resH), sobra: { w: E.w - anchoMm / 1000, h: E.h - altoMm / 1000 } };
     holo = { top: alt.top, bot: alt.bot, comb, anchos: comb ? Array(comb.cA).fill(+comb.mA.cabAncho).concat(Array(comb.cE).fill(+comb.mE.cabAncho)) : Array(porFila).fill(+m.cabAncho), alturas: hL };
   }
   /* cosido de la señal, igual que el configurador clásico (planCosido): columnas o filas ENTERAS por puerto; automático elige lo que menos líneas pide (a igualdad, vertical) */
@@ -374,7 +376,7 @@ function calcula() {
   else for (let f = 0, n = 0; f < r.rows; f++) for (let q = 0; q < r.cols; q++, n++) rutasE[Math.floor(n / cabLinea)].push([f % 2 ? r.cols - 1 - q : q, f]);
   const deLinea = {}; rutasE.forEach((ru, i) => ru.forEach(([c, f]) => { deLinea[c + '_' + f] = i; }));
   const linea = (c, f) => deLinea[c + '_' + f] || 0;
-  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, alt, altCorto, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: r.resW >= 7680 && r.resH >= 4320 ? ['8K', 'ULTRA HD'] : r.resW >= 3840 && r.resH >= 2160 ? ['4K', 'ULTRA HD'] : r.resW >= 1920 && r.resH >= 1080 ? ['FHD', 'FULL HD'] : r.resW >= 1280 && r.resH >= 720 ? ['HD', 'HD READY'] : ['', ''], medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE, cabLinea, cascCat,
+  R = { m, r, lista, pitches, pitch, origen, delPitch, relajado, alt, altCorto, procs, proc: procs.find((x) => x.modelo === E.procSel) || procs[0] || null, nitsLista, formato: (() => { const mcd = (a, b) => (b ? mcd(b, a % b) : a), a = Math.round(r.ancho * 1000), b = Math.round(r.alto * 1000), q = mcd(a, b); return a / q <= 32 && b / q <= 32 ? a / q + ':' + b / q : fmt(r.ancho / r.alto, 2) + ':1'; })(), nivel: nivelRes(r.resW, r.resH), medias, media: medias.find((x) => x.modelo === E.mediaSel) || medias[0] || null, puerto, linea, nLin, ampCab, vert, nits, giraPosible: giraPosible && !holo, holo, cosido, cosidoNo, rutas, cabPuerto, rutasE, cosE, cabLinea, cascCat,
     diag: Math.hypot(r.ancho, r.alto), lineasTxt: lineasCosido(r.cols, r.rows, pixCab), sinConsumo, ampOrigen, FP, USO, btu: r.kw * 1000 * (BR['led.calor.btuPorW'] || 3.412) };
   R.avisos = avisosLed(R);
 }
@@ -391,7 +393,7 @@ function altP() {
   return `<li><span>Alternativa:</span> <span data-crudo>P${String(p2).replace('.', ',')}</span> <span>también es nítida a esa distancia, con menos píxeles (suele salir más económica).</span></li>`;
 }
 function alt169() {
-  const { r } = R; if (!r || !(r.rows > 0) || !(r.cols > 0) || R.formato === '16:9') return '';
+  const { r } = R; if (!r || !(r.rows > 0) || !(r.cols > 0) || R.formato === '16:9' || r.ancho / r.alto < 1.2 || r.ancho / r.alto > 2.6) return '';   /* solo si la pantalla ya se parece a un 16:9 */
   const cH = r.alto / r.rows, f = Math.max(1, Math.round(r.ancho * 9 / 16 / cH)), h = f * cH; if (f === r.rows || Math.abs(r.ancho / h - 16 / 9) > 0.06) return '';
   return `<li><span>En 16:9:</span> <span data-crudo>${r.cols} × ${f} = ${fmt(r.ancho, 2)} × ${fmt(h, 2)} m</span></li>`;
 }
@@ -414,6 +416,12 @@ function simCustom() {
     + b('data-fondo="propio"', E.fondo === 'propio', 'Pared propia: sube una foto o pega un enlace', FPROP ? `background-image:url(&quot;${esc(FPROP)}&quot;)` : '', FPROP ? '' : ICSUBE, 'fo-ico');
   return `<div class="simcu"><div class="g" role="group" aria-label="Contenido de la pantalla">${cont}</div><div class="g" role="group" aria-label="Pared">${pared}</div></div>`;
 }
+/* v11.66 · (bloque 0, error 3) lo que sobra o falta, con su signo en cada eje: «sobran 50 cm de ancho · se pasa 31 cm de alto» (sobran = queda hueco libre; se pasa = la pantalla es más grande que el hueco) */
+const sobraTxt = (r) => { const p = [['w', 'ancho'], ['h', 'alto']].filter(([k]) => Math.abs(r.sobra[k]) > .01).map(([k, n]) => (r.sobra[k] >= 0 ? 'sobran ' : 'se pasa ') + fmt(Math.abs(r.sobra[k]) * 100) + ' cm de ' + n); return p.length ? p.join(' · ') : 'medida exacta'; };
+/* v11.66 · (bloque 0, error 2) la etiqueta de formato solo cuando el lienzo ES ese estándar, por ancho y por alto (±3 %, BRIAN led.formato.tolerancia):
+   3840×2112 ya no es «FHD» ni 2048×1024 «HD READY»; si no coincide con ninguno, se enseña la proporción */
+const NIVELES = [[7680, 4320, '8K', 'ULTRA HD'], [3840, 2160, '4K', 'ULTRA HD'], [2560, 1440, 'QHD', 'QUAD HD'], [1920, 1080, 'FHD', 'FULL HD'], [1280, 720, 'HD', 'HD READY']];
+function nivelRes(w, h) { const t = BR['led.formato.tolerancia'] ?? 0.03, n = NIVELES.find(([a, b]) => Math.abs(w - a) <= a * t && Math.abs(h - b) <= b * t); return n ? [n[2], n[3]] : ['', '']; }
 function avisosLed(R) {
   const { m, r } = R, A = [], av = (t) => A.push(['av', t]), pc = (x) => fmt(Math.abs(x) * 100) + ' %', mm = (x) => fmt(x, 2) + ' m';
   /* medida: cada lado a más de led.encaje.aviso (10 %) de lo pedido; con «Que quepa», lo que se pasa por el redondeo (hasta led.encaje.pasarseMax, 5 %) también se dice */
@@ -421,8 +429,12 @@ function avisosLed(R) {
   if (Math.abs(dw) > lim || Math.abs(dh) > lim) {
     av('La pantalla no se ajusta a la medida pedida: ' + mm(W) + ' × ' + mm(H) + ' → ' + mm(r.ancho) + ' × ' + mm(r.alto) + ' (' + (dw < 0 ? '−' : '+') + pc(dw) + ' / ' + (dh < 0 ? '−' : '+') + pc(dh) + ').');
     if (R.holo && H > r.alto + 0.01) av('El HOLO admite como mucho ' + (BR['led.holo.filasMax'] || 2) + ' filas (' + mm(Math.max(...R.holo.alturas) * (BR['led.holo.filasMax'] || 2) / 1000) + ' de alto).');
-    else if (E.ajuste === 'dentro') { const q = calcularLed({ ancho: W, alto: H }, m, 'cerca'); if (Math.abs(q.ancho - W) / W < Math.max(Math.abs(dw), 1e-9) || Math.abs(q.alto - H) / H < Math.max(Math.abs(dh), 1e-9)) av('Con «Lo más cercano»: ' + q.cols + ' × ' + q.rows + ' cabinets = ' + mm(q.ancho) + ' × ' + mm(q.alto) + '.'); } }
-  else if (E.ajuste === 'dentro' && (dw > 1e-6 || dh > 1e-6)) av('Redondeo de «Que quepa»: la pantalla se pasa ' + pc(Math.max(dw, dh)) + ' de la medida pedida (' + mm(r.ancho) + ' × ' + mm(r.alto) + '). Comprueba que hay sitio.');
+    else if (E.ajuste !== 'cerca' && !r.noCabe) { const q = calcularLed({ ancho: W, alto: H }, m, 'cerca'); if (Math.abs(q.ancho - W) / W < Math.max(Math.abs(dw), 1e-9) || Math.abs(q.alto - H) / H < Math.max(Math.abs(dh), 1e-9)) av('Con «Lo más cercano»: ' + q.cols + ' × ' + q.rows + ' cabinets = ' + mm(q.ancho) + ' × ' + mm(q.alto) + '.'); } }
+  else if (E.ajuste === 'margen' && (dw > 1e-6 || dh > 1e-6)) av('Margen de «Hasta +' + pc(BR['led.encaje.pasarseMax'] ?? 0.05) + '»: la pantalla se pasa ' + pc(Math.max(dw, dh)) + ' de la medida pedida (' + mm(r.ancho) + ' × ' + mm(r.alto) + '). Comprueba que hay sitio.');
+  /* v11.66 · (bloque 0, error 1) si en la medida no cabe ni un cabinet de este modelo, se avisa y se proponen los que sí caben */
+  if (r.noCabe && !R.holo) { const caben = (R.lista || []).filter((x) => x.cabAncho / 1000 <= W + 0.005 && x.cabAlto / 1000 <= H + 0.005).slice(0, 3).map((x) => x.crm);
+    A.push(['mal', 'En ' + mm(W) + ' × ' + mm(H) + ' no cabe ni un cabinet de ' + m.crm + ' (' + mm(m.cabAncho / 1000) + ' × ' + mm(m.cabAlto / 1000) + '): sale uno entero, más grande que el hueco.']);
+    av(caben.length ? 'Modelos que sí caben en ese hueco: ' + caben.join(', ') + '.' : 'Ningún cabinet de este entorno cabe en ese hueco: revisa la medida.'); }
   /* pitch frente a la distancia de visionado (regla de BRIAN: led.distancia.metrosPorMmPitch) */
   { const d = +E.dist || 0, k = BR['led.distancia.metrosPorMmPitch'] || 1; if (d > 0 && R.pitch * k > d + 1e-9) { const fino = R.lista.some((x) => x.pitch * k <= d + 1e-9);
     av('P' + String(R.pitch).replace('.', ',') + ' se ve bien desde ' + fmt(R.pitch * k, 1) + ' m y el público está a ' + fmt(d, 1) + ' m: se distinguirá el píxel.');
@@ -648,7 +660,7 @@ const pzRes = (n) => { if (!R || !R.r) return ''; const { m, r } = R, sp = (a) =
 /* v11.64 · cada apartado plegado enseña en su cabecera lo que tiene elegido (Josep: «para no tener que desplegarla para verlo») */
 const rsBlk = (id) => { if (!R || !R.r) return ''; const { m, r } = R, j = (a) => a.filter(Boolean).join(' · '), p = R.proc;
   const T = (x) => (x ? tr(x) : x);
-  return ({ M2A: j([`${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m`, T(E.ajuste === 'cerca' ? 'Lo más cercano' : 'Que quepa'), E.dist ? fmt(+E.dist, 1) + ' m' : '']),
+  return ({ M2A: j([`${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m`, E.ajuste === 'margen' ? T('Hasta') + ' +' + fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100) + ' %' : T(E.ajuste === 'cerca' ? 'Lo más cercano' : 'Que quepa'), E.dist ? fmt(+E.dist, 1) + ' m' : '']),
     M3A: j([`P${String(R.pitch).replace('.', ',')}`, `${r.resW}×${r.resH} px`]), M1B: m.crm, M2B: `${r.cols}×${r.rows} = ${r.cab}`,
     M3B: j([p ? p.modelo : T('Sin procesador'), T(E.backup ? 'con backup' : 'sin backup'), E.conexion === 'fibra' ? T('fibra') : 'RJ45', p && !p.reproductor ? T(p.escalador ? 'con escalador' : 'sin escalador') : '']),
     M3C: E.marca === 'ninguno' ? T('No') : R.media ? R.media.modelo : T('Sin modelo que valga') })[id] || ''; };
@@ -721,7 +733,7 @@ function pintaRejilla0() {
   const TIPOS = [['INDOOR', 'Interior'], ['OUTDOOR', 'Exterior'], ['ESCAPARATE', 'Escaparate']];
   /* DIMENSIONES (M2A): lo que se pide (ancho, alto, formato, ajuste) y cómo queda con cabinets enteros, en un solo bloque */
   const dec = E.uni === 'm' ? 2 : 0, cel = (k, v) => `<div class="cel"><span>${k}</span><b>${v}</b></div>`;
-  const dimEntra = `<div class="fila">${num('w', 'Ancho', +(E.w * UNI[E.uni]).toFixed(dec), E.uni, .1 * UNI[E.uni])}${num('h', 'Alto', +(E.h * UNI[E.uni]).toFixed(dec), E.uni, .1 * UNI[E.uni])}</div><div class="fila tres" role="group" aria-label="Ajustar el alto a un formato">${[['16:9', 9 / 16], ['4:3', 3 / 4], ['1:1', 1], ['9:16', 16 / 9]].map((f) => `<button type="button" class="tog" data-formato="${f[1]}" title="Pone el alto que corresponde a ${f[0]} con este ancho">${f[0]}</button>`).join('')}</div><div class="fila tres" role="group" aria-label="Cómo se ajusta a cabinets enteros">${tog(E.ajuste === 'dentro', 'data-set="ajuste" data-v="dentro" title="Cabinets enteros sin pasarse de la medida"', 'Que quepa')}${tog(E.ajuste === 'cerca', 'data-set="ajuste" data-v="cerca" title="Cabinets enteros lo más cerca posible de la medida, aunque se pase"', 'Lo más cercano')}</div>`;
+  const dimEntra = `<div class="fila">${num('w', 'Ancho', +(E.w * UNI[E.uni]).toFixed(dec), E.uni, .1 * UNI[E.uni])}${num('h', 'Alto', +(E.h * UNI[E.uni]).toFixed(dec), E.uni, .1 * UNI[E.uni])}</div><div class="fila tres" role="group" aria-label="Ajustar el alto a un formato">${[['16:9', 9 / 16], ['4:3', 3 / 4], ['1:1', 1], ['9:16', 16 / 9]].map((f) => `<button type="button" class="tog" data-formato="${f[1]}" title="Pone el alto que corresponde a ${f[0]} con este ancho">${f[0]}</button>`).join('')}</div><div class="fila tres" role="group" aria-label="Cómo se ajusta a cabinets enteros">${tog(E.ajuste === 'dentro', 'data-set="ajuste" data-v="dentro" title="Cabinets enteros sin pasarse nunca de la medida"', 'Que quepa')}${tog(E.ajuste === 'margen', 'data-set="ajuste" data-v="margen" title="Que quepa, pero admite pasarse un poco de la medida (hasta el margen de BRIAN) para no perder una fila o una columna; se avisa"', 'Hasta +' + fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100) + ' %')}${tog(E.ajuste === 'cerca', 'data-set="ajuste" data-v="cerca" title="Cabinets enteros lo más cerca posible de la medida, aunque se pase"', 'Lo más cercano')}</div>`;
   const dimUni = `<div class="pestanas" role="group" aria-label="Unidad de las medidas">${['m', 'cm', 'mm'].map((u) => `<button type="button" data-set="uni" data-v="${u}" aria-pressed="${E.uni === u}" style="text-transform:none">${u}</button>`).join('')}</div>`;
   const TIC = { INDOOR: 'eInt', OUTDOOR: 'eExt', ESCAPARATE: 'eEsc' }, tipoBt = (t) => tog(E.tipo === t[0], `data-set="tipo" data-v="${t[0]}"`, t[1], TIC[t[0]]);
   let h = blk('m1a', 'M1A', 'Entorno y uso', 'var(--azul)', `<div class="fila ico">${tipoBt(TIPOS[0])}${tipoBt(TIPOS[1])}</div><div class="fila ico">${tipoBt(TIPOS[2])}${tog(E.transp, 'data-set="transp" data-v="' + (E.transp ? '' : '1') + '" title="LED transparente: solo las familias HOLO y T·Glass"', 'Transparente', 'eTra')}</div><div class="fila ico">${tog(E.clase === 'INSTALL', 'data-set="clase" data-v="INSTALL"', 'Fija', 'eFija')}${tog(E.clase === 'RENTAL', 'data-set="clase" data-v="RENTAL"', 'Alquiler', 'eAlq')}</div>` +
@@ -743,7 +755,7 @@ function pintaRejilla0() {
   h += blk('s1b', 'S1B', ['Cableado', 'Cableado', 'Visionado', 'Conexión'][VISTAS.indexOf(V)] || V[3](), 'var(--azul)', `<div class="lienzo papel">${V[2]()}${V[0] === 'senal' || V[0] === 'elec' ? cosidoCtl(V[0]) : ''}</div>`, `<div class="pestanas" role="group" aria-label="Qué se ve en esta pantalla">${VISTAS.map((v, i) => `<button type="button" data-vista="${i}" aria-pressed="${i === E.vista}">${v[1]}</button>`).join('')}</div>` + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1B"') + bt('ojo', 'Ver en grande', 'data-ver="vista"'), 'pant');
   ZB = false;
   const mcd = (a, b) => (b ? mcd(b, a % b) : a), q = mcd(Math.round(r.ancho * 1000), Math.round(r.alto * 1000)), fa = Math.round(r.ancho * 1000) / q, fb = Math.round(r.alto * 1000) / q, formato = fa <= 32 && fb <= 32 ? fa + ':' + fb : fmt(r.ancho / r.alto, 2) + ':1';
-  const sob = Math.abs(r.sobra.w) > .01 || Math.abs(r.sobra.h) > .01 ? (r.sobra.w >= 0 ? 'sobran ' : 'faltan ') + fmt(Math.abs(r.sobra.w) * 100) + ' × ' + fmt(Math.abs(r.sobra.h) * 100) + ' cm' : 'medida exacta';
+  const sob = sobraTxt(r);
   h += blk('m2a', 'M2A', 'Dimensiones', 'var(--marca)', dimEntra + distCtl() + `<div class="gran med" title="Medida real con cabinets enteros">${fmt(r.ancho * 100)}<small>×</small> ${fmt(r.alto * 100)}<small>cm · ${sob}</small></div><div class="celdas">${cel('Diagonal', fmt(R.diag * 100) + ' cm·' + fmt(R.diag / .0254) + '″')}${cel('Formato', formato)}${cel('Superficie', fmt(r.ancho * r.alto, 2) + ' m²')}${cel('Fondo', m.thick ? fmt(m.thick) + ' mm' : '—')}</div>`, dimUni);
 
   /* RESOLUCIÓN (M3A): el pitch (con el origen de la elección), la distancia del público, la resolución que sale y la mínima que se pide */
@@ -794,7 +806,20 @@ function ajustaSim() {
     for (const k of [0.9, 0.8, 0.7]) { sc.style.transform = `scale(${k})`; if (!toca()) return; }
   });
 }
-function ajustaTextos() { ajustaSim(); document.querySelectorAll('.pz-res, .cif > span, .cif > b, .cif > em, .dets button, .det-res .blk-cab b').forEach((x) => encoge(x, 10)); document.querySelectorAll('.num input').forEach(encogeIn); document.querySelectorAll('.rejilla select.sel').forEach(encogeSel); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); document.querySelectorAll('.nota.alt').forEach((e) => encoge(e, 6)); document.querySelectorAll('.gran.med, .rejilla .blk-cab b').forEach((e) => encoge(e, 9)); document.querySelectorAll('.cel b, .cel span').forEach((e) => encoge(e, 8)); }
+/* v11.67 · (encargo de SYSTEMS, punto 1) en los bloques de RESULTADOS que nombran un equipo, si hay sitio: su foto oficial (el ojo abre las
+   fichas en grande) y los enlaces a su PDF y a su página (charmex.net, traulux.net o el fabricante). Si no cabe, primero se quita la foto y después todo */
+function prodCifrasS() {
+  if (!R || !R.r || matchMedia('(max-width: 559px)').matches) return;
+  const web = (x) => (globalThis.SC_WEB ? globalThis.SC_WEB(x.id || String(x.modelo || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), x.marca) : null);
+  const tira = (foto, ln, nom, mini) => `<div class="cp${mini ? ' mini' : ''}">${foto && !mini ? `<button type="button" class="cp-foto" data-ver="equipo" title="Ver la ficha en grande" aria-label="Ver la ficha en grande · ${esc(nom)}"><img src="${esc(foto)}" alt="" loading="lazy" onerror="this.closest('.cp-foto').remove()"><span class="cp-ojo">${IC.ojo}</span></button>` : ''}<div class="cp-ln"><b class="cp-n" data-crudo>${esc(nom)}</b>${ln.map(([u, t]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${t} ↗</a>`).join('')}</div></div>`;
+  const { m } = R, p = R.proc, pw = p ? web(p) : null;
+  [['M3D', m.urlFoto, [m.crm ? ['https://traulux.net/buscar/?q=' + encodeURIComponent(m.crm), 'traulux.net'] : null], m.crm],
+   ['RSE', p && p.front, p ? [pw && pw.pdf ? [pw.pdf, 'PDF'] : null, pw && pw.web ? [pw.web, pw.charmex ? 'charmex.net' : tr('Fabricante')] : (p.urlFab || p.url) ? [p.urlFab || p.url, tr('Fabricante')] : null] : [], p && p.modelo]].forEach(([id, foto, ln, nom]) => {
+    const b = document.querySelector(`#rejilla [data-blk="${id}"]`), cu = b && b.querySelector('.blk-cu'); ln = (ln || []).filter(Boolean); if (!cu || cu.querySelector('.cp') || (!foto && !ln.length)) return;
+    const pon = (mini) => { const o = cu.querySelector('.cp'); if (o) o.remove(); cu.insertAdjacentHTML('beforeend', tira(foto, ln, nom || '', mini)); b.classList.add('con-prod'); return cu.scrollHeight <= cu.clientHeight + 1; };
+    if (pon(false) || (ln.length && pon(true))) return; const o = cu.querySelector('.cp'); if (o) o.remove(); b.classList.remove('con-prod'); });
+}
+function ajustaTextos() { ajustaSim(); try { prodCifrasS(); } catch (e) {} document.querySelectorAll('.pz-res, .cif > span, .cif > b, .cif > em, .dets button, .det-res .blk-cab b').forEach((x) => encoge(x, 10)); document.querySelectorAll('.num input').forEach(encogeIn); document.querySelectorAll('.rejilla select.sel').forEach(encogeSel); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); document.querySelectorAll('.nota.alt').forEach((e) => encoge(e, 6)); document.querySelectorAll('.gran.med, .rejilla .blk-cab b').forEach((e) => encoge(e, 9)); document.querySelectorAll('.cel b, .cel span').forEach((e) => encoge(e, 8)); }
 function todo() { if (document.activeElement !== $('#pide')) EDITA = false; calcula(); pintaRejilla(); pintaPie(); guarda(); ajustaTextos(); requestAnimationFrame(ajustaTextos); if (window.SCSIMPLE) window.SCSIMPLE.aviso(); }   /* v10.49 · el modo SIMPLE se repinta con el mismo cálculo */   /* v10.45 · y otra vez cuando ya está traducido */
 
 /* ---------- ventana grande (el ojo) y ajustes (la ruedita) ---------- */
@@ -808,7 +833,7 @@ function abre(que) {
       f('Escalador', 'El procesador adapta la señal', tog(E.escalador === 'con', 'data-set="escalador" data-v="con"', 'Con') + tog(E.escalador === 'sin', 'data-set="escalador" data-v="sin"', 'Sin') + tog(E.escalador === 'indiferente', 'data-set="escalador" data-v="indiferente"', 'Da igual')) +
       f('Conexión a la pantalla', 'Del procesador a los cabinets', tog(E.conexion === 'directo', 'data-set="conexion" data-v="directo"', 'RJ45 directo') + tog(E.conexion === 'fibra', 'data-set="conexion" data-v="fibra"', 'Fibra')) +
       f('Mediaserver', 'Servidor de contenidos', tog(E.marca === 'ninguno', 'data-set="marca" data-v="ninguno"', 'No') + tog(E.marca === 'todos', 'data-set="marca" data-v="todos"', 'Sí')) +
-      f('Ajuste a la medida', 'Cómo se redondea a cabinets enteros', tog(E.ajuste === 'dentro', 'data-set="ajuste" data-v="dentro"', 'Que quepa') + tog(E.ajuste === 'cerca', 'data-set="ajuste" data-v="cerca"', 'Lo más cercano')) +
+      f('Ajuste a la medida', 'Cómo se redondea a cabinets enteros', tog(E.ajuste === 'dentro', 'data-set="ajuste" data-v="dentro"', 'Que quepa') + tog(E.ajuste === 'margen', 'data-set="ajuste" data-v="margen"', 'Hasta +' + fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100) + ' %') + tog(E.ajuste === 'cerca', 'data-set="ajuste" data-v="cerca"', 'Lo más cercano')) +
       f('Elevación del suelo', 'Borde inferior de la pantalla', num('elev', 'Altura', E.elev, 'cm', 10)) +
       f('Tema', 'Aspecto de la interfaz', tog(E.tema === 'oscuro', 'data-set="tema" data-v="oscuro"', 'Oscuro') + tog(E.tema === 'claro', 'data-set="tema" data-v="claro"', 'Gris claro')) +
       `</div><div class="fila" style="justify-content:flex-end"><button type="button" class="tog" style="flex:none" data-reset>Restablecer</button></div></div></div>`;
@@ -1133,7 +1158,7 @@ async function pdf() {
     const ahora = new Date(), linCab = 'avhub.mediaservi.com · ' + ahora.toLocaleDateString(idioma() === 'en' ? 'en-GB' : 'es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' · ' + ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     const cab = (sub) => `<div style="display:grid;grid-template-columns:106px minmax(0,1fr) 106px;align-items:center;column-gap:14px;border-bottom:2px solid ${TI};padding-bottom:7px;margin-bottom:${E.proy || E.cliente ? 5 : 9}px"><img src="../assets/screens-logo-claro.svg" alt="SCREENS" style="height:30px;width:auto;justify-self:start"><div style="min-width:0;overflow:hidden;text-align:center;white-space:nowrap;container-type:inline-size"><span data-crudo style="display:inline-block;font:400 10.5px/1.3 'Share Tech Mono',ui-monospace,Menlo,Consolas,monospace;color:#555;letter-spacing:.32em;margin-right:-.32em;font-size:min(10.5px,calc(100cqw / ${linCab.length} / .9))">${linCab}</span></div><img src="../assets/avhub-logo.svg" alt="AVHUB" style="height:29px;width:auto;justify-self:end"></div>` +
       (E.proy || E.cliente ? `<div data-crudo style="margin:0 0 6px;font:400 9.5px/1.3 Inter,Arial,sans-serif;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${E.proy ? '<b style="font-weight:800">' + esc(E.proy) + '</b>' : ''}${E.proy && E.cliente ? ' · ' : ''}${E.cliente ? esc(E.cliente) : ''}</div>` : '');
-    const TIPO = { INDOOR: 'Interior', OUTDOOR: 'Exterior', ESCAPARATE: 'Escaparate' }[E.tipo], sob = Math.abs(r.sobra.w) > .01 || Math.abs(r.sobra.h) > .01 ? (r.sobra.w >= 0 ? 'sobran ' : 'faltan ') + fmt(Math.abs(r.sobra.w) * 100) + ' × ' + fmt(Math.abs(r.sobra.h) * 100) + ' cm' : 'medida exacta';
+    const TIPO = { INDOOR: 'Interior', OUTDOOR: 'Exterior', ESCAPARATE: 'Escaparate' }[E.tipo], sob = sobraTxt(r);
     const p1 = cab('hoja 1 de 2') +
       `<div style="border:1px solid ${TI};border-radius:6px;padding:7px 10px;margin-bottom:9px;font:700 11px/1.4 Inter,Arial,sans-serif">PANTALLA LED <span data-crudo>${esc(m.crm)}</span> · ${fmt(r.ancho * 100)} × ${fmt(r.alto * 100)} cm · ${fmt(R.diag / .0254)}″ · ${r.cols}×${r.rows} = ${r.cab} cabinets · ${r.resW}×${r.resH} px${r.peso > 0 ? ' · ' + fmt(r.peso) + ' kg' : ''}${r.kw > 0 ? ' · ' + fmt(r.kw, 2) + ' kW' : ''}</div>` +
       `<div style="margin-bottom:9px">${sim}</div>` +

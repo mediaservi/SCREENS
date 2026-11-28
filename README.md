@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.63** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.64** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -34,7 +34,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 
 **Una pantalla LED (portada)**
 - **Bloques:** entorno y uso, dimensiones, resolución, cabinet (con su ficha y foto), cabinets, electrónica, mediaserver, instalación, señal (con o sin backup, RJ45 o fibra, cosido) y alimentación.
-- **Simulación a escala:** la pantalla en su pared, con figura humana, cotas y contenido de prueba (fuentes multimedia, enlace propio o archivo). Pared a elegir: hormigón, madera, mármol, tres ladrillos, **sin fondo** o **fondo propio** (una foto subida o un enlace pegado, que se guarda en este navegador).
+- **Simulación a escala:** la pantalla en su pared, con figura humana y cotas; debajo de la elevación, botones de CONTENIDO (carta, vídeo de prueba, propio) y de PARED (cemento, madera, mármol, ladrillos con sus variantes, propia). Pared a elegir: hormigón, madera, mármol, tres ladrillos, **sin fondo** o **fondo propio** (una foto subida o un enlace pegado, que se guarda en este navegador).
 - **Cableado:** señal, eléctrico, distancia de visionado y esquema de conexión. Con backup, cada puerto lleva un segundo cable por el último cabinet de su cadena. La **manguera** se dibuja como un solo tubo hasta la salida elegida con las flechas ← ↑ ↓ → (4 esquinas y 4 centros de lateral), con el número de cables.
 - **Lista de material** completa (cabinets, fuentes, cable HDMI PureLink según la distancia, mediaserver, electrónica, fibra, Cat6, distribución eléctrica, PC de control).
 - **Planos técnicos (v10.94):** con PLANO · Técnico, el cableado de señal pasa a plano con «tarjeta-puerto-orden», X/Y/W/H en píxeles, E/S y redundancia, y el eléctrico a circuitos en cascada con su entrada de corriente, cada uno con su cuadro de información.
@@ -78,7 +78,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.63)
+## Cambios de la versión actual (v11.64)
+- **Personalizar la simulación sin ventanas:** bajo ELEVACIÓN DESDE EL SUELO, al mismo ancho, dos grupos de botones. CONTENIDO: carta de ajuste, vídeo de prueba de mediaservi.com (en bucle) y contenido propio (vídeo, foto o enlace). PARED: cemento, madera, mármol, ladrillos y pared propia. Con ladrillos salen unos círculos con sus variantes de color. Nada de esto sale en la captura.
+- **Electrónica y señal juntas:** el backup y la conexión (RJ45 o fibra) están ahora en el mismo apartado que el procesador y el escalador.
+- **Lo elegido, a la vista:** cada apartado plegado enseña en su cabecera lo que tiene elegido (procesador, backup y conexión; mediaserver o «No»; medida; pitch…), y la cabecera del paso 4 dice también el backup y el mediaserver.
+
+## Cambios de la v11.63
 - **Software NovaStar (VNNOX y ViPlex):** si el proyecto lleva un reproductor NovaStar (Taurus TB y TU, TCC), RESULTADOS y el PDF avisan y recomiendan sus aplicaciones oficiales, con un resumen de lo que permiten en control y en gestión de contenido. Pulsando en el logotipo de cada una se abre su página oficial; en el PDF va además su dirección escrita. En la portada LED y en varias pantallas LED, en los tres idiomas.
 
 ## Cambios de la v11.62

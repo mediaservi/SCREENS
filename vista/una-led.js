@@ -32,7 +32,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.63';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.64';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -395,6 +395,22 @@ function alt169() {
   const cH = r.alto / r.rows, f = Math.max(1, Math.round(r.ancho * 9 / 16 / cH)), h = f * cH; if (f === r.rows || Math.abs(r.ancho / h - 16 / 9) > 0.06) return '';
   return `<li><span>En 16:9:</span> <span data-crudo>${r.cols} × ${f} = ${fmt(r.ancho, 2)} × ${fmt(h, 2)} m</span></li>`;
 }
+/* v11.64 · personalizar la simulación sin ventana: bajo ELEVACIÓN, al mismo ancho, CONTENIDO (carta · vídeo de prueba · propio) y PARED
+   (cemento · madera · mármol · ladrillos · propia); con ladrillos, círculos con sus variantes de color. Nada de esto sale en la captura (solo se copia el SVG) */
+const LADR = ['ladrillo-rojo', 'ladrillo-oscuro', 'ladrillo-claro'];
+const ICSUBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"/><path d="m7 10 5-5 5 5"/><path d="M5 19h14"/></svg>';
+function simCustom() {
+  const ck = !CONT ? 'carta' : !URLP && CONT.url && CONT.url.includes(FUENTE_ID) ? 'video' : 'propio', lad = LADR.includes(E.fondo), lv = lad ? E.fondo : LADR[0];
+  const b = (attr, on, tit, estilo, cuerpo, cls = '') => `<button type="button" class="${cls}" ${attr} aria-pressed="${on}" aria-label="${tit}" title="${tit}"${estilo ? ` style="${estilo}"` : ''}>${cuerpo || ''}</button>`;
+  const cont = b('data-cnt="carta"', ck === 'carta', 'Carta de ajuste', 'background-image:url(../assets/sim/carta-mini.jpg)')
+    + b('data-cnt="video"', ck === 'video', 'Vídeo de prueba de mediaservi.com, en bucle', `background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url(https://i.ytimg.com/vi/${FUENTE_ID}/mqdefault.jpg)`, '<span class="sc-t">VÍDEO</span>')
+    + b('data-cnt="propio"', ck === 'propio', 'Tu contenido: sube un vídeo o una foto, o pega un enlace', '', ICSUBE, 'fo-ico');
+  const pared = ['hormigon', 'madera', 'marmol'].map((f) => b(`data-fondo="${f}"`, E.fondo === f, { hormigon: 'Cemento', madera: 'Madera', marmol: 'Mármol' }[f], `background-image:url(../assets/sim/${f}-mini.jpg${TEXV})`)).join('')
+    + b(`data-fondo="${lv}"`, lad, 'Ladrillos', `background-image:url(../assets/sim/${lv}-mini.jpg${TEXV})`)
+    + b('data-fondo="propio"', E.fondo === 'propio', 'Pared propia: sube una foto o pega un enlace', FPROP ? `background-image:url(&quot;${esc(FPROP)}&quot;)` : '', FPROP ? '' : ICSUBE, 'fo-ico');
+  return `<div class="simcu"><div class="g" role="group" aria-label="Contenido de la pantalla">${cont}</div><div class="g" role="group" aria-label="Pared">${pared}</div></div>`
+    + (lad ? `<div class="ladr" role="group" aria-label="Color de los ladrillos">${LADR.map((f) => b(`data-fondo="${f}"`, E.fondo === f, { 'ladrillo-rojo': 'Ladrillo rojo', 'ladrillo-oscuro': 'Ladrillo oscuro', 'ladrillo-claro': 'Ladrillo claro' }[f], `background-image:url(../assets/sim/${f}-mini.jpg${TEXV})`)).join('')}</div>` : '');
+}
 function avisosLed(R) {
   const { m, r } = R, A = [], av = (t) => A.push(['av', t]), pc = (x) => fmt(Math.abs(x) * 100) + ' %', mm = (x) => fmt(x, 2) + ' m';
   /* medida: cada lado a más de led.encaje.aviso (10 %) de lo pedido; con «Que quepa», lo que se pasa por el redondeo (hasta led.encaje.pasarseMax, 5 %) también se dice */
@@ -598,7 +614,7 @@ const cosidoCtl = (v = 'senal') => `<div class="cosidos" role="group" aria-label
 /* v10.94 · cómo se dibuja el cableado: reparto para el instalador o plano técnico (el formato que el técnico pasa al cliente) */
 const planoCtl = () => `<div class="cosidos planos" role="group" aria-label="Tipo de plano"><span>Plano</span>${[['reparto', 'Reparto', 'Reparto por puertos y líneas con la manguera'], ['tecnico', 'Técnico', 'Plano técnico: tarjeta-puerto-orden, píxeles, entradas y salidas, circuitos en cascada']].map(([v, t, ti]) => `<button type="button" data-set="plano" data-v="${v}" title="${ti}" aria-pressed="${(E.plano === 'tecnico' ? 'tecnico' : 'reparto') === v}">${t}</button>`).join('')}</div>`;
 // v10.89 · cada bloque con datos lleva su RESTABLECER (regla del proyecto)
-const RBLK = { M1A: ['tipo', 'clase', 'transp', 'gold', 'protegido', 'sol', 'nitsMin', 'crm'], M2A: ['w', 'h', 'dist', 'uni', 'giro'], M1B: ['crm'], M2B: ['ajuste', 'giro'], M3A: ['pitch', 'pitchOtros', 'resMin'], M3B: ['procSel', 'escalador'], M3C: ['marca', 'mediaSel', 'dante'], M3E: ['backup', 'conexion'] };
+const RBLK = { M1A: ['tipo', 'clase', 'transp', 'gold', 'protegido', 'sol', 'nitsMin', 'crm'], M2A: ['w', 'h', 'dist', 'uni', 'giro'], M1B: ['crm'], M2B: ['ajuste', 'giro'], M3A: ['pitch', 'pitchOtros', 'resMin'], M3B: ['procSel', 'escalador', 'backup', 'conexion'], M3C: ['marca', 'mediaSel', 'dante'], M3E: ['backup', 'conexion'] };
 const AJ_RESET = ['backup', 'escalador', 'conexion', 'marca', 'ajuste', 'elev', 'procSel', 'mediaSel', 'dante'];
 const blk = (area, id, tit, ac, cuerpo, extra = '', cls = '', ic = ICB[id]) => `<section class="blk ${cls}" style="grid-area:${area};--ac:${ac}" data-blk="${id}"><header class="blk-cab">${ic ? `<i class="blk-ic" aria-hidden="true">${IC[ic]}</i>` : ''}<b>${tit}</b><span class="sep"></span>${extra}${RBLK[id] ? bt('nuevo', 'Restablecer este bloque', `data-rblk="${id}"`, 'rblk') : ''}<span class="id">${id}</span></header><div class="blk-cu">${cuerpo}</div></section>`;
 const UNI = { m: 1, cm: 100, mm: 1000 };
@@ -611,7 +627,7 @@ const dato = (k, v) => `<div class="dato"><span>${k}</span><b>${v}</b></div>`;
 /* v11.16 · ESTRUCTURA ÚNICA de SCREENS (la misma en una/varias × LED/proyección): a la izquierda los datos en 4 pasos numerados, en el centro
    la simulación y debajo los planos, y a la derecha los resultados (cifras, veredicto y detalle). Los bloques de siempre se conservan enteros
    (mismos data-blk, mismas funciones): aquí solo se agrupan, y las lecturas que estaban mezcladas con los campos pasan a RESULTADOS. */
-const PZ = [[1, 'Entorno y uso', ['M1A']], [2, 'Tamaño y resolución', ['M2A', 'M3A']], [3, 'Equipo', ['M1B', 'M2B']], [4, 'Electrónica de control', ['M3B', 'M3C', 'M3E']]];
+const PZ = [[1, 'Entorno y uso', ['M1A']], [2, 'Tamaño y resolución', ['M2A', 'M3A']], [3, 'Equipo', ['M1B', 'M2B']], [4, 'Electrónica de control', ['M3B', 'M3C']]];
 const PZK = 'screens-blocks-pasos';
 let PZA = (() => { try { const a = JSON.parse(localStorage.getItem(PZK)); if (Array.isArray(a) && a.length && a.every((n) => n >= 1 && n <= 4)) return a; } catch (e) {} return [1, 2]; })();   /* pasos abiertos, del más antiguo al último tocado */
 let PZV = PZA.slice(), DET = 'res';
@@ -625,7 +641,14 @@ const pzRes = (n) => { if (!R || !R.r) return ''; const { m, r } = R, sp = (a) =
   return n === 1 ? sp([TIPN[E.tipo], E.clase === 'RENTAL' ? 'Alquiler' : 'Fija', E.transp ? 'Transparente' : ''])
     : n === 2 ? sp([`<span data-crudo>${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m</span>`, `<span data-crudo>P${String(R.pitch).replace('.', ',')}</span>`])
     : n === 3 ? sp([`<span data-crudo>${esc(m.crm)}</span>`, `<span data-crudo>${r.cols}×${r.rows}</span>`])
-    : sp([`<span data-crudo>${R.proc ? esc(R.proc.modelo) : '—'}</span>`, E.conexion === 'fibra' ? 'Fibra' : 'RJ45']); };
+    : sp([`<span data-crudo>${R.proc ? esc(R.proc.modelo) : '—'}</span>`, E.conexion === 'fibra' ? 'Fibra' : 'RJ45', E.backup ? 'Con backup' : 'Sin backup', E.marca === 'ninguno' ? '' : R.media ? `<span data-crudo>${esc(R.media.modelo)}</span>` : 'Mediaserver']); };
+/* v11.64 · cada apartado plegado enseña en su cabecera lo que tiene elegido (Josep: «para no tener que desplegarla para verlo») */
+const rsBlk = (id) => { if (!R || !R.r) return ''; const { m, r } = R, j = (a) => a.filter(Boolean).join(' · '), p = R.proc;
+  const T = (x) => (x ? tr(x) : x);
+  return ({ M2A: j([`${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m`, T(E.ajuste === 'cerca' ? 'Lo más cercano' : 'Que quepa'), E.dist ? fmt(+E.dist, 1) + ' m' : '']),
+    M3A: j([`P${String(R.pitch).replace('.', ',')}`, `${r.resW}×${r.resH} px`]), M1B: m.crm, M2B: `${r.cols}×${r.rows} = ${r.cab}`,
+    M3B: j([p ? p.modelo : T('Sin procesador'), T(E.backup ? 'con backup' : 'sin backup'), E.conexion === 'fibra' ? T('fibra') : 'RJ45', p && !p.reproductor ? T(p.escalador ? 'con escalador' : 'sin escalador') : '']),
+    M3C: E.marca === 'ninguno' ? T('No') : R.media ? R.media.modelo : T('Sin modelo que valga') })[id] || ''; };
 function zonas(el, AV) {
   const g = (id) => el.querySelector(`:scope > [data-blk="${id}"]`), ok = !!(R && R.r), mk = (tag, cls, html) => { const d = document.createElement(tag); d.className = cls; if (html) d.innerHTML = html; return d; };
   const A = mk('div', 'z z-a'), B = mk('div', 'z z-b'), C = mk('div', 'z z-c');
@@ -655,6 +678,8 @@ function zonas(el, AV) {
     res = t.content.firstChild; const det = res.querySelector('.det'), de = (id, s) => { const b = g(id); return b ? [...b.querySelectorAll(s)] : []; };
     const lect = [sub('RME', 'Medida real', 'var(--marca)', de('M2A', '.blk-cu > .gran, .blk-cu > .celdas')), sub('RSE', 'Señal', 'var(--ambar)', de('M3E', '.blk-cu > .dato'), bt('ojo', 'Ver el cableado de señal', 'data-ver="senal"'))];
     { const e3 = g('M3E'); if (e3) e3.querySelectorAll('.blk-cab [data-ver="senal"], .blk-cu > .gran').forEach((o) => o.remove()); }
+    /* v11.64 · ELECTRÓNICA y SEÑAL van juntas (Josep): el backup y la conexión pasan al bloque de la electrónica, que se llama «Electrónica y señal» */
+    { const e3 = g('M3E'), eb = g('M3B'); if (e3 && eb) { const cu = eb.querySelector('.blk-cu'); e3.querySelectorAll('.blk-cu > *').forEach((o) => cu.appendChild(o)); e3.remove(); const tb = eb.querySelector('.blk-cab > b'); if (tb) tb.textContent = 'Electrónica y señal'; } }
     if (DET === 'res') [lect[0], g('M3D'), lect[1], g('M3F')].forEach((x) => { if (x) { x.style.gridArea = 'auto'; det.appendChild(x); } });
     else { ['M3D', 'M3F'].forEach((id) => { const b = g(id); if (b) b.remove(); });
       det.innerHTML = DET === 'mat' ? tablaMaterial() : AV.length ? `<ul class="avs">${AV.map((a) => `<li class="${a[0]}"><i></i><span>${esc(a[1])}</span></li>`).join('')}</ul>` : '<div class="avs-ok"><i></i>Sin avisos: todo dentro de lo recomendado</div>'; }
@@ -669,7 +694,7 @@ function zonas(el, AV) {
   /* controles de VISTA, rotulados como tales: no cambian el cálculo */
   { const cab = B.querySelector('[data-blk="S1B"] .blk-cab'), pe = cab && cab.querySelector('.pestanas'), pl = B.querySelector('[data-blk="S1B"] .lienzo > .cosidos.planos'); if (pe) pe.insertAdjacentHTML('beforebegin', '<span class="vis-r">Vista</span>'); if (pl) { pl.classList.add('vis'); const sp = pl.querySelector('span'); if (sp) sp.className = 'vis-r'; }
     const lz = B.querySelector('[data-blk="S1B"] .lienzo'), ctl = lz ? [...lz.querySelectorAll(':scope > .cosidos, :scope > .mangas')] : []; if (ctl.length) { const ti = mk('div', 'tira'); ctl.sort((a, b) => a.classList.contains('planos') - b.classList.contains('planos')).forEach((c) => ti.appendChild(c)); lz.insertAdjacentElement('afterbegin', ti); lz.classList.add('con-tira'); lz.closest('.blk').classList.add('tira-b'); }
-    const fo = B.querySelector('[data-blk="S1A"] .fondos'); if (fo) fo.insertAdjacentHTML('afterbegin', '<span class="vis-r">Vista</span>'); }
+    }
   C.appendChild(res); el.replaceChildren(A, B, C);
 }
 /* ningún paso se corta: si los abiertos no caben en la columna, se pliega el más antiguo (nunca el último que se ha tocado) */
@@ -677,7 +702,7 @@ const pzDesborda = () => { const a = document.querySelector('#rejilla .z-a'); if
 /* si un paso abierto él solo tampoco cabe (portátil pequeño), sus apartados se ven de uno en uno: se pliegan los demás y cada cabecera abre el suyo */
 const SUB = {};
 function paginaPaso() { const pz = document.querySelector('#rejilla .z-a .pz.ab'); if (!pz) return; const n = +pz.dataset.pzs, bl = [...pz.querySelectorAll(':scope > .pz-cu > .blk')]; if (bl.length < 2) return;
-  const ab = bl.find((b) => b.dataset.blk === SUB[n]) || bl[0]; pz.classList.add('pag'); bl.forEach((b) => { b.classList.toggle('sub-ab', b === ab); const c = b.querySelector('.blk-cab'); c.setAttribute('data-sub', b.dataset.blk); c.setAttribute('role', 'button'); c.tabIndex = 0; c.setAttribute('aria-expanded', b === ab); }); }
+  const ab = bl.find((b) => b.dataset.blk === SUB[n]) || bl[0]; pz.classList.add('pag'); bl.forEach((b) => { b.classList.toggle('sub-ab', b === ab); const c = b.querySelector('.blk-cab'); { let rs = c.querySelector('.blk-rs'); const tx = rsBlk(b.dataset.blk); if (!rs && tx) { rs = document.createElement('span'); rs.className = 'blk-rs'; rs.setAttribute('data-crudo', ''); const bb = c.querySelector(':scope > b'); (bb || c.firstChild).after(rs); } if (rs) rs.textContent = tx; } c.setAttribute('data-sub', b.dataset.blk); c.setAttribute('role', 'button'); c.tabIndex = 0; c.setAttribute('aria-expanded', b === ab); }); }
 let PZFIT = null;   /* el último reparto de pasos que cupo, para acertar a la primera en los siguientes repintados */
 function pintaRejilla() {
   const clave = PZA.join() + '|' + innerWidth + 'x' + innerHeight;
@@ -710,7 +735,7 @@ function pintaRejilla0() {
 
   const foto = m.urlFoto ? `<img src="${esc(m.urlFoto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='&lt;div class=&quot;sinfoto&quot;&gt;sin foto&lt;/div&gt;'">` : '<div class="sinfoto">sin foto</div>';
   h += blk('m1b', 'M1B', 'Cabinet', 'var(--violeta)', `<select class="sel" data-crm aria-label="Modelo de cabinet" title="Elegir el cabinet a mano: todos los modelos de este entorno, agrupados por pitch">${R.pitches.map((pt) => `<optgroup label="P${String(pt).replace('.', ',')}">${R.lista.filter((x) => x.pitch === pt).map((x) => `<option value="${esc(x.crm)}"${x.crm === m.crm ? ' selected' : ''}${enStock(x) ? ' class="stk"' : ''}>${esc(x.crm)}</option>`).join('')}</optgroup>`).join('')}</select><div class="cabmini">${foto}<div style="min-width:0;flex:1">${dato('Cabinet', `${m.cabAncho}×${m.cabAlto} mm${m.girado ? ' ⟳' : ''}`)}${dato('Píxeles', `${m.cabPixAncho}×${m.cabPixAlto}`)}${dato('Brillo', m.nits ? fmt(m.nits) + ' nits' : '—')}${dato('Refresco', m.hz ? fmt(m.hz) + ' Hz' : '—')}</div></div><div class="fila envuelve">${FICHA.stockIc ? (esInterno() ? `<button type="button" class="stk-btn" popovertarget="stk-pop" aria-label="Ver el stock y alternativas" title="Ver el stock y alternativas">${FICHA.stockIc(enStock(m), nivelStock(m))}</button>` : FICHA.stockIc(enStock(m))) : ''}<span class="chip">${esc(m.family || '')}</span>${stockInterno(m, r.cab)}</div>` + (R.holo ? `<div class="nota">HOLO · ${R.holo.bot ? 'dos filas contrapuestas de ' + R.holo.top + ' + ' + R.holo.bot + ' mm' : 'una fila de ' + R.holo.top + ' mm'} · caja de drivers de ${HOLO_DRIVER} mm${R.holo.comb ? ' · ' + R.holo.comb.cA * r.rows + ' × ' + esc(R.holo.comb.mA.crm) + ' + ' + R.holo.comb.cE * r.rows + ' × ' + esc(R.holo.comb.mE.crm) : ''}</div>` : '') + (R.alt ? `<div class="nota alt" style="color:var(--ambar);white-space:nowrap;overflow:hidden;flex:none" title="${esc(R.alt)}">${esc(R.altCorto)}</div>` : ''), `<button type="button" class="tog mini" data-set="giro" data-v="${E.giro ? '' : '1'}" aria-pressed="${!!(E.giro && R.giraPosible)}"${R.giraPosible ? '' : ' disabled'} title="${R.giraPosible ? 'Girar el cabinet 90°: se monta tumbado o de pie' : 'Este cabinet es cuadrado: girarlo no cambia nada'}">${IC.gira}90°</button>` + bt('ojo', 'Ver la ficha completa del cabinet', 'data-ver="equipo"'));
-  h += blk('s1a', 'S1A', 'Simulación a escala', 'var(--marca)', `<div class="lienzo">${svgSim()}<div class="fondos" role="group" aria-label="Fondo de la pared">${FONDOS.map((f) => f === 'ninguno' ? `<button type="button" class="fo-ico" data-fondo="ninguno" aria-pressed="${E.fondo === f}" aria-label="Sin fondo" title="Sin fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M6.3 17.7 17.7 6.3"/></svg></button>` : f === 'propio' ? `<button type="button" class="fo-ico" data-fondo="propio" aria-pressed="${E.fondo === f}" aria-label="Fondo propio: sube una imagen o pega un enlace" title="Fondo propio: sube una imagen o pega un enlace"${FPROP ? ` style="background-image:url(&quot;${esc(FPROP)}&quot;)"` : ''}>${FPROP ? '' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"/><path d="m7 10 5-5 5 5"/><path d="M5 19h14"/></svg>'}</button>` : `<button type="button" data-fondo="${f}" aria-pressed="${E.fondo === f}" aria-label="Fondo ${f.replace(/-/g, ' ')}" title="${f.replace(/-/g, ' ')}" style="background-image:url(../assets/sim/${f}-mini.jpg${TEXV})"></button>`).join('')}</div><div class="elev" role="group" aria-label="Altura del borde inferior de la pantalla sobre el suelo"><span>Elevación desde el suelo</span><button type="button" data-pm="elev" data-d="-1" aria-label="Bajar la pantalla 10 cm">−</button><b>${fmt(E.elev)} cm</b><button type="button" data-pm="elev" data-d="1" aria-label="Subir la pantalla 10 cm">+</button></div></div>`, bt('contenido', 'Simular contenido: el vídeo de prueba, un enlace o un archivo tuyo', 'data-ver="contenido"') + (CONT ? bt('carta', 'Volver a la carta de ajuste', 'data-carta') : '') + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1A"') + bt('ojo', 'Ver en grande', 'data-ver="sim"'), 'pant');
+  h += blk('s1a', 'S1A', 'Simulación a escala', 'var(--marca)', `<div class="lienzo">${svgSim()}<div class="simctl"><div class="elev" role="group" aria-label="Altura del borde inferior de la pantalla sobre el suelo"><span>Elevación desde el suelo</span><button type="button" data-pm="elev" data-d="-1" aria-label="Bajar la pantalla 10 cm">−</button><b>${fmt(E.elev)} cm</b><button type="button" data-pm="elev" data-d="1" aria-label="Subir la pantalla 10 cm">+</button></div>${simCustom()}</div></div>`, bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1A"') + bt('ojo', 'Ver en grande', 'data-ver="sim"'), 'pant');
   const V = VISTAS[E.vista] || VISTAS[0]; ZB = true;
   h += blk('s1b', 'S1B', ['Cableado', 'Cableado', 'Visionado', 'Conexión'][VISTAS.indexOf(V)] || V[3](), 'var(--azul)', `<div class="lienzo papel">${V[2]()}${V[0] === 'senal' || V[0] === 'elec' ? cosidoCtl(V[0]) : ''}</div>`, `<div class="pestanas" role="group" aria-label="Qué se ve en esta pantalla">${VISTAS.map((v, i) => `<button type="button" data-vista="${i}" aria-pressed="${i === E.vista}">${v[1]}</button>`).join('')}</div>` + bt('copia', 'Copiar una captura de esta pantalla', 'data-copia="S1B"') + bt('ojo', 'Ver en grande', 'data-ver="vista"'), 'pant');
   ZB = false;
@@ -889,6 +914,7 @@ function monta() {
     else if (q('[data-cont-aplica]')) { const i = $('#url-propia'); if (i) URLP = i.value.trim(); const c = URLP ? deEnlace(URLP) : fuenteMs(); sueltaCont(); CONT = c; cierra(); todo(); tostada(c ? 'Contenido aplicado a la pantalla.' : 'Esa fuente está vacía: se queda la carta de ajuste.'); }
     else if (q('[data-cont-reinicia]')) { sueltaCont(); CONT = null; URLP = ''; cierra(); todo(); tostada('Pantalla reiniciada: vuelve la carta de ajuste.'); }
     else if (q('[data-carta]')) { sueltaCont(); CONT = null; todo(); }
+    else if ((b = q('[data-cnt]'))) { const k = b.dataset.cnt; if (k === 'carta') { sueltaCont(); CONT = null; URLP = ''; todo(); } else if (k === 'video') { sueltaCont(); URLP = ''; CONT = fuenteMs(); todo(); } else abre('contenido'); }
     else if (q('[data-audio]')) $('#f-audio').click();
     else if ((b = q('[data-mic]'))) dicta(b);
     else if (q('[data-idioma]')) { fijaIdioma(IDIOMAS[(IDIOMAS.indexOf(idioma()) + 1) % IDIOMAS.length]); guarda(); location.reload(); }

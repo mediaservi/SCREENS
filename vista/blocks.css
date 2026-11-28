@@ -916,3 +916,20 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 .soft .soft-l img { max-height: calc(var(--u) * 26); max-width: 100%; display: block; }
 .soft .soft-t { font-size: calc(var(--u) * 11.5); line-height: 1.35; color: var(--tenue); } .soft .soft-t b { color: var(--txt); font-weight: 800; }
 .soft .soft-pie { margin: calc(var(--u) * 3) 0 0; font-size: calc(var(--u) * 10.5); color: var(--tenue); }
+/* v11.64 · personalizar la simulación sin ventana: ELEVACIÓN arriba y, debajo y al mismo ancho, CONTENIDO (3) y PARED (5); con ladrillos, sus variantes en círculos */
+.lienzo > .simctl { position: absolute; right: calc(var(--u) * 8); top: calc(var(--u) * 8); left: auto; display: flex; flex-direction: column; align-items: stretch; gap: calc(var(--u) * 5); z-index: 3; max-width: calc(100% - var(--u) * 16); }
+.simctl > .elev { position: static !important; inset: auto !important; transform: none !important; justify-content: space-between; }
+.simcu { display: grid; grid-template-columns: 3fr 5fr; gap: calc(var(--u) * 5); }
+.simcu > .g, .ladr { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: calc(var(--u) * 4); padding: calc(var(--u) * 4); border-radius: calc(var(--u) * 8); background: rgba(0, 0, 0, .55); }
+.simcu button { position: relative; min-width: 0; height: calc(var(--u) * 26); border-radius: calc(var(--u) * 5); border: 2px solid transparent; padding: 0; background: #2b2c31 center / cover no-repeat; color: #e6e7ea; display: grid; place-items: center; cursor: pointer; }
+.simcu button:hover, .ladr button:hover { box-shadow: 0 0 0 calc(var(--u) * 2) rgba(255, 255, 255, .35); }
+.simcu button[aria-pressed="true"], .ladr button[aria-pressed="true"] { border-color: var(--verde); box-shadow: 0 0 0 calc(var(--u) * 1) var(--verde); }
+.simcu button svg { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+.simcu .sc-t { font: 800 calc(var(--u) * 9.5)/1 Inter, system-ui, sans-serif; letter-spacing: .1em; color: #fff; text-shadow: 0 1px 2px #000; }
+.ladr { align-self: flex-end; justify-self: end; grid-auto-columns: auto; border-radius: 999px; }
+.ladr button { width: calc(var(--u) * 24); height: calc(var(--u) * 24); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .6); padding: 0; background: center / cover no-repeat; cursor: pointer; }
+@media (max-width: 559px) { .simcu button { height: calc(var(--u) * 30); } .ladr button { width: calc(var(--u) * 28); height: calc(var(--u) * 28); } }
+/* v11.64 · resumen de lo elegido en la cabecera de cada apartado plegado */
+.blk-cab .blk-rs { display: none; }
+.pz.pag > .pz-cu > .blk:not(.sub-ab) > .blk-cab .blk-rs { display: block; flex: 1 1 auto; min-width: 0; margin: 0 calc(var(--u) * 8) 0 calc(var(--u) * 12); text-align: right; font-family: 'Share Tech Mono', monospace; font-size: calc(var(--u) * 14); color: var(--verde); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0; }
+@media (max-width: 900px), (max-height: 520px) { .lienzo > .simctl { align-items: flex-end; } .simcu { grid-template-columns: auto auto; } .simcu > .g { grid-auto-columns: calc(var(--u) * 30); } .simcu button { height: calc(var(--u) * 28); } }

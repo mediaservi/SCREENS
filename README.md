@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.70** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.71** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -78,7 +78,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.70)
+## Cambios de la versión actual (v11.71)
+- **ENTRADAS como tarjetas de conector** (Electrónica y señal): 20 tipos dibujados con su forma (HDMI 1.3/1.4/2.0/2.1, DP 1.1/1.2/1.4, DVI, VGA, CVBS, 3G/6G/12G-SDI, HDBaseT 2K60/4K30, NDI, RJ45 IP, ST 2110 25G, fibra y USB). Cada tarjeta lleva una franja de color por generación (1080p · 4K30 · 4K60 · 8K · IP), su contador −/+ y la resolución máxima al pasar por encima. La tarjeta «+» añade otro tipo.
+- El cálculo de la electrónica toma el total de entradas, la familia (HDMI, DP, SDI o varias) y si alguna es 4K. Las que necesitan algo más se avisan: VGA y CVBS con conversor, NDI, RJ45 IP y ST 2110 con decodificador o tarjeta IP, fibra con un conversor en cada extremo, USB con reproductor, y 8K con un procesador de serie H o MX.
+- La lista de material separa las fuentes por tipo de conector, y el resumen del bloque plegado dice qué entradas hay.
+
+## Cambios de la v11.70
 - **Formato estándar primero:** si la pantalla es 16:9 (o 4:3, 21:9, 32:9, 16:10…) por píxeles o por medida, se destaca así y debajo va el decimal (16:9 · 1,78:1). Se aplica en el cuadro de datos de la simulación, en el rótulo de la carta, en Dimensiones y en el PDF.
 
 ## Cambios de la v11.69

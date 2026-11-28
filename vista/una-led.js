@@ -33,7 +33,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.70';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.71';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -100,7 +100,7 @@ const tog = (on, attrs, txt, ic) => `<button type="button" class="tog" aria-pres
 
 /* ---------- estado ---------- */
 const GUARDA = 'screens-blocks-1';
-const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0', plano: 'reparto' };
+const DEF = { w: 3, h: 2, tipo: 'INDOOR', clase: 'INSTALL', pitch: 0, pitchOtros: [], dist: 0, crm: '', elev: 100, fondo: 'hormigon', cosido: 'auto', backup: true, escalador: 'con', conexion: 'directo', marca: 'ninguno', ajuste: 'dentro', giro: false, gold: false, protegido: false, nitsMin: 0, uni: 'm', resMin: '', procSel: '', dante: false, mediaSel: '', sol: '', transp: false, vista: 0, tema: 'oscuro', texto: '', proy: '', cliente: '', entradas: 1, obs: '', tipoEntrada: 'HDMI', resEntrada: '', cableM: '0', plano: 'reparto', ent: '' };
 const E = Object.assign({}, DEF,
   (() => { try { return JSON.parse(localStorage.getItem(GUARDA) || '{}'); } catch (e) { return {}; } })());
 /* v11.17 · PUENTE ENTRE MODALIDADES: al pasar de una pantalla LED a varias o a proyección (y al volver) el proyecto sigue siendo el mismo:
@@ -290,7 +290,7 @@ function eligeCabinet(lista, pitches) {
   return { m: (cand[0] || { m: lista[0] }).m, origen };
 }
 function calcula() {
-  R = null; if (!CAT.length) return;
+  syncEnt(); R = null; if (!CAT.length) return;
   /* v11.53 · entradas validadas: medida finita, mayor que 0 y por debajo del máximo de BRIAN (led.medida.maxM); nunca se calcula a ciegas */
   { const w = Number(E.w), h = Number(E.h), mx = BR['led.medida.maxM'] || 200;
     if (!isFinite(w) || !isFinite(h) || w <= 0 || h <= 0) { R = { vacio: true, error: 'Medida no válida: escribe un ancho y un alto mayores que 0.' }; return; }
@@ -424,6 +424,54 @@ const sobraTxt = (r) => { const p = [['w', 'ancho'], ['h', 'alto']].filter(([k])
 /* v11.66 · (bloque 0, error 2) la etiqueta de formato solo cuando el lienzo ES ese estándar, por ancho y por alto (±3 %, BRIAN led.formato.tolerancia):
    3840×2112 ya no es «FHD» ni 2048×1024 «HD READY»; si no coincide con ninguno, se enseña la proporción */
 const NIVELES = [[7680, 4320, '8K', 'ULTRA HD'], [3840, 2160, '4K', 'ULTRA HD'], [2560, 1440, 'QHD', 'QUAD HD'], [1920, 1080, 'FHD', 'FULL HD'], [1280, 720, 'HD', 'HD READY']];
+/* v11.71 · ENTRADAS como tarjetas de conector: 20 tipos con su forma, color por generación (1080p · 4K30 · 4K60 · 8K · IP), contador y su resolución máxima.
+   E.ent = «id:n,id:n». El motor de electrónica entiende HDMI, DP y SDI: el resto entra con su conversor o su tarjeta y se avisa. */
+const GEN = { k1: ['1080p', '#9fb3c8'], k430: ['4K30', '#f0b429'], k460: ['4K60', '#d4ff00'], k8: ['8K', '#ff5ccf'], ip: ['IP', '#37c8ff'] };
+const CONN = [
+  ['hdmi13', 'HDMI 1.3', 'HDMI', 'k1', 'hdmi', '1920×1200 @60'], ['hdmi14', 'HDMI 1.4', 'HDMI', 'k430', 'hdmi', '3840×2160 @30'], ['hdmi20', 'HDMI 2.0', 'HDMI', 'k460', 'hdmi', '4096×2160 @60'], ['hdmi21', 'HDMI 2.1', 'HDMI', 'k8', 'hdmi', '7680×4320 @60'],
+  ['dp11', 'DP 1.1', 'DP', 'k1', 'dp', '2560×1600 @60'], ['dp12', 'DP 1.2', 'DP', 'k460', 'dp', '4096×2160 @60'], ['dp14', 'DP 1.4', 'DP', 'k8', 'dp', '7680×4320 @60'],
+  ['dvi', 'DVI', 'HDMI', 'k1', 'dvi', '1920×1200 @60 · DL 2560×1600'], ['vga', 'VGA', 'ANA', 'k1', 'vga', '1920×1200 @60'], ['cvbs', 'CVBS', 'ANA', 'k1', 'rca', '720×576i'],
+  ['sdi3g', '3G-SDI', 'SDI', 'k1', 'bnc', '1920×1080 @60'], ['sdi6g', '6G-SDI', 'SDI', 'k430', 'bnc', '3840×2160 @30'], ['sdi12g', '12G-SDI', 'SDI', 'k460', 'bnc', '4096×2160 @60'],
+  ['hdbt2k', 'HDBaseT 2K60', 'HDMI', 'k1', 'rj45', '1920×1080 @60 · 100 m'], ['hdbt4k', 'HDBaseT 4K30', 'HDMI', 'k430', 'rj45', '3840×2160 @30 · 100 m'],
+  ['ndi', 'NDI', 'IP', 'ip', 'rj45', '3840×2160 @60 · LAN'], ['rj45', 'RJ45 IP', 'IP', 'ip', 'rj45', 'streaming · LAN'], ['st2110', 'ST 2110 25G', 'IP', 'ip', 'sfp', '3840×2160 @60 · 25 GbE'],
+  ['fibra', 'Fibra', 'FIB', 'k460', 'lc', '4096×2160 @60 · 300 m MM / 10 km SM'], ['usb', 'USB', 'USB', 'k460', 'usb', '3840×2160 @60']];
+const CONN_ID = Object.fromEntries(CONN.map((c) => [c[0], c]));
+const CONN_SVG = { hdmi: '<path d="M4 6h32v7l-5 6H9l-5-6z"/><path d="M9 10h22"/>', dp: '<path d="M4 6h32v13H10l-6-6z"/><path d="M10 10h21"/>', dvi: '<path d="M2 6h36l-2 13H4z"/><path d="M8 10h14M8 13h14M8 16h14M28 12h6" stroke-dasharray="1.5 1.6"/>',
+  vga: '<path d="M3 6h34l-4 13H7z"/><path d="M9 10h22M11 13h18M13 16h14" stroke-dasharray="1.4 2.6"/>', rca: '<circle cx="20" cy="12.5" r="8"/><circle cx="20" cy="12.5" r="2.4"/>', bnc: '<circle cx="20" cy="12.5" r="8.5"/><circle cx="20" cy="12.5" r="4"/><circle cx="20" cy="12.5" r="1"/><path d="M10 12.5H7M30 12.5h3"/>',
+  rj45: '<path d="M10 5h20v12h-5v3h-10v-3h-5z"/><path d="M14 8v4M17 8v4M20 8v4M23 8v4M26 8v4"/>', sfp: '<rect x="5" y="7" width="30" height="11" rx="1.5"/><path d="M9 11h13M9 14h13M27 9v7"/>', lc: '<rect x="7" y="6" width="11" height="13" rx="2"/><rect x="22" y="6" width="11" height="13" rx="2"/><circle cx="12.5" cy="12.5" r="1.8"/><circle cx="27.5" cy="12.5" r="1.8"/>',
+  usb: '<rect x="5" y="7" width="30" height="11" rx="1.5"/><rect x="10" y="10" width="20" height="4"/>' };
+const entDef = (tipo, res) => (tipo === 'DP' ? (res === '4K' ? 'dp12' : 'dp11') : tipo === 'SDI' ? (res === '4K' ? 'sdi12g' : 'sdi3g') : res === '4K' ? 'hdmi20' : res === 'FHD' || res === 'HD' ? 'hdmi13' : 'hdmi20');
+function entLista() {
+  const L = String(E.ent || '').split(',').map((x) => x.split(':')).filter((x) => CONN_ID[x[0]] && +x[1] > 0).map((x) => [x[0], Math.min(16, Math.round(+x[1]))]);
+  return L.length ? L : [[entDef(E.tipoEntrada, E.resEntrada), Math.max(1, +E.entradas || 1)]];
+}
+/* lo que entiende el motor: número de entradas, familia (HDMI, DP, SDI o varias) y resolución (4K si alguna llega a 4K) */
+function syncEnt() {
+  if (!E.ent) return; const L = entLista(), fam = [...new Set(L.map(([id]) => ({ DP: 'DP', SDI: 'SDI' })[CONN_ID[id][2]] || 'HDMI'))];
+  E.entradas = Math.min(16, L.reduce((a, x) => a + x[1], 0)); E.tipoEntrada = fam.length > 1 ? 'MIXTO' : fam[0]; E.resEntrada = L.some(([id]) => CONN_ID[id][3] !== 'k1') ? '4K' : 'FHD';
+}
+const entTxt = () => entLista().map(([id, n]) => n + '× ' + CONN_ID[id][1]).join(' · ');
+function entAvisos(p) {
+  const F = new Set(entLista().map(([id]) => CONN_ID[id][2])), G = new Set(entLista().map(([id]) => CONN_ID[id][3])), A = [];
+  if (F.has('ANA')) A.push('VGA y CVBS son señales analógicas: hace falta un conversor a HDMI por cada fuente.');
+  if (F.has('IP')) A.push('NDI, RJ45 IP y ST 2110 llegan por red: hace falta un decodificador o un procesador con tarjeta de entrada IP.');
+  if (F.has('FIB')) A.push('Fibra: un conversor de fibra en cada extremo (300 m en multimodo, 10 km en monomodo).');
+  if (F.has('USB')) A.push('USB: el contenido se reproduce desde un reproductor con controladora o un procesador con puerto USB.');
+  if (G.has('k8') && p && !/MX6000|MX2000|\bH\d|H SERIES|H-SERIES/i.test(p.modelo || '')) A.push('HDMI 2.1 y DP 1.4 (8K) necesitan un procesador con su tarjeta de entrada: serie H o MX.');
+  return A;
+}
+function entCtl() {
+  const L = entLista(), usados = new Set(L.map((x) => x[0]));
+  const card = ([id, n]) => { const c = CONN_ID[id], g = GEN[c[3]]; return `<div class="cn" style="--g:${g[1]}" title="${c[1]} · máx. ${c[5]}"><svg viewBox="0 0 40 25" aria-hidden="true">${CONN_SVG[c[4]]}</svg><b>${c[1]}</b><span class="cn-g">${g[0]}</span><div class="cn-n"><button type="button" data-cn="${id}" data-d="-1" aria-label="Una entrada ${c[1]} menos">−</button><i>${n}</i><button type="button" data-cn="${id}" data-d="1" aria-label="Una entrada ${c[1]} más">+</button></div></div>`; };
+  const grupos = [['HDMI', ['hdmi13', 'hdmi14', 'hdmi20', 'hdmi21', 'dvi', 'hdbt2k', 'hdbt4k']], ['DisplayPort', ['dp11', 'dp12', 'dp14']], ['SDI', ['sdi3g', 'sdi6g', 'sdi12g']], ['IP', ['ndi', 'rj45', 'st2110', 'fibra']], ['Otras', ['vga', 'cvbs', 'usb']]];
+  const add = `<label class="cn cn-mas" title="Añadir una entrada"><span aria-hidden="true">+</span><select data-cnadd aria-label="Añadir una entrada"><option value="">+ Añadir entrada…</option>${grupos.map(([gn, ids]) => `<optgroup label="${gn}">${ids.filter((i) => !usados.has(i)).map((i) => `<option value="${i}">${CONN_ID[i][1]} · ${GEN[CONN_ID[i][3]][0]}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  return `<div class="rot cn-rot">Entradas</div><div class="cns" role="group" aria-label="Entradas">${L.map(card).join('')}${add}</div>`;
+}
+function cambiaEnt(id, d) {
+  const L = entLista(), i = L.findIndex((x) => x[0] === id);
+  if (i < 0) { if (d > 0) L.push([id, 1]); } else { L[i][1] += d; if (L[i][1] <= 0) { if (L.length > 1) L.splice(i, 1); else L[i][1] = 1; } }
+  const tot = L.reduce((a, x) => a + x[1], 0); if (tot > 16) return; E.ent = L.map((x) => x.join(':')).join(','); syncEnt();
+}
 /* v11.70 · formato de la pantalla: primero el estándar (16:9, 4:3…) si lo es por píxeles o por medida (±0,5 %), siempre acompañado del decimal (1,78:1) */
 const FORMATOS_STD = [[16, 9], [4, 3], [21, 9], [32, 9], [16, 10], [1, 1], [9, 16], [3, 4], [10, 16]];
 function formatoLed(r) {
@@ -652,7 +700,7 @@ const cosidoCtl = (v = 'senal') => `<div class="cosidos" role="group" aria-label
 /* v10.94 · cómo se dibuja el cableado: reparto para el instalador o plano técnico (el formato que el técnico pasa al cliente) */
 const planoCtl = () => `<div class="cosidos planos" role="group" aria-label="Tipo de plano"><span>Plano</span>${[['reparto', 'Reparto', 'Reparto por puertos y líneas con la manguera'], ['tecnico', 'Técnico', 'Plano técnico: tarjeta-puerto-orden, píxeles, entradas y salidas, circuitos en cascada']].map(([v, t, ti]) => `<button type="button" data-set="plano" data-v="${v}" title="${ti}" aria-pressed="${(E.plano === 'tecnico' ? 'tecnico' : 'reparto') === v}">${t}</button>`).join('')}</div>`;
 // v10.89 · cada bloque con datos lleva su RESTABLECER (regla del proyecto)
-const RBLK = { M1A: ['tipo', 'clase', 'transp', 'gold', 'protegido', 'sol', 'nitsMin', 'crm'], M2A: ['w', 'h', 'dist', 'uni', 'giro'], M1B: ['crm'], M2B: ['ajuste', 'giro'], M3A: ['pitch', 'pitchOtros', 'resMin'], M3B: ['procSel', 'escalador', 'backup', 'conexion'], M3C: ['marca', 'mediaSel', 'dante'], M3E: ['backup', 'conexion'] };
+const RBLK = { M1A: ['tipo', 'clase', 'transp', 'gold', 'protegido', 'sol', 'nitsMin', 'crm'], M2A: ['w', 'h', 'dist', 'uni', 'giro'], M1B: ['crm'], M2B: ['ajuste', 'giro'], M3A: ['pitch', 'pitchOtros', 'resMin'], M3B: ['procSel', 'escalador', 'backup', 'conexion', 'ent'], M3C: ['marca', 'mediaSel', 'dante'], M3E: ['backup', 'conexion'] };
 const AJ_RESET = ['backup', 'escalador', 'conexion', 'marca', 'ajuste', 'elev', 'procSel', 'mediaSel', 'dante'];
 const blk = (area, id, tit, ac, cuerpo, extra = '', cls = '', ic = ICB[id]) => `<section class="blk ${cls}" style="grid-area:${area};--ac:${ac}" data-blk="${id}"><header class="blk-cab">${ic ? `<i class="blk-ic" aria-hidden="true">${IC[ic]}</i>` : ''}<b>${tit}</b><span class="sep"></span>${extra}${RBLK[id] ? bt('nuevo', 'Restablecer este bloque', `data-rblk="${id}"`, 'rblk') : ''}<span class="id">${id}</span></header><div class="blk-cu">${cuerpo}</div></section>`;
 const UNI = { m: 1, cm: 100, mm: 1000 };
@@ -685,7 +733,7 @@ const rsBlk = (id) => { if (!R || !R.r) return ''; const { m, r } = R, j = (a) =
   const T = (x) => (x ? tr(x) : x);
   return ({ M2A: j([`${fmt(r.ancho, 2)} × ${fmt(r.alto, 2)} m`, E.ajuste === 'margen' ? T('Hasta') + ' +' + fmt((BR['led.encaje.pasarseMax'] ?? 0.05) * 100) + ' %' : T(E.ajuste === 'cerca' ? 'Lo más cercano' : 'Que quepa'), E.dist ? fmt(+E.dist, 1) + ' m' : '']),
     M3A: j([`P${String(R.pitch).replace('.', ',')}`, `${r.resW}×${r.resH} px`]), M1B: m.crm, M2B: `${r.cols}×${r.rows} = ${r.cab}`,
-    M3B: j([p ? p.modelo : T('Sin procesador'), T(E.backup ? 'con backup' : 'sin backup'), E.conexion === 'fibra' ? T('fibra') : 'RJ45', p && !p.reproductor ? T(p.escalador ? 'con escalador' : 'sin escalador') : '']),
+    M3B: j([p ? p.modelo : T('Sin procesador'), entTxt(), T(E.backup ? 'con backup' : 'sin backup'), E.conexion === 'fibra' ? T('fibra') : 'RJ45', p && !p.reproductor ? T(p.escalador ? 'con escalador' : 'sin escalador') : '']),
     M3C: E.marca === 'ninguno' ? T('No') : R.media ? R.media.modelo : T('Sin modelo que valga') })[id] || ''; };
 function zonas(el, AV) {
   const g = (id) => el.querySelector(`:scope > [data-blk="${id}"]`), ok = !!(R && R.r), mk = (tag, cls, html) => { const d = document.createElement(tag); d.className = cls; if (html) d.innerHTML = html; return d; };
@@ -791,12 +839,12 @@ function pintaRejilla0() {
   h += blk('m3f', 'M3F', 'Alimentación', 'var(--rojo)', `${r.kw > 0 ? `<div class="gran">${fmt(r.kw, 2)}<small>kW máx.</small></div>` : ''}${R.ampCab > 0 ? dato('Corriente', fmt(r.cab * R.ampCab, 1) + ' A · ' + BR['led.linea.tension'] + ' V' + (R.ampOrigen === 'catalogo' ? ' (fabricante)' : ' (FP ' + fmt(R.FP, 2) + ')')) + dato('Líneas de 16 A', R.nLin) + (fases() ? dato('Fases L1/L2/L3', fases()) : '') + (R.btu > 0 ? dato('Calor', fmt(R.btu) + ' BTU/h') : '') : ''}${+m.wMax > 0 || R.ampCab > 0 ? dato('Por cabinet', [+m.wMax > 0 ? fmt(m.wMax) + ' W' : '', R.ampCab > 0 ? fmt(R.ampCab, 2) + ' A' : ''].filter(Boolean).join(' · ')) : ''}${!(r.kw > 0) && !(R.ampCab > 0) ? '<div class="nota">Sin datos de consumo en el catálogo.</div>' : ''}`, bt('ojo', 'Ver el reparto eléctrico', 'data-ver="elec"'));
   h += blk('m3e', 'M3E', 'Señal', 'var(--ambar)', `<div class="gran">${r.lineas}<small>línea${r.lineas > 1 ? 's' : ''} Ethernet</small></div><div class="fila dos bkp">${tog(E.backup, 'data-set="backup" data-v="1" title="Un segundo cable por puerto, que entra por el último cabinet de cada cadena: + ' + r.lineas + ' cables Cat6"', 'Con backup')}${tog(!E.backup, 'data-set="backup" data-v=""', 'Sin backup')}</div><div class="fila tres op"><span>Conexión</span>${tog(E.conexion === 'directo', 'data-set="conexion" data-v="directo" title="Del procesador a los cabinets por cable de red"', 'RJ45')}${tog(E.conexion === 'fibra', 'data-set="conexion" data-v="fibra" title="Del procesador a los cabinets por fibra óptica"', 'Fibra')}</div>${dato('Cosido', R.cosido + (E.cosido === 'auto' ? ' (auto)' : ''))}${dato('Salidas 4K', r.salidas4k)}`, bt('ojo', 'Ver el cableado de señal', 'data-ver="senal"'));
   const p = R.proc, me = R.media;
-  h += blk('m3b', 'M3B', 'Electrónica', 'var(--marca)', (p ? `<div style="font-weight:800;font-size:calc(var(--u)*19);line-height:1.15">${R.procs.length > 1 ? `<select class="sel" data-proc aria-label="Procesador" title="Elegir otro procesador de los que valen para este proyecto">${R.procs.map((x, i) => `<option value="${esc(x.modelo)}"${x === p ? ' selected' : ''}>${esc(x.modelo)}${i ? '' : ' · recomendado'}</option>`).join('')}</select>` : esc(p.modelo)}<div class="nota">${esc(p.marca)} · ${p.reproductor ? 'reproductor con controladora' : p.escalador ? 'con escalador' : 'sin escalador'}</div></div>${dato('Puertos', esc(p.puertos))}` : '<div class="nota">Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.</div>') + `<div class="fila tres op"><span>Escalador</span>${tog(E.escalador === 'con', 'data-set="escalador" data-v="con"', 'Con')}${tog(E.escalador === 'sin', 'data-set="escalador" data-v="sin"', 'Sin')}${tog(E.escalador === 'indiferente', 'data-set="escalador" data-v="indiferente" title="Da igual que el procesador lleve escalador o no"', 'Igual')}</div>`, bt('ojo', 'Ver la electrónica completa', 'data-ver="equipo"'));
+  h += blk('m3b', 'M3B', 'Electrónica', 'var(--marca)', (p ? `<div style="font-weight:800;font-size:calc(var(--u)*19);line-height:1.15">${R.procs.length > 1 ? `<select class="sel" data-proc aria-label="Procesador" title="Elegir otro procesador de los que valen para este proyecto">${R.procs.map((x, i) => `<option value="${esc(x.modelo)}"${x === p ? ' selected' : ''}>${esc(x.modelo)}${i ? '' : ' · recomendado'}</option>`).join('')}</select>` : esc(p.modelo)}<div class="nota">${esc(p.marca)} · ${p.reproductor ? 'reproductor con controladora' : p.escalador ? 'con escalador' : 'sin escalador'}</div></div>${dato('Puertos', esc(p.puertos))}` : '<div class="nota">Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.</div>') + `<div class="fila tres op"><span>Escalador</span>${tog(E.escalador === 'con', 'data-set="escalador" data-v="con"', 'Con')}${tog(E.escalador === 'sin', 'data-set="escalador" data-v="sin"', 'Sin')}${tog(E.escalador === 'indiferente', 'data-set="escalador" data-v="indiferente" title="Da igual que el procesador lleve escalador o no"', 'Igual')}</div>` + entCtl() + entAvisos(p).map((a) => `<div class="nota cn-av">${a}</div>`).join(''), bt('ojo', 'Ver la electrónica completa', 'data-ver="equipo"'));
   /* MEDIASERVER (M3C): bloque propio, con marca, Dante y elección del modelo, como en la clásica */
   const conMs = E.marca !== 'ninguno';
   h += blk('m3c', 'M3C', 'Mediaserver', 'var(--azul)', `<div class="fila tres op"><span>Añadir</span>${tog(conMs, 'data-set="marca" data-v="todos" title="Añadir un servidor de contenidos"', 'Sí')}${tog(!conMs, 'data-set="marca" data-v="ninguno"', 'No')}</div>` + (conMs ? `<div class="fila tres op"><span>Marca</span>${tog(E.marca === 'todos', 'data-set="marca" data-v="todos"', 'Todas')}${tog(E.marca === 'novastar', 'data-set="marca" data-v="novastar"', 'Nova')}${tog(E.marca === 'pixelhue', 'data-set="marca" data-v="pixelhue"', 'Pixel')}</div><div class="fila tres op"><span>Audio Dante</span>${tog(E.dante, 'data-set="dante" data-v="1" title="Solo servidores con audio por red Dante"', 'Sí')}${tog(!E.dante, 'data-set="dante" data-v=""', 'No')}</div>` + (me ? `<select class="sel" data-media aria-label="Mediaserver" title="Elegir otro mediaserver de los que valen para este proyecto">${R.medias.map((x, i) => `<option value="${esc(x.modelo)}"${x === me ? ' selected' : ''}>${esc(x.modelo)}${i ? '' : ' · recomendado'}</option>`).join('')}</select><div class="nota">${esc(me.marca)} · ${me.out4k} salida${me.out4k > 1 ? 's' : ''} 4K (hacen falta ${me.need})</div>` : '<div class="nota" style="color:var(--ambar)">Ningún mediaserver cubre este proyecto con esta marca y estas opciones.</div>') : '<div class="nota">Servidor de contenidos para la pantalla. Actívalo si el proyecto lo lleva.</div>'), conMs && me ? bt('ojo', 'Ver la ficha del mediaserver', 'data-ver="equipo"') : '');
   /* v11.16 · avisos del cálculo (los mismos textos que ya salían repartidos por los bloques), para el veredicto de RESULTADOS */
-  const AV = []; if (!p) AV.push(['mal', 'Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.']); if (conMs && !me) AV.push(['av', 'Ningún mediaserver cubre este proyecto con esta marca y estas opciones.']); if (R.relajado) AV.push(['av', R.relajado]); if (R.origen === 'cercano' || R.origen === 'sinres') AV.push(['av', ORIG[1]]); if (R.alt) AV.push(['av', R.alt]); (R.avisos || []).forEach((a) => AV.push(a)); AV.sort((a, b) => (a[0] === 'mal' ? 0 : 1) - (b[0] === 'mal' ? 0 : 1));
+  const AV = []; if (!p) AV.push(['mal', 'Sin procesador que cubra este proyecto con estas opciones: cambia el backup, la conexión o el escalador.']); if (conMs && !me) AV.push(['av', 'Ningún mediaserver cubre este proyecto con esta marca y estas opciones.']); if (R.relajado) AV.push(['av', R.relajado]); if (R.origen === 'cercano' || R.origen === 'sinres') AV.push(['av', ORIG[1]]); if (R.alt) AV.push(['av', R.alt]); (R.avisos || []).forEach((a) => AV.push(a)); entAvisos(p).forEach((a) => AV.push(['av', a])); AV.sort((a, b) => (a[0] === 'mal' ? 0 : 1) - (b[0] === 'mal' ? 0 : 1));
   el.innerHTML = h; zonas(el, AV);
 }
 function pintaPie() {
@@ -945,7 +993,7 @@ function monta() {
     if ((esProy && !esLed) || esSala) { try { localStorage.setItem('screens_peticion', E.texto); } catch (er) {} guarda(); puenteSale(); location.href = 'consola.html?modo=' + (esSala ? 'varias-' + (esLed ? 'led' : 'proy') : 'una-proy'); return; }   /* v10.48 · una petición de proyector se calcula en la consola de proyección */
     const nueva = E.texto.trim() !== (E.txtAnt || ''); E.txtAnt = E.texto.trim(); const v = interpreta(E.texto, nueva); EDITA = false; USADO = true; todo(); aplicaPend(); if (E.texto.trim() && !v.length) tostada('No he entendido la petición: prueba con «3 x 2 interior» o usa los botones.', 5000); };
   $('#calcular').onclick = pide; $('#pide').addEventListener('keydown', (e) => { if (e.key === 'Enter') pide(); });
-  const pon = (k, v) => { if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
+  const pon = (k, v) => { if (k === 'tipoEntrada' || k === 'resEntrada') E.ent = ''; if (k === 'backup' || k === 'giro' || k === 'gold' || k === 'protegido' || k === 'dante' || k === 'transp') E[k] = !!v; else if (k === 'sol') E.sol = E.sol === v ? '' : v; else E[k] = v; if (k === 'sol') { E.nitsMin = 0; E.crm = ''; } if (k === 'tipo' || k === 'clase' || k === 'gold' || k === 'protegido' || k === 'transp') { E.crm = ''; if (k === 'transp') E.pitch = 0; } if (k === 'tipo') E.nitsMin = 0; if (k === 'resMin') { E.pitch = 0; E.crm = ''; } if (k === 'tema') document.documentElement.dataset.tema = v; todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); else if (VENT && VENT.pinta) VENT.pinta(); };
   document.addEventListener('click', (e) => { const q = (s) => e.target.closest(s); let b; if (q('.rejilla button, .velo [data-set]')) USADO = true; if (q('a[href*="consola.html?modo"]')) puenteSale();   /* v11.17 · al saltar a varias o a proyección, el proyecto viaja */
     if (q('[data-aviso-calc]') && movilV()) { tostada('Cálculo automático que puede contener errores: revísalo antes de presupuestar o instalar. El aviso completo sale también en el PDF.', 6000); return; }
     if ((b = q('[data-alt-crm]'))) { try { $('#stk-pop').hidePopover(); } catch (x) {} E.crm = b.dataset.altCrm; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); return; }   /* v10.75 · alternativa con stock elegida desde la ficha de stock */
@@ -957,11 +1005,12 @@ function monta() {
     if ((b = q('[data-rpz]'))) { (PZ.find((x) => x[0] === +b.dataset.rpz) || [0, 0, []])[2].forEach((id) => (RBLK[id] || []).forEach((k) => { E[k] = Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]; })); todo(); return; }
     if ((b = q('[data-rblk]'))) { (RBLK[b.dataset.rblk] || []).forEach((k) => { E[k] = Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]; }); todo(); return; }
     if ((b = q('.vent [data-reset]'))) { AJ_RESET.forEach((k) => { E[k] = DEF[k]; }); todo(); abre('ajustes'); return; }   // v10.89 · el RESTABLECER de Ajustes no hacía nada
+    if ((b = q('[data-cn]'))) { cambiaEnt(b.dataset.cn, +b.dataset.d); todo(); return; }
     if ((b = q('[data-set]'))) pon(b.dataset.set, b.dataset.v);
     else if ((b = q('[data-nits]'))) { const L = [0].concat(R.nitsLista.filter((x) => x > R.nits || x === +E.nitsMin)).sort((a, b) => a - b), i = Math.max(0, L.indexOf(+E.nitsMin || 0)) + +b.dataset.nits; if (L[i] != null) { E.nitsMin = L[i]; E.crm = ''; todo(); } }
     else if ((b = q('[data-cf]'))) { const { m, r } = R, d = +b.dataset.d; if (R.holo) { if (b.dataset.cf === 'c') E.w = Math.max(+m.cabAncho, r.ancho * 1000 + d * m.cabAncho) / 1000; else E.h = (d > 0 ? R.holo.top * 2 : R.holo.top) / 1000; } else if (b.dataset.cf === 'c') E.w = Math.max(1, r.cols + d) * m.cabAncho / 1000 + .0004; else E.h = Math.max(1, r.rows + d) * m.cabAlto / 1000 + .0004; if (E.resMin) { E.pitch = R.pitch; } todo(); }
     else if ((b = q('[data-pitch]'))) { const i = R.pitches.indexOf(R.pitch) + +b.dataset.pitch; if (R.pitches[i] != null) { E.pitch = R.pitches[i]; E.pitchOtros = []; E.crm = ''; todo(); } }
-    else if ((b = q('[data-pm]'))) { const k = b.dataset.pm, paso = k === 'elev' ? 10 : k === 'dist' ? .5 : k === 'entradas' ? 1 : .1; E[k] = Math.max(k === 'w' || k === 'h' ? .1 : 0, +((+E[k] || (k === 'entradas' ? 1 : 0)) + paso * +b.dataset.d).toFixed(2)); if (k === 'entradas') E[k] = Math.max(1, Math.min(16, Math.round(E[k]))); if (k === 'dist') { E.pitch = 0; E.crm = ''; } todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); }
+    else if ((b = q('[data-pm]'))) { const k = b.dataset.pm, paso = k === 'elev' ? 10 : k === 'dist' ? .5 : k === 'entradas' ? 1 : .1; E[k] = Math.max(k === 'w' || k === 'h' ? .1 : 0, +((+E[k] || (k === 'entradas' ? 1 : 0)) + paso * +b.dataset.d).toFixed(2)); if (k === 'entradas') E.ent = ''; if (k === 'entradas') E[k] = Math.max(1, Math.min(16, Math.round(E[k]))); if (k === 'dist') { E.pitch = 0; E.crm = ''; } todo(); if (VENT && (VENT.que === 'ajustes' || VENT.que === 'proyecto')) abre(VENT.que); }
     else if (q('[data-reintenta]')) { ESTADO = 'cargando'; todo(); cargarCatalogo((lista, origen) => { if (origen === 'error') { if (!CAT.length) ESTADO = 'error'; } else { CAT = lista; ESTADO = origen; } todo(); }); }
     else if (q('[data-deshacer]')) { if (DESH) { Object.assign(E, DESH.E); $('#pide').value = E.texto || ''; USADO = DESH.usado; DESH = null; todo(); tostada('Recuperado lo de antes.'); } }
     else if (q('[data-pdf]')) pdf();
@@ -995,6 +1044,7 @@ function monta() {
     if (t.dataset.num) { const k = t.dataset.num, v = parseFloat(String(t.value).replace(',', '.')); if (k === 'dist') { E.dist = v > 0 ? v : 0; E.pitch = 0; E.pitchOtros = []; E.crm = ''; } else if (v >= 0) E[k] = k === 'elev' ? v : Math.max(.1, v / UNI[E.uni]); todo(); if (VENT && VENT.que === 'ajustes') abre('ajustes'); }
     else if (t.dataset.res) { const { m } = R, v = Math.max(1, Math.round(parseFloat(t.value) || 0)), ancho = t.dataset.res === 'w'; if (ancho) E.w = Math.ceil(v / m.cabPixAncho) * m.cabAncho / 1000 + .0004; else E.h = Math.ceil(v / m.cabPixAlto) * m.cabAlto / 1000 + .0004; E.pitch = R.pitch; E.crm = m.crm; E.resMin = ''; USADO = true; todo(); if (R && R.r && (ancho ? R.r.resW : R.r.resH) !== v) tostada('Con cabinets enteros queda en ' + R.r.resW + ' × ' + R.r.resH + ' px.', 4500); }
     else if (t.dataset.crm !== undefined) { E.crm = t.value; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); }
+    else if (t.dataset.cnadd !== undefined) { if (t.value) { cambiaEnt(t.value, 1); todo(); } }
     else if (t.dataset.proc !== undefined) { E.procSel = t.value; todo(); }
     else if (t.dataset.media !== undefined) { E.mediaSel = t.value; todo(); }
     else if (t.dataset.pr) { E[t.dataset.pr] = String(t.value).slice(0, 900); guarda(); }
@@ -1080,7 +1130,7 @@ function material() {
   const cabDesc = (x) => 'Cabinet LED ' + x.pitch + 'p ' + x.cabAncho + '×' + x.cabAlto + ' mm';
   if (R.holo && R.holo.comb) { [[R.holo.comb.mA, R.holo.comb.cA], [R.holo.comb.mE, R.holo.comb.cE]].forEach(([x, n]) => L.push({ c: n * r.rows, ref: x.crm, url: x.urlProd || busca(x.crm), desc: cabDesc(x), g: 'pantalla' })); }
   else L.push({ c: r.cab, ref: m.crm, url: m.urlProd || busca(m.crm), desc: cabDesc(m), g: 'pantalla' });
-  L.push({ c: d.nF, ref: E.tipoEntrada && E.tipoEntrada !== 'MIXTO' ? E.tipoEntrada : 'HDMI', desc: 'Fuentes de vídeo del cliente' + (E.resEntrada ? ' (' + E.resEntrada + ')' : ''), g: 'video' });
+  entLista().forEach(([id, n]) => L.push({ c: n, ref: CONN_ID[id][1], desc: 'Fuentes de vídeo del cliente (' + GEN[CONN_ID[id][3]][0] + ')', g: 'video' }));
   if (d.conCable) { if (d.cab) L.push({ c: d.nF, ref: d.cab.ref, url: busca(d.cab.ref), desc: 'Cable HDMI PureLink FlexInstall ' + (d.cab.tipo === 'AOC' ? 'AOC' : 'pasivo') + ' 8K ' + String(d.cab.m).replace('.', ',') + ' m (fuente → ' + (me ? 'mediaserver' : 'electrónica') + ')' + (d.cab.estandar ? ' · estándar, distancia no indicada' : ''), g: 'video' });
     else L.push({ c: d.nF, ref: 'HDMI > 20 m', desc: 'Más de 20 m: consultar con Charmex (extensor HDMI sobre fibra / IP)', g: 'video' }); }
   if (me) L.push({ c: d.backup && !me.backupNativo ? 2 : 1, ref: me.modelo, url: me.url || busca(me.modelo), desc: (me.tipo === 'switcher' ? 'Switcher de presentación ' : 'Mediaserver ') + me.marca + (me.backupNativo ? ' (backup nativo)' : ''), g: 'video' });

@@ -15,6 +15,13 @@ export const idioma = () => actual;
 export function fijaIdioma(l) { if (!IDIOMAS.includes(l)) return; actual = l; try { localStorage.setItem('screens_idioma', l); } catch (e) {} document.documentElement.lang = l; }
 
 const MAPA = {
+  'con escalador': ['with scaler', 'amb escalador'], 'sin escalador': ['no scaler', 'sense escalador'],
+  '+ Añadir entrada…': ['+ Add input…', '+ Afegir entrada…'], 'Añadir una entrada': ['Add an input', 'Afegir una entrada'], 'Fibra': ['Fibre', 'Fibra'], 'Otras': ['Others', 'Altres'],
+  'VGA y CVBS son señales analógicas: hace falta un conversor a HDMI por cada fuente.': ['VGA and CVBS are analogue signals: each source needs an HDMI converter.', 'VGA i CVBS són senyals analògics: cal un convertidor a HDMI per a cada font.'],
+  'NDI, RJ45 IP y ST 2110 llegan por red: hace falta un decodificador o un procesador con tarjeta de entrada IP.': ['NDI, RJ45 IP and ST 2110 arrive over the network: a decoder or a processor with an IP input card is needed.', 'NDI, RJ45 IP i ST 2110 arriben per xarxa: cal un descodificador o un processador amb targeta d’entrada IP.'],
+  'Fibra: un conversor de fibra en cada extremo (300 m en multimodo, 10 km en monomodo).': ['Fibre: a fibre converter at each end (300 m multimode, 10 km single-mode).', 'Fibra: un convertidor de fibra a cada extrem (300 m en multimode, 10 km en monomode).'],
+  'USB: el contenido se reproduce desde un reproductor con controladora o un procesador con puerto USB.': ['USB: content plays from a media player with controller or a processor with a USB port.', 'USB: el contingut es reprodueix des d’un reproductor amb controladora o un processador amb port USB.'],
+  'HDMI 2.1 y DP 1.4 (8K) necesitan un procesador con su tarjeta de entrada: serie H o MX.': ['HDMI 2.1 and DP 1.4 (8K) need a processor with the matching input card: H or MX series.', 'HDMI 2.1 i DP 1.4 (8K) necessiten un processador amb la seva targeta d’entrada: sèrie H o MX.'],
   'Sensor de luz 5 m para pantalla LED (brillo automático según la luz ambiente; se conecta a la electrónica)': ['5 m light sensor for LED screen (automatic brightness from the ambient light; connects to the electronics)', 'Sensor de llum de 5 m per a pantalla LED (brillantor automàtica segons la llum ambient; es connecta a l’electrònica)'],
   /* v10.94 · planos técnicos */
   'Plano': ['Plan', 'Plànol'], 'Tipo de plano': ['Plan type', 'Tipus de plànol'], 'Reparto': ['Layout', 'Repartiment'], 'Técnico': ['Technical', 'Tècnic'],
@@ -460,6 +467,8 @@ const REGLAS = [
   /* v11.56 · veredicto primero */
   [/^Revisa (\d+) avisos$/, (m, l) => [`Check ${m[1]} warnings`, `Revisa ${m[1]} avisos`][k(l)]],
   [/^Nítida desde (.+) m$/, (m, l) => [`Sharp from ${m[1]}\u00a0m`, `Nítida des de ${m[1]}\u00a0m`][k(l)]],
+  [/^(.+) · máx\. (.+)$/, (m, l) => m[1] + ' · ' + ['max. ', 'màx. '][k(l)] + m[2].replace(' / ', ' / ')],
+  [/^Una entrada (.+) (menos|más)$/, (m, l) => [(m[2] === 'más' ? 'One more ' : 'One fewer ') + m[1] + ' input', (m[2] === 'más' ? 'Una entrada ' : 'Una entrada ') + m[1] + (m[2] === 'más' ? ' més' : ' menys')][k(l)]],
   [/^Se ve el píxel a (.+) m$/, (m, l) => [`Pixels visible at ${m[1]}\u00a0m`, `Es veu el píxel a ${m[1]}\u00a0m`][k(l)]],
   [/^(\d+) × 16 A al (\d+) %$/, (m, l) => [`${m[1]}\u00a0×\u00a016\u00a0A at\u00a0${m[2]}\u00a0%`, `${m[1]}\u00a0×\u00a016\u00a0A al\u00a0${m[2]}\u00a0%`][k(l)]],
   [/^(Con|Sin) backup · (\d+) × 4K$/, (m, l) => [(m[1] === 'Con' ? 'With' : 'No') + ' backup · ' + m[2] + '\u00a0×\u00a04K', (m[1] === 'Con' ? 'Amb' : 'Sense') + ' backup · ' + m[2] + '\u00a0×\u00a04K'][k(l)]],

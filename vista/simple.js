@@ -10,7 +10,7 @@
 import { PROYECTORES } from '../screens/proyeccion.js';
 import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.67';
+const VERSION = 'v11.68';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */

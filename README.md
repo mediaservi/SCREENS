@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.67** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.68** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -34,7 +34,7 @@ Para pasar de una petición como *"pantalla led para exterior de 6x2 metros que 
 
 **Una pantalla LED (portada)**
 - **Bloques:** entorno y uso, dimensiones, resolución, cabinet (con su ficha y foto), cabinets, electrónica, mediaserver, instalación, señal (con o sin backup, RJ45 o fibra, cosido) y alimentación.
-- **Simulación a escala:** la pantalla en su pared, con figura humana y cotas; debajo de la elevación, botones de CONTENIDO (carta, vídeo de prueba, propio) y de PARED (cemento, madera, mármol, ladrillos con sus variantes, propia). Pared a elegir: hormigón, madera, mármol, tres ladrillos, **sin fondo** o **fondo propio** (una foto subida o un enlace pegado, que se guarda en este navegador).
+- **Simulación a escala:** la pantalla en su pared, con figura humana y cotas; arriba, botones de CONTENIDO (carta, vídeo de prueba, propio) y de PARED (cemento, madera, mármol, ladrillos con sus variantes, propia). Pared a elegir: hormigón, madera, mármol, tres ladrillos, **sin fondo** o **fondo propio** (una foto subida o un enlace pegado, que se guarda en este navegador).
 - **Cableado:** señal, eléctrico, distancia de visionado y esquema de conexión. Con backup, cada puerto lleva un segundo cable por el último cabinet de su cadena. La **manguera** se dibuja como un solo tubo hasta la salida elegida con las flechas ← ↑ ↓ → (4 esquinas y 4 centros de lateral), con el número de cables.
 - **Lista de material** completa (cabinets, fuentes, cable HDMI PureLink según la distancia, mediaserver, electrónica, fibra, Cat6, distribución eléctrica, PC de control).
 - **Planos técnicos (v10.94):** con PLANO · Técnico, el cableado de señal pasa a plano con «tarjeta-puerto-orden», X/Y/W/H en píxeles, E/S y redundancia, y el eléctrico a circuitos en cascada con su entrada de corriente, cada uno con su cuadro de información.
@@ -78,7 +78,13 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.67)
+## Cambios de la versión actual (v11.68)
+- **Botones en los carteles de medidas de la simulación:** ANCHO con flechas para una columna de cabinets menos o más, y ALTO con flechas para una fila más o menos (icono cuadrado). La elevación se sube y se baja 10 cm desde su propio cartel (icono redondo).
+- **Cartel de elevación técnico:** «Elevación 90 cm» en texto blanco con halo oscuro, sin fondo ni bocadillo, legible sobre cualquier pared; sale siempre (si no cabe bajo la pantalla, en la franja del suelo).
+- **Se quita la barra ELEVACIÓN DESDE EL SUELO de arriba:** solo queda la línea de contenido y texturas.
+- Los botones no salen en la captura, en el PDF ni en la vista en grande.
+
+## Cambios de la v11.67
 - **Producto en RESULTADOS:** en los bloques que nombran un equipo (Instalación = el cabinet; Señal = el procesador), si hay sitio, su foto oficial (el ojo abre las fichas en grande) y los enlaces a su PDF y a su página (charmex.net, traulux.net o el fabricante). Si no cabe, primero se quita la foto y después la tira.
 - **Pantalla de proyección real:** al proyectar sobre una pantalla, SCREENS propone un modelo real de charmex.net (ORAY, Da-Lite, Stumpfl…) de la misma proporción y la medida más cercana, con su PDF y su página; si no hay ninguno, lo dice (pantalla a medida o pared preparada). También en el PDF.
 - **Semáforo en «¿Qué hago?»:** cada solución lleva en su lateral el verde (cumple) o el ámbar (fuera de especificación).

@@ -961,3 +961,7 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 .cp-ln a:hover { border-color: var(--azul); color: var(--azul); }
 .cp.mini { padding-top: calc(var(--u) * 6); }
 .cp-ln .cp-n { flex: 1 0 100%; font-size: calc(var(--u) * 12); font-weight: 800; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* v11.68 · botones de los carteles de medidas en la simulación */
+.lienzo svg .sim-bt { cursor: pointer; pointer-events: all; }
+.lienzo svg .sim-bt:hover rect, .lienzo svg .sim-bt:focus rect { stroke-width: 3.5; filter: drop-shadow(0 0 3px rgba(0, 180, 255, .6)); }
+.lienzo svg .sim-bt circle { pointer-events: all; } .lienzo svg .sim-bt:hover path { filter: drop-shadow(0 0 3px rgba(212, 255, 0, .9)); }

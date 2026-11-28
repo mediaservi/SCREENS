@@ -441,6 +441,7 @@ const REGLAS = [
   [/^La pantalla no se ajusta a la medida pedida: (.+) → (.+) \((.+)\)\.$/, (m, l) => [`The screen does not match the requested size: ${m[1]} → ${m[2]} (${m[3]}).`, `La pantalla no s’ajusta a la mida demanada: ${m[1]} → ${m[2]} (${m[3]}).`][k(l)]],
   [/^El HOLO admite como mucho (\d+) filas \((.+) de alto\)\.$/, (m, l) => [`HOLO allows at most ${m[1]} rows (${m[2]} high).`, `L’HOLO admet com a màxim ${m[1]} files (${m[2]} d’alt).`][k(l)]],
   [/^Con «Lo más cercano»: (.+) cabinets = (.+)\.$/, (m, l) => [`With «Closest»: ${m[1]} cabinets = ${m[2]}.`, `Amb «El més proper»: ${m[1]} cabinets = ${m[2]}.`][k(l)]],
+  [/^Elevación (.+)$/, (m, l) => ['Elevation ', 'Elevació '][k(l)] + m[1]],
   [/^Hasta \+(.+) %$/, (m, l) => [`Up to +${m[1]} %`, `Fins a +${m[1]} %`][k(l)]],
   [/^Margen de «Hasta \+(.+)»: la pantalla se pasa (.+) de la medida pedida \((.+)\)\. Comprueba que hay sitio\.$/, (m, l) => [`«Up to +${m[1]}» margin: the screen is ${m[2]} over the requested size (${m[3]}). Check there is room.`, `Marge de «Fins a +${m[1]}»: la pantalla passa ${m[2]} de la mida demanada (${m[3]}). Comprova que hi ha lloc.`][k(l)]],
   [/^En (.+) no cabe ni un cabinet de (.+) \((.+)\): sale uno entero, más grande que el hueco\.$/, (m, l) => [`Not even one ${m[2]} cabinet (${m[3]}) fits in ${m[1]}: a whole one is shown, larger than the gap.`, `En ${m[1]} no hi cap ni un cabinet de ${m[2]} (${m[3]}): en surt un de sencer, més gran que el forat.`][k(l)]],

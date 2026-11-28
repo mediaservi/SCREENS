@@ -10,7 +10,7 @@
 import { PROYECTORES } from '../screens/proyeccion.js';
 import { BR } from '../screens/brian.js';
 
-const VERSION = 'v11.71';
+const VERSION = 'v11.72';
 const PAG = document.getElementById('consola') ? 'consola' : 'portada';
 const RAIZ = new URL('../', import.meta.url).href;
 /* v11.20 · al saltar de página desde aquí, lo escrito viaja igual que desde la vista completa */
@@ -434,6 +434,7 @@ function pintaUnica() {
       f.innerHTML = ln.outerHTML + `<button type="button" class="vu-bt" data-ss="compartir" title="${esc(t('compartir'))}">${ic('compartir')}<span>${esc(t('compartir'))}</span></button>`;
     }
   }
+  if (window.SC_AJUSTARES) window.SC_AJUSTARES();   /* v11.72 · la frase de arriba cambia el alto de RESULTADOS */
   barra();
   if (W) pintaAsis();
   if (!arrancado) { arrancado = true; arranque(); }

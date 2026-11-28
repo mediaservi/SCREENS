@@ -987,3 +987,14 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 [data-tema="claro"] .cn b { text-shadow: none; }
 [data-tema="claro"] .cn svg { stroke: #15161a; }
 [data-tema="claro"] .cn-g { color: #15161a; }
+
+/* v11.72 · RESULTADOS nunca se corta: pestañas pequeñas para el detalle, «Por qué» en una línea y, en último caso, desplazamiento */
+.det-res.subt { display: flex; flex-direction: column; gap: calc(var(--u) * 6); }
+.det-res.subt > .blk { display: none; }
+.det-res.subt > .blk.sub-on { display: flex; flex: 1 1 auto; min-height: 0; }
+.subt-tabs { display: flex; gap: calc(var(--u) * 4); flex: 0 0 auto; }
+.subt-tabs button { flex: 1 1 0; min-width: 0; padding: calc(var(--u) * 4) calc(var(--u) * 4); border-radius: calc(var(--u) * 7); border: 1px solid var(--linea); background: var(--campo); color: var(--tenue);
+  font: 800 calc(var(--u) * 10.5)/1.1 Inter, system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.subt-tabs button[aria-selected="true"] { color: var(--txt); border-color: var(--marca); box-shadow: inset 0 0 0 1px var(--marca); }
+.rc2 > .porque li:not(:first-child) { display: none; }
+.rc3 .det-res, .rc3 .det-res > .blk.sub-on > .blk-cu { overflow: auto; scrollbar-width: thin; }

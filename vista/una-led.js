@@ -33,7 +33,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.71';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.72';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -890,7 +890,23 @@ function prodCifrasS() {
     const pon = (mini) => { const o = cu.querySelector('.cp'); if (o) o.remove(); cu.insertAdjacentHTML('beforeend', tira(foto, ln, nom || '', mini)); b.classList.add('con-prod'); return cu.scrollHeight <= cu.clientHeight + 1; };
     if (pon(false) || (ln.length && pon(true))) return; const o = cu.querySelector('.cp'); if (o) o.remove(); b.classList.remove('con-prod'); });
 }
-function ajustaTextos() { ajustaSim(); try { prodCifrasS(); } catch (e) {} document.querySelectorAll('.pz-res, .cif > span, .cif > b, .cif > em, .dets button, .det-res .blk-cab b').forEach((x) => encoge(x, 10)); document.querySelectorAll('.num input').forEach(encogeIn); document.querySelectorAll('.rejilla select.sel').forEach(encogeSel); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); document.querySelectorAll('.nota.alt').forEach((e) => encoge(e, 6)); document.querySelectorAll('.gran.med, .rejilla .blk-cab b').forEach((e) => encoge(e, 9)); document.querySelectorAll('.cel b, .cel span').forEach((e) => encoge(e, 8)); }
+/* v11.72 · RESULTADOS nunca se corta (Josep, 28-11): si no cabe, (1) Medida real · Instalación · Señal · Alimentación pasan a pestañas pequeñas
+   con uno a la vista, (2) «Por qué este equipo» se queda en su primera línea, (3) y en último caso el detalle se desplaza dentro de su caja */
+let SUBR = 'RME';
+function ajustaRes() {
+  const res = document.querySelector('#rejilla [data-blk="RES"]'); if (!res) return; const cu = res.querySelector(':scope > .blk-cu'); if (!cu) return;
+  const det = cu.querySelector('.det-res'), mas = () => cu.scrollHeight > cu.clientHeight + 2 || [...cu.querySelectorAll('.det-res > .blk.sub-on > .blk-cu')].some((c) => c.scrollHeight > c.clientHeight + 2);
+  cu.classList.remove('rc2', 'rc3'); if (det) { det.classList.remove('subt'); const tb = det.querySelector(':scope > .subt-tabs'); if (tb) tb.remove(); det.querySelectorAll(':scope > .blk').forEach((b) => b.classList.remove('sub-on')); }
+  if (getComputedStyle(cu).overflowY === 'visible' || !mas()) return;
+  if (det) { const bl = [...det.querySelectorAll(':scope > .blk')]; if (bl.length > 1) {
+    if (!bl.some((b) => b.dataset.blk === SUBR)) SUBR = bl[0].dataset.blk;
+    const tb = document.createElement('div'); tb.className = 'subt-tabs'; tb.setAttribute('role', 'tablist');
+    tb.innerHTML = bl.map((b) => { const n = (b.querySelector('.blk-cab > b') || {}).textContent || b.dataset.blk; return `<button type="button" role="tab" data-subr="${b.dataset.blk}" aria-selected="${b.dataset.blk === SUBR}">${esc(n)}</button>`; }).join('');
+    det.classList.add('subt'); det.prepend(tb); bl.forEach((b) => b.classList.toggle('sub-on', b.dataset.blk === SUBR)); } }
+  if (mas()) cu.classList.add('rc2'); if (mas()) cu.classList.add('rc3');
+}
+window.SC_AJUSTARES = ajustaRes;
+function ajustaTextos() { ajustaSim(); ajustaRes(); try { prodCifrasS(); } catch (e) {} document.querySelectorAll('.pz-res, .cif > span, .cif > b, .cif > em, .dets button, .det-res .blk-cab b').forEach((x) => encoge(x, 10)); document.querySelectorAll('.num input').forEach(encogeIn); document.querySelectorAll('.rejilla select.sel').forEach(encogeSel); ajustaPhPide(); const r = $('#pide-res'); if (r && !r.hidden) { const tr = [...r.querySelectorAll('span')]; if (tr.length && getComputedStyle(tr[0]).display === 'block') tr.forEach((x) => encoge(x)); else encoge(r); } document.querySelectorAll('#pie-l .nota, #pie-c, .elev > span').forEach((e) => encoge(e, 6)); document.querySelectorAll('.dato b').forEach((e) => encoge(e)); document.querySelectorAll('.nota.alt').forEach((e) => encoge(e, 6)); document.querySelectorAll('.gran.med, .rejilla .blk-cab b').forEach((e) => encoge(e, 9)); document.querySelectorAll('.cel b, .cel span').forEach((e) => encoge(e, 8)); }
 function todo() { if (document.activeElement !== $('#pide')) EDITA = false; calcula(); pintaRejilla(); pintaPie(); guarda(); ajustaTextos(); requestAnimationFrame(ajustaTextos); if (window.SCSIMPLE) window.SCSIMPLE.aviso(); }   /* v10.49 · el modo SIMPLE se repinta con el mismo cálculo */   /* v10.45 · y otra vez cuando ya está traducido */
 
 /* ---------- ventana grande (el ojo) y ajustes (la ruedita) ---------- */
@@ -999,6 +1015,7 @@ function monta() {
     if ((b = q('[data-alt-crm]'))) { try { $('#stk-pop').hidePopover(); } catch (x) {} E.crm = b.dataset.altCrm; E.pitch = 0; E.pitchOtros = []; E.resMin = ''; E.dist = 0; todo(); return; }   /* v10.75 · alternativa con stock elegida desde la ficha de stock */
     if ((b = q('[data-pz]'))) { const n = +b.dataset.pz; if (PZV.includes(n)) PZA = PZA.filter((x) => PZV.includes(x) && x !== n); else PZA = PZA.filter((x) => x !== n).concat(n); PZFIT = null; try { localStorage.setItem(PZK, JSON.stringify(PZA)); } catch (x) {} pintaRejilla(); ajustaTextos(); const f = document.querySelector(`[data-pz="${n}"]`); if (f) f.focus(); return; }   /* v11.16 · abrir o plegar un paso */
     if ((b = q('.pz.pag [data-sub]')) && !q('.pz.pag [data-sub] button, .pz.pag [data-sub] select')) { const n = +b.closest('.pz').dataset.pzs; SUB[n] = b.dataset.sub; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.pz.pag [data-sub="${SUB[n]}"]`); if (f) f.focus(); return; }
+    if ((b = q('[data-subr]'))) { SUBR = b.dataset.subr; const d = b.closest('.det-res'); d.querySelectorAll(':scope > .blk').forEach((x) => x.classList.toggle('sub-on', x.dataset.blk === SUBR)); d.querySelectorAll('[data-subr]').forEach((x) => x.setAttribute('aria-selected', x.dataset.subr === SUBR)); return; }
     if (q('[data-dett]')) { DETT = !DETT; try { sessionStorage.setItem('screens_detalle', DETT ? '1' : '0'); } catch (er) {} pintaRejilla(); ajustaTextos(); return; }
     if ((b = q('[data-det]'))) { DET = b.dataset.det; pintaRejilla(); ajustaTextos(); const f = document.querySelector(`.dets [data-det="${DET}"]`); if (f) f.focus(); return; }
     if ((b = q('[data-masl]'))) { const n = +b.dataset.masl; MASL = MASL === n ? 0 : n; try { localStorage.setItem('screens_mas_led', String(MASL)); } catch (e) {} if (MASL && !PZA.includes(n)) PZA.push(n); todo(); return; }

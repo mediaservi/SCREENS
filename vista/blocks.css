@@ -933,3 +933,17 @@ select[data-crm] option.stk { background: #0f5a50; color: #e4fbf7; }
 .blk-cab .blk-rs { display: none; }
 .pz.pag > .pz-cu > .blk:not(.sub-ab) > .blk-cab .blk-rs { display: block; flex: 1 1 auto; min-width: 0; margin: 0 calc(var(--u) * 8) 0 calc(var(--u) * 12); text-align: right; font-family: 'Share Tech Mono', monospace; font-size: calc(var(--u) * 14); color: var(--verde); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0; }
 @media (max-width: 900px), (max-height: 520px) { .lienzo > .simctl { align-items: flex-end; } .simcu { grid-template-columns: auto auto; } .simcu > .g { grid-auto-columns: calc(var(--u) * 30); } .simcu button { height: calc(var(--u) * 28); } }
+/* v11.65 · iconos centrados, flechas de la elevación, ladrillos dentro del grupo PARED y disposiciones para no pisar el dibujo */
+.simctl button svg, .simcu button svg, .elev .elev-fl svg { position: static !important; inset: auto !important; display: block; margin: auto; }
+.simcu button svg { width: calc(var(--u) * 17); height: calc(var(--u) * 17); }
+.elev .elev-fl { display: grid; place-items: center; padding: 0; }
+.elev .elev-fl svg { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+.simcu .lad3 { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: calc(var(--u) * 2); align-items: center; justify-items: center; min-width: 0; }
+.simcu .lad3 button { width: calc(var(--u) * 22); height: calc(var(--u) * 22); max-width: 100%; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .55); }
+.simcu > .g:last-child { grid-auto-columns: minmax(0, 1fr); }
+.simcu > .g:last-child:has(.lad3) { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.9fr) minmax(0, 1fr); grid-auto-flow: row; }
+.simctl.apila .simcu { grid-template-columns: 1fr; }
+.simctl.compacta .simcu button { height: calc(var(--u) * 22); } .simctl.compacta .elev { padding: calc(var(--u) * 2) calc(var(--u) * 5); }
+.simctl { transform-origin: top right; }
+.simctl.apila .simcu > .g { justify-self: end; }
+@media (max-width: 900px), (max-height: 520px) { .simcu .sc-t { font-size: calc(var(--u) * 7.5); letter-spacing: .04em; } }

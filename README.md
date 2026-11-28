@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.64** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.65** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -78,7 +78,11 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.64)
+## Cambios de la versión actual (v11.65)
+- **Controles de la simulación, pulidos:** icono de subir archivo nuevo y centrado; la elevación se sube y se baja con flechas técnicas (flecha con su cota). Las variantes de los ladrillos salen dentro del propio grupo PARED, en círculos.
+- **Nunca pisan el dibujo:** los controles prueban tres disposiciones (en fila, en dos filas, compacta) y se quedan con la primera que no toca los cuadros de datos, las cotas ni la pantalla; si ninguna cabe, se reducen un poco.
+
+## Cambios de la v11.64
 - **Personalizar la simulación sin ventanas:** bajo ELEVACIÓN DESDE EL SUELO, al mismo ancho, dos grupos de botones. CONTENIDO: carta de ajuste, vídeo de prueba de mediaservi.com (en bucle) y contenido propio (vídeo, foto o enlace). PARED: cemento, madera, mármol, ladrillos y pared propia. Con ladrillos salen unos círculos con sus variantes de color. Nada de esto sale en la captura.
 - **Electrónica y señal juntas:** el backup y la conexión (RJ45 o fibra) están ahora en el mismo apartado que el procesador y el escalador.
 - **Lo elegido, a la vista:** cada apartado plegado enseña en su cabecera lo que tiene elegido (procesador, backup y conexión; mediaserver o «No»; medida; pitch…), y la cabecera del paso 4 dice también el backup y el mediaserver.

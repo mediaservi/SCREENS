@@ -33,7 +33,7 @@ import '../comun/ficha.js?v=11.35';   /* v10.50 · con versión: el icono de sto
 import '../comun/voz.js';
 import { idiomaInicial, idioma, fijaIdioma, vigila, tr, IDIOMAS, NOMBRE } from './idiomas.js?v=10.71';
 idiomaInicial();   /* el idioma guardado de la familia SCREENS o, la primera vez, el del navegador */
-const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.68';
+const ELEC = globalThis.SC_ELEC, FICHA = globalThis.SC_FICHA, VERSION = 'SCREENS v11.69';
 const trM = (txt) => globalThis.SC_TR_MOTOR(txt, idioma());
 const $ = (s, r = document) => r.querySelector(s), esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const numCat = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };   /* v10.94 · dato numérico opcional del catálogo */
@@ -517,8 +517,8 @@ function svgSim(prop, anchoPx, o) {
     g += btn(cx - twA / 2 - 24, py - 30, 180, 'q', 'data-cf="c" data-d="-1"', 'Una columna de cabinets menos') + btn(cx + twA / 2 + 24, py - 30, 0, 'q', 'data-cf="c" data-d="1"', 'Una columna de cabinets más')
       + btn(xa, cy - twH / 2 - 24, -90, 'q', 'data-cf="f" data-d="1"', 'Una fila de cabinets más') + btn(xa, cy + twH / 2 + 24, 90, 'q', 'data-cf="f" data-d="-1"', 'Una fila de cabinets menos'); }
   /* v11.68 · el cartel de la elevación dice «Elevación 90 cm» y lleva las flechas de subir y bajar (sustituye a la barra de ELEVACIÓN de arriba);
-     sale siempre: si no cabe entre la pantalla y el suelo, va en la franja del suelo */
-  { const ex = px + pw / 2, hueco = sueloY - py - ph, ey = hueco > 44 ? (py + ph + sueloY) / 2 : sueloY + 27, et = 'Elevación ' + fmt(E.elev) + ' cm', ew = et.length * 14.8; if (elev > 0.05) g += `<line x1="${ex}" y1="${py + ph + 5}" x2="${ex}" y2="${sueloY}" stroke="#fff" stroke-width="4.2"/><line x1="${ex}" y1="${py + ph + 5}" x2="${ex}" y2="${sueloY}" stroke="#7a14d6" stroke-width="2" stroke-dasharray="6 4"/>`; g += (hueco > 44 || PRINCIPAL ? `<text class="elev-t" x="${ex}" y="${ey + 8}" text-anchor="middle" font-size="23" fill="#fff" stroke="#000" stroke-opacity=".85" stroke-width="5" paint-order="stroke" stroke-linejoin="round" letter-spacing="1" font-family="Share Tech Mono, monospace">${et}</text>` + (interact ? btn(ex - ew / 2 - 24, ey, 90, 'c', 'data-pm="elev" data-d="-1"', 'Bajar la pantalla 10 cm') + btn(ex + ew / 2 + 24, ey, -90, 'c', 'data-pm="elev" data-d="1"', 'Subir la pantalla 10 cm') : '') : ''); }
+     sale siempre: si no cabe entre la pantalla y el suelo, va encima de la cota de ANCHO */
+  { const ex = px + pw / 2, hueco = sueloY - py - ph, ey = hueco > 44 ? (py + ph + sueloY) / 2 : Math.max(20, py - 74),   /* sin sitio debajo: encima de la cota de ANCHO (nunca sobre el rótulo del resumen de abajo) */ et = 'Elevación ' + fmt(E.elev) + ' cm', ew = et.length * 14.8; if (elev > 0.05) g += `<line x1="${ex}" y1="${py + ph + 5}" x2="${ex}" y2="${sueloY}" stroke="#fff" stroke-width="4.2"/><line x1="${ex}" y1="${py + ph + 5}" x2="${ex}" y2="${sueloY}" stroke="#7a14d6" stroke-width="2" stroke-dasharray="6 4"/>`; g += (hueco > 44 || PRINCIPAL ? `<text class="elev-t" x="${ex}" y="${ey + 8}" text-anchor="middle" font-size="23" fill="#fff" stroke="#000" stroke-opacity=".85" stroke-width="5" paint-order="stroke" stroke-linejoin="round" letter-spacing="1" font-family="Share Tech Mono, monospace">${et}</text>` + (interact ? btn(ex - ew / 2 - 24, ey, 90, 'c', 'data-pm="elev" data-d="-1"', 'Bajar la pantalla 10 cm') + btn(ex + ew / 2 + 24, ey, -90, 'c', 'data-pm="elev" data-d="1"', 'Subir la pantalla 10 cm') : '') : ''); }
   return g + '</svg>';
 }
 /* cableado de señal o eléctrico sobre la pantalla vista por detrás: qué cabinets van en cada puerto o línea y por dónde va el cable.

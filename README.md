@@ -4,7 +4,7 @@
 
 Web app de mediaservi.com para calcular pantallas LED y de proyección, desde una sola pantalla hasta salas inmersivas de 4 paredes y suelo. Todo funciona en **una sola pantalla fija**, sin desplazar la página en ordenador ni en TV: cabecera, franja de modo y petición, bloques de mandos, dos vistas grandes, una fila de cifras y pie. En el móvil, las mismas piezas se apilan y se recorren por dentro.
 
-**Versión actual: v11.68** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
+**Versión actual: v11.69** · Web: **https://screens.mediaservi.com** · Licencia GPL-3.0
 
 - **Una pantalla LED** → la portada (`index.html` + `vista/una-led.js`).
 - **Varias pantallas, sala inmersiva y proyección** → la consola (`vista/consola.html?modo=varias-led | varias-proy | una-proy`, con el cálculo de `screens/app.js`), con el mismo formato.
@@ -78,9 +78,12 @@ Bloques en burbuja sobre gris (tema gris oscuro o gris claro), cabecera oscura c
 
 Los calculadores de audio y escenario que nacieron aquí (primero como «Hardware») son ya una app propia, **SYSTEMS**, con su repositorio (`mediaservi/SYSTEMS`) y su dirección (systems.mediaservi.com). Este repositorio vuelve a contener solo SCREENS.
 
-## Cambios de la versión actual (v11.68)
+## Cambios de la versión actual (v11.69)
+- **El cartel de elevación ya no tapa el resumen de abajo:** cuando no cabe entre la pantalla y el suelo, se coloca encima de la cota de ANCHO.
+
+## Cambios de la v11.68
 - **Botones en los carteles de medidas de la simulación:** ANCHO con flechas para una columna de cabinets menos o más, y ALTO con flechas para una fila más o menos (icono cuadrado). La elevación se sube y se baja 10 cm desde su propio cartel (icono redondo).
-- **Cartel de elevación técnico:** «Elevación 90 cm» en texto blanco con halo oscuro, sin fondo ni bocadillo, legible sobre cualquier pared; sale siempre (si no cabe bajo la pantalla, en la franja del suelo).
+- **Cartel de elevación técnico:** «Elevación 90 cm» en texto blanco con halo oscuro, sin fondo ni bocadillo, legible sobre cualquier pared; sale siempre (si no cabe bajo la pantalla, encima de la cota de ANCHO).
 - **Se quita la barra ELEVACIÓN DESDE EL SUELO de arriba:** solo queda la línea de contenido y texturas.
 - Los botones no salen en la captura, en el PDF ni en la vista en grande.
 
